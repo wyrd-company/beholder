@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/rust/symbols.scm",
+  "language": null,
+  "content_hash": "de4171f8abdee0fd2dbfb56762a193034a9cc777db4b91705609b963315a06dd",
+  "tier": 0,
+  "density": 2.45,
+  "lines": 20,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
