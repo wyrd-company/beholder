@@ -1,0 +1,325 @@
+{
+  "path": "crates/beholder/src/hash.rs",
+  "language": "rust",
+  "content_hash": "76e18d6b54aac0df3cfdbf98effcab13ee242f1de1c0b2b2b0f6bcc0a1cb001b",
+  "tier": 1,
+  "density": 7.9660387,
+  "lines": 106,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:hex_sha256",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "hex_sha256",
+      "qualified_path": "hex_sha256",
+      "discriminator": null,
+      "start_line": 9,
+      "start_column": 0,
+      "end_line": 13,
+      "end_column": 1,
+      "declaration": {
+        "line": 9,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "54612aed23907d64f922f02d95169429ab8dce72d531c83c3147da93dfb488a1",
+      "body_fingerprint": "464c5a88b95539d73506e6c19afb8c5426e4b8a4cf9d0dd45865c0876634dc8a"
+    },
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:content_hash",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "content_hash",
+      "qualified_path": "content_hash",
+      "discriminator": null,
+      "start_line": 20,
+      "start_column": 0,
+      "end_line": 25,
+      "end_column": 1,
+      "declaration": {
+        "line": 20,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ac9eca97d8c752bf1cc03e524da9b7b2d17c8869ab9368f8b2940b25e3d941b3",
+      "body_fingerprint": "ce3202a987439efc0eedfe696f5e75fc4d803cd8a106115a10b86028feaaa4f4"
+    },
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:hex_digest",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "hex_digest",
+      "qualified_path": "hex_digest",
+      "discriminator": null,
+      "start_line": 27,
+      "start_column": 0,
+      "end_line": 29,
+      "end_column": 1,
+      "declaration": {
+        "line": 27,
+        "start_column": 3,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0570eea3309359b53bfe438fc4f6463f367b4363e3240746ba9a28b58727714c",
+      "body_fingerprint": "a31be75bd3d9648745f374178c3aca84761ce47adbd20d18db63b7174f4320e4"
+    },
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:tests::lowercase_hex_and_blob_framing_match_stored_addresses",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "lowercase_hex_and_blob_framing_match_stored_addresses",
+      "qualified_path": "tests::lowercase_hex_and_blob_framing_match_stored_addresses",
+      "discriminator": null,
+      "start_line": 37,
+      "start_column": 4,
+      "end_line": 102,
+      "end_column": 5,
+      "declaration": {
+        "line": 37,
+        "start_column": 7,
+        "end_column": 60
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a68b7c95471f61cd9ca402ae875f66cc7ba750d7d044304844e25a8f53fc45a3",
+      "body_fingerprint": "33547d7f5148dab9b7064a81957fa5f7c1a61a2e3115689fd07055786e610d35"
+    },
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:tests::hashes_are_stable",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "hashes_are_stable",
+      "qualified_path": "tests::hashes_are_stable",
+      "discriminator": null,
+      "start_line": 105,
+      "start_column": 4,
+      "end_line": 108,
+      "end_column": 5,
+      "declaration": {
+        "line": 105,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "049109cb19152920f71ba747c1335a861deb9d33a37fa2d3654adc7299bd001f",
+      "body_fingerprint": "9ebde23f4eb01f69cbc8807f8c34e799722466da25f4a9c3c916970d4c9b6ad2"
+    },
+    {
+      "id": "rust:crates/beholder/src/hash.rs:function:tests::content_hash_includes_the_length_header",
+      "path": "crates/beholder/src/hash.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "content_hash_includes_the_length_header",
+      "qualified_path": "tests::content_hash_includes_the_length_header",
+      "discriminator": null,
+      "start_line": 111,
+      "start_column": 4,
+      "end_line": 113,
+      "end_column": 5,
+      "declaration": {
+        "line": 111,
+        "start_column": 7,
+        "end_column": 46
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0be8675d1668d415b12b356285ace4d390501a496ac94ec5848d752fd81a19d2",
+      "body_fingerprint": "2ad290793bdd5bb5d974b86d054f54c816ae6148d141ab7bc60fade365dea689"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 9,
+      "within": 0
+    },
+    {
+      "name": "Sha256",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Sha256",
+      "kind": "call",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Sha256",
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "update",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "finalize",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 12,
+      "within": 0
+    },
+    {
+      "name": "hex_digest",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 12,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 1
+    },
+    {
+      "name": "Sha256",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 21,
+      "within": 1
+    },
+    {
+      "name": "new",
+      "qualifier": "Sha256",
+      "kind": "call",
+      "target": null,
+      "line": 21,
+      "within": 1
+    },
+    {
+      "name": "new",
+      "qualifier": "Sha256",
+      "kind": "path",
+      "target": null,
+      "line": 21,
+      "within": 1
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 22,
+      "within": 1
+    },
+    {
+      "name": "update",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 22,
+      "within": 1
+    },
+    {
+      "name": "update",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 23,
+      "within": 1
+    },
+    {
+      "name": "finalize",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 24,
+      "within": 1
+    },
+    {
+      "name": "hex_digest",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 24,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 28,
+      "within": 2
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 28,
+      "within": 2
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 28,
+      "within": 2
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Digest",
+      "path": [
+        "sha2",
+        "Digest"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Sha256",
+      "path": [
+        "sha2",
+        "Sha256"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "hash"
+  ]
+}

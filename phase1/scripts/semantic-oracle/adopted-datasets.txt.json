@@ -1,0 +1,12 @@
+{
+  "path": "scripts/semantic-oracle/adopted-datasets.txt",
+  "language": null,
+  "content_hash": "90208f3b09ef180af51b17e6873397b90304b8bdaa2dc7d7cbdac038597e65f4",
+  "tier": 0,
+  "density": 0.11111111,
+  "lines": 9,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
