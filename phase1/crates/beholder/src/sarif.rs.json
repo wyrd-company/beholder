@@ -1,0 +1,1503 @@
+{
+  "path": "crates/beholder/src/sarif.rs",
+  "language": "rust",
+  "content_hash": "a38d0fc6a55a5f5d09ea2b0bf93eb404aa1eff9c252b8d74eae4984b86714bf5",
+  "tier": 1,
+  "density": 33.432346,
+  "lines": 296,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Log",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Log",
+      "qualified_path": "Log",
+      "discriminator": null,
+      "start_line": 20,
+      "start_column": 0,
+      "end_line": 25,
+      "end_column": 1,
+      "declaration": {
+        "line": 20,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "cd8d7f650941c77eb11b535578bc673dd9f37d450c929adc7a6f9e7be0c47d3d",
+      "body_fingerprint": "75e40770f7165ce484e95ac978eed20943b7d922663dce2540733b4c19fd3f04"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Run",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Run",
+      "qualified_path": "Run",
+      "discriminator": null,
+      "start_line": 28,
+      "start_column": 0,
+      "end_line": 33,
+      "end_column": 1,
+      "declaration": {
+        "line": 28,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4340b788afb366f08b323869eed1775951b8ae2d9585bd49978aeed4656506a6",
+      "body_fingerprint": "a828ae424e403d3bac49eb6938be54019bc1e0d5ac550bb73471c51f1d9e84c4"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Tool",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Tool",
+      "qualified_path": "Tool",
+      "discriminator": null,
+      "start_line": 36,
+      "start_column": 0,
+      "end_line": 38,
+      "end_column": 1,
+      "declaration": {
+        "line": 36,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b8c98ec8dee5a2e0b848551abc24d39d83592b046155486a20101f88c38f90c7",
+      "body_fingerprint": "fa6936ad73cb44dfd141268d84c29b41ef8e769b7d42112da1918868c592eef8"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Driver",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Driver",
+      "qualified_path": "Driver",
+      "discriminator": null,
+      "start_line": 41,
+      "start_column": 0,
+      "end_line": 47,
+      "end_column": 1,
+      "declaration": {
+        "line": 41,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "55018588e8102f8f99f8617a6d3166d3984387be44b295ce19bf8ec57359873b",
+      "body_fingerprint": "17fab6afec18bf8f5b1d87177cce2cd7ae079d1ec74cf0d5f1ee16e6b66e71e6"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Rule",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Rule",
+      "qualified_path": "Rule",
+      "discriminator": null,
+      "start_line": 50,
+      "start_column": 0,
+      "end_line": 59,
+      "end_column": 1,
+      "declaration": {
+        "line": 50,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "cdce1d67a3b60194725600a8200082bc476edc1a18b316fcff76c9bd1beff635",
+      "body_fingerprint": "7d23623764af8b791246dfa49246b380f327287c66feecbb910e2c3416fce2e1"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Configuration",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Configuration",
+      "qualified_path": "Configuration",
+      "discriminator": null,
+      "start_line": 62,
+      "start_column": 0,
+      "end_line": 64,
+      "end_column": 1,
+      "declaration": {
+        "line": 62,
+        "start_column": 11,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9b31d1c4e8e470de00147be118f1b036c37ebbfc2d891d89e78461854b152259",
+      "body_fingerprint": "d5b923d9bdc4f72471bd77b86c03b6b9978413351d3c9440f7d1807d3369d273"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Message",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Message",
+      "qualified_path": "Message",
+      "discriminator": null,
+      "start_line": 67,
+      "start_column": 0,
+      "end_line": 69,
+      "end_column": 1,
+      "declaration": {
+        "line": 67,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6307739c10d9618fdb77d603da88c7b377abcc97c9d2f5bd8852b760b300e35c",
+      "body_fingerprint": "f85dbea960202bc8651ffec123836493e79dc3c071f32c4e19cf042651bc0715"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:SarifResult",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SarifResult",
+      "qualified_path": "SarifResult",
+      "discriminator": null,
+      "start_line": 72,
+      "start_column": 0,
+      "end_line": 80,
+      "end_column": 1,
+      "declaration": {
+        "line": 72,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "db930da5147bec88a1c8e3e6c9910261463544b4c517496ec3377f4c252c48a9",
+      "body_fingerprint": "5a26830b13f97738a77a5e22ae3ab23ed27e5c9de67892dcd4a371652ae78d38"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Location",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Location",
+      "qualified_path": "Location",
+      "discriminator": null,
+      "start_line": 83,
+      "start_column": 0,
+      "end_line": 86,
+      "end_column": 1,
+      "declaration": {
+        "line": 83,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4179de3298042dc11bc194166a8633ffee3a47b145ba907f206fcf5268560679",
+      "body_fingerprint": "62d1033c5dbe282f4923cee78e1ca65711d842919f3e30e5f0ae9bf748929d80"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:PhysicalLocation",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "PhysicalLocation",
+      "qualified_path": "PhysicalLocation",
+      "discriminator": null,
+      "start_line": 89,
+      "start_column": 0,
+      "end_line": 93,
+      "end_column": 1,
+      "declaration": {
+        "line": 89,
+        "start_column": 11,
+        "end_column": 27
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9b4e5f1e08043e9e0415c90e23f9bb5b061b58405d76ff73ebd7ab98ba694b36",
+      "body_fingerprint": "6f209141bafa090fdb43975a87c3b4adc9aab7c2be792658e87b517a1ffc8c04"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:ArtifactLocation",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ArtifactLocation",
+      "qualified_path": "ArtifactLocation",
+      "discriminator": null,
+      "start_line": 96,
+      "start_column": 0,
+      "end_line": 98,
+      "end_column": 1,
+      "declaration": {
+        "line": 96,
+        "start_column": 11,
+        "end_column": 27
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "86422b9bba4f1c53477db112bbeb0e6fded22d4753942c87b3e12a1724ccaff4",
+      "body_fingerprint": "6b27ebde8bd2ed23845b7eaac47a7dd8a30834bfd36602d921b69bbeac6ec9ab"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:type:Region",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Region",
+      "qualified_path": "Region",
+      "discriminator": null,
+      "start_line": 101,
+      "start_column": 0,
+      "end_line": 106,
+      "end_column": 1,
+      "declaration": {
+        "line": 101,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8627f10d210662be118bcb1338ddc2d2960af9dcf46a729ca5af46496d0009a8",
+      "body_fingerprint": "d145bd72a7ad375f5e2d49bb7275439eb4b2f2274c4d38c62f9215d059b2f1d8"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:render",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "render",
+      "qualified_path": "render",
+      "discriminator": null,
+      "start_line": 112,
+      "start_column": 0,
+      "end_line": 147,
+      "end_column": 1,
+      "declaration": {
+        "line": 112,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "480664e1ef6ee8e8be6ce5cddc545ac648d15631c584534a8a594f720829b5e7",
+      "body_fingerprint": "ffeef947ffde9bcb1c97fa2723146886559a42e986acc9cfbf365c9796585be6"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:result",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "result",
+      "qualified_path": "result",
+      "discriminator": null,
+      "start_line": 149,
+      "start_column": 0,
+      "end_line": 175,
+      "end_column": 1,
+      "declaration": {
+        "line": 149,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a83bcd19b5ef057b17a5bd62b0cce1c5434de3df26342248471d6753b234785f",
+      "body_fingerprint": "a43b31444d0de7d9607bd2ea60ff769bc0da74b96cf837a9bca669b017043c73"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:level",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "level",
+      "qualified_path": "level",
+      "discriminator": null,
+      "start_line": 178,
+      "start_column": 0,
+      "end_line": 184,
+      "end_column": 1,
+      "declaration": {
+        "line": 178,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "28dc4634be184805a196f31aad9c2c41785e75e8728461ee66df3cd60872c7e5",
+      "body_fingerprint": "bed44c7de9fbcd28a24567d8602db93c4b17ce28822bc51f96953c9c02f1c9d3"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:describe",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "describe",
+      "qualified_path": "describe",
+      "discriminator": null,
+      "start_line": 186,
+      "start_column": 0,
+      "end_line": 207,
+      "end_column": 1,
+      "declaration": {
+        "line": 186,
+        "start_column": 3,
+        "end_column": 11
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "34b6917e5af5a9662b88e55f07c8e131a35d4aa480b2f194a9d52a4b10341d71",
+      "body_fingerprint": "b3c5766ba6155293973ab8746103178f4677981454924bbd0b83744c9062a4ba"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::report",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "report",
+      "qualified_path": "tests::report",
+      "discriminator": null,
+      "start_line": 215,
+      "start_column": 4,
+      "end_line": 238,
+      "end_column": 5,
+      "declaration": {
+        "line": 215,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2ea6b0114d3a02c49f68e3e402c513e59161143f74f04fe97c60c3be297e3e1b",
+      "body_fingerprint": "33e7c31f853bc93132a762155a90b76d1b25ce3403d9899c42e8c7fa23b2117e"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::risky",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "risky",
+      "qualified_path": "tests::risky",
+      "discriminator": null,
+      "start_line": 240,
+      "start_column": 4,
+      "end_line": 248,
+      "end_column": 5,
+      "declaration": {
+        "line": 240,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c73b29a43524cfc442b73745ab7a24ff0cffe359bb697e848ab7d542877675d6",
+      "body_fingerprint": "167e15c48a150e629461a929b5d2c54927e020d3e94750d5b01acdc49a017e1b"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::a_log_declares_the_schema_and_version",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_log_declares_the_schema_and_version",
+      "qualified_path": "tests::a_log_declares_the_schema_and_version",
+      "discriminator": null,
+      "start_line": 251,
+      "start_column": 4,
+      "end_line": 256,
+      "end_column": 5,
+      "declaration": {
+        "line": 251,
+        "start_column": 7,
+        "end_column": 44
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "de34d9a3b5208a58003724d2182cb4ec13e42e98f318164fbb012a2e39bdccd3",
+      "body_fingerprint": "e1cff849203320e43b06fc317ddf13dd7a440ea43e2c35f46f7334867424f233"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::only_surfaced_changes_become_results",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "only_surfaced_changes_become_results",
+      "qualified_path": "tests::only_surfaced_changes_become_results",
+      "discriminator": null,
+      "start_line": 259,
+      "start_column": 4,
+      "end_line": 278,
+      "end_column": 5,
+      "declaration": {
+        "line": 259,
+        "start_column": 7,
+        "end_column": 43
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b3ef46650a56be68d7d98e4bfe4005cb8035d6db216ec036484112edfe021c39",
+      "body_fingerprint": "b58ab57c7f83d7491d0032147ff027e602b6ee90d6f6b357495f8b863fd6f0e0"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::a_quiet_report_produces_no_results",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_quiet_report_produces_no_results",
+      "qualified_path": "tests::a_quiet_report_produces_no_results",
+      "discriminator": null,
+      "start_line": 281,
+      "start_column": 4,
+      "end_line": 286,
+      "end_column": 5,
+      "declaration": {
+        "line": 281,
+        "start_column": 7,
+        "end_column": 41
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9be7506d293493120803d2e364bb170ef08031a2247c1d5605f916f33b090159",
+      "body_fingerprint": "1c25e4b3dd72da0b23376bb8195be75eaca5635775897ac3eccddc8e367ea7c9"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::a_result_points_at_the_symbols_line_range",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_result_points_at_the_symbols_line_range",
+      "qualified_path": "tests::a_result_points_at_the_symbols_line_range",
+      "discriminator": null,
+      "start_line": 289,
+      "start_column": 4,
+      "end_line": 306,
+      "end_column": 5,
+      "declaration": {
+        "line": 289,
+        "start_column": 7,
+        "end_column": 48
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9fd970ebf10cf3aeec3134165e7a5db3b564b8c9c4d42895fe4f831508816836",
+      "body_fingerprint": "aff1818b13666d7e37a3bce34c0cf557e5192b8196542ddf8031578bb2b8cde1"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::nothing_is_reported_as_an_error",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "nothing_is_reported_as_an_error",
+      "qualified_path": "tests::nothing_is_reported_as_an_error",
+      "discriminator": null,
+      "start_line": 309,
+      "start_column": 4,
+      "end_line": 319,
+      "end_column": 5,
+      "declaration": {
+        "line": 309,
+        "start_column": 7,
+        "end_column": 38
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "b504394c0ca1d39b040b3430d2dfd04d9ec1c7e7dc59250bc8b81e429b5b7e85",
+      "body_fingerprint": "8ac8dfb3b563af4ce494e55e771e8f714a2930ae0db8e2263f6d99741efe455c"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::a_result_fingerprints_the_symbol_not_the_line",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_result_fingerprints_the_symbol_not_the_line",
+      "qualified_path": "tests::a_result_fingerprints_the_symbol_not_the_line",
+      "discriminator": null,
+      "start_line": 322,
+      "start_column": 4,
+      "end_line": 328,
+      "end_column": 5,
+      "declaration": {
+        "line": 322,
+        "start_column": 7,
+        "end_column": 52
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "72480b34fd7cf63334729133dfc677a8d7e174b93769b11a0edfc062c5232a7b",
+      "body_fingerprint": "3a6019a6583ac6fb77d1b7d1112f677a132967f5b80dd2bf48dfad09861dc73c"
+    },
+    {
+      "id": "rust:crates/beholder/src/sarif.rs:function:tests::output_is_deterministic",
+      "path": "crates/beholder/src/sarif.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "output_is_deterministic",
+      "qualified_path": "tests::output_is_deterministic",
+      "discriminator": null,
+      "start_line": 331,
+      "start_column": 4,
+      "end_line": 333,
+      "end_column": 5,
+      "declaration": {
+        "line": 331,
+        "start_column": 7,
+        "end_column": 30
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4761ef3d078c31de42afb5abba880ff487d42697be4101e0dc2b0ef134051b5f",
+      "body_fingerprint": "a0fcf70e6134643129c9f4f265d761cb11a8caaa22649823b235ef3fa5d88892"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "risk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 13,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 23,
+      "within": 0
+    },
+    {
+      "name": "Run",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "Tool",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 29,
+      "within": 1
+    },
+    {
+      "name": "SarifResult",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 32,
+      "within": 1
+    },
+    {
+      "name": "Driver",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 42,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 43,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 45,
+      "within": 3
+    },
+    {
+      "name": "Rule",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 46,
+      "within": 3
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 46,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 51,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 52,
+      "within": 4
+    },
+    {
+      "name": "Message",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 54,
+      "within": 4
+    },
+    {
+      "name": "Message",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 56,
+      "within": 4
+    },
+    {
+      "name": "Configuration",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 58,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 68,
+      "within": 6
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 74,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "Message",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 76,
+      "within": 7
+    },
+    {
+      "name": "Location",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 7
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 7
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 7
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": "collections",
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 7
+    },
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 79,
+      "within": 7
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 79,
+      "within": 7
+    },
+    {
+      "name": "PhysicalLocation",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 85,
+      "within": 8
+    },
+    {
+      "name": "ArtifactLocation",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 91,
+      "within": 9
+    },
+    {
+      "name": "Region",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 92,
+      "within": 9
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 97,
+      "within": 10
+    },
+    {
+      "name": "Log",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 112,
+      "within": 12
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 112,
+      "within": 12
+    },
+    {
+      "name": "Log",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 113,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 115,
+      "within": 12
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 149,
+      "within": 13
+    },
+    {
+      "name": "SarifResult",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 149,
+      "within": 13
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": "collections",
+      "kind": "path",
+      "target": null,
+      "line": 150,
+      "within": 13
+    },
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 150,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "call",
+      "target": null,
+      "line": 150,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "path",
+      "target": null,
+      "line": 150,
+      "within": 13
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 150,
+      "within": 13
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 13
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 13
+    },
+    {
+      "name": "SarifResult",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 157,
+      "within": 13
+    },
+    {
+      "name": "level",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 158,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 158,
+      "within": 13
+    },
+    {
+      "name": "Message",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 159,
+      "within": 13
+    },
+    {
+      "name": "describe",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 160,
+      "within": 13
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 178,
+      "within": 14
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 186,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 186,
+      "within": 15
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 190,
+      "within": 15
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 202,
+      "within": 15
+    },
+    {
+      "name": "TraitMethodFanInUnreliable",
+      "qualifier": "WeightCaveat",
+      "kind": "path",
+      "target": null,
+      "line": 202,
+      "within": 15
+    },
+    {
+      "name": "WeightCaveat",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 202,
+      "within": 15
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 203,
+      "within": 15
+    },
+    {
+      "name": "risk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 212,
+      "within": null
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 213,
+      "within": null
+    },
+    {
+      "name": "walk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 213,
+      "within": null
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 215,
+      "within": 16
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 16
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 16
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 16
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 16
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 16
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 219,
+      "within": 16
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 220,
+      "within": 16
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 221,
+      "within": 16
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "analysis",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "call",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 224,
+      "within": 16
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 226,
+      "within": 16
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 227,
+      "within": 16
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 228,
+      "within": 16
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 228,
+      "within": 16
+    },
+    {
+      "name": "delta",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 228,
+      "within": 16
+    },
+    {
+      "name": "rank",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 229,
+      "within": 16
+    },
+    {
+      "name": "Damped",
+      "qualifier": "FanInBasis",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 16
+    },
+    {
+      "name": "FanInBasis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 16
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 240,
+      "within": 17
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 241,
+      "within": 17
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 252,
+      "within": 18
+    },
+    {
+      "name": "risky",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 252,
+      "within": 18
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 262,
+      "within": 19
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 269,
+      "within": 19
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 20
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 20
+    },
+    {
+      "name": "risky",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 290,
+      "within": 21
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 291,
+      "within": 21
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 293,
+      "within": 21
+    },
+    {
+      "name": "surfaced",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 293,
+      "within": 21
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 293,
+      "within": 21
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 22
+    },
+    {
+      "name": "risky",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 22
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 323,
+      "within": 23
+    },
+    {
+      "name": "risky",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 323,
+      "within": 23
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "DEFAULT_THRESHOLD",
+      "path": [
+        "risk",
+        "DEFAULT_THRESHOLD"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Deserialize",
+      "path": [
+        "serde",
+        "Deserialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "FanInBasis",
+      "path": [
+        "risk",
+        "FanInBasis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "RankedChange",
+      "path": [
+        "risk",
+        "RankedChange"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Report",
+      "path": [
+        "risk",
+        "Report"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Serialize",
+      "path": [
+        "serde",
+        "Serialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "SourceFile",
+      "path": [
+        "walk",
+        "SourceFile"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "WeightCaveat",
+      "path": [
+        "risk",
+        "WeightCaveat"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "rank",
+      "path": [
+        "risk",
+        "rank"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "sarif"
+  ]
+}
