@@ -1,0 +1,1808 @@
+{
+  "path": "crates/beholder/src/jsonl.rs",
+  "language": "rust",
+  "content_hash": "48a0d57012a07180858f1bb871030d9ff053b2e7c1e2ddec6d38aa4245231cd2",
+  "tier": 1,
+  "density": 21.464201,
+  "lines": 282,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:type:SymbolRecord",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SymbolRecord",
+      "qualified_path": "SymbolRecord",
+      "discriminator": null,
+      "start_line": 16,
+      "start_column": 0,
+      "end_line": 43,
+      "end_column": 1,
+      "declaration": {
+        "line": 16,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ce2c620bf3090b8e2ce44b0a649ef07b5dc63ced5b4d26d1c0c2b2b2dc3a4dbf",
+      "body_fingerprint": "7efb878555eeee1a07d13729e580a89cce07bbca597bae9bfbeedef7aa8430e8"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:type:EdgeRecord",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "EdgeRecord",
+      "qualified_path": "EdgeRecord",
+      "discriminator": null,
+      "start_line": 50,
+      "start_column": 0,
+      "end_line": 61,
+      "end_column": 1,
+      "declaration": {
+        "line": 50,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1f14c4df375c6aec67e0f0389c1935a2d57bd05a7446e7437c1593508a787f42",
+      "body_fingerprint": "37bd19a02ad2d9db3d0495319b305b5e76ee7031c3df9f658437bb683c911a01"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:type:FileRecord",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "FileRecord",
+      "qualified_path": "FileRecord",
+      "discriminator": null,
+      "start_line": 66,
+      "start_column": 0,
+      "end_line": 76,
+      "end_column": 1,
+      "declaration": {
+        "line": 66,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c327661fe6093e0ba41a97e003f72046290397a492528040aa6f6af7595d0023",
+      "body_fingerprint": "799bc298edb3b0fd71e086de4bc400e27eac5d7a6418424c326929aadc86d609"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:symbol_records",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "symbol_records",
+      "qualified_path": "symbol_records",
+      "discriminator": null,
+      "start_line": 79,
+      "start_column": 0,
+      "end_line": 143,
+      "end_column": 1,
+      "declaration": {
+        "line": 79,
+        "start_column": 7,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "aa9125d8afaf5bbfed2858833217d1870a47f0ed8261b2fe0296b1f6efe71c7c",
+      "body_fingerprint": "f3d02cc4634053b2a4ce53e4c4f2de4bd4431ea1a0a4a2d6e289adec7fdf0c97"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:edge_records",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "edge_records",
+      "qualified_path": "edge_records",
+      "discriminator": null,
+      "start_line": 146,
+      "start_column": 0,
+      "end_line": 177,
+      "end_column": 1,
+      "declaration": {
+        "line": 146,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ef90039d2fc296072c6b233d4dd30260353c6e1e8d589c8e93e28bb149d9cc54",
+      "body_fingerprint": "63687724ca5a724a2269c89030da7041510f787ac10207dc56c10e5a4f08cb8e"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:file_records",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "file_records",
+      "qualified_path": "file_records",
+      "discriminator": null,
+      "start_line": 180,
+      "start_column": 0,
+      "end_line": 204,
+      "end_column": 1,
+      "declaration": {
+        "line": 180,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e795a6b9949e0e39c169939d45b738d22fa868c3c006fec74cb397005e63234e",
+      "body_fingerprint": "21bc9fb91f9e301ec0728fd824242e1b16854354a16b6697f596f876990c5480"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:write",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "write",
+      "qualified_path": "write",
+      "discriminator": null,
+      "start_line": 207,
+      "start_column": 0,
+      "end_line": 213,
+      "end_column": 1,
+      "declaration": {
+        "line": 207,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "f805d430a98b26767a4bfbe3b08de555013e2e2a48e74292c28bb7d66b47a962",
+      "body_fingerprint": "559ed67531e0c2b47fa29a2b599acfc595542f5ad5a46728caf965ff51f4cf8e"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:to_string",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "to_string",
+      "qualified_path": "to_string",
+      "discriminator": null,
+      "start_line": 216,
+      "start_column": 0,
+      "end_line": 220,
+      "end_column": 1,
+      "declaration": {
+        "line": 216,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a2008c8589717b55704a0fbe8faa701cc52d25f75fac48d0a1a6def4f5780519",
+      "body_fingerprint": "21a824e07fc9637175da59ef2d77517ea7b62c9fdbcbc6849445c33e83b5a41f"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:tests::analyze",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "analyze",
+      "qualified_path": "tests::analyze",
+      "discriminator": null,
+      "start_line": 227,
+      "start_column": 4,
+      "end_line": 236,
+      "end_column": 5,
+      "declaration": {
+        "line": 227,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8cfac031b98cc4447be846e30ab42680d93b04688bc0366bb7a8f9012066b2cf",
+      "body_fingerprint": "a51c23b002c5cc142c4215d4698cf74c255afb840398d130cdfe73ed4a9e56b8"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:tests::symbol_records_carry_the_documented_fields",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "symbol_records_carry_the_documented_fields",
+      "qualified_path": "tests::symbol_records_carry_the_documented_fields",
+      "discriminator": null,
+      "start_line": 239,
+      "start_column": 4,
+      "end_line": 252,
+      "end_column": 5,
+      "declaration": {
+        "line": 239,
+        "start_column": 7,
+        "end_column": 49
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b9ea4a4cde7cce23c66143fc6538772bd38804e6d139360d6fcc6441449561ca",
+      "body_fingerprint": "667497dbb535a7fa757a25fb89e3898b9efc70d557e970d80659f707573f8f1c"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:tests::every_file_gets_a_record_including_files_without_a_grammar",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_file_gets_a_record_including_files_without_a_grammar",
+      "qualified_path": "tests::every_file_gets_a_record_including_files_without_a_grammar",
+      "discriminator": null,
+      "start_line": 255,
+      "start_column": 4,
+      "end_line": 273,
+      "end_column": 5,
+      "declaration": {
+        "line": 255,
+        "start_column": 7,
+        "end_column": 65
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "00dcbcdfe3654104f1def589629da1e73c767f693c83913442ef5eb976e9dfcc",
+      "body_fingerprint": "ea74cfe4deb2b2bb3a8e38dc0cda77890060e21f2fe85f77c17204abdd205ffd"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:tests::output_is_deterministic_and_stably_sorted",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "output_is_deterministic_and_stably_sorted",
+      "qualified_path": "tests::output_is_deterministic_and_stably_sorted",
+      "discriminator": null,
+      "start_line": 276,
+      "start_column": 4,
+      "end_line": 299,
+      "end_column": 5,
+      "declaration": {
+        "line": 276,
+        "start_column": 7,
+        "end_column": 48
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7f2e306a4daafdb629c5cdc508445646e8545e1ff5a1fc437382b25358f018fb",
+      "body_fingerprint": "708752ec125b5602ed15e54136f2fa74051a7f9f3fa6d6ef75965f014414cf26"
+    },
+    {
+      "id": "rust:crates/beholder/src/jsonl.rs:function:tests::no_record_carries_an_absolute_path",
+      "path": "crates/beholder/src/jsonl.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "no_record_carries_an_absolute_path",
+      "qualified_path": "tests::no_record_carries_an_absolute_path",
+      "discriminator": null,
+      "start_line": 302,
+      "start_column": 4,
+      "end_line": 310,
+      "end_column": 5,
+      "declaration": {
+        "line": 302,
+        "start_column": 7,
+        "end_column": 41
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "3cdad3508bdfda77d52eed4a4a0a920a26845864c527f06a3c552c0e83e379de",
+      "body_fingerprint": "cfc38e2aaa32352f7a67ce8421458ebe2cbcb00d0d344eae9b14d90f66806506"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Write",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "Analysis",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "analysis",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 17,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 21,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 32,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 51,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 52,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 53,
+      "within": 1
+    },
+    {
+      "name": "Confidence",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 1
+    },
+    {
+      "name": "Confidence",
+      "qualifier": "resolve",
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 1
+    },
+    {
+      "name": "resolve",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 55,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 56,
+      "within": 1
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": 1
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 60,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 67,
+      "within": 2
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 68,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 68,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 73,
+      "within": 2
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "SymbolRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "SymbolRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "symbols",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "SymbolRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 82,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 83,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 85,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 87,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 88,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 89,
+      "within": 3
+    },
+    {
+      "name": "copied",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 93,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 93,
+      "within": 3
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 93,
+      "within": 3
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 101,
+      "within": 3
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 101,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 107,
+      "within": 3
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 107,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 113,
+      "within": 3
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 113,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "copied",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 3
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 3
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 3
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 135,
+      "within": 3
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 3
+    },
+    {
+      "name": "then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 3
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 3
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 139,
+      "within": 3
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 4
+    },
+    {
+      "name": "EdgeRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 4
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 4
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "split",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "EdgeRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 150,
+      "within": 4
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 150,
+      "within": 4
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 150,
+      "within": 4
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 150,
+      "within": 4
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 150,
+      "within": 4
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 4
+    },
+    {
+      "name": "language_of",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 154,
+      "within": 4
+    },
+    {
+      "name": "EdgeRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 4
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 156,
+      "within": 4
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 157,
+      "within": 4
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 158,
+      "within": 4
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 4
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 4
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 4
+    },
+    {
+      "name": "HEURISTIC",
+      "qualifier": "resolve",
+      "kind": "path",
+      "target": null,
+      "line": 162,
+      "within": 4
+    },
+    {
+      "name": "resolve",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 162,
+      "within": 4
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 162,
+      "within": 4
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 163,
+      "within": 4
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 164,
+      "within": 4
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 169,
+      "within": 4
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 4
+    },
+    {
+      "name": "then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 4
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 172,
+      "within": 4
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 173,
+      "within": 4
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 180,
+      "within": 5
+    },
+    {
+      "name": "FileRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 180,
+      "within": 5
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 180,
+      "within": 5
+    },
+    {
+      "name": "FileRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 181,
+      "within": 5
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 181,
+      "within": 5
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 181,
+      "within": 5
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 181,
+      "within": 5
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 181,
+      "within": 5
+    },
+    {
+      "name": "FileRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 184,
+      "within": 5
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 185,
+      "within": 5
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 186,
+      "within": 5
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 190,
+      "within": 5
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 191,
+      "within": 5
+    },
+    {
+      "name": "copied",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 5
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 5
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 5
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 202,
+      "within": 5
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 202,
+      "within": 5
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 6
+    },
+    {
+      "name": "Serialize",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 6
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 6
+    },
+    {
+      "name": "Write",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 6
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 6
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 6
+    },
+    {
+      "name": "to_writer",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 209,
+      "within": 6
+    },
+    {
+      "name": "to_writer",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 6
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 210,
+      "within": 6
+    },
+    {
+      "name": "write_all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 210,
+      "within": 6
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 212,
+      "within": 6
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": 7
+    },
+    {
+      "name": "Serialize",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": 7
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": 7
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 217,
+      "within": 7
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 217,
+      "within": 7
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 217,
+      "within": 7
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 218,
+      "within": 7
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 219,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 219,
+      "within": 7
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 219,
+      "within": 7
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 219,
+      "within": 7
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 219,
+      "within": 7
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 225,
+      "within": null
+    },
+    {
+      "name": "walk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 225,
+      "within": null
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 227,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 8
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 8
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 228,
+      "within": 8
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 228,
+      "within": 8
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 228,
+      "within": 8
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 230,
+      "within": 8
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 231,
+      "within": 8
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 232,
+      "within": 8
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "analysis",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "call",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 8
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 240,
+      "within": 9
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 241,
+      "within": 9
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 256,
+      "within": 10
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "file_records",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 261,
+      "within": 10
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 282,
+      "within": 11
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 282,
+      "within": 11
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 282,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 282,
+      "within": 11
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 11
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 11
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 283,
+      "within": 11
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 287,
+      "within": 11
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 287,
+      "within": 11
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 287,
+      "within": 11
+    },
+    {
+      "name": "lines",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 287,
+      "within": 11
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 287,
+      "within": 11
+    },
+    {
+      "name": "SymbolRecord",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "from_str",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 303,
+      "within": 12
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 304,
+      "within": 12
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Analysis",
+      "path": [
+        "analysis",
+        "Analysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Context",
+      "path": [
+        "anyhow",
+        "Context"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Deserialize",
+      "path": [
+        "serde",
+        "Deserialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Result",
+      "path": [
+        "anyhow",
+        "Result"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Serialize",
+      "path": [
+        "serde",
+        "Serialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "SourceFile",
+      "path": [
+        "walk",
+        "SourceFile"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Write",
+      "path": [
+        "std",
+        "io",
+        "Write"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "jsonl"
+  ]
+}
