@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/go/discriminators.scm",
+  "language": null,
+  "content_hash": "84db83b66c7be8b388653956d1a7dae765e24d029f1aea006b24baa8587511f9",
+  "tier": 0,
+  "density": 0.125,
+  "lines": 8,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
