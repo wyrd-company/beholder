@@ -1,0 +1,12 @@
+{
+  "path": ".github/workflows/ci.yml",
+  "language": null,
+  "content_hash": "a620933fe85a8f44401a0a0b502c03c799db71b283fbb8100c7398034de0b1af",
+  "tier": 0,
+  "density": 16.142689,
+  "lines": 53,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
