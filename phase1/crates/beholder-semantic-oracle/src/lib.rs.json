@@ -1,0 +1,735 @@
+{
+  "path": "crates/beholder-semantic-oracle/src/lib.rs",
+  "language": "rust",
+  "content_hash": "a69cf26f90bbd6c381caae331bdbe612cfa36bbbad60a44ac22831ccf2bd968e",
+  "tier": 1,
+  "density": 9.541817,
+  "lines": 124,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:type:Profile",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Profile",
+      "qualified_path": "Profile",
+      "discriminator": null,
+      "start_line": 47,
+      "start_column": 0,
+      "end_line": 58,
+      "end_column": 1,
+      "declaration": {
+        "line": 47,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e9772551cf469365a160f6e6b75cbf10c99bd23cbd6b73a8c57b306e7135cbe4",
+      "body_fingerprint": "acc442b13dc40e255bc4333ab5b06326b8be5ef91c15759c4ba984b0996a80a6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:parse_yaml",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "parse_yaml",
+      "qualified_path": "parse_yaml",
+      "discriminator": null,
+      "start_line": 92,
+      "start_column": 0,
+      "end_line": 95,
+      "end_column": 1,
+      "declaration": {
+        "line": 92,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e9e264038c4e0e426b9bf04aeee9b5da97bd5551384096c2c53aab591a372a7f",
+      "body_fingerprint": "9db44b8740d183391516c0028576d38a1bb51dc7d7941789ac9a19985c9a8933"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:model_schema",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "model_schema",
+      "qualified_path": "model_schema",
+      "discriminator": null,
+      "start_line": 98,
+      "start_column": 0,
+      "end_line": 100,
+      "end_column": 1,
+      "declaration": {
+        "line": 98,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4fb1c4ecccc69e9567c248d7f995ce70cc2271ead612d9043fff6869bd566461",
+      "body_fingerprint": "654e670ec17e3ae1245918ff480c7a0fb580cad84c97249ae12ed4cbdfdeb800"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:Profile::schema",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "schema",
+      "qualified_path": "Profile::schema",
+      "discriminator": null,
+      "start_line": 104,
+      "start_column": 4,
+      "end_line": 106,
+      "end_column": 5,
+      "declaration": {
+        "line": 104,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d8a4d38e2b88bfb35a72c77e80eb8ee50817f7c485e7755ed8a06d70cfeffd59",
+      "body_fingerprint": "4004034f15dbf7a0d55777c2f668f24b11cb2a996b1c2251c9fb477fd214e1c7"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:Profile::by_version",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "by_version",
+      "qualified_path": "Profile::by_version",
+      "discriminator": null,
+      "start_line": 109,
+      "start_column": 4,
+      "end_line": 113,
+      "end_column": 5,
+      "declaration": {
+        "line": 109,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a526514fdbba8c43ba92dd00df85ff6250a512a960cebec38ad2bda0f3fd9205",
+      "body_fingerprint": "f2541e1f3f3655436f7358164333a0a22bd7b85b3c936197139f6de116f6f800"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:dataset_validator",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "dataset_validator",
+      "qualified_path": "dataset_validator",
+      "discriminator": null,
+      "start_line": 119,
+      "start_column": 0,
+      "end_line": 121,
+      "end_column": 1,
+      "declaration": {
+        "line": 119,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "de6f15e7a766fddd47fdd35bbeae9804dae42210b22ecd5bd2d0587662bb576a",
+      "body_fingerprint": "d02fbe80b0043abe76a0b585eb13319194b700bcfe19695a814962d64beeeeee"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:profile_validator",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "profile_validator",
+      "qualified_path": "profile_validator",
+      "discriminator": null,
+      "start_line": 124,
+      "start_column": 0,
+      "end_line": 126,
+      "end_column": 1,
+      "declaration": {
+        "line": 124,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2ce994f7586d9419a9fc296f19e066683056a3380c53a471b81ee6ac179135ed",
+      "body_fingerprint": "0dda77e63cf639385b4344d00aef2ecefd29d41ca0c5e5b11b84b8e745e29af0"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/lib.rs:function:validator_for",
+      "path": "crates/beholder-semantic-oracle/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validator_for",
+      "qualified_path": "validator_for",
+      "discriminator": null,
+      "start_line": 128,
+      "start_column": 0,
+      "end_line": 140,
+      "end_column": 1,
+      "declaration": {
+        "line": 128,
+        "start_column": 3,
+        "end_column": 16
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "a38f5cf53fa5b7e4d77009dc7e526b2f41fa151533e8c08f40fb8dd94a6868bc",
+      "body_fingerprint": "fafa1c91d4d843ceb7702d3b2886c749ab588a26f568f276c3f99514dad30229"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Value",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": null
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": null
+    },
+    {
+      "name": "Profile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 81,
+      "within": null
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 92,
+      "within": 1
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 92,
+      "within": 1
+    },
+    {
+      "name": "options",
+      "qualifier": "serde_saphyr",
+      "kind": "path",
+      "target": null,
+      "line": 93,
+      "within": 1
+    },
+    {
+      "name": "serde_saphyr",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 93,
+      "within": 1
+    },
+    {
+      "name": "from_str_with_options",
+      "qualifier": "serde_saphyr",
+      "kind": "call",
+      "target": null,
+      "line": 94,
+      "within": 1
+    },
+    {
+      "name": "from_str_with_options",
+      "qualifier": "serde_saphyr",
+      "kind": "path",
+      "target": null,
+      "line": 94,
+      "within": 1
+    },
+    {
+      "name": "map_err",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 94,
+      "within": 1
+    },
+    {
+      "name": "serde_saphyr",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 94,
+      "within": 1
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 98,
+      "within": 2
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 98,
+      "within": 2
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "Profile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 102,
+      "within": null
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 3
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 3
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 105,
+      "within": 3
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 105,
+      "within": 3
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 4
+    },
+    {
+      "name": "Profile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 4
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 110,
+      "within": 4
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 110,
+      "within": 4
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 5
+    },
+    {
+      "name": "Validator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 5
+    },
+    {
+      "name": "validator_for",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 120,
+      "within": 5
+    },
+    {
+      "name": "Profile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 124,
+      "within": 6
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 124,
+      "within": 6
+    },
+    {
+      "name": "Validator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 124,
+      "within": 6
+    },
+    {
+      "name": "validator_for",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 125,
+      "within": 6
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 128,
+      "within": 7
+    },
+    {
+      "name": "Validator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 128,
+      "within": 7
+    },
+    {
+      "name": "Registry",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 129,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 129,
+      "within": 7
+    },
+    {
+      "name": "model_schema",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 129,
+      "within": 7
+    },
+    {
+      "name": "new",
+      "qualifier": "Registry",
+      "kind": "call",
+      "target": null,
+      "line": 129,
+      "within": 7
+    },
+    {
+      "name": "new",
+      "qualifier": "Registry",
+      "kind": "path",
+      "target": null,
+      "line": 129,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 131,
+      "within": 7
+    },
+    {
+      "name": "schema",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 131,
+      "within": 7
+    },
+    {
+      "name": "prepare",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 133,
+      "within": 7
+    },
+    {
+      "name": "build",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "jsonschema",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "offline",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "options",
+      "qualifier": "jsonschema",
+      "kind": "call",
+      "target": null,
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "options",
+      "qualifier": "jsonschema",
+      "kind": "path",
+      "target": null,
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "with_draft",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "with_registry",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 7
+    },
+    {
+      "name": "Draft",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 135,
+      "within": 7
+    },
+    {
+      "name": "Draft202012",
+      "qualifier": "Draft",
+      "kind": "path",
+      "target": null,
+      "line": 135,
+      "within": 7
+    },
+    {
+      "name": "json",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": 7
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": 7
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Context",
+      "path": [
+        "anyhow",
+        "Context"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "ContextCounts",
+      "path": [
+        "validate",
+        "ContextCounts"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Draft",
+      "path": [
+        "jsonschema",
+        "Draft"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Finding",
+      "path": [
+        "validate",
+        "Finding"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Registry",
+      "path": [
+        "jsonschema",
+        "Registry"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Report",
+      "path": [
+        "validate",
+        "Report"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Result",
+      "path": [
+        "anyhow",
+        "Result"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Severity",
+      "path": [
+        "validate",
+        "Severity"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Unchecked",
+      "path": [
+        "validate",
+        "Unchecked"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Validator",
+      "path": [
+        "jsonschema",
+        "Validator"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Value",
+      "path": [
+        "serde_json",
+        "Value"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "anyhow",
+      "path": [
+        "anyhow",
+        "anyhow"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "audit",
+      "path": [
+        "validate",
+        "audit"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "audit_with_reports",
+      "path": [
+        "validate",
+        "audit_with_reports"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "validate",
+      "path": [
+        "validate",
+        "validate"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": []
+}

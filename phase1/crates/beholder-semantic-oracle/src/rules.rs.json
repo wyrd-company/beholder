@@ -1,0 +1,1811 @@
+{
+  "path": "crates/beholder-semantic-oracle/src/rules.rs",
+  "language": "rust",
+  "content_hash": "ecdc1537d65a8296192eae52b20370ad0dbb8d85278d9eeccf073886f7c79dba",
+  "tier": 1,
+  "density": 62.463417,
+  "lines": 778,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:type:Names",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Names",
+      "qualified_path": "Names",
+      "discriminator": null,
+      "start_line": 7,
+      "start_column": 0,
+      "end_line": 30,
+      "end_column": 1,
+      "declaration": {
+        "line": 7,
+        "start_column": 9,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0b6e63e489530a085ac32f77d259fcf61ba224ad85a8fe3810c91396db8efabd",
+      "body_fingerprint": "743987ac13d895c02d46ec21bd59477cbcc9ed9f362eccb2b41f3e331faabecb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:type:Extension",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Extension",
+      "qualified_path": "Extension",
+      "discriminator": null,
+      "start_line": 34,
+      "start_column": 0,
+      "end_line": 38,
+      "end_column": 1,
+      "declaration": {
+        "line": 34,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "867b2afc6ce4058223d5393b43b96cc3232f6393208caf60058b3daf0fa594b2",
+      "body_fingerprint": "eb7afdee83cc5490ba587078e8dd2f8bdd9aba6e5e417eef2e73f9496d736b28"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:type:PublicApiRule",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "PublicApiRule",
+      "qualified_path": "PublicApiRule",
+      "discriminator": null,
+      "start_line": 42,
+      "start_column": 0,
+      "end_line": 49,
+      "end_column": 1,
+      "declaration": {
+        "line": 42,
+        "start_column": 9,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3a5455d086abf1cdfe85d17750bfdb62def1a630f574b683832464ea1d1fc660",
+      "body_fingerprint": "8a1812d70e13c48aa4202d834f980d775b9304d12b1b96eb8bebfd5dc88f81aa"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:type:KindSlots",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "KindSlots",
+      "qualified_path": "KindSlots",
+      "discriminator": null,
+      "start_line": 53,
+      "start_column": 0,
+      "end_line": 59,
+      "end_column": 1,
+      "declaration": {
+        "line": 53,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "859ad760658eda4291e5a53472d15124c2d2dc62f6f88f8715fbd397b2edbeb5",
+      "body_fingerprint": "1dc2e1012057e15c9aa9da19b5655cd7a51eeae1658dc78bf4a99f034f317b3a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:slots",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "slots",
+      "qualified_path": "slots",
+      "discriminator": null,
+      "start_line": 61,
+      "start_column": 0,
+      "end_line": 71,
+      "end_column": 1,
+      "declaration": {
+        "line": 61,
+        "start_column": 9,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a042b151481a7bbbe44af6070b8a76d91682e90c52e63d2c98cc17ee7ca72b32",
+      "body_fingerprint": "0409057ab6f4e0bf65115c8de5bd466c7e76191e78cdcdec7b7b7a9893914be1"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:type:ProfileRules",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ProfileRules",
+      "qualified_path": "ProfileRules",
+      "discriminator": null,
+      "start_line": 75,
+      "start_column": 0,
+      "end_line": 111,
+      "end_column": 1,
+      "declaration": {
+        "line": 75,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d37d490a76a007f4667d7e93dd58a475d8bb3f4f3eaa1e911009f1a6214c6f2d",
+      "body_fingerprint": "8a1e37707f6594928ef32b4d6107aad8293f200fa106516074db6d659afd4db1"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::for_language",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "for_language",
+      "qualified_path": "ProfileRules::for_language",
+      "discriminator": null,
+      "start_line": 678,
+      "start_column": 4,
+      "end_line": 680,
+      "end_column": 5,
+      "declaration": {
+        "line": 678,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0f094d60fe4e7f51c7870ccfb4c864cb499115c70e393e648c2eb3f36884f035",
+      "body_fingerprint": "605f79e865fe2e48dce1d2fbf343d8a3644db4f1750c18c5b80d2ab353c52dc3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::slots_of",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "slots_of",
+      "qualified_path": "ProfileRules::slots_of",
+      "discriminator": null,
+      "start_line": 683,
+      "start_column": 4,
+      "end_line": 687,
+      "end_column": 5,
+      "declaration": {
+        "line": 683,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "38c53812e003cceb51343071fbd0aa4671fe36fe8aa97c76e8319bf7cf56001c",
+      "body_fingerprint": "528c8a60d4cb9ad284a9ba729013f9e314a9b126c9ced257f2d970bc14f097c9"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::extension",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "extension",
+      "qualified_path": "ProfileRules::extension",
+      "discriminator": null,
+      "start_line": 689,
+      "start_column": 4,
+      "end_line": 693,
+      "end_column": 5,
+      "declaration": {
+        "line": 689,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "bce0aeb74e9825af746fe2d31bbfbe4b471f2ab1f2eb6e4695395e6b60030e0e",
+      "body_fingerprint": "0df3b6c9ce7ea01a6b7d04a198e054de7d6e0ea62a1b75c350b28ab085fd200b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::is_source",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_source",
+      "qualified_path": "ProfileRules::is_source",
+      "discriminator": null,
+      "start_line": 696,
+      "start_column": 4,
+      "end_line": 700,
+      "end_column": 5,
+      "declaration": {
+        "line": 696,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "74f42395719ab5ceff0cf747b37159f0f67f07122d9bed38a63035b752d7a016",
+      "body_fingerprint": "74ad972824b007494853c9ac86ba170b9ee0474c633a41b236003a99d15a4288"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::is_optional_source",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_optional_source",
+      "qualified_path": "ProfileRules::is_optional_source",
+      "discriminator": null,
+      "start_line": 702,
+      "start_column": 4,
+      "end_line": 706,
+      "end_column": 5,
+      "declaration": {
+        "line": 702,
+        "start_column": 11,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "dcf8c755120ce8823a336966154153f978f39d5a961006a90f3a870301f12bbb",
+      "body_fingerprint": "aebda9df594225772d15d3a760809cae962a97288b05a9cf2ad01a328766effe"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::is_indexable",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_indexable",
+      "qualified_path": "ProfileRules::is_indexable",
+      "discriminator": null,
+      "start_line": 708,
+      "start_column": 4,
+      "end_line": 715,
+      "end_column": 5,
+      "declaration": {
+        "line": 708,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "60d88b14650f0fd8fcd3628dcf3ce39b5d33d5a7df782e8e9c4395ae2f679601",
+      "body_fingerprint": "9e62f1d5b71bc1a8e95f14f01f4ef896526b58323d55f4a080dcaba04a7f26f3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::is_source_configuration",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_source_configuration",
+      "qualified_path": "ProfileRules::is_source_configuration",
+      "discriminator": null,
+      "start_line": 718,
+      "start_column": 4,
+      "end_line": 721,
+      "end_column": 5,
+      "declaration": {
+        "line": 718,
+        "start_column": 11,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "061136e141d09cc3a66faf9263139f778fa5f04cee40981053e2e4670f0517f0",
+      "body_fingerprint": "b64b56f3ae334f8ce3553f5fad625cb1f3c684527c35290e1ae326d92708cf00"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:ProfileRules::is_configuration",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_configuration",
+      "qualified_path": "ProfileRules::is_configuration",
+      "discriminator": null,
+      "start_line": 724,
+      "start_column": 4,
+      "end_line": 733,
+      "end_column": 5,
+      "declaration": {
+        "line": 724,
+        "start_column": 11,
+        "end_column": 27
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "9a19a4a47fb2b28f8f3a2eeba08b66a32af70c9e0de8b97514711396262ea69c",
+      "body_fingerprint": "ab8e8d327ea12ee62f1e4ca780af18c56f4ced2b95489175e7eb03337ca271c4"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:glob",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "glob",
+      "qualified_path": "glob",
+      "discriminator": null,
+      "start_line": 738,
+      "start_column": 0,
+      "end_line": 745,
+      "end_column": 1,
+      "declaration": {
+        "line": 738,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "ace04b4bc0612d8ae2ff49439fe18ddd29c564bf5fe3a0f992711b298e5bfb76",
+      "body_fingerprint": "8241e720c2329e4b584933cc2290ba4915b7e97c89371872fbc443c93d04259c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:tests::every_profile_has_rules",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_profile_has_rules",
+      "qualified_path": "tests::every_profile_has_rules",
+      "discriminator": null,
+      "start_line": 753,
+      "start_column": 4,
+      "end_line": 761,
+      "end_column": 5,
+      "declaration": {
+        "line": 753,
+        "start_column": 7,
+        "end_column": 30
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "17aa11dfdb60f4880ef814722e12c27adb6e5406942917ac3bab6ededce30b0c",
+      "body_fingerprint": "79369e40f0cf7561778a7d1d1e27158689efdb4225184a2cea509a25d4340a4d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:tests::rules_name_every_extension_kind_of_the_profile_schema",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "rules_name_every_extension_kind_of_the_profile_schema",
+      "qualified_path": "tests::rules_name_every_extension_kind_of_the_profile_schema",
+      "discriminator": null,
+      "start_line": 764,
+      "start_column": 4,
+      "end_line": 790,
+      "end_column": 5,
+      "declaration": {
+        "line": 764,
+        "start_column": 7,
+        "end_column": 60
+      },
+      "cognitive_complexity": 9,
+      "tier": 1,
+      "content_fingerprint": "6862408747dd177d586682a1d497074d1bf0b146a2bd0d6c2d9b7ddee67ee7a7",
+      "body_fingerprint": "3637f1455d5ab8b882c9d39326639c1d212310af203aa8d8d74ad4dcee04d74a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/rules.rs:function:tests::configuration_patterns",
+      "path": "crates/beholder-semantic-oracle/src/rules.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "configuration_patterns",
+      "qualified_path": "tests::configuration_patterns",
+      "discriminator": null,
+      "start_line": 793,
+      "start_column": 4,
+      "end_line": 804,
+      "end_column": 5,
+      "declaration": {
+        "line": 793,
+        "start_column": 7,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f40523a0a7ae037833b3f42e413deaff93103b56aa76f1e4f6c8cc5d270fb3c9",
+      "body_fingerprint": "00c353cb8217d209f92677bf31d811a8016889aaf613bdd98b59ab30cb173493"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Names",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 36,
+      "within": 1
+    },
+    {
+      "name": "KindSlots",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 65,
+      "within": 4
+    },
+    {
+      "name": "KindSlots",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 66,
+      "within": 4
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 84,
+      "within": 5
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 101,
+      "within": 5
+    },
+    {
+      "name": "KindSlots",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 103,
+      "within": 5
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 115,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 127,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 136,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 152,
+      "within": null
+    },
+    {
+      "name": "Rust",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 152,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 154,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 168,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 179,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 191,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 196,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 197,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 202,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 203,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 210,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 226,
+      "within": null
+    },
+    {
+      "name": "CSharp",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 251,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 251,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 253,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 264,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 269,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 270,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 271,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 284,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 285,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 290,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 291,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 303,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 308,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 315,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 321,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 326,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 331,
+      "within": null
+    },
+    {
+      "name": "Dart",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 348,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 348,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 350,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 355,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 365,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 370,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 375,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 380,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 381,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 386,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 387,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 388,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 408,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 414,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 423,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 428,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 437,
+      "within": null
+    },
+    {
+      "name": "Go",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 451,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 456,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 461,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 466,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 467,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 468,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 469,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 476,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 482,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 487,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 492,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 504,
+      "within": null
+    },
+    {
+      "name": "Python",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 504,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 506,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 526,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 538,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 543,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 548,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 553,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 560,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 566,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 571,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 576,
+      "within": null
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 581,
+      "within": null
+    },
+    {
+      "name": "PublicApiRule",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 597,
+      "within": null
+    },
+    {
+      "name": "TypeScript",
+      "qualifier": "PublicApiRule",
+      "kind": "path",
+      "target": null,
+      "line": 597,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 599,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 610,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 621,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 632,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 633,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 634,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 645,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 650,
+      "within": null
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 651,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 675,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 677,
+      "within": null
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 678,
+      "within": 6
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 678,
+      "within": 6
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 679,
+      "within": 6
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 679,
+      "within": 6
+    },
+    {
+      "name": "KindSlots",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 683,
+      "within": 7
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 683,
+      "within": 7
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 684,
+      "within": 7
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 684,
+      "within": 7
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 686,
+      "within": 7
+    },
+    {
+      "name": "Extension",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 689,
+      "within": 8
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 689,
+      "within": 8
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 690,
+      "within": 8
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 690,
+      "within": 8
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 697,
+      "within": 9
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 697,
+      "within": 9
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 699,
+      "within": 9
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 703,
+      "within": 10
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 703,
+      "within": 10
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 705,
+      "within": 10
+    },
+    {
+      "name": "is_source",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 709,
+      "within": 11
+    },
+    {
+      "name": "is_optional_source",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 710,
+      "within": 11
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 711,
+      "within": 11
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 711,
+      "within": 11
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 714,
+      "within": 11
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 719,
+      "within": 12
+    },
+    {
+      "name": "rsplit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 719,
+      "within": 12
+    },
+    {
+      "name": "unwrap_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 719,
+      "within": 12
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 720,
+      "within": 12
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 725,
+      "within": 13
+    },
+    {
+      "name": "rsplit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 725,
+      "within": 13
+    },
+    {
+      "name": "unwrap_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 725,
+      "within": 13
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 726,
+      "within": 13
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 726,
+      "within": 13
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 727,
+      "within": 13
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 728,
+      "within": 13
+    },
+    {
+      "name": "glob",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 730,
+      "within": 13
+    },
+    {
+      "name": "split_once",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 739,
+      "within": 14
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 742,
+      "within": 14
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 742,
+      "within": 14
+    },
+    {
+      "name": "starts_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 742,
+      "within": 14
+    },
+    {
+      "name": "PROFILES",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 750,
+      "within": null
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 766,
+      "within": 16
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "call",
+      "target": null,
+      "line": 766,
+      "within": 16
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "path",
+      "target": null,
+      "line": 766,
+      "within": 16
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 766,
+      "within": 16
+    },
+    {
+      "name": "schema",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 767,
+      "within": 16
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 767,
+      "within": 16
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "as_object",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "keys",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 768,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 772,
+      "within": 16
+    },
+    {
+      "name": "as_str",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 772,
+      "within": 16
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 774,
+      "within": 16
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 774,
+      "within": 16
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 774,
+      "within": 16
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 774,
+      "within": 16
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 775,
+      "within": 16
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 777,
+      "within": 16
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 782,
+      "within": 16
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 794,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "call",
+      "target": null,
+      "line": 794,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "path",
+      "target": null,
+      "line": 794,
+      "within": 17
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 794,
+      "within": 17
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 797,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "call",
+      "target": null,
+      "line": 797,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "path",
+      "target": null,
+      "line": 797,
+      "within": 17
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 797,
+      "within": 17
+    },
+    {
+      "name": "ProfileRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 800,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "call",
+      "target": null,
+      "line": 800,
+      "within": 17
+    },
+    {
+      "name": "for_language",
+      "qualifier": "ProfileRules",
+      "kind": "path",
+      "target": null,
+      "line": 800,
+      "within": 17
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 800,
+      "within": 17
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "",
+      "path": [
+        "Names"
+      ],
+      "kind": "wildcard"
+    },
+    {
+      "local_name": "PROFILES",
+      "path": [
+        "PROFILES"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "rules"
+  ]
+}
