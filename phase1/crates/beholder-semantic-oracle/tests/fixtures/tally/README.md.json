@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder-semantic-oracle/tests/fixtures/tally/README.md",
+  "language": null,
+  "content_hash": "715b3093848b2f428ef5547fba7cd6cc0313fb85f9f36c2881d9a6f7350ac138",
+  "tier": 0,
+  "density": 0.0,
+  "lines": 2,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

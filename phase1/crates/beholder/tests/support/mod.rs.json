@@ -1,0 +1,2031 @@
+{
+  "path": "crates/beholder/tests/support/mod.rs",
+  "language": "rust",
+  "content_hash": "afc7fd154a4ecbf064a06d255856c046ce73f055287dddadf0d9fef70b81f6ea",
+  "tier": 1,
+  "density": 19.321257,
+  "lines": 202,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:git",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "git",
+      "qualified_path": "git",
+      "discriminator": null,
+      "start_line": 19,
+      "start_column": 0,
+      "end_line": 42,
+      "end_column": 1,
+      "declaration": {
+        "line": 19,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f3594fc0454d8169e5deaee2a439a058b26a5ce479f7dcf91d043c38d0f19e26",
+      "body_fingerprint": "eb9059a0af197178e05e990550ab3cce56fce2d65205a2e340996b32b7417264"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:git_succeeds",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "git_succeeds",
+      "qualified_path": "git_succeeds",
+      "discriminator": null,
+      "start_line": 45,
+      "start_column": 0,
+      "end_line": 54,
+      "end_column": 1,
+      "declaration": {
+        "line": 45,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "778b9a92e082670c266f33cfebbf2d7b8a25d62e35f578dd59d9cb194559ded6",
+      "body_fingerprint": "04be70b7eae58521165b750f71725132f7011c70bfd2ae183669e640b2e18dc7"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:type:Fixture",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Fixture",
+      "qualified_path": "Fixture",
+      "discriminator": null,
+      "start_line": 57,
+      "start_column": 0,
+      "end_line": 60,
+      "end_column": 1,
+      "declaration": {
+        "line": 57,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7069518fd7c196f6b3a6c7e9050d49434dcb199078d00129508276795759aff9",
+      "body_fingerprint": "425a3e2ce3518d85599d1a439cec5924d4167a2a5ceb563f58dc973cbfc81bf2"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::new",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "new",
+      "qualified_path": "Fixture::new",
+      "discriminator": null,
+      "start_line": 63,
+      "start_column": 4,
+      "end_line": 68,
+      "end_column": 5,
+      "declaration": {
+        "line": 63,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ac6b76554c9da1f52cad11cecb7153965b79a3d8362dceed03fd25081546b55e",
+      "body_fingerprint": "5f90fe7acaeb2cb8b9a5af8fb6de6bce23c44ca288e27bf4539a56a29a61a420"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::path",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "path",
+      "qualified_path": "Fixture::path",
+      "discriminator": null,
+      "start_line": 70,
+      "start_column": 4,
+      "end_line": 72,
+      "end_column": 5,
+      "declaration": {
+        "line": 70,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8b961cec7a3041d9e3338a9fdbaf3c1a383155f3aa5f6c777b8e739981c10ac0",
+      "body_fingerprint": "cdfdee31e0464485473fec38f801b3c266f1477daeddca1ab8ab13a2153d61aa"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::root",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "root",
+      "qualified_path": "Fixture::root",
+      "discriminator": null,
+      "start_line": 74,
+      "start_column": 4,
+      "end_line": 76,
+      "end_column": 5,
+      "declaration": {
+        "line": 74,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ad2004d4f17ae5b4d1501e655c032ed229b5726159d32f82cacc2d6e4a5538ab",
+      "body_fingerprint": "adb39bd1c5cb62382864b9f0a9cdacd9d5edf718e930d0cc7767bdb818d1e500"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::write",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "write",
+      "qualified_path": "Fixture::write",
+      "discriminator": null,
+      "start_line": 78,
+      "start_column": 4,
+      "end_line": 82,
+      "end_column": 5,
+      "declaration": {
+        "line": 78,
+        "start_column": 11,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "af4adac3d1a37e60a24b352e2fe348d47a18c85314172464e6b510079c5945e4",
+      "body_fingerprint": "931eb306b7b10cda2f1827c56c128810bd7f03927c60001330e4680da6e9fc21"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::commit_all",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "commit_all",
+      "qualified_path": "Fixture::commit_all",
+      "discriminator": null,
+      "start_line": 85,
+      "start_column": 4,
+      "end_line": 87,
+      "end_column": 5,
+      "declaration": {
+        "line": 85,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b9ddc57c46b210c6619750891b7e9678c481152e200d7e8f76366319e565a86a",
+      "body_fingerprint": "a777237fe47ea3b3ad095ec4e80adc9580bb84849ad5899d34148f411707884d"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::commit",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "commit",
+      "qualified_path": "Fixture::commit",
+      "discriminator": null,
+      "start_line": 90,
+      "start_column": 4,
+      "end_line": 93,
+      "end_column": 5,
+      "declaration": {
+        "line": 90,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2735ae340918e643aee9649069f768446c11bfe04376632f159bb73575ebc9cb",
+      "body_fingerprint": "83cb60012de77b4c89c093aafc58de96fae72b24c18a5b7b08755e54c88b7df8"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:Fixture::add_remote",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "add_remote",
+      "qualified_path": "Fixture::add_remote",
+      "discriminator": null,
+      "start_line": 95,
+      "start_column": 4,
+      "end_line": 97,
+      "end_column": 5,
+      "declaration": {
+        "line": 95,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "abfed453df99022b3d04a3ba5d84496c54d0f2a5a842f0dd99cd66273431d2f7",
+      "body_fingerprint": "ea46214ceacf80c4b2766457793e90b047e37ba1eb62a97a1e6717870e70891d"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:init",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "init",
+      "qualified_path": "init",
+      "discriminator": null,
+      "start_line": 104,
+      "start_column": 0,
+      "end_line": 106,
+      "end_column": 1,
+      "declaration": {
+        "line": 104,
+        "start_column": 7,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f46b9e3b45db9ca0c9b135bc08a7726951b90916a40b5c19258c89915c3ac8ad",
+      "body_fingerprint": "807f255ba2a564cfaaf0ff70d0bc0cf2f235d59cbe3f9d1a323ad0e97a92c58e"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:init_bare",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "init_bare",
+      "qualified_path": "init_bare",
+      "discriminator": null,
+      "start_line": 109,
+      "start_column": 0,
+      "end_line": 112,
+      "end_column": 1,
+      "declaration": {
+        "line": 109,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1bd99bb7c0642a83fdf9b244cbaefe239d07673d7e154b3fc0ab8ee1ceab2144",
+      "body_fingerprint": "e1a459a5f4677d44f778af972f98dc64dfcd70d83452d4361ae162003c682899"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:commit_all",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "commit_all",
+      "qualified_path": "commit_all",
+      "discriminator": null,
+      "start_line": 114,
+      "start_column": 0,
+      "end_line": 122,
+      "end_column": 1,
+      "declaration": {
+        "line": 114,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e58d5b5fbcd885a52d6ca7348cd2e4bb00d12dcb96e905a431d9ab5d2b5cccb1",
+      "body_fingerprint": "2b7dc3dbf717526bcdb90bd899f4bc7502bd9f1ed108fc4e8259f0afd07df732"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:clone",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "clone",
+      "qualified_path": "clone",
+      "discriminator": null,
+      "start_line": 125,
+      "start_column": 0,
+      "end_line": 130,
+      "end_column": 1,
+      "declaration": {
+        "line": 125,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "19176c3eb2d37f1060966362356b8fe622f89bcdfecd756723ef3624b24beabd",
+      "body_fingerprint": "29e414d41cd046dca2a33fc2b6cae4c0616d5cb16bffbad33b66c67df8c6e238"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:push_default_branch",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "push_default_branch",
+      "qualified_path": "push_default_branch",
+      "discriminator": null,
+      "start_line": 134,
+      "start_column": 0,
+      "end_line": 141,
+      "end_column": 1,
+      "declaration": {
+        "line": 134,
+        "start_column": 7,
+        "end_column": 26
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c3e94e01969717d3d21f55957fa437c6a643cc61a1182bc7fd4b37a495bbb25a",
+      "body_fingerprint": "bafa67dfe90ba110b3b8775f8078ad3a930c46328a3db55533f028f2a636d95a"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:ref_target",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "ref_target",
+      "qualified_path": "ref_target",
+      "discriminator": null,
+      "start_line": 144,
+      "start_column": 0,
+      "end_line": 148,
+      "end_column": 1,
+      "declaration": {
+        "line": 144,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b8e5c90e819bc1b028a2c3b0a71ee1d5ddc4d85f4c9a4016c26691e47fff2f83",
+      "body_fingerprint": "117901fc1912eeb39d158bbf2ba0581c1bf6e05aab2a06ccf44cfbb1f494ba15"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:parent",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "parent",
+      "qualified_path": "parent",
+      "discriminator": null,
+      "start_line": 151,
+      "start_column": 0,
+      "end_line": 157,
+      "end_column": 1,
+      "declaration": {
+        "line": 151,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "61509ec72ae8e884885ddfca2c4624afbf1677015bee4838c3f720e31fdb7871",
+      "body_fingerprint": "9ceafd4497a4fca586a480590d36c7881ba304549810c9cb0c72fc7e823a5bc6"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:parent_count",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "parent_count",
+      "qualified_path": "parent_count",
+      "discriminator": null,
+      "start_line": 160,
+      "start_column": 0,
+      "end_line": 162,
+      "end_column": 1,
+      "declaration": {
+        "line": 160,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ad0284b4a3502c22bfc74c2f4ddcc36b04178087e486a2f924b8622015b172a6",
+      "body_fingerprint": "49a9bff71d1819349f3f70a142886321dfd1a41b8e04dd8725bdbab7501def1d"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:push_index",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "push_index",
+      "qualified_path": "push_index",
+      "discriminator": null,
+      "start_line": 169,
+      "start_column": 0,
+      "end_line": 197,
+      "end_column": 1,
+      "declaration": {
+        "line": 169,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "6b00ec39e93aa96edd326e2360c1156179e966bb231758b912313c5f087f2bc6",
+      "body_fingerprint": "dadf775b4a7bc76a3673de73906891fb6df499bcd83074fc474076408af83561"
+    },
+    {
+      "id": "rust:crates/beholder/tests/support/mod.rs:function:publish_index",
+      "path": "crates/beholder/tests/support/mod.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "publish_index",
+      "qualified_path": "publish_index",
+      "discriminator": null,
+      "start_line": 205,
+      "start_column": 0,
+      "end_line": 232,
+      "end_column": 1,
+      "declaration": {
+        "line": 205,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "00f7885f99ee62b4dd21d8f50ed59e2987c2775b854a97108212080260638ef2",
+      "body_fingerprint": "4db7f80b0014dbe3b0c5cfcdfa3fdbefcb9f5049f43c5ecefcc5aaec388c90f3"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 13,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 13,
+      "within": null
+    },
+    {
+      "name": "Command",
+      "qualifier": "process",
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": null
+    },
+    {
+      "name": "process",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": null
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": "gix",
+      "kind": "path",
+      "target": null,
+      "line": 16,
+      "within": null
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 16,
+      "within": null
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "args",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "current_dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "env",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "call",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "output",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 45,
+      "within": 1
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "args",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "current_dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "env",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "call",
+      "target": null,
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "status",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "success",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "TempDir",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 58,
+      "within": 2
+    },
+    {
+      "name": "TempDir",
+      "qualifier": "tempfile",
+      "kind": "type",
+      "target": null,
+      "line": 58,
+      "within": 2
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 58,
+      "within": 2
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": 2
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": 2
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": 2
+    },
+    {
+      "name": "Fixture",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": null
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 64,
+      "within": 3
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 64,
+      "within": 3
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 64,
+      "within": 3
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 3
+    },
+    {
+      "name": "init",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 65,
+      "within": 3
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 65,
+      "within": 3
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "open",
+      "qualifier": "gix",
+      "kind": "call",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "open",
+      "qualifier": "gix",
+      "kind": "path",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 67,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 67,
+      "within": 3
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 70,
+      "within": 4
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 4
+    },
+    {
+      "name": "workdir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 4
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 74,
+      "within": 5
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 5
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 5
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 79,
+      "within": 6
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 79,
+      "within": 6
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "parent",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 6
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 81,
+      "within": 6
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 81,
+      "within": 6
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 81,
+      "within": 6
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 81,
+      "within": 6
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 81,
+      "within": 6
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 85,
+      "within": 7
+    },
+    {
+      "name": "commit_all",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 86,
+      "within": 7
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 86,
+      "within": 7
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 90,
+      "within": 8
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 91,
+      "within": 8
+    },
+    {
+      "name": "commit_all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 96,
+      "within": 9
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 96,
+      "within": 9
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 10
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 105,
+      "within": 10
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 11
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 110,
+      "within": 11
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 11
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 11
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 110,
+      "within": 11
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 111,
+      "within": 11
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 114,
+      "within": 12
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 114,
+      "within": 12
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 115,
+      "within": 12
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 116,
+      "within": 12
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 120,
+      "within": 12
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "from_hex",
+      "qualifier": "ObjectId",
+      "kind": "call",
+      "target": null,
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "from_hex",
+      "qualifier": "ObjectId",
+      "kind": "path",
+      "target": null,
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "trim",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 121,
+      "within": 12
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 125,
+      "within": 13
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 125,
+      "within": 13
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 125,
+      "within": 13
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 125,
+      "within": 13
+    },
+    {
+      "name": "parent",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 13
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 13
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 127,
+      "within": 13
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 127,
+      "within": 13
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 127,
+      "within": 13
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 127,
+      "within": 13
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 127,
+      "within": 13
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 128,
+      "within": 13
+    },
+    {
+      "name": "to_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 128,
+      "within": 13
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 128,
+      "within": 13
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 129,
+      "within": 13
+    },
+    {
+      "name": "open",
+      "qualifier": "gix",
+      "kind": "call",
+      "target": null,
+      "line": 129,
+      "within": 13
+    },
+    {
+      "name": "open",
+      "qualifier": "gix",
+      "kind": "path",
+      "target": null,
+      "line": 129,
+      "within": 13
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 129,
+      "within": 13
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 134,
+      "within": 14
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 135,
+      "within": 14
+    },
+    {
+      "name": "trim",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 14
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 137,
+      "within": 14
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 144,
+      "within": 15
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 144,
+      "within": 15
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 144,
+      "within": 15
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 144,
+      "within": 15
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 144,
+      "within": 15
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 15
+    },
+    {
+      "name": "try_find_reference",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 15
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 15
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "oid",
+      "qualifier": "gix",
+      "kind": "path",
+      "target": null,
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "target",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "to_owned",
+      "qualifier": "oid",
+      "kind": "path",
+      "target": null,
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "try_id",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 147,
+      "within": 15
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 16
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 16
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 16
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 16
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 16
+    },
+    {
+      "name": "find_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 16
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 16
+    },
+    {
+      "name": "nth",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 16
+    },
+    {
+      "name": "parent_ids",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 16
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 16
+    },
+    {
+      "name": "Id",
+      "qualifier": "gix",
+      "kind": "path",
+      "target": null,
+      "line": 156,
+      "within": 16
+    },
+    {
+      "name": "detach",
+      "qualifier": "Id",
+      "kind": "path",
+      "target": null,
+      "line": 156,
+      "within": 16
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 156,
+      "within": 16
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 17
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 17
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 17
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 17
+    },
+    {
+      "name": "count",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 17
+    },
+    {
+      "name": "find_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 17
+    },
+    {
+      "name": "parent_ids",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 17
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 17
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 169,
+      "within": 18
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "args",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "current_dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "env",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "call",
+      "target": null,
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "output",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 18
+    },
+    {
+      "name": "success",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 184,
+      "within": 18
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 18
+    },
+    {
+      "name": "from_utf8_lossy",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 18
+    },
+    {
+      "name": "from_utf8_lossy",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 18
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 205,
+      "within": 19
+    },
+    {
+      "name": "Repository",
+      "qualifier": "gix",
+      "kind": "type",
+      "target": null,
+      "line": 205,
+      "within": 19
+    },
+    {
+      "name": "gix",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 205,
+      "within": 19
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 206,
+      "within": 19
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 206,
+      "within": 19
+    },
+    {
+      "name": "workdir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 206,
+      "within": 19
+    },
+    {
+      "name": "push_index",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 209,
+      "within": 19
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 213,
+      "within": 19
+    },
+    {
+      "name": "git",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 224,
+      "within": 19
+    },
+    {
+      "name": "ObjectId",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "from_hex",
+      "qualifier": "ObjectId",
+      "kind": "call",
+      "target": null,
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "from_hex",
+      "qualifier": "ObjectId",
+      "kind": "path",
+      "target": null,
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "trim",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 225,
+      "within": 19
+    },
+    {
+      "name": "Store",
+      "qualifier": "store",
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "rebuild_onto",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 226,
+      "within": 19
+    },
+    {
+      "name": "store",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 19
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Command",
+      "path": [
+        "std",
+        "process",
+        "Command"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "ObjectId",
+      "path": [
+        "gix",
+        "ObjectId"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Path",
+      "path": [
+        "std",
+        "path",
+        "Path"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "PathBuf",
+      "path": [
+        "std",
+        "path",
+        "PathBuf"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "crates",
+    "beholder",
+    "tests",
+    "support"
+  ]
+}
