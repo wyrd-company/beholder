@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/rust/imports.scm",
+  "language": null,
+  "content_hash": "29a35d1ff1d9494211da36a81f3704644b00af26e1ebf736fba4ab727ac01c19",
+  "tier": 0,
+  "density": 0.09090909,
+  "lines": 11,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/render-homebrew-formula.sh",
+  "language": null,
+  "content_hash": "8de28b94ac47ac7b8df51666731f99b113f4d750f61f41627781f2382e251e9f",
+  "tier": 0,
+  "density": 5.503632,
+  "lines": 49,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
