@@ -1,0 +1,66 @@
+{
+  "path": "crates/beholder-semantic-oracle/tests/fixtures/tally/src/lib.rs",
+  "language": "rust",
+  "content_hash": "959b484eef3ea447d3310effd1fbea602f740274e701d815c2592400f1fbe7ee",
+  "tier": 1,
+  "density": 1.0,
+  "lines": 4,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/fixtures/tally/src/lib.rs:type:Counter",
+      "path": "crates/beholder-semantic-oracle/tests/fixtures/tally/src/lib.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Counter",
+      "qualified_path": "Counter",
+      "discriminator": null,
+      "start_line": 1,
+      "start_column": 0,
+      "end_line": 1,
+      "end_column": 19,
+      "declaration": {
+        "line": 1,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "22cabd53f469578040b7a88530a1c794d81684a08fa2a841084abe78cdd88a83",
+      "body_fingerprint": "4d229f4cc6c640f675d2427dd978a95ad5f8d1c019b02aea971941fe2c93eb07"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/fixtures/tally/src/lib.rs:function:make",
+      "path": "crates/beholder-semantic-oracle/tests/fixtures/tally/src/lib.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "make",
+      "qualified_path": "make",
+      "discriminator": null,
+      "start_line": 3,
+      "start_column": 0,
+      "end_line": 5,
+      "end_column": 1,
+      "declaration": {
+        "line": 3,
+        "start_column": 7,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "45303951853522190daadcf8b12c7d37db888e8ad947bc8037cec47e090ee990",
+      "body_fingerprint": "bb9c3c37ad6efaef7693cfbb14bac0ed3d813b68bfb4000cf164fd2ec91f32d2"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Counter",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 3,
+      "within": 1
+    }
+  ],
+  "imports": [],
+  "module_segments": []
+}

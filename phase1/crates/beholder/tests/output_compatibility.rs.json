@@ -1,0 +1,185 @@
+{
+  "path": "crates/beholder/tests/output_compatibility.rs",
+  "language": "rust",
+  "content_hash": "3505fa27d99434ed9f0abc4b23ee9632d7301a52d4b58ba80929def5e7b1d0d4",
+  "tier": 1,
+  "density": 3.2552083,
+  "lines": 27,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/tests/output_compatibility.rs:function:phase_one_records_match_the_previous_dependency_outputs",
+      "path": "crates/beholder/tests/output_compatibility.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "phase_one_records_match_the_previous_dependency_outputs",
+      "qualified_path": "phase_one_records_match_the_previous_dependency_outputs",
+      "discriminator": null,
+      "start_line": 8,
+      "start_column": 0,
+      "end_line": 27,
+      "end_column": 1,
+      "declaration": {
+        "line": 8,
+        "start_column": 3,
+        "end_column": 58
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "05408cabdaede2a298a85ac412cef62a47076ac215ca5e52d66798e4afa89d96",
+      "body_fingerprint": "3d6f98d4bc94db2eebc27c92f69be5b64e0cd48c453a82669f861606678acc8a"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 9,
+      "within": 0
+    },
+    {
+      "name": "Value",
+      "qualifier": "serde_json",
+      "kind": "type",
+      "target": null,
+      "line": 9,
+      "within": 0
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 9,
+      "within": 0
+    },
+    {
+      "name": "from_str",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "from_str",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 10,
+      "within": 0
+    },
+    {
+      "name": "as_array",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 12,
+      "within": 0
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 12,
+      "within": 0
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "call",
+      "target": null,
+      "line": 14,
+      "within": 0
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": 0
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": 0
+    },
+    {
+      "name": "phase1",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 14,
+      "within": 0
+    },
+    {
+      "name": "is_some",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 15,
+      "within": 0
+    }
+  ],
+  "imports": [],
+  "module_segments": [
+    "crates",
+    "beholder",
+    "tests",
+    "output_compatibility"
+  ]
+}
