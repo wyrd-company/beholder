@@ -1,0 +1,4816 @@
+{
+  "path": "crates/beholder/src/walk.rs",
+  "language": "rust",
+  "content_hash": "14ed26115ffcb459e8a58548b0c77c47e2878c89892b0483601459c94e669ab7",
+  "tier": 1,
+  "density": 55.288116,
+  "lines": 509,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/walk.rs:type:SourceFile",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SourceFile",
+      "qualified_path": "SourceFile",
+      "discriminator": null,
+      "start_line": 25,
+      "start_column": 0,
+      "end_line": 29,
+      "end_column": 1,
+      "declaration": {
+        "line": 25,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "cb6f16a62b25b6cb2a90e14c4f0c84478865717e4a0ae9851d4fb8d6f1a64386",
+      "body_fingerprint": "f060595267c6f38392742321baf63aac8306651cffe94931aa28f6f20b953ead"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:type:PathRules",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "PathRules",
+      "qualified_path": "PathRules",
+      "discriminator": null,
+      "start_line": 43,
+      "start_column": 0,
+      "end_line": 49,
+      "end_column": 1,
+      "declaration": {
+        "line": 43,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3b094686a3e87313b8f193fe6f5e8af4100d0f5d1a4906f9b38c427bc38d5ef9",
+      "body_fingerprint": "a72f6e7ee8b6cfe0618e3568989bc878a61eef79417f627d49b0602f55e6f962"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:PathRules<'c>::for_worktree",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "for_worktree",
+      "qualified_path": "PathRules<'c>::for_worktree",
+      "discriminator": null,
+      "start_line": 54,
+      "start_column": 4,
+      "end_line": 59,
+      "end_column": 5,
+      "declaration": {
+        "line": 54,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "30e298c40d1a078ba2a3a16d533ee23de6240260cd8726593d87dd5141e7ef03",
+      "body_fingerprint": "2e14bb24f40584cb1b0d664a72a7fde021f8a85cec18fb7cff15bdd2e718c65c"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:PathRules<'c>::for_revision",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "for_revision",
+      "qualified_path": "PathRules<'c>::for_revision",
+      "discriminator": null,
+      "start_line": 62,
+      "start_column": 4,
+      "end_line": 64,
+      "end_column": 5,
+      "declaration": {
+        "line": 62,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "08069206755ef0b5e7f3375273b166410724679788fe2456e09155da2f4ed68d",
+      "body_fingerprint": "7a23ed6d671dc0c289f35f5de60340d3220ddef2ffd2b64e5617e97482e5e3b9"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:PathRules<'c>::selects",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "selects",
+      "qualified_path": "PathRules<'c>::selects",
+      "discriminator": null,
+      "start_line": 67,
+      "start_column": 4,
+      "end_line": 73,
+      "end_column": 5,
+      "declaration": {
+        "line": 67,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "fe15e27e6bf27a98bcaf7e7ec69472eebb7175f05acc4b371246dbb11b07d768",
+      "body_fingerprint": "fcda6f0b6d6aa8b7610a053132da65d433c0f0b819798be0bb441bdfb8a7efe5"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:PathRules<'c>::ignored",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "ignored",
+      "qualified_path": "PathRules<'c>::ignored",
+      "discriminator": null,
+      "start_line": 77,
+      "start_column": 4,
+      "end_line": 92,
+      "end_column": 5,
+      "declaration": {
+        "line": 77,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "f4f6a6ef3429406d83d8b3ee6374e3340c61f4f174ff11976cccdd650b79d6fe",
+      "body_fingerprint": "0e248144140bcabed13519ee45123be0b1d7045668a799e0c2740614f04a5dc8"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:strip_directory",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "strip_directory",
+      "qualified_path": "strip_directory",
+      "discriminator": null,
+      "start_line": 96,
+      "start_column": 0,
+      "end_line": 101,
+      "end_column": 1,
+      "declaration": {
+        "line": 96,
+        "start_column": 3,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "41e891706bf6c006841c710005c47e0ecbe6bc3a97bfc3ef7101b399afce7035",
+      "body_fingerprint": "80248f0d4c77acf89978d2fb8737e589694acb50687380e554b714e7852978d5"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:is_infrastructure",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_infrastructure",
+      "qualified_path": "is_infrastructure",
+      "discriminator": null,
+      "start_line": 107,
+      "start_column": 0,
+      "end_line": 114,
+      "end_column": 1,
+      "declaration": {
+        "line": 107,
+        "start_column": 3,
+        "end_column": 20
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "5dc24ecf55ddd05aff7981c865a7af1620d1cebe92f34d5abdaff5c2324f5708",
+      "body_fingerprint": "e31d2aa61e9a2e5b973d4d61b39fd0137605335fbab239fa9b75cadbd087dfc0"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:walk_worktree",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "walk_worktree",
+      "qualified_path": "walk_worktree",
+      "discriminator": null,
+      "start_line": 119,
+      "start_column": 0,
+      "end_line": 165,
+      "end_column": 1,
+      "declaration": {
+        "line": 119,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 10,
+      "tier": 1,
+      "content_fingerprint": "fff8456719faf54cb530dafe8547cf04f9f2e51005765da8285d8e15385f6402",
+      "body_fingerprint": "0692daf82118ca4e5f7c0a399db43c4f58ebbcbaec714cc1d14a0dff08e1a47e"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:read_revision",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "read_revision",
+      "qualified_path": "read_revision",
+      "discriminator": null,
+      "start_line": 168,
+      "start_column": 0,
+      "end_line": 193,
+      "end_column": 1,
+      "declaration": {
+        "line": 168,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "72bdb89d19b6a07d02e684301dd7ac61e2312542eb0b9b6f35f1eaa9d639d816",
+      "body_fingerprint": "1529d55d0b9d561a5c28f147b3567d33e6c570d6a077a37462be7a51f0e9ce19"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:revision_manifest",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "revision_manifest",
+      "qualified_path": "revision_manifest",
+      "discriminator": null,
+      "start_line": 199,
+      "start_column": 0,
+      "end_line": 211,
+      "end_column": 1,
+      "declaration": {
+        "line": 199,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b7d69766543b6c1a2835bc7842b329942ce9fc64bf3999ee04ebf235f58f65e9",
+      "body_fingerprint": "77473c5a80527f12a40ee29421add1b9f0122a59c276856ce6c01e95802dbdab"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:worktree_manifest",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "worktree_manifest",
+      "qualified_path": "worktree_manifest",
+      "discriminator": null,
+      "start_line": 214,
+      "start_column": 0,
+      "end_line": 225,
+      "end_column": 1,
+      "declaration": {
+        "line": 214,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e8bd0cb60cce3ab020c4f57cddd0101cc86f46af1b124c0b5492aa92e813ad50",
+      "body_fingerprint": "880e79d303f347916135711f351aee3b483961187789d257f6ab96b5e14024aa"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:revision_tree",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "revision_tree",
+      "qualified_path": "revision_tree",
+      "discriminator": null,
+      "start_line": 228,
+      "start_column": 0,
+      "end_line": 235,
+      "end_column": 1,
+      "declaration": {
+        "line": 228,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "54713fceccd05dd9fb2b3deb1d78b74fbf51e235b01bb37379240fb3d74d6d7d",
+      "body_fingerprint": "c8f7ee892c923ea73f60fb22dab7763bf6abc9cee949d917b9df0d59ab218ab5"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:revision_ignores",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "revision_ignores",
+      "qualified_path": "revision_ignores",
+      "discriminator": null,
+      "start_line": 242,
+      "start_column": 0,
+      "end_line": 277,
+      "end_column": 1,
+      "declaration": {
+        "line": 242,
+        "start_column": 3,
+        "end_column": 19
+      },
+      "cognitive_complexity": 9,
+      "tier": 1,
+      "content_fingerprint": "f4e99d5affab26988458f72dff10d2ef3ec5355661e03408ca6b0254cf149b74",
+      "body_fingerprint": "5fac2ec567bc00a4838edf8d54e30ee0ef6a4978d6ec65f50132c266f371b970"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:is_regular_file",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_regular_file",
+      "qualified_path": "is_regular_file",
+      "discriminator": null,
+      "start_line": 285,
+      "start_column": 0,
+      "end_line": 291,
+      "end_column": 1,
+      "declaration": {
+        "line": 285,
+        "start_column": 3,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "08362dcb08ccc5c6f93e92bc5720dcf9078f5b8093d78599d28471f59cdbb049",
+      "body_fingerprint": "a01b188fd15655b5ca3fa8a4e73764733ce27ce0bf925f3f3f25d1777b67d540"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:for_each_blob",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "for_each_blob",
+      "qualified_path": "for_each_blob",
+      "discriminator": null,
+      "start_line": 294,
+      "start_column": 0,
+      "end_line": 329,
+      "end_column": 1,
+      "declaration": {
+        "line": 294,
+        "start_column": 3,
+        "end_column": 16
+      },
+      "cognitive_complexity": 5,
+      "tier": 1,
+      "content_fingerprint": "7a30af29cc62b71171cfe6d0b75a676e30522be8d9ef14e897a4316c232de8ee",
+      "body_fingerprint": "461131b1ccfbd9e2b25bea1ffb5c963758edb3752e48f0b256244df093054e56"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:sort_stably",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "sort_stably",
+      "qualified_path": "sort_stably",
+      "discriminator": null,
+      "start_line": 332,
+      "start_column": 0,
+      "end_line": 334,
+      "end_column": 1,
+      "declaration": {
+        "line": 332,
+        "start_column": 3,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c02d91d6b7950c76f8f364bc27865cc15b06dd521bd7539572c0d596f5716d51",
+      "body_fingerprint": "b19ef55fbb6798e3a5d1b47c5740ce4137305c5eebc28db0352184d880dfacf8"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:to_repo_relative",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "to_repo_relative",
+      "qualified_path": "to_repo_relative",
+      "discriminator": null,
+      "start_line": 336,
+      "start_column": 0,
+      "end_line": 341,
+      "end_column": 1,
+      "declaration": {
+        "line": 336,
+        "start_column": 3,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "86e7f31df1193efdf01363815b5afa88b07b470244a7e7ac5dd0898f3f91ee9f",
+      "body_fingerprint": "54ca89c6d0219f60951373dc21333ee95c04436ce752209cf89f43a4944e2777"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::write",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "write",
+      "qualified_path": "tests::write",
+      "discriminator": null,
+      "start_line": 347,
+      "start_column": 4,
+      "end_line": 351,
+      "end_column": 5,
+      "declaration": {
+        "line": 347,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7894c929897b76687f7c9cc3e2b9f10b41f2aa3bbd7c31a511efb43cbaa17a87",
+      "body_fingerprint": "9569246bf0f8c20a20cb408f4c9778d304486dc87fece66b965cfa3c96cb702e"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::fixture",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fixture",
+      "qualified_path": "tests::fixture",
+      "discriminator": null,
+      "start_line": 354,
+      "start_column": 4,
+      "end_line": 377,
+      "end_column": 5,
+      "declaration": {
+        "line": 354,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "bbd5193ca1b2edb9d35c95c136e19c4baf777b0390d9aeea0e1b6def1581bc1b",
+      "body_fingerprint": "4a6c10ac49218cd1d0046290e229ad30798e6d866f2aa1f2dde62871b4691f96"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::paths",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "paths",
+      "qualified_path": "tests::paths",
+      "discriminator": null,
+      "start_line": 379,
+      "start_column": 4,
+      "end_line": 381,
+      "end_column": 5,
+      "declaration": {
+        "line": 379,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8dde7ae8ccaaf86c3a94665863fa55be73b99eb931311ebb9329924182e5f239",
+      "body_fingerprint": "5e7c71306e96a09ebd075183e0e104d25eebdb0e6f64506cb405ae5709faafa1"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::honors_gitignore_and_configured_ignores",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "honors_gitignore_and_configured_ignores",
+      "qualified_path": "tests::honors_gitignore_and_configured_ignores",
+      "discriminator": null,
+      "start_line": 384,
+      "start_column": 4,
+      "end_line": 407,
+      "end_column": 5,
+      "declaration": {
+        "line": 384,
+        "start_column": 7,
+        "end_column": 46
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f05218c5e4e8ce8f38dcf52860082ea457c3cb491a3854c7a2dece5d9fc7608e",
+      "body_fingerprint": "198ddcbaaf46a9a212330edb5114575802643f9570e3f8b6bcbcd4e21f3f2542"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::beholder_does_not_index_its_own_output",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "beholder_does_not_index_its_own_output",
+      "qualified_path": "tests::beholder_does_not_index_its_own_output",
+      "discriminator": null,
+      "start_line": 410,
+      "start_column": 4,
+      "end_line": 423,
+      "end_column": 5,
+      "declaration": {
+        "line": 410,
+        "start_column": 7,
+        "end_column": 45
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "eb1975f8ebf2b9225151638ae03ad101284d2fac87292fbc6e201f14134509ca",
+      "body_fingerprint": "a6df9094c70eb0c5c46a70a9abcbdb420194e502127e1a3815d05a8b5c0b91b4"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::output_is_stably_sorted",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "output_is_stably_sorted",
+      "qualified_path": "tests::output_is_stably_sorted",
+      "discriminator": null,
+      "start_line": 426,
+      "start_column": 4,
+      "end_line": 439,
+      "end_column": 5,
+      "declaration": {
+        "line": 426,
+        "start_column": 7,
+        "end_column": 30
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "150affc8267a09ea4a461ad0417a7d0fcd53d3f24c3e73210e08f86112a58921",
+      "body_fingerprint": "aa38cfaa0004af413ecc1fdc5bd3ff7b2be060c4a8821fa4bff204a3a90ed005"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::both_walkers_select_the_same_files",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "both_walkers_select_the_same_files",
+      "qualified_path": "tests::both_walkers_select_the_same_files",
+      "discriminator": null,
+      "start_line": 442,
+      "start_column": 4,
+      "end_line": 472,
+      "end_column": 5,
+      "declaration": {
+        "line": 442,
+        "start_column": 7,
+        "end_column": 41
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2a62cac5c69872a616de909062385270d2e94b83db63ea4fce49ecf3ec3082fb",
+      "body_fingerprint": "b66d7311de7999c2b7b3f5fa724d4dacf305051b14d5ac989c5e698c6b66995d"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::a_revision_honors_the_gitignore_committed_alongside_it",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_revision_honors_the_gitignore_committed_alongside_it",
+      "qualified_path": "tests::a_revision_honors_the_gitignore_committed_alongside_it",
+      "discriminator": null,
+      "start_line": 475,
+      "start_column": 4,
+      "end_line": 489,
+      "end_column": 5,
+      "declaration": {
+        "line": 475,
+        "start_column": 7,
+        "end_column": 61
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8f9e1d12424772772e7152e446690b873feaf2111818e203665b469a2cdbed0f",
+      "body_fingerprint": "52cb40112eb0a6d40c16436c703a22b8edf361d0e16fa946c289ba29bd9c7875"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::machine_local_git_rules_are_ignored_by_both_walkers",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "machine_local_git_rules_are_ignored_by_both_walkers",
+      "qualified_path": "tests::machine_local_git_rules_are_ignored_by_both_walkers",
+      "discriminator": null,
+      "start_line": 492,
+      "start_column": 4,
+      "end_line": 522,
+      "end_column": 5,
+      "declaration": {
+        "line": 492,
+        "start_column": 7,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8eb759a85b5a9cab4b70a8f51cd6f600a3ade6d670d00bba85461e9af0e68d6a",
+      "body_fingerprint": "a0b42b61056eb4818cc874b69ead7dbd365a937e25e9bf8f5dd4a5e0e1830a51"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::a_dot_ignore_file_is_not_a_git_rule",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_dot_ignore_file_is_not_a_git_rule",
+      "qualified_path": "tests::a_dot_ignore_file_is_not_a_git_rule",
+      "discriminator": null,
+      "start_line": 525,
+      "start_column": 4,
+      "end_line": 539,
+      "end_column": 5,
+      "declaration": {
+        "line": 525,
+        "start_column": 7,
+        "end_column": 42
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ab4306a12b601d0c2ee11030702a28d80dea8e77e7a22334721d0e686fff8c11",
+      "body_fingerprint": "c2b758251712617ca23d1d71bde900be9c4b81340742836afd687ee188250d07"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::neither_walker_treats_a_symlink_as_source",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "neither_walker_treats_a_symlink_as_source",
+      "qualified_path": "tests::neither_walker_treats_a_symlink_as_source",
+      "discriminator": null,
+      "start_line": 542,
+      "start_column": 4,
+      "end_line": 575,
+      "end_column": 5,
+      "declaration": {
+        "line": 542,
+        "start_column": 7,
+        "end_column": 48
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7c5212fce0b2fb089e0014f5093feb7c6fef8f0564549abb3ae01c37d1e3cb44",
+      "body_fingerprint": "1eb29955192a32daf1c13a58ecb32dbc07514c81395fd86c41470a3f1ca23094"
+    },
+    {
+      "id": "rust:crates/beholder/src/walk.rs:function:tests::a_nested_gitignore_applies_to_its_own_directory",
+      "path": "crates/beholder/src/walk.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_nested_gitignore_applies_to_its_own_directory",
+      "qualified_path": "tests::a_nested_gitignore_applies_to_its_own_directory",
+      "discriminator": null,
+      "start_line": 578,
+      "start_column": 4,
+      "end_line": 591,
+      "end_column": 5,
+      "declaration": {
+        "line": 578,
+        "start_column": 7,
+        "end_column": 54
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8a2abec90a851e9d255cdb18615c69abfb8d7de4854d93c9d68d2dc253b8e84d",
+      "body_fingerprint": "379f8759aa1844b7aa0729c66e6fd80c876d708a850073ba7c706b66bef8281a"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Path",
+      "qualifier": "path",
+      "kind": "path",
+      "target": null,
+      "line": 15,
+      "within": null
+    },
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 15,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 15,
+      "within": null
+    },
+    {
+      "name": "gitignore",
+      "qualifier": "ignore",
+      "kind": "path",
+      "target": null,
+      "line": 18,
+      "within": null
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 18,
+      "within": null
+    },
+    {
+      "name": "WalkBuilder",
+      "qualifier": "ignore",
+      "kind": "path",
+      "target": null,
+      "line": 19,
+      "within": null
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 19,
+      "within": null
+    },
+    {
+      "name": "Config",
+      "qualifier": "config",
+      "kind": "path",
+      "target": null,
+      "line": 21,
+      "within": null
+    },
+    {
+      "name": "config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 21,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 27,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 28,
+      "within": 0
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 44,
+      "within": 1
+    },
+    {
+      "name": "Gitignore",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 48,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 48,
+      "within": 1
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 48,
+      "within": 1
+    },
+    {
+      "name": "PathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 51,
+      "within": null
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 54,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 54,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 54,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 55,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 2
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 57,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 57,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 57,
+      "within": 2
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "Gitignore",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "accepts",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 68,
+      "within": 4
+    },
+    {
+      "name": "is_infrastructure",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 68,
+      "within": 4
+    },
+    {
+      "name": "ignored",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 72,
+      "within": 4
+    },
+    {
+      "name": "strip_directory",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 81,
+      "within": 5
+    },
+    {
+      "name": "matched_path_or_any_parents",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 5
+    },
+    {
+      "name": "Ignore",
+      "qualifier": "Match",
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 5
+    },
+    {
+      "name": "Match",
+      "qualifier": "ignore",
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 5
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 5
+    },
+    {
+      "name": "Match",
+      "qualifier": "ignore",
+      "kind": "path",
+      "target": null,
+      "line": 86,
+      "within": 5
+    },
+    {
+      "name": "Whitelist",
+      "qualifier": "Match",
+      "kind": "path",
+      "target": null,
+      "line": 86,
+      "within": 5
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 86,
+      "within": 5
+    },
+    {
+      "name": "Match",
+      "qualifier": "ignore",
+      "kind": "path",
+      "target": null,
+      "line": 87,
+      "within": 5
+    },
+    {
+      "name": "None",
+      "qualifier": "Match",
+      "kind": "path",
+      "target": null,
+      "line": 87,
+      "within": 5
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 87,
+      "within": 5
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 96,
+      "within": 6
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 97,
+      "within": 6
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 98,
+      "within": 6
+    },
+    {
+      "name": "strip_prefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 6
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 7
+    },
+    {
+      "name": "starts_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 110,
+      "within": 7
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "PathRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 120,
+      "within": 8
+    },
+    {
+      "name": "for_worktree",
+      "qualifier": "PathRules",
+      "kind": "call",
+      "target": null,
+      "line": 120,
+      "within": 8
+    },
+    {
+      "name": "for_worktree",
+      "qualifier": "PathRules",
+      "kind": "path",
+      "target": null,
+      "line": 120,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 121,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 121,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 121,
+      "within": 8
+    },
+    {
+      "name": "WalkBuilder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "build",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "git_exclude",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "git_global",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "git_ignore",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "hidden",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "ignore",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "WalkBuilder",
+      "kind": "call",
+      "target": null,
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "WalkBuilder",
+      "kind": "path",
+      "target": null,
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "parents",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 8
+    },
+    {
+      "name": "file_type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 8
+    },
+    {
+      "name": "is_file",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 8
+    },
+    {
+      "name": "is_some_and",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 8
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 142,
+      "within": 8
+    },
+    {
+      "name": "strip_prefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 142,
+      "within": 8
+    },
+    {
+      "name": "to_repo_relative",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 145,
+      "within": 8
+    },
+    {
+      "name": "selects",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 147,
+      "within": 8
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "read",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "read",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 153,
+      "within": 8
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 153,
+      "within": 8
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 153,
+      "within": 8
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 154,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 8
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "sort_stably",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 163,
+      "within": 8
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 164,
+      "within": 8
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 169,
+      "within": 9
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 169,
+      "within": 9
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 169,
+      "within": 9
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 171,
+      "within": 9
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 172,
+      "within": 9
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 172,
+      "within": 9
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 172,
+      "within": 9
+    },
+    {
+      "name": "revision_tree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 173,
+      "within": 9
+    },
+    {
+      "name": "PathRules",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 174,
+      "within": 9
+    },
+    {
+      "name": "for_revision",
+      "qualifier": "PathRules",
+      "kind": "call",
+      "target": null,
+      "line": 174,
+      "within": 9
+    },
+    {
+      "name": "for_revision",
+      "qualifier": "PathRules",
+      "kind": "path",
+      "target": null,
+      "line": 174,
+      "within": 9
+    },
+    {
+      "name": "revision_ignores",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 174,
+      "within": 9
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 176,
+      "within": 9
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 176,
+      "within": 9
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 176,
+      "within": 9
+    },
+    {
+      "name": "for_each_blob",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 178,
+      "within": 9
+    },
+    {
+      "name": "selects",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 179,
+      "within": 9
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 180,
+      "within": 9
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "call",
+      "target": null,
+      "line": 182,
+      "within": 9
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 182,
+      "within": 9
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 182,
+      "within": 9
+    },
+    {
+      "name": "str",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 182,
+      "within": 9
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 183,
+      "within": 9
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 183,
+      "within": 9
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 184,
+      "within": 9
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 185,
+      "within": 9
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 9
+    },
+    {
+      "name": "sort_stably",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 191,
+      "within": 9
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 192,
+      "within": 9
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 10
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 10
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 10
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 202,
+      "within": 10
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": "collections",
+      "kind": "type",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 203,
+      "within": 10
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 10
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 204,
+      "within": 10
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 204,
+      "within": 10
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 204,
+      "within": 10
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 10
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 207,
+      "within": 10
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "call",
+      "target": null,
+      "line": 207,
+      "within": 10
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "path",
+      "target": null,
+      "line": 207,
+      "within": 10
+    },
+    {
+      "name": "hash",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 207,
+      "within": 10
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 215,
+      "within": 11
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 216,
+      "within": 11
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": "collections",
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 217,
+      "within": 11
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 218,
+      "within": 11
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 218,
+      "within": 11
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 218,
+      "within": 11
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 218,
+      "within": 11
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 218,
+      "within": 11
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 221,
+      "within": 11
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "call",
+      "target": null,
+      "line": 221,
+      "within": 11
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "path",
+      "target": null,
+      "line": 221,
+      "within": 11
+    },
+    {
+      "name": "hash",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 221,
+      "within": 11
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "Tree",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "Tree",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 12
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 12
+    },
+    {
+      "name": "peel_to_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 12
+    },
+    {
+      "name": "revparse_single",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 12
+    },
+    {
+      "name": "tree",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 12
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 12
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 243,
+      "within": 13
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 243,
+      "within": 13
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 243,
+      "within": 13
+    },
+    {
+      "name": "Tree",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 244,
+      "within": 13
+    },
+    {
+      "name": "Tree",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 244,
+      "within": 13
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 244,
+      "within": 13
+    },
+    {
+      "name": "Gitignore",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 13
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 13
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 246,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 246,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 246,
+      "within": 13
+    },
+    {
+      "name": "for_each_blob",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 248,
+      "within": 13
+    },
+    {
+      "name": "ends_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 249,
+      "within": 13
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "call",
+      "target": null,
+      "line": 250,
+      "within": 13
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 250,
+      "within": 13
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 250,
+      "within": 13
+    },
+    {
+      "name": "str",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 250,
+      "within": 13
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 13
+    },
+    {
+      "name": "rsplit_once",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 13
+    },
+    {
+      "name": "unwrap_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 13
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 252,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 252,
+      "within": 13
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 255,
+      "within": 13
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 259,
+      "within": 13
+    },
+    {
+      "name": "count",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 259,
+      "within": 13
+    },
+    {
+      "name": "matches",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 259,
+      "within": 13
+    },
+    {
+      "name": "sort_by_key",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 259,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 261,
+      "within": 13
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 261,
+      "within": 13
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 261,
+      "within": 13
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 261,
+      "within": 13
+    },
+    {
+      "name": "GitignoreBuilder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 264,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "GitignoreBuilder",
+      "kind": "call",
+      "target": null,
+      "line": 264,
+      "within": 13
+    },
+    {
+      "name": "new",
+      "qualifier": "GitignoreBuilder",
+      "kind": "path",
+      "target": null,
+      "line": 264,
+      "within": 13
+    },
+    {
+      "name": "lines",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 265,
+      "within": 13
+    },
+    {
+      "name": "add_line",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 266,
+      "within": 13
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 266,
+      "within": 13
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 270,
+      "within": 13
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": 13
+    },
+    {
+      "name": "build",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 272,
+      "within": 13
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 272,
+      "within": 13
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 276,
+      "within": 13
+    },
+    {
+      "name": "TreeEntry",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 14
+    },
+    {
+      "name": "TreeEntry",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 14
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 14
+    },
+    {
+      "name": "Blob",
+      "qualifier": "ObjectType",
+      "kind": "path",
+      "target": null,
+      "line": 286,
+      "within": 14
+    },
+    {
+      "name": "ObjectType",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 286,
+      "within": 14
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 286,
+      "within": 14
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 286,
+      "within": 14
+    },
+    {
+      "name": "kind",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 14
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 295,
+      "within": 15
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 295,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 295,
+      "within": 15
+    },
+    {
+      "name": "Tree",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 15
+    },
+    {
+      "name": "Tree",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 15
+    },
+    {
+      "name": "FnMut",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 297,
+      "within": 15
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 297,
+      "within": 15
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 298,
+      "within": 15
+    },
+    {
+      "name": "Error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 299,
+      "within": 15
+    },
+    {
+      "name": "Error",
+      "qualifier": "anyhow",
+      "kind": "type",
+      "target": null,
+      "line": 299,
+      "within": 15
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 299,
+      "within": 15
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 299,
+      "within": 15
+    },
+    {
+      "name": "PreOrder",
+      "qualifier": "TreeWalkMode",
+      "kind": "path",
+      "target": null,
+      "line": 301,
+      "within": 15
+    },
+    {
+      "name": "TreeWalkMode",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 301,
+      "within": 15
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 301,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 301,
+      "within": 15
+    },
+    {
+      "name": "walk",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 301,
+      "within": 15
+    },
+    {
+      "name": "is_regular_file",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 302,
+      "within": 15
+    },
+    {
+      "name": "Ok",
+      "qualifier": "TreeWalkResult",
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 15
+    },
+    {
+      "name": "TreeWalkResult",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 15
+    },
+    {
+      "name": "name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 306,
+      "within": 15
+    },
+    {
+      "name": "Ok",
+      "qualifier": "TreeWalkResult",
+      "kind": "path",
+      "target": null,
+      "line": 307,
+      "within": 15
+    },
+    {
+      "name": "TreeWalkResult",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 307,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 307,
+      "within": 15
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 15
+    },
+    {
+      "name": "find_blob",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 15
+    },
+    {
+      "name": "map_err",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 15
+    },
+    {
+      "name": "id",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 312,
+      "within": 15
+    },
+    {
+      "name": "Error",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 313,
+      "within": 15
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 313,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Error",
+      "kind": "path",
+      "target": null,
+      "line": 313,
+      "within": 15
+    },
+    {
+      "name": "content",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 314,
+      "within": 15
+    },
+    {
+      "name": "visit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 314,
+      "within": 15
+    },
+    {
+      "name": "Ok",
+      "qualifier": "TreeWalkResult",
+      "kind": "path",
+      "target": null,
+      "line": 316,
+      "within": 15
+    },
+    {
+      "name": "TreeWalkResult",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 316,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 316,
+      "within": 15
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 318,
+      "within": 15
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 318,
+      "within": 15
+    },
+    {
+      "name": "Abort",
+      "qualifier": "TreeWalkResult",
+      "kind": "path",
+      "target": null,
+      "line": 319,
+      "within": 15
+    },
+    {
+      "name": "TreeWalkResult",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 319,
+      "within": 15
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 319,
+      "within": 15
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 326,
+      "within": 15
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 327,
+      "within": 15
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 332,
+      "within": 16
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 333,
+      "within": 16
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 333,
+      "within": 16
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 336,
+      "within": 17
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 336,
+      "within": 17
+    },
+    {
+      "name": "components",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 337,
+      "within": 17
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 337,
+      "within": 17
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 337,
+      "within": 17
+    },
+    {
+      "name": "as_os_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 338,
+      "within": 17
+    },
+    {
+      "name": "into_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 338,
+      "within": 17
+    },
+    {
+      "name": "to_string_lossy",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 338,
+      "within": 17
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 339,
+      "within": 17
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 339,
+      "within": 17
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 347,
+      "within": 18
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 348,
+      "within": 18
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "parent",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 349,
+      "within": 18
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 350,
+      "within": 18
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 350,
+      "within": 18
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 350,
+      "within": 18
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 350,
+      "within": 18
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 350,
+      "within": 18
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "TempDir",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "TempDir",
+      "qualifier": "tempfile",
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 19
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 355,
+      "within": 19
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 355,
+      "within": 19
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 355,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 355,
+      "within": 19
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "call",
+      "target": null,
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "path",
+      "target": null,
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 359,
+      "within": 19
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 359,
+      "within": 19
+    },
+    {
+      "name": "index",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 363,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 363,
+      "within": 19
+    },
+    {
+      "name": "add_all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 19
+    },
+    {
+      "name": "DEFAULT",
+      "qualifier": "IndexAddOption",
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 19
+    },
+    {
+      "name": "IndexAddOption",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 19
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 367,
+      "within": 19
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 367,
+      "within": 19
+    },
+    {
+      "name": "find_tree",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 368,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 368,
+      "within": 19
+    },
+    {
+      "name": "write_tree",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 368,
+      "within": 19
+    },
+    {
+      "name": "Signature",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "Time",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "new",
+      "qualifier": "Signature",
+      "kind": "call",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "new",
+      "qualifier": "Time",
+      "kind": "call",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "new",
+      "qualifier": "Signature",
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "new",
+      "qualifier": "Time",
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 370,
+      "within": 19
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 372,
+      "within": 19
+    },
+    {
+      "name": "commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 372,
+      "within": 19
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 372,
+      "within": 19
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 379,
+      "within": 20
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 379,
+      "within": 20
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 379,
+      "within": 20
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 380,
+      "within": 20
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 380,
+      "within": 20
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 380,
+      "within": 20
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 385,
+      "within": 21
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 385,
+      "within": 21
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 385,
+      "within": 21
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 385,
+      "within": 21
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 386,
+      "within": 21
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 387,
+      "within": 21
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 387,
+      "within": 21
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "call",
+      "target": null,
+      "line": 387,
+      "within": 21
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "path",
+      "target": null,
+      "line": 387,
+      "within": 21
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 387,
+      "within": 21
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 389,
+      "within": 21
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 390,
+      "within": 21
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 391,
+      "within": 21
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 392,
+      "within": 21
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 393,
+      "within": 21
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 395,
+      "within": 21
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 395,
+      "within": 21
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 395,
+      "within": 21
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 395,
+      "within": 21
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 413,
+      "within": 22
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 413,
+      "within": 22
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "call",
+      "target": null,
+      "line": 413,
+      "within": 22
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "path",
+      "target": null,
+      "line": 413,
+      "within": 22
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 413,
+      "within": 22
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 415,
+      "within": 22
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 416,
+      "within": 22
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 417,
+      "within": 22
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 427,
+      "within": 23
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 427,
+      "within": 23
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 427,
+      "within": 23
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 427,
+      "within": 23
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 428,
+      "within": 23
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 429,
+      "within": 23
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 429,
+      "within": 23
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "call",
+      "target": null,
+      "line": 429,
+      "within": 23
+    },
+    {
+      "name": "init",
+      "qualifier": "Repository",
+      "kind": "path",
+      "target": null,
+      "line": 429,
+      "within": 23
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 429,
+      "within": 23
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 432,
+      "within": 23
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 465,
+      "within": 24
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 465,
+      "within": 24
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 465,
+      "within": 24
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 478,
+      "within": 25
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 484,
+      "within": 25
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 485,
+      "within": 25
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 497,
+      "within": 26
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 502,
+      "within": 26
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 502,
+      "within": 26
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 502,
+      "within": 26
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 502,
+      "within": 26
+    },
+    {
+      "name": "write",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 502,
+      "within": 26
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 503,
+      "within": 26
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 503,
+      "within": 26
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 514,
+      "within": 26
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 528,
+      "within": 27
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 534,
+      "within": 27
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 535,
+      "within": 27
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 545,
+      "within": 28
+    },
+    {
+      "name": "fs",
+      "qualifier": "unix",
+      "kind": "path",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "os",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "symlink",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "symlink",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "unix",
+      "qualifier": "os",
+      "kind": "path",
+      "target": null,
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 547,
+      "within": 28
+    },
+    {
+      "name": "index",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 549,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 549,
+      "within": 28
+    },
+    {
+      "name": "add_all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 550,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 550,
+      "within": 28
+    },
+    {
+      "name": "DEFAULT",
+      "qualifier": "IndexAddOption",
+      "kind": "path",
+      "target": null,
+      "line": 551,
+      "within": 28
+    },
+    {
+      "name": "IndexAddOption",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 551,
+      "within": 28
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 551,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 553,
+      "within": 28
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 553,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 554,
+      "within": 28
+    },
+    {
+      "name": "write_tree",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 554,
+      "within": 28
+    },
+    {
+      "name": "Signature",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "Time",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "Signature",
+      "kind": "call",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "Time",
+      "kind": "call",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "Signature",
+      "kind": "path",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "Time",
+      "kind": "path",
+      "target": null,
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 556,
+      "within": 28
+    },
+    {
+      "name": "head",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 557,
+      "within": 28
+    },
+    {
+      "name": "peel_to_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 557,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 557,
+      "within": 28
+    },
+    {
+      "name": "find_tree",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 558,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 558,
+      "within": 28
+    },
+    {
+      "name": "commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 559,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 559,
+      "within": 28
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 560,
+      "within": 28
+    },
+    {
+      "name": "drop",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 568,
+      "within": 28
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 570,
+      "within": 28
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 571,
+      "within": 28
+    },
+    {
+      "name": "fixture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 579,
+      "within": 29
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 586,
+      "within": 29
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 587,
+      "within": 29
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 587,
+      "within": 29
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 587,
+      "within": 29
+    },
+    {
+      "name": "paths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 587,
+      "within": 29
+    },
+    {
+      "name": "read_revision",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 587,
+      "within": 29
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 587,
+      "within": 29
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Config",
+      "path": [
+        "config",
+        "Config"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Context",
+      "path": [
+        "anyhow",
+        "Context"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Gitignore",
+      "path": [
+        "ignore",
+        "gitignore",
+        "Gitignore"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "GitignoreBuilder",
+      "path": [
+        "ignore",
+        "gitignore",
+        "GitignoreBuilder"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Path",
+      "path": [
+        "std",
+        "path",
+        "Path"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Result",
+      "path": [
+        "anyhow",
+        "Result"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "WalkBuilder",
+      "path": [
+        "ignore",
+        "WalkBuilder"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "walk"
+  ]
+}
