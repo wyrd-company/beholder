@@ -1,0 +1,1174 @@
+{
+  "path": "crates/beholder/src/config.rs",
+  "language": "rust",
+  "content_hash": "889e4d1660ea96eaf231391ca806b02a278e66d7bfc6e2031c0f72a65965db72",
+  "tier": 1,
+  "density": 11.936045,
+  "lines": 116,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/config.rs:type:Config",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Config",
+      "qualified_path": "Config",
+      "discriminator": null,
+      "start_line": 18,
+      "start_column": 0,
+      "end_line": 26,
+      "end_column": 1,
+      "declaration": {
+        "line": 18,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "535127155b56bc3ac3e678d9d9796010e51995115f3a7b91ab17aad4c07dab3f",
+      "body_fingerprint": "92ae3a72a103236284ef272f65cec3d53d11895ace770a825ce299c4f8ab29d3"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::from_toml",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "from_toml",
+      "qualified_path": "Config::from_toml",
+      "discriminator": null,
+      "start_line": 30,
+      "start_column": 4,
+      "end_line": 34,
+      "end_column": 5,
+      "declaration": {
+        "line": 30,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0e59583bf4b6d4082385e09bccae2844d9dea3563e082dff7448899106e79062",
+      "body_fingerprint": "204116fc324de45e6f07649bf9eb6b57837bafd35a7ce3c361a1a1cb01192706"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::load",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "load",
+      "qualified_path": "Config::load",
+      "discriminator": null,
+      "start_line": 37,
+      "start_column": 4,
+      "end_line": 44,
+      "end_column": 5,
+      "declaration": {
+        "line": 37,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "fb7e6f9f206f5dcc168149b04aa0a142441c19952e5f8ca4e2440d0c5fbf8c89",
+      "body_fingerprint": "3d96fa1750fce0684f5fcc252a3caaa8c89ef2b1effd8f223de3b4e1ad0445e8"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::normalize",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "normalize",
+      "qualified_path": "Config::normalize",
+      "discriminator": null,
+      "start_line": 47,
+      "start_column": 4,
+      "end_line": 56,
+      "end_column": 5,
+      "declaration": {
+        "line": 47,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "91b193df11a77d588620466b581544f2b11d3b5f05f79a7bfbec490256be3217",
+      "body_fingerprint": "577719175c92427aa55c4ff454b979c44c6efeaa051cda245942eeb72e988992"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::accepts",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "accepts",
+      "qualified_path": "Config::accepts",
+      "discriminator": null,
+      "start_line": 59,
+      "start_column": 4,
+      "end_line": 61,
+      "end_column": 5,
+      "declaration": {
+        "line": 59,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "97d210a2719641eed9d127dd6ece140f1a0807df309a05dc0ef4a2bec779fce7",
+      "body_fingerprint": "22a0272c193aad503d1be8f8f03f9e40926bba7aa50bb91e88ff2b2facbd73a8"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::extension_allowed",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "extension_allowed",
+      "qualified_path": "Config::extension_allowed",
+      "discriminator": null,
+      "start_line": 63,
+      "start_column": 4,
+      "end_line": 68,
+      "end_column": 5,
+      "declaration": {
+        "line": 63,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "41acad3ff6efac620b472b20c43eca1abae91b2e2fbca7e421adfda0b786fe2a",
+      "body_fingerprint": "ef30ab735d9e83dca4af0cec5ef83c2edca1d00d43131a4398fa1e7f3de5320c"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::path_allowed",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "path_allowed",
+      "qualified_path": "Config::path_allowed",
+      "discriminator": null,
+      "start_line": 70,
+      "start_column": 4,
+      "end_line": 72,
+      "end_column": 5,
+      "declaration": {
+        "line": 70,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9ccfd8e6ff17163773c65f954422a1a3df28cd060aaa5cdb8da8cf26b0a782b5",
+      "body_fingerprint": "f113e8ec361991e4b47795922d7cd000127c303cac5ba3371a6daa9defcff563"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::only_path_allowed",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "only_path_allowed",
+      "qualified_path": "Config::only_path_allowed",
+      "discriminator": null,
+      "start_line": 74,
+      "start_column": 4,
+      "end_line": 76,
+      "end_column": 5,
+      "declaration": {
+        "line": 74,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "1d273dc85881c4e670e22b38d976782746b2be2d0d3b3baacbc560800f9fe5d0",
+      "body_fingerprint": "7d6010cf0aa2b7f9647f1424d5addb0af0b00e34ae7d035c8ae9c521347aa825"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:Config::fingerprint",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fingerprint",
+      "qualified_path": "Config::fingerprint",
+      "discriminator": null,
+      "start_line": 82,
+      "start_column": 4,
+      "end_line": 86,
+      "end_column": 5,
+      "declaration": {
+        "line": 82,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "897180831ff7a7a60c2f554aaff6955f71920cc8e214ffba627a379a26fdf5ff",
+      "body_fingerprint": "684a04abb1ddf996e2ecde027c21db1256e70a37645bbef6332aa69adbd051e5"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:tests::missing_configuration_is_the_default",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "missing_configuration_is_the_default",
+      "qualified_path": "tests::missing_configuration_is_the_default",
+      "discriminator": null,
+      "start_line": 94,
+      "start_column": 4,
+      "end_line": 97,
+      "end_column": 5,
+      "declaration": {
+        "line": 94,
+        "start_column": 7,
+        "end_column": 43
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5bf4dea6081e2b547a0614efb7326cf88cc1ab2ece3df3054305e646a56071df",
+      "body_fingerprint": "f802202a260ca22fe3d8b8c083a80c4da3ac47895f0498129becd35e6e9f4b83"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:tests::ignores_extensions_and_paths",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "ignores_extensions_and_paths",
+      "qualified_path": "tests::ignores_extensions_and_paths",
+      "discriminator": null,
+      "start_line": 100,
+      "start_column": 4,
+      "end_line": 113,
+      "end_column": 5,
+      "declaration": {
+        "line": 100,
+        "start_column": 7,
+        "end_column": 35
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2580b28044422daf0c8f37eca659e8fb08fb00a5d4ae93113738de0933e1ffe3",
+      "body_fingerprint": "18889247b60fe755ff193fe1d665275ba08d0adc308b93e56e85205505a442ed"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:tests::only_paths_restricts_the_walk",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "only_paths_restricts_the_walk",
+      "qualified_path": "tests::only_paths_restricts_the_walk",
+      "discriminator": null,
+      "start_line": 116,
+      "start_column": 4,
+      "end_line": 121,
+      "end_column": 5,
+      "declaration": {
+        "line": 116,
+        "start_column": 7,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fdcebf16073e729000710d2eed893db3b732c492ea72f1c932094faabe989425",
+      "body_fingerprint": "877ef82a92b7564d1141f3447e009029360dfb760c17b97d4641f01ae24e45d4"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:tests::fingerprint_ignores_authoring_order",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fingerprint_ignores_authoring_order",
+      "qualified_path": "tests::fingerprint_ignores_authoring_order",
+      "discriminator": null,
+      "start_line": 124,
+      "start_column": 4,
+      "end_line": 129,
+      "end_column": 5,
+      "declaration": {
+        "line": 124,
+        "start_column": 7,
+        "end_column": 42
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "20caf0c26ba11524c02d207b2f1d4a0ff0dee0e88af2399b465bc652a129c116",
+      "body_fingerprint": "9463ea2178b977f9cfe90fbac3ba130c6021b5b132210ba29e37e632f6686fe9"
+    },
+    {
+      "id": "rust:crates/beholder/src/config.rs:function:tests::fingerprint_changes_with_configuration",
+      "path": "crates/beholder/src/config.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fingerprint_changes_with_configuration",
+      "qualified_path": "tests::fingerprint_changes_with_configuration",
+      "discriminator": null,
+      "start_line": 132,
+      "start_column": 4,
+      "end_line": 137,
+      "end_column": 5,
+      "declaration": {
+        "line": 132,
+        "start_column": 7,
+        "end_column": 45
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9e1540c93995b6370dfa3bca28dc5367166dab875ba66ec9a54f61133547be6a",
+      "body_fingerprint": "85083bcac957130fa9bffe3f09cc591af36be742ff0559b35e6ae910a60b8787"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Path",
+      "qualifier": "path",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 0
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 28,
+      "within": null
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "from_str",
+      "qualifier": "toml",
+      "kind": "call",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "from_str",
+      "qualifier": "toml",
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "toml",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "normalize",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 32,
+      "within": 1
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 33,
+      "within": 1
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 38,
+      "within": 2
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 40,
+      "within": 2
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Self",
+      "kind": "call",
+      "target": null,
+      "line": 40,
+      "within": 2
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 40,
+      "within": 2
+    },
+    {
+      "name": "ErrorKind",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "NotFound",
+      "qualifier": "ErrorKind",
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "default",
+      "qualifier": "Self",
+      "kind": "call",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "default",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "kind",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 41,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 42,
+      "within": 2
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 42,
+      "within": 2
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 53,
+      "within": 3
+    },
+    {
+      "name": "dedup",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 3
+    },
+    {
+      "name": "extension_allowed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 60,
+      "within": 4
+    },
+    {
+      "name": "only_path_allowed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 60,
+      "within": 4
+    },
+    {
+      "name": "path_allowed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 60,
+      "within": 4
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "extension",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "call",
+      "target": null,
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "path",
+      "target": null,
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "to_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 5
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 65,
+      "within": 5
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 65,
+      "within": 5
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 6
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 6
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 6
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 6
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 82,
+      "within": 8
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 8
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 84,
+      "within": 8
+    },
+    {
+      "name": "to_string",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 84,
+      "within": 8
+    },
+    {
+      "name": "to_string",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 84,
+      "within": 8
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 85,
+      "within": 8
+    },
+    {
+      "name": "hash",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 8
+    },
+    {
+      "name": "hex_sha256",
+      "qualifier": "hash",
+      "kind": "call",
+      "target": null,
+      "line": 85,
+      "within": 8
+    },
+    {
+      "name": "hex_sha256",
+      "qualifier": "hash",
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 8
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "call",
+      "target": null,
+      "line": 95,
+      "within": 9
+    },
+    {
+      "name": "tempdir",
+      "qualifier": "tempfile",
+      "kind": "path",
+      "target": null,
+      "line": 95,
+      "within": 9
+    },
+    {
+      "name": "tempfile",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 95,
+      "within": 9
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 95,
+      "within": 9
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 101,
+      "within": 10
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 101,
+      "within": 10
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 101,
+      "within": 10
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 101,
+      "within": 10
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 117,
+      "within": 11
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 117,
+      "within": 11
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 117,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 117,
+      "within": 11
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 125,
+      "within": 12
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 125,
+      "within": 12
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 125,
+      "within": 12
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 12
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 126,
+      "within": 12
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 126,
+      "within": 12
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 126,
+      "within": 12
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 12
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 133,
+      "within": 13
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 133,
+      "within": 13
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 133,
+      "within": 13
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 134,
+      "within": 13
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 134,
+      "within": 13
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 134,
+      "within": 13
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 134,
+      "within": 13
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Context",
+      "path": [
+        "anyhow",
+        "Context"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Deserialize",
+      "path": [
+        "serde",
+        "Deserialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Path",
+      "path": [
+        "std",
+        "path",
+        "Path"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Result",
+      "path": [
+        "anyhow",
+        "Result"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Serialize",
+      "path": [
+        "serde",
+        "Serialize"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "config"
+  ]
+}
