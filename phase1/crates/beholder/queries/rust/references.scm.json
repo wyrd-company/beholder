@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/rust/references.scm",
+  "language": null,
+  "content_hash": "96e3e336f7431234a317f2ee4b28d4ed1ee5c674b6b355c495cd28737fe70ee0",
+  "tier": 0,
+  "density": 4.7734594,
+  "lines": 45,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
