@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder-semantic-oracle/tests/fixtures/tally/semantic-oracle.yml",
+  "language": null,
+  "content_hash": "30218e8421a888ecafab49ca12b234630445c0f42bdaa02ae11182a155e9b142",
+  "tier": 0,
+  "density": 13.582164,
+  "lines": 102,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

@@ -1,0 +1,4981 @@
+{
+  "path": "scripts/semantic-oracle/report-go.go",
+  "language": "go",
+  "content_hash": "43747f5067a5eb21351aa356e8285d448b15c918976b3dafd53581c326366774",
+  "tier": 1,
+  "density": 56.876476,
+  "lines": 386,
+  "symbols": [
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:type:listed",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "type",
+      "name": "listed",
+      "qualified_path": "listed",
+      "discriminator": null,
+      "start_line": 36,
+      "start_column": 0,
+      "end_line": 42,
+      "end_column": 1,
+      "declaration": {
+        "line": 36,
+        "start_column": 5,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "bc00a5cd93d86517180c3c39e6fcb4b236741765350798fcf22c0f9ee26b30ca",
+      "body_fingerprint": "f454c317176a2eebfa33fa5427b7f7d2ef58ac953ec7f245b94a654b440abdd5"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:type:member",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "type",
+      "name": "member",
+      "qualified_path": "member",
+      "discriminator": null,
+      "start_line": 44,
+      "start_column": 0,
+      "end_line": 48,
+      "end_column": 1,
+      "declaration": {
+        "line": 44,
+        "start_column": 5,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f1ebeae4fc0ff0d015ded0d42b0a575dca04f3b7ed8789613fdc79ffda2769f7",
+      "body_fingerprint": "e13f826393ee4bfe7cb216fe1f66945e17d0bb0589b82a58131fa5cb4abcb849"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:add",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "add",
+      "qualified_path": "add",
+      "discriminator": null,
+      "start_line": 52,
+      "start_column": 0,
+      "end_line": 61,
+      "end_column": 1,
+      "declaration": {
+        "line": 52,
+        "start_column": 5,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "f0a56566a00632bb942ddff9a183d78a54062f8c72594fcabe6fa56aa1430b81",
+      "body_fingerprint": "1d3069da4a9e898d9b91e21e319fb424c9df75bce22548611253987a466e4952"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:typeText",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "typeText",
+      "qualified_path": "typeText",
+      "discriminator": null,
+      "start_line": 63,
+      "start_column": 0,
+      "end_line": 145,
+      "end_column": 1,
+      "declaration": {
+        "line": 63,
+        "start_column": 5,
+        "end_column": 13
+      },
+      "cognitive_complexity": 28,
+      "tier": 1,
+      "content_fingerprint": "e944d7a3f6d3cd062cafc7cb7506ec697f3d3a8d8b6a4f09ad1489a9c9453b21",
+      "body_fingerprint": "606ff342647ebb14dfd94a429ef540ab5487ebb8c4edffbb2559385dd08c5dce"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:typeArguments",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "typeArguments",
+      "qualified_path": "typeArguments",
+      "discriminator": null,
+      "start_line": 147,
+      "start_column": 0,
+      "end_line": 156,
+      "end_column": 1,
+      "declaration": {
+        "line": 147,
+        "start_column": 5,
+        "end_column": 18
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "e431c6aea6e1705ea9941442f056d0bfb9f0a208b2e4e842bd7cb28a207d6d1f",
+      "body_fingerprint": "ac4d2a0193e69a201d0719eb550a7f56b807d7485ec74a4c182b8cf1492bcc1f"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:tupleText",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "tupleText",
+      "qualified_path": "tupleText",
+      "discriminator": null,
+      "start_line": 158,
+      "start_column": 0,
+      "end_line": 168,
+      "end_column": 1,
+      "declaration": {
+        "line": 158,
+        "start_column": 5,
+        "end_column": 14
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "8eac64483204787954a2fdae7800bdd268b6fce55f6c2f100208520a269e630c",
+      "body_fingerprint": "3bcc610ddbe185801a68ee9f489531644463421f0bb91733a6907fefc58dd6c3"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:signatureText",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "signatureText",
+      "qualified_path": "signatureText",
+      "discriminator": null,
+      "start_line": 170,
+      "start_column": 0,
+      "end_line": 180,
+      "end_column": 1,
+      "declaration": {
+        "line": 170,
+        "start_column": 5,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "d71fdc6834c60c32ccc0b4ef2fb50dbcfd0b55665a117e0d26472dea249a8c56",
+      "body_fingerprint": "e836d44b55cf9843efbdd916153d24d2d1c777651ecc8f82196a4baea7a6ed15"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:signatureSlots",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "signatureSlots",
+      "qualified_path": "signatureSlots",
+      "discriminator": null,
+      "start_line": 182,
+      "start_column": 0,
+      "end_line": 207,
+      "end_column": 1,
+      "declaration": {
+        "line": 182,
+        "start_column": 5,
+        "end_column": 19
+      },
+      "cognitive_complexity": 8,
+      "tier": 1,
+      "content_fingerprint": "68fc05df77a3dbb33ca8b22ff4c6aadea851a45eaf734b0b96aaee868d7bac68",
+      "body_fingerprint": "067c7d05696b8ddc65b8ca7252d9d74c9cd8dc2c7b9e2545ad26dce32811d4e9"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:typeParameters",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "typeParameters",
+      "qualified_path": "typeParameters",
+      "discriminator": null,
+      "start_line": 209,
+      "start_column": 0,
+      "end_line": 219,
+      "end_column": 1,
+      "declaration": {
+        "line": 209,
+        "start_column": 5,
+        "end_column": 19
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "376561288f1359bd77263dc41edfdcb7c17347c81843f6d745ed5358ca389347",
+      "body_fingerprint": "058d041b0eefed41e15014f33e786ebaeda8a7c35ea73463f5c0ea4a5e247d4b"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:constraintText",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "constraintText",
+      "qualified_path": "constraintText",
+      "discriminator": null,
+      "start_line": 221,
+      "start_column": 0,
+      "end_line": 226,
+      "end_column": 1,
+      "declaration": {
+        "line": 221,
+        "start_column": 5,
+        "end_column": 19
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "9f3abfb6541e0177034df1c6d1b74bf1c2533cdd980d5d802927d362bf93bf93",
+      "body_fingerprint": "7108857e239d0e316645ec3501a60450ad8cf62dbeaae4e2359ecf40403591a9"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:constantValue",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "constantValue",
+      "qualified_path": "constantValue",
+      "discriminator": null,
+      "start_line": 228,
+      "start_column": 0,
+      "end_line": 237,
+      "end_column": 1,
+      "declaration": {
+        "line": 228,
+        "start_column": 5,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "c6f00a66a72f2fa1768d9ebc7ebcb01ea4e6c540ceaea1f5276a78b1df110c68",
+      "body_fingerprint": "d70892f7e7f6e0fb076355bc4c83789152c7132287357d0406d63f0931e5a43f"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:normalizedNumber",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "normalizedNumber",
+      "qualified_path": "normalizedNumber",
+      "discriminator": null,
+      "start_line": 247,
+      "start_column": 0,
+      "end_line": 260,
+      "end_column": 1,
+      "declaration": {
+        "line": 247,
+        "start_column": 5,
+        "end_column": 21
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "526aee4136fd3e7810258c3202f4fa7630b8f2f648e064c6df78c39a72235ebc",
+      "body_fingerprint": "6e26d74524b2348764ef5e8e0248a81a0d3030910b6c44808eee1629d92a101c"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:structSlots",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "structSlots",
+      "qualified_path": "structSlots",
+      "discriminator": null,
+      "start_line": 262,
+      "start_column": 0,
+      "end_line": 272,
+      "end_column": 1,
+      "declaration": {
+        "line": 262,
+        "start_column": 5,
+        "end_column": 16
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "c63670166eeb95083294ca93188b62d080cb03a1a5158090952312d8f535b85f",
+      "body_fingerprint": "423b422c0fc4a01feb208fc79f3992c426231b936905cdb4c8dbd6814dd0fde8"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:typeSlots",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "typeSlots",
+      "qualified_path": "typeSlots",
+      "discriminator": null,
+      "start_line": 274,
+      "start_column": 0,
+      "end_line": 302,
+      "end_column": 1,
+      "declaration": {
+        "line": 274,
+        "start_column": 5,
+        "end_column": 14
+      },
+      "cognitive_complexity": 7,
+      "tier": 1,
+      "content_fingerprint": "5178a96d61c77a921bf50effea263c311df46da168b90e7d98a5456ab673cd4d",
+      "body_fingerprint": "f525e5074566900717bc95b02293b2722428f4fa1c670da4c956420ea1eb5eb4"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:check",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "check",
+      "qualified_path": "check",
+      "discriminator": null,
+      "start_line": 304,
+      "start_column": 0,
+      "end_line": 335,
+      "end_column": 1,
+      "declaration": {
+        "line": 304,
+        "start_column": 5,
+        "end_column": 10
+      },
+      "cognitive_complexity": 7,
+      "tier": 1,
+      "content_fingerprint": "40d1dbafa9bbd232bf7993f9c1374f7953a794f79330ea83a05fed15ab282c9b",
+      "body_fingerprint": "8de402eda518dd30455be63b79417d299e11459d97f0979371522974e7ec6c00"
+    },
+    {
+      "id": "go:scripts/semantic-oracle/report-go.go:function:main",
+      "path": "scripts/semantic-oracle/report-go.go",
+      "language": "go",
+      "kind": "function",
+      "name": "main",
+      "qualified_path": "main",
+      "discriminator": null,
+      "start_line": 337,
+      "start_column": 0,
+      "end_line": 406,
+      "end_column": 1,
+      "declaration": {
+        "line": 337,
+        "start_column": 5,
+        "end_column": 9
+      },
+      "cognitive_complexity": 16,
+      "tier": 1,
+      "content_fingerprint": "fcb41d0c358d300516bee0731cd7b74001c82055e2e1837f036992e2f4fab307",
+      "body_fingerprint": "774f6f826657e92dac293edfba92f0394725e02f7b2e192279f6a74400f38880"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 0
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 38,
+      "within": 0
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 39,
+      "within": 0
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 40,
+      "within": 0
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 45,
+      "within": 1
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 46,
+      "within": 1
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 47,
+      "within": 1
+    },
+    {
+      "name": "member",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 50,
+      "within": null
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 50,
+      "within": null
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 52,
+      "within": 2
+    },
+    {
+      "name": "member",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 2
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 2
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 3
+    },
+    {
+      "name": "Basic",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 65,
+      "within": 3
+    },
+    {
+      "name": "Basic",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 65,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "Alias",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 67,
+      "within": 3
+    },
+    {
+      "name": "Alias",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 67,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 68,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 68,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 69,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 69,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 70,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 70,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "TypeArgs",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "TypeArgs",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "typeArguments",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 72,
+      "within": 3
+    },
+    {
+      "name": "Named",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 73,
+      "within": 3
+    },
+    {
+      "name": "Named",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 73,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 74,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 74,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 75,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 75,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 76,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 76,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "Pkg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "TypeArgs",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "TypeArgs",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "typeArguments",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 3
+    },
+    {
+      "name": "Pointer",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "Pointer",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "Slice",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 81,
+      "within": 3
+    },
+    {
+      "name": "Slice",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 81,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 82,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 82,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 82,
+      "within": 3
+    },
+    {
+      "name": "Array",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 3
+    },
+    {
+      "name": "Array",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 84,
+      "within": 3
+    },
+    {
+      "name": "Map",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 85,
+      "within": 3
+    },
+    {
+      "name": "Map",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 85,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "Key",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "Key",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 86,
+      "within": 3
+    },
+    {
+      "name": "Chan",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 87,
+      "within": 3
+    },
+    {
+      "name": "Chan",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 87,
+      "within": 3
+    },
+    {
+      "name": "Dir",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 88,
+      "within": 3
+    },
+    {
+      "name": "Dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 88,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 90,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 90,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 90,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 92,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 94,
+      "within": 3
+    },
+    {
+      "name": "Elem",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 94,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 94,
+      "within": 3
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 95,
+      "within": 3
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 95,
+      "within": 3
+    },
+    {
+      "name": "signatureText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 96,
+      "within": 3
+    },
+    {
+      "name": "Struct",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 97,
+      "within": 3
+    },
+    {
+      "name": "Struct",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 97,
+      "within": 3
+    },
+    {
+      "name": "NumFields",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 98,
+      "within": 3
+    },
+    {
+      "name": "NumFields",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 98,
+      "within": 3
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 98,
+      "within": 3
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 98,
+      "within": 3
+    },
+    {
+      "name": "NumFields",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 99,
+      "within": 3
+    },
+    {
+      "name": "NumFields",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 99,
+      "within": 3
+    },
+    {
+      "name": "Field",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 100,
+      "within": 3
+    },
+    {
+      "name": "Field",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": "field",
+      "kind": "call",
+      "target": null,
+      "line": 101,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 101,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 101,
+      "within": 3
+    },
+    {
+      "name": "Embedded",
+      "qualifier": "field",
+      "kind": "call",
+      "target": null,
+      "line": 102,
+      "within": 3
+    },
+    {
+      "name": "Embedded",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 102,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "field",
+      "kind": "call",
+      "target": null,
+      "line": 103,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 103,
+      "within": 3
+    },
+    {
+      "name": "Tag",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 105,
+      "within": 3
+    },
+    {
+      "name": "Tag",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 105,
+      "within": 3
+    },
+    {
+      "name": "Marshal",
+      "qualifier": "json",
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 3
+    },
+    {
+      "name": "Marshal",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 106,
+      "within": 3
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 107,
+      "within": 3
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 109,
+      "within": 3
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 111,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 114,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 3
+    },
+    {
+      "name": "Interface",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 115,
+      "within": 3
+    },
+    {
+      "name": "Interface",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 115,
+      "within": 3
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 116,
+      "within": 3
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 117,
+      "within": 3
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 117,
+      "within": 3
+    },
+    {
+      "name": "ExplicitMethod",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 118,
+      "within": 3
+    },
+    {
+      "name": "ExplicitMethod",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "signatureText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 119,
+      "within": 3
+    },
+    {
+      "name": "NumEmbeddeds",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 121,
+      "within": 3
+    },
+    {
+      "name": "NumEmbeddeds",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 121,
+      "within": 3
+    },
+    {
+      "name": "EmbeddedType",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 122,
+      "within": 3
+    },
+    {
+      "name": "EmbeddedType",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 122,
+      "within": 3
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 122,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 122,
+      "within": 3
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 124,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 127,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 127,
+      "within": 3
+    },
+    {
+      "name": "Union",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 128,
+      "within": 3
+    },
+    {
+      "name": "Union",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 128,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 129,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 129,
+      "within": 3
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 129,
+      "within": 3
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 129,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 130,
+      "within": 3
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 130,
+      "within": 3
+    },
+    {
+      "name": "Term",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 131,
+      "within": 3
+    },
+    {
+      "name": "Term",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 131,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": "term",
+      "kind": "call",
+      "target": null,
+      "line": 132,
+      "within": 3
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 132,
+      "within": 3
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 132,
+      "within": 3
+    },
+    {
+      "name": "Tilde",
+      "qualifier": "term",
+      "kind": "call",
+      "target": null,
+      "line": 133,
+      "within": 3
+    },
+    {
+      "name": "Tilde",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 133,
+      "within": 3
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 136,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 138,
+      "within": 3
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 3
+    },
+    {
+      "name": "TypeParam",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": 3
+    },
+    {
+      "name": "TypeParam",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": 3
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 140,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 140,
+      "within": 3
+    },
+    {
+      "name": "Obj",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 140,
+      "within": 3
+    },
+    {
+      "name": "Tuple",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": 3
+    },
+    {
+      "name": "Tuple",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": 3
+    },
+    {
+      "name": "tupleText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 142,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": "t",
+      "kind": "call",
+      "target": null,
+      "line": 144,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 144,
+      "within": 3
+    },
+    {
+      "name": "TypeList",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 147,
+      "within": 4
+    },
+    {
+      "name": "TypeList",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 147,
+      "within": 4
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 147,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": "args",
+      "kind": "call",
+      "target": null,
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": "args",
+      "kind": "call",
+      "target": null,
+      "line": 151,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 4
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 151,
+      "within": 4
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": "args",
+      "kind": "call",
+      "target": null,
+      "line": 152,
+      "within": 4
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 4
+    },
+    {
+      "name": "At",
+      "qualifier": "args",
+      "kind": "call",
+      "target": null,
+      "line": 153,
+      "within": 4
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 153,
+      "within": 4
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 153,
+      "within": 4
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 153,
+      "within": 4
+    },
+    {
+      "name": "Join",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 155,
+      "within": 4
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 155,
+      "within": 4
+    },
+    {
+      "name": "Tuple",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 158,
+      "within": 5
+    },
+    {
+      "name": "Tuple",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 158,
+      "within": 5
+    },
+    {
+      "name": "bool",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 158,
+      "within": 5
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 158,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": "tuple",
+      "kind": "call",
+      "target": null,
+      "line": 159,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 159,
+      "within": 5
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 159,
+      "within": 5
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 159,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": "tuple",
+      "kind": "call",
+      "target": null,
+      "line": 160,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 5
+    },
+    {
+      "name": "At",
+      "qualifier": "tuple",
+      "kind": "call",
+      "target": null,
+      "line": 161,
+      "within": 5
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 5
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 5
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 161,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": "tuple",
+      "kind": "call",
+      "target": null,
+      "line": 162,
+      "within": 5
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 162,
+      "within": 5
+    },
+    {
+      "name": "TrimPrefix",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 163,
+      "within": 5
+    },
+    {
+      "name": "TrimPrefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 163,
+      "within": 5
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 165,
+      "within": 5
+    },
+    {
+      "name": "Join",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 167,
+      "within": 5
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 167,
+      "within": 5
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 6
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 6
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 6
+    },
+    {
+      "name": "Params",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 171,
+      "within": 6
+    },
+    {
+      "name": "Params",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 171,
+      "within": 6
+    },
+    {
+      "name": "Variadic",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 171,
+      "within": 6
+    },
+    {
+      "name": "Variadic",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 171,
+      "within": 6
+    },
+    {
+      "name": "tupleText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 171,
+      "within": 6
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 172,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 172,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 172,
+      "within": 6
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 175,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 6
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 6
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 175,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 6
+    },
+    {
+      "name": "Results",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 177,
+      "within": 6
+    },
+    {
+      "name": "tupleText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 6
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 182,
+      "within": 7
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 182,
+      "within": 7
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 182,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 183,
+      "within": 7
+    },
+    {
+      "name": "Params",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 184,
+      "within": 7
+    },
+    {
+      "name": "Params",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 184,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": "parameters",
+      "kind": "call",
+      "target": null,
+      "line": 186,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 186,
+      "within": 7
+    },
+    {
+      "name": "At",
+      "qualifier": "parameters",
+      "kind": "call",
+      "target": null,
+      "line": 187,
+      "within": 7
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 187,
+      "within": 7
+    },
+    {
+      "name": "Type",
+      "qualifier": "parameter",
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 7
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 188,
+      "within": 7
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": "parameters",
+      "kind": "call",
+      "target": null,
+      "line": 189,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 189,
+      "within": 7
+    },
+    {
+      "name": "Variadic",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 189,
+      "within": 7
+    },
+    {
+      "name": "Variadic",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 189,
+      "within": 7
+    },
+    {
+      "name": "TrimPrefix",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 7
+    },
+    {
+      "name": "TrimPrefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 190,
+      "within": 7
+    },
+    {
+      "name": "Name",
+      "qualifier": "parameter",
+      "kind": "call",
+      "target": null,
+      "line": 192,
+      "within": 7
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 7
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 193,
+      "within": 7
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 193,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 193,
+      "within": 7
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 195,
+      "within": 7
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 195,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 195,
+      "within": 7
+    },
+    {
+      "name": "Results",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 198,
+      "within": 7
+    },
+    {
+      "name": "Results",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 198,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": "results",
+      "kind": "call",
+      "target": null,
+      "line": 199,
+      "within": 7
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 7
+    },
+    {
+      "name": "At",
+      "qualifier": "results",
+      "kind": "call",
+      "target": null,
+      "line": 202,
+      "within": 7
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 202,
+      "within": 7
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 202,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 202,
+      "within": 7
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 202,
+      "within": 7
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 7
+    },
+    {
+      "name": "tupleText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 7
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 206,
+      "within": 7
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 206,
+      "within": 7
+    },
+    {
+      "name": "typeParameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 206,
+      "within": 7
+    },
+    {
+      "name": "TypeParamList",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 209,
+      "within": 8
+    },
+    {
+      "name": "TypeParamList",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 209,
+      "within": 8
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 209,
+      "within": 8
+    },
+    {
+      "name": "Len",
+      "qualifier": "parameters",
+      "kind": "call",
+      "target": null,
+      "line": 213,
+      "within": 8
+    },
+    {
+      "name": "Len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 213,
+      "within": 8
+    },
+    {
+      "name": "At",
+      "qualifier": "parameters",
+      "kind": "call",
+      "target": null,
+      "line": 214,
+      "within": 8
+    },
+    {
+      "name": "At",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 214,
+      "within": 8
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "Obj",
+      "qualifier": "parameter",
+      "kind": "call",
+      "target": null,
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "Obj",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 215,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 216,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 216,
+      "within": 8
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 216,
+      "within": 8
+    },
+    {
+      "name": "Constraint",
+      "qualifier": "parameter",
+      "kind": "call",
+      "target": null,
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "Constraint",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "constraintText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 217,
+      "within": 8
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": 9
+    },
+    {
+      "name": "Type",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": 9
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": 9
+    },
+    {
+      "name": "Interface",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "Interface",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "NumEmbeddeds",
+      "qualifier": "inner",
+      "kind": "call",
+      "target": null,
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "NumEmbeddeds",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": "inner",
+      "kind": "call",
+      "target": null,
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 222,
+      "within": 9
+    },
+    {
+      "name": "EmbeddedType",
+      "qualifier": "inner",
+      "kind": "call",
+      "target": null,
+      "line": 223,
+      "within": 9
+    },
+    {
+      "name": "EmbeddedType",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 223,
+      "within": 9
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 223,
+      "within": 9
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 225,
+      "within": 9
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 10
+    },
+    {
+      "name": "Value",
+      "qualifier": "constant",
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 10
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 228,
+      "within": 10
+    },
+    {
+      "name": "Kind",
+      "qualifier": "value",
+      "kind": "call",
+      "target": null,
+      "line": 229,
+      "within": 10
+    },
+    {
+      "name": "Kind",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 10
+    },
+    {
+      "name": "Marshal",
+      "qualifier": "json",
+      "kind": "call",
+      "target": null,
+      "line": 231,
+      "within": 10
+    },
+    {
+      "name": "Marshal",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 231,
+      "within": 10
+    },
+    {
+      "name": "StringVal",
+      "qualifier": "constant",
+      "kind": "call",
+      "target": null,
+      "line": 231,
+      "within": 10
+    },
+    {
+      "name": "StringVal",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 231,
+      "within": 10
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 232,
+      "within": 10
+    },
+    {
+      "name": "BoolVal",
+      "qualifier": "constant",
+      "kind": "call",
+      "target": null,
+      "line": 234,
+      "within": 10
+    },
+    {
+      "name": "BoolVal",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 234,
+      "within": 10
+    },
+    {
+      "name": "Sprint",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 234,
+      "within": 10
+    },
+    {
+      "name": "Sprint",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 234,
+      "within": 10
+    },
+    {
+      "name": "normalizedNumber",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 236,
+      "within": 10
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 247,
+      "within": 11
+    },
+    {
+      "name": "Value",
+      "qualifier": "constant",
+      "kind": "type",
+      "target": null,
+      "line": 247,
+      "within": 11
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 247,
+      "within": 11
+    },
+    {
+      "name": "Kind",
+      "qualifier": "value",
+      "kind": "call",
+      "target": null,
+      "line": 248,
+      "within": 11
+    },
+    {
+      "name": "Kind",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 248,
+      "within": 11
+    },
+    {
+      "name": "Imag",
+      "qualifier": "constant",
+      "kind": "call",
+      "target": null,
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Imag",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Real",
+      "qualifier": "constant",
+      "kind": "call",
+      "target": null,
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Real",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Sprintf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "normalizedNumber",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 249,
+      "within": 11
+    },
+    {
+      "name": "Float",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 11
+    },
+    {
+      "name": "Float",
+      "qualifier": "big",
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 11
+    },
+    {
+      "name": "Val",
+      "qualifier": "constant",
+      "kind": "call",
+      "target": null,
+      "line": 251,
+      "within": 11
+    },
+    {
+      "name": "Val",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 11
+    },
+    {
+      "name": "ExactString",
+      "qualifier": "value",
+      "kind": "call",
+      "target": null,
+      "line": 253,
+      "within": 11
+    },
+    {
+      "name": "ExactString",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 253,
+      "within": 11
+    },
+    {
+      "name": "MantExp",
+      "qualifier": "float",
+      "kind": "call",
+      "target": null,
+      "line": 255,
+      "within": 11
+    },
+    {
+      "name": "MantExp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 255,
+      "within": 11
+    },
+    {
+      "name": "ExactString",
+      "qualifier": "value",
+      "kind": "call",
+      "target": null,
+      "line": 256,
+      "within": 11
+    },
+    {
+      "name": "ExactString",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 256,
+      "within": 11
+    },
+    {
+      "name": "Rat",
+      "qualifier": "float",
+      "kind": "call",
+      "target": null,
+      "line": 258,
+      "within": 11
+    },
+    {
+      "name": "Rat",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 258,
+      "within": 11
+    },
+    {
+      "name": "RatString",
+      "qualifier": "ratio",
+      "kind": "call",
+      "target": null,
+      "line": 259,
+      "within": 11
+    },
+    {
+      "name": "RatString",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 259,
+      "within": 11
+    },
+    {
+      "name": "Struct",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 12
+    },
+    {
+      "name": "Struct",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 12
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 12
+    },
+    {
+      "name": "NumFields",
+      "qualifier": "shape",
+      "kind": "call",
+      "target": null,
+      "line": 263,
+      "within": 12
+    },
+    {
+      "name": "NumFields",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 263,
+      "within": 12
+    },
+    {
+      "name": "Field",
+      "qualifier": "shape",
+      "kind": "call",
+      "target": null,
+      "line": 264,
+      "within": 12
+    },
+    {
+      "name": "Field",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 264,
+      "within": 12
+    },
+    {
+      "name": "Name",
+      "qualifier": "field",
+      "kind": "call",
+      "target": null,
+      "line": 265,
+      "within": 12
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 265,
+      "within": 12
+    },
+    {
+      "name": "Type",
+      "qualifier": "field",
+      "kind": "call",
+      "target": null,
+      "line": 266,
+      "within": 12
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 266,
+      "within": 12
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 266,
+      "within": 12
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 266,
+      "within": 12
+    },
+    {
+      "name": "Tag",
+      "qualifier": "shape",
+      "kind": "call",
+      "target": null,
+      "line": 267,
+      "within": 12
+    },
+    {
+      "name": "Tag",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 267,
+      "within": 12
+    },
+    {
+      "name": "Marshal",
+      "qualifier": "json",
+      "kind": "call",
+      "target": null,
+      "line": 268,
+      "within": 12
+    },
+    {
+      "name": "Marshal",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 268,
+      "within": 12
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 269,
+      "within": 12
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 269,
+      "within": 12
+    },
+    {
+      "name": "TypeName",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 274,
+      "within": 13
+    },
+    {
+      "name": "TypeName",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 274,
+      "within": 13
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 274,
+      "within": 13
+    },
+    {
+      "name": "Alias",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 275,
+      "within": 13
+    },
+    {
+      "name": "Alias",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 275,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 275,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 275,
+      "within": 13
+    },
+    {
+      "name": "Rhs",
+      "qualifier": "alias",
+      "kind": "call",
+      "target": null,
+      "line": 276,
+      "within": 13
+    },
+    {
+      "name": "Rhs",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 276,
+      "within": 13
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 276,
+      "within": 13
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 276,
+      "within": 13
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": "alias",
+      "kind": "call",
+      "target": null,
+      "line": 277,
+      "within": 13
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 277,
+      "within": 13
+    },
+    {
+      "name": "typeParameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 277,
+      "within": 13
+    },
+    {
+      "name": "Named",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 280,
+      "within": 13
+    },
+    {
+      "name": "Named",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 280,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 280,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 280,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 284,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 284,
+      "within": 13
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 284,
+      "within": 13
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 284,
+      "within": 13
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 285,
+      "within": 13
+    },
+    {
+      "name": "TypeParams",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 285,
+      "within": 13
+    },
+    {
+      "name": "typeParameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 285,
+      "within": 13
+    },
+    {
+      "name": "Struct",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 286,
+      "within": 13
+    },
+    {
+      "name": "Struct",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 286,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 286,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 13
+    },
+    {
+      "name": "structSlots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 287,
+      "within": 13
+    },
+    {
+      "name": "Interface",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 289,
+      "within": 13
+    },
+    {
+      "name": "Interface",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 289,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 289,
+      "within": 13
+    },
+    {
+      "name": "Underlying",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 13
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": "shape",
+      "kind": "call",
+      "target": null,
+      "line": 290,
+      "within": 13
+    },
+    {
+      "name": "NumExplicitMethods",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 290,
+      "within": 13
+    },
+    {
+      "name": "ExplicitMethod",
+      "qualifier": "shape",
+      "kind": "call",
+      "target": null,
+      "line": 291,
+      "within": 13
+    },
+    {
+      "name": "ExplicitMethod",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 291,
+      "within": 13
+    },
+    {
+      "name": "Name",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "signatureSlots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 292,
+      "within": 13
+    },
+    {
+      "name": "NumMethods",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 295,
+      "within": 13
+    },
+    {
+      "name": "NumMethods",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 295,
+      "within": 13
+    },
+    {
+      "name": "Method",
+      "qualifier": "named",
+      "kind": "call",
+      "target": null,
+      "line": 296,
+      "within": 13
+    },
+    {
+      "name": "Method",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 296,
+      "within": 13
+    },
+    {
+      "name": "Name",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 297,
+      "within": 13
+    },
+    {
+      "name": "Name",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 297,
+      "within": 13
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 298,
+      "within": 13
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 298,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": "method",
+      "kind": "call",
+      "target": null,
+      "line": 298,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 298,
+      "within": 13
+    },
+    {
+      "name": "signatureSlots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 13
+    },
+    {
+      "name": "Recv",
+      "qualifier": "signature",
+      "kind": "call",
+      "target": null,
+      "line": 300,
+      "within": 13
+    },
+    {
+      "name": "Recv",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 300,
+      "within": 13
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 300,
+      "within": 13
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 300,
+      "within": 13
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 300,
+      "within": 13
+    },
+    {
+      "name": "FileSet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "FileSet",
+      "qualifier": "token",
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "Importer",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "Importer",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "listed",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": 14
+    },
+    {
+      "name": "File",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 305,
+      "within": 14
+    },
+    {
+      "name": "File",
+      "qualifier": "ast",
+      "kind": "type",
+      "target": null,
+      "line": 305,
+      "within": 14
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 305,
+      "within": 14
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 305,
+      "within": 14
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 306,
+      "within": 14
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": 14
+    },
+    {
+      "name": "Join",
+      "qualifier": "filepath",
+      "kind": "call",
+      "target": null,
+      "line": 307,
+      "within": 14
+    },
+    {
+      "name": "Join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 307,
+      "within": 14
+    },
+    {
+      "name": "ParseFile",
+      "qualifier": "parser",
+      "kind": "call",
+      "target": null,
+      "line": 307,
+      "within": 14
+    },
+    {
+      "name": "ParseFile",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 307,
+      "within": 14
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 14
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 313,
+      "within": 14
+    },
+    {
+      "name": "Config",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 313,
+      "within": 14
+    },
+    {
+      "name": "Check",
+      "qualifier": "config",
+      "kind": "call",
+      "target": null,
+      "line": 314,
+      "within": 14
+    },
+    {
+      "name": "Check",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 314,
+      "within": 14
+    },
+    {
+      "name": "Scope",
+      "qualifier": "checked",
+      "kind": "call",
+      "target": null,
+      "line": 318,
+      "within": 14
+    },
+    {
+      "name": "Scope",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 318,
+      "within": 14
+    },
+    {
+      "name": "Names",
+      "qualifier": "scope",
+      "kind": "call",
+      "target": null,
+      "line": 319,
+      "within": 14
+    },
+    {
+      "name": "Names",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 319,
+      "within": 14
+    },
+    {
+      "name": "Lookup",
+      "qualifier": "scope",
+      "kind": "call",
+      "target": null,
+      "line": 320,
+      "within": 14
+    },
+    {
+      "name": "Lookup",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 320,
+      "within": 14
+    },
+    {
+      "name": "Const",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 323,
+      "within": 14
+    },
+    {
+      "name": "Const",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 323,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 324,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 324,
+      "within": 14
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 324,
+      "within": 14
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 324,
+      "within": 14
+    },
+    {
+      "name": "Val",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 325,
+      "within": 14
+    },
+    {
+      "name": "Val",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 325,
+      "within": 14
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 325,
+      "within": 14
+    },
+    {
+      "name": "constantValue",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 325,
+      "within": 14
+    },
+    {
+      "name": "Var",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 326,
+      "within": 14
+    },
+    {
+      "name": "Var",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 326,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 327,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 327,
+      "within": 14
+    },
+    {
+      "name": "add",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 327,
+      "within": 14
+    },
+    {
+      "name": "typeText",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 327,
+      "within": 14
+    },
+    {
+      "name": "Func",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": 14
+    },
+    {
+      "name": "Func",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": 14
+    },
+    {
+      "name": "Signature",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 329,
+      "within": 14
+    },
+    {
+      "name": "Signature",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 329,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": "object",
+      "kind": "call",
+      "target": null,
+      "line": 329,
+      "within": 14
+    },
+    {
+      "name": "Type",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 14
+    },
+    {
+      "name": "signatureSlots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 329,
+      "within": 14
+    },
+    {
+      "name": "TypeName",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 330,
+      "within": 14
+    },
+    {
+      "name": "TypeName",
+      "qualifier": "types",
+      "kind": "type",
+      "target": null,
+      "line": 330,
+      "within": 14
+    },
+    {
+      "name": "typeSlots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 331,
+      "within": 14
+    },
+    {
+      "name": "String",
+      "qualifier": "flag",
+      "kind": "call",
+      "target": null,
+      "line": 338,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 338,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": "flag",
+      "kind": "call",
+      "target": null,
+      "line": 339,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 339,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": "flag",
+      "kind": "call",
+      "target": null,
+      "line": 340,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 340,
+      "within": 15
+    },
+    {
+      "name": "Parse",
+      "qualifier": "flag",
+      "kind": "call",
+      "target": null,
+      "line": 341,
+      "within": 15
+    },
+    {
+      "name": "Parse",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 341,
+      "within": 15
+    },
+    {
+      "name": "Abs",
+      "qualifier": "filepath",
+      "kind": "call",
+      "target": null,
+      "line": 342,
+      "within": 15
+    },
+    {
+      "name": "Abs",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 342,
+      "within": 15
+    },
+    {
+      "name": "Getwd",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 343,
+      "within": 15
+    },
+    {
+      "name": "Getwd",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 343,
+      "within": 15
+    },
+    {
+      "name": "HasPrefix",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 344,
+      "within": 15
+    },
+    {
+      "name": "HasPrefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 344,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 344,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 345,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 345,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 346,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 346,
+      "within": 15
+    },
+    {
+      "name": "Remove",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 348,
+      "within": 15
+    },
+    {
+      "name": "Remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 348,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 350,
+      "within": 15
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 352,
+      "within": 15
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 354,
+      "within": 15
+    },
+    {
+      "name": "Command",
+      "qualifier": "exec",
+      "kind": "call",
+      "target": null,
+      "line": 355,
+      "within": 15
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 355,
+      "within": 15
+    },
+    {
+      "name": "Output",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 355,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 357,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 357,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 358,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 358,
+      "within": 15
+    },
+    {
+      "name": "NewDecoder",
+      "qualifier": "json",
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": 15
+    },
+    {
+      "name": "NewDecoder",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 360,
+      "within": 15
+    },
+    {
+      "name": "NewReader",
+      "qualifier": "strings",
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": 15
+    },
+    {
+      "name": "NewReader",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 360,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": 15
+    },
+    {
+      "name": "NewFileSet",
+      "qualifier": "token",
+      "kind": "call",
+      "target": null,
+      "line": 361,
+      "within": 15
+    },
+    {
+      "name": "NewFileSet",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 361,
+      "within": 15
+    },
+    {
+      "name": "ForCompiler",
+      "qualifier": "importer",
+      "kind": "call",
+      "target": null,
+      "line": 362,
+      "within": 15
+    },
+    {
+      "name": "ForCompiler",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 362,
+      "within": 15
+    },
+    {
+      "name": "More",
+      "qualifier": "decoder",
+      "kind": "call",
+      "target": null,
+      "line": 363,
+      "within": 15
+    },
+    {
+      "name": "More",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 363,
+      "within": 15
+    },
+    {
+      "name": "listed",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 364,
+      "within": 15
+    },
+    {
+      "name": "Decode",
+      "qualifier": "decoder",
+      "kind": "call",
+      "target": null,
+      "line": 365,
+      "within": 15
+    },
+    {
+      "name": "Decode",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 365,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 366,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 366,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 367,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 367,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 369,
+      "within": 15
+    },
+    {
+      "name": "check",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 374,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 375,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 375,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 376,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 376,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 379,
+      "within": 15
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 379,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 379,
+      "within": 15
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 381,
+      "within": 15
+    },
+    {
+      "name": "Strings",
+      "qualifier": "sort",
+      "kind": "call",
+      "target": null,
+      "line": 383,
+      "within": 15
+    },
+    {
+      "name": "Strings",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 383,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 384,
+      "within": 15
+    },
+    {
+      "name": "make",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 384,
+      "within": 15
+    },
+    {
+      "name": "member",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 384,
+      "within": 15
+    },
+    {
+      "name": "append",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 386,
+      "within": 15
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 388,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 388,
+      "within": 15
+    },
+    {
+      "name": "Version",
+      "qualifier": "runtime",
+      "kind": "call",
+      "target": null,
+      "line": 392,
+      "within": 15
+    },
+    {
+      "name": "Version",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 392,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 392,
+      "within": 15
+    },
+    {
+      "name": "string",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 393,
+      "within": 15
+    },
+    {
+      "name": "MarshalIndent",
+      "qualifier": "json",
+      "kind": "call",
+      "target": null,
+      "line": 400,
+      "within": 15
+    },
+    {
+      "name": "MarshalIndent",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 400,
+      "within": 15
+    },
+    {
+      "name": "WriteFile",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 401,
+      "within": 15
+    },
+    {
+      "name": "WriteFile",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 401,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 402,
+      "within": 15
+    },
+    {
+      "name": "Fprintln",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 402,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": "os",
+      "kind": "call",
+      "target": null,
+      "line": 403,
+      "within": 15
+    },
+    {
+      "name": "Exit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 403,
+      "within": 15
+    },
+    {
+      "name": "Printf",
+      "qualifier": "fmt",
+      "kind": "call",
+      "target": null,
+      "line": 405,
+      "within": 15
+    },
+    {
+      "name": "Printf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 405,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 405,
+      "within": 15
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "ast",
+      "path": [
+        "go",
+        "ast"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "big",
+      "path": [
+        "math",
+        "big"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "constant",
+      "path": [
+        "go",
+        "constant"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "exec",
+      "path": [
+        "os",
+        "exec"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "filepath",
+      "path": [
+        "path",
+        "filepath"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "flag",
+      "path": [
+        "flag"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "fmt",
+      "path": [
+        "fmt"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "importer",
+      "path": [
+        "go",
+        "importer"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "json",
+      "path": [
+        "encoding",
+        "json"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "os",
+      "path": [
+        "os"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "parser",
+      "path": [
+        "go",
+        "parser"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "runtime",
+      "path": [
+        "runtime"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "sort",
+      "path": [
+        "sort"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "strings",
+      "path": [
+        "strings"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "token",
+      "path": [
+        "go",
+        "token"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "types",
+      "path": [
+        "go",
+        "types"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "scripts",
+    "semantic-oracle",
+    "report-go"
+  ]
+}
