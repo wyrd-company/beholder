@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/tests/fixtures/make-git2-index.sh",
+  "language": null,
+  "content_hash": "311a82f77659acf543e570a5aa058c3e8826aaf1dfa6970a2e5dc9ba82a7bdab",
+  "tier": 0,
+  "density": 4.0314674,
+  "lines": 55,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
