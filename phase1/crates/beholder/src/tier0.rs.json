@@ -1,0 +1,402 @@
+{
+  "path": "crates/beholder/src/tier0.rs",
+  "language": "rust",
+  "content_hash": "b25f95671f6bbaf360d17b0fa6e39b92029b5607433e49d2bed29d8699732744",
+  "tier": 1,
+  "density": 11.253294,
+  "lines": 160,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:indentation_widths",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "indentation_widths",
+      "qualified_path": "indentation_widths",
+      "discriminator": null,
+      "start_line": 40,
+      "start_column": 0,
+      "end_line": 68,
+      "end_column": 1,
+      "declaration": {
+        "line": 40,
+        "start_column": 7,
+        "end_column": 25
+      },
+      "cognitive_complexity": 12,
+      "tier": 1,
+      "content_fingerprint": "6ad101e032ff56adc7ad62e1a5b0a8f7d823454803d30d3f6ca06252f2c7e74c",
+      "body_fingerprint": "9e0aaaf556e201f4868b380695c0ab79a066a4d70a86d057c39c2b418ca6faa1"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:density",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "density",
+      "qualified_path": "density",
+      "discriminator": null,
+      "start_line": 77,
+      "start_column": 0,
+      "end_line": 79,
+      "end_column": 1,
+      "declaration": {
+        "line": 77,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2ab5fce20b407986d6f20e07409d185f73653c439d92146e524c7c2b87927e49",
+      "body_fingerprint": "6036b12161fcc825027c604d1ba5d1c7d23aae8e759cb50cee318677fa83f349"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:score_widths",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "score_widths",
+      "qualified_path": "score_widths",
+      "discriminator": null,
+      "start_line": 85,
+      "start_column": 0,
+      "end_line": 119,
+      "end_column": 1,
+      "declaration": {
+        "line": 85,
+        "start_column": 3,
+        "end_column": 15
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "25ca493d994ebe13996155de239c0174fd882114a5e522f55ce90a1f1f0e95cd",
+      "body_fingerprint": "bddebd91744d8c420cf76e553e2df83d44caa68d8cf650a32dd63ebf6525339b"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::close",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "close",
+      "qualified_path": "tests::close",
+      "discriminator": null,
+      "start_line": 125,
+      "start_column": 4,
+      "end_line": 127,
+      "end_column": 5,
+      "declaration": {
+        "line": 125,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0b5870fa27ebe2206fc61023d4b79821232876a2f73835bb83cce87dde7b2dcd",
+      "body_fingerprint": "a85b7c9cf682eae8363c21bbccbfb3c980bae9643cf269e8ad831f338ff31cce"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::counts_whitespace_correctly",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "counts_whitespace_correctly",
+      "qualified_path": "tests::counts_whitespace_correctly",
+      "discriminator": null,
+      "start_line": 130,
+      "start_column": 4,
+      "end_line": 134,
+      "end_column": 5,
+      "declaration": {
+        "line": 130,
+        "start_column": 7,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "480049c1becbc8bd1b4013009f7bf02fe6a9ce3e896131dce398609be06465f5",
+      "body_fingerprint": "18edce3316444358380eb38b1c212f3e0a12103de6085f65b24ddcc5643adfb2"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::parses_a_file",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "parses_a_file",
+      "qualified_path": "tests::parses_a_file",
+      "discriminator": null,
+      "start_line": 137,
+      "start_column": 4,
+      "end_line": 142,
+      "end_column": 5,
+      "declaration": {
+        "line": 137,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8d792497f211cb33a2b88732c40ecd339c01e08c233d5b7d701e801d542c9e4c",
+      "body_fingerprint": "2929a2b3870663ecbc0cc700418959cc30a4f5b18f9e4214cb9f91e8fbf984fd"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::empty_file_scores_zero",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "empty_file_scores_zero",
+      "qualified_path": "tests::empty_file_scores_zero",
+      "discriminator": null,
+      "start_line": 145,
+      "start_column": 4,
+      "end_line": 147,
+      "end_column": 5,
+      "declaration": {
+        "line": 145,
+        "start_column": 7,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d4882c3b13f4d73287e4cf0473e28b85e5d456fa5e9c308e4328355f186f0cd1",
+      "body_fingerprint": "af6e2ebdb007d9ea813f0750eac07f8311d980f23351c8740444ac1a80a0e893"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::files_at_or_below_the_minimum_length_score_zero",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "files_at_or_below_the_minimum_length_score_zero",
+      "qualified_path": "tests::files_at_or_below_the_minimum_length_score_zero",
+      "discriminator": null,
+      "start_line": 150,
+      "start_column": 4,
+      "end_line": 154,
+      "end_column": 5,
+      "declaration": {
+        "line": 150,
+        "start_column": 7,
+        "end_column": 54
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "159776c9319dda1b59a045ea9fac2256ca0881b63e686d24d9f0efc57d02c458",
+      "body_fingerprint": "5eb536c9309ff79a594c4f4c51540be597c6e7bdd03e726eb03ca7e8e2575fcc"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::simple_case_matches_upstream",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "simple_case_matches_upstream",
+      "qualified_path": "tests::simple_case_matches_upstream",
+      "discriminator": null,
+      "start_line": 157,
+      "start_column": 4,
+      "end_line": 159,
+      "end_column": 5,
+      "declaration": {
+        "line": 157,
+        "start_column": 7,
+        "end_column": 35
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "422f6cfb9650890143237d9ef9f36187a63201fe84d9fc368caabdb1d4c901d9",
+      "body_fingerprint": "12f61fbdbf5f0ebb1718f9093f53d2b971005e5a40e886af3faa9fdc0421205d"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::complex_case_matches_upstream",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "complex_case_matches_upstream",
+      "qualified_path": "tests::complex_case_matches_upstream",
+      "discriminator": null,
+      "start_line": 162,
+      "start_column": 4,
+      "end_line": 175,
+      "end_column": 5,
+      "declaration": {
+        "line": 162,
+        "start_column": 7,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "68db97394fd68c4e03af5d6345d7fe4c6a1eaa86905cd0609f8ab41ba231bc73",
+      "body_fingerprint": "26ac63e7701b68973959cc7dffdf76bd101d01912e62de9b54a49f2b216af9df"
+    },
+    {
+      "id": "rust:crates/beholder/src/tier0.rs:function:tests::density_applies_to_any_text",
+      "path": "crates/beholder/src/tier0.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "density_applies_to_any_text",
+      "qualified_path": "tests::density_applies_to_any_text",
+      "discriminator": null,
+      "start_line": 178,
+      "start_column": 4,
+      "end_line": 182,
+      "end_column": 5,
+      "declaration": {
+        "line": 178,
+        "start_column": 7,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "86540647b9576ae67cfb9d794a9284ed67e9b0f1bde0e8b76d4bdb6bd5d144ed",
+      "body_fingerprint": "84f3169374e3a970817fbcafb9095d3673b6d5335a62122ed74271055cb54411"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 40,
+      "within": 0
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 42,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 42,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 42,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 45,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 45,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 45,
+      "within": 0
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 49,
+      "within": 0
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 0
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 0
+    },
+    {
+      "name": "indentation_widths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 1
+    },
+    {
+      "name": "score_widths",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 78,
+      "within": 1
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 86,
+      "within": 2
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 94,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 115,
+      "within": 2
+    },
+    {
+      "name": "powf",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "abs",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 3
+    }
+  ],
+  "imports": [],
+  "module_segments": [
+    "tier0"
+  ]
+}

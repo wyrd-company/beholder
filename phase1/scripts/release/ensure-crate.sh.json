@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/ensure-crate.sh",
+  "language": null,
+  "content_hash": "40212d3b376af53ba87561ad6f71313df64755a6d2934522d07f7f9107d052f0",
+  "tier": 0,
+  "density": 9.394142,
+  "lines": 73,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
