@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/go/complexity.scm",
+  "language": null,
+  "content_hash": "b081c5ffbdb9b27a52ca7703c18201e922185966b7d7f64d6049814e197fb4c7",
+  "tier": 0,
+  "density": 0.03846154,
+  "lines": 26,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
