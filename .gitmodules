@@ -1,5 +1,0 @@
-[submodule "fixtures"]
-	path = fixtures
-	url = ../beholder-fixtures.git
-	update = none
-	shallow = true
