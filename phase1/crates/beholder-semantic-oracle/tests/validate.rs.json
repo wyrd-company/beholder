@@ -1,0 +1,5579 @@
+{
+  "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+  "language": "rust",
+  "content_hash": "576fbfbe48f1c144d50c2f180fbcc3b1b74ff2356b1f99101da90bd4c0e0dbeb",
+  "tier": 1,
+  "density": 157.25359,
+  "lines": 1105,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:fixture_dir",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fixture_dir",
+      "qualified_path": "fixture_dir",
+      "discriminator": null,
+      "start_line": 23,
+      "start_column": 0,
+      "end_line": 25,
+      "end_column": 1,
+      "declaration": {
+        "line": 23,
+        "start_column": 3,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9304c3ea1de325833f7cced1936b7b81fdf15cf1f1b76958b61b1c8b00c96e88",
+      "body_fingerprint": "b9eba720e4b9253e0ba49a711214a002f782c0e0a926fb0068c05f7a08af4af9"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:dataset",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "dataset",
+      "qualified_path": "dataset",
+      "discriminator": null,
+      "start_line": 27,
+      "start_column": 0,
+      "end_line": 30,
+      "end_column": 1,
+      "declaration": {
+        "line": 27,
+        "start_column": 3,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2a2d693d005e17be810d9930fea8c2e31990f796e1b4d6f56c351a3661a1c442",
+      "body_fingerprint": "082aeb430707eccd4cbadb519a1de32ecded82801106b7b7d15cae0a1086d2f0"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:files",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "files",
+      "qualified_path": "files",
+      "discriminator": null,
+      "start_line": 32,
+      "start_column": 0,
+      "end_line": 36,
+      "end_column": 1,
+      "declaration": {
+        "line": 32,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "095498fada93943e0a1e52312a10ab65bef0db7ea7f3c9be2e89888fe4a0fe95",
+      "body_fingerprint": "d9c8c5ff4e85f7ea6c2e9ea285b658f380e1943ec6f4f1001ae5c312d52de624"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:set",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "set",
+      "qualified_path": "set",
+      "discriminator": null,
+      "start_line": 39,
+      "start_column": 0,
+      "end_line": 51,
+      "end_column": 1,
+      "declaration": {
+        "line": 39,
+        "start_column": 3,
+        "end_column": 6
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "f87889efb72b02086f2ae7ec8f70c094437b91f9ff829b28d2a66ef814972340",
+      "body_fingerprint": "14c111364145226c7d991c06d100a7049a52e6d894d1e48cf0de415e3ec4d88d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:push",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "push",
+      "qualified_path": "push",
+      "discriminator": null,
+      "start_line": 53,
+      "start_column": 0,
+      "end_line": 59,
+      "end_column": 1,
+      "declaration": {
+        "line": 53,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8757ae0fe3b6bec3bfb275031155693ca7ce8bc8b409fdf7394ce64f16b13d37",
+      "body_fingerprint": "3768590995f09071960e6017a4db8040a53dab1380421938d18ba85b49617189"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:found",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "found",
+      "qualified_path": "found",
+      "discriminator": null,
+      "start_line": 62,
+      "start_column": 0,
+      "end_line": 74,
+      "end_column": 1,
+      "declaration": {
+        "line": 62,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "93c9031937396455e3ac419a55ebc7f48df17018a6a9402c26986b689d5d9c70",
+      "body_fingerprint": "349aa1609ee0449ad4040885d6b51f0321351d479f228249b7a5092e2039810b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:expect",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "expect",
+      "qualified_path": "expect",
+      "discriminator": null,
+      "start_line": 76,
+      "start_column": 0,
+      "end_line": 82,
+      "end_column": 1,
+      "declaration": {
+        "line": 76,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2fc31707116f46a4548e8495e9fba29d81188eaa4b7b54905aa5d558ea3d003a",
+      "body_fingerprint": "b627e75409c69ff9074f12a34b837fdb07539a76a83d4a44d19112cd03b7d9d9"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:validate_with",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validate_with",
+      "qualified_path": "validate_with",
+      "discriminator": null,
+      "start_line": 84,
+      "start_column": 0,
+      "end_line": 86,
+      "end_column": 1,
+      "declaration": {
+        "line": 84,
+        "start_column": 3,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "98f726e072fca58c2aefced588b80862f3b4e5867b2ad64091c1078b73d748e1",
+      "body_fingerprint": "dee5f32828103fe11b7efc16893e376cc64c0eab4f2038c5e58bb55d57e1e992"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_fixture_passes_validation_and_audit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_fixture_passes_validation_and_audit",
+      "qualified_path": "the_fixture_passes_validation_and_audit",
+      "discriminator": null,
+      "start_line": 89,
+      "start_column": 0,
+      "end_line": 94,
+      "end_column": 1,
+      "declaration": {
+        "line": 89,
+        "start_column": 3,
+        "end_column": 42
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0c45ac6a59eac1d2ac9bf2b0d5762a4b6da8bc6ee605606d586ddc4bc8772e2f",
+      "body_fingerprint": "2574c7daea23b576ce3dd89ab95d6bda006c10ef31b0033ab829d32a6ad0fcdc"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:findings_are_deterministic",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "findings_are_deterministic",
+      "qualified_path": "findings_are_deterministic",
+      "discriminator": null,
+      "start_line": 97,
+      "start_column": 0,
+      "end_line": 118,
+      "end_column": 1,
+      "declaration": {
+        "line": 97,
+        "start_column": 3,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6c5391596f98218cb3fffedbf65f097186e4c8ebd9687e480c17695d459451d4",
+      "body_fingerprint": "a5e596a0c7e8f2d6e2cec377d5dbaa13d8e188853ab5a77046801e9440f3da2d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:another_model_version_is_one_finding",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "another_model_version_is_one_finding",
+      "qualified_path": "another_model_version_is_one_finding",
+      "discriminator": null,
+      "start_line": 123,
+      "start_column": 0,
+      "end_line": 130,
+      "end_column": 1,
+      "declaration": {
+        "line": 123,
+        "start_column": 3,
+        "end_column": 39
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "72779b18ffe0bb743a18136eda6bffc9fa89dff5e84ef688a9915fb19e129f91",
+      "body_fingerprint": "f26f8d4cfd3d98fa31b76a5b149b2fb64cf7bbf95071bb86673c06a83c7b8e92"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_unknown_profile_version_is_one_finding",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_unknown_profile_version_is_one_finding",
+      "qualified_path": "an_unknown_profile_version_is_one_finding",
+      "discriminator": null,
+      "start_line": 133,
+      "start_column": 0,
+      "end_line": 140,
+      "end_column": 1,
+      "declaration": {
+        "line": 133,
+        "start_column": 3,
+        "end_column": 44
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fd36cc81c644522b4784e8785fc34530da242f4321a6c90f461ac5089e2ebdb4",
+      "body_fingerprint": "0e440ab1b05f4c327ceca5fe87d90393c4c746c5e234de1a8258833f9feb4c11"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:schema_errors_stop_later_checks",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "schema_errors_stop_later_checks",
+      "qualified_path": "schema_errors_stop_later_checks",
+      "discriminator": null,
+      "start_line": 143,
+      "start_column": 0,
+      "end_line": 151,
+      "end_column": 1,
+      "declaration": {
+        "line": 143,
+        "start_column": 3,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0a57eefad47c499b6cbe89e5518cbd400b05d17d5d41a019f238e7ea9429516c",
+      "body_fingerprint": "8535fff3e70a8bfcd3182959c9d84d16be21ebbd903577aaa248769739f454b6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:ids_are_unique_across_the_dataset",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "ids_are_unique_across_the_dataset",
+      "qualified_path": "ids_are_unique_across_the_dataset",
+      "discriminator": null,
+      "start_line": 156,
+      "start_column": 0,
+      "end_line": 169,
+      "end_column": 1,
+      "declaration": {
+        "line": 156,
+        "start_column": 3,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fc85b12fbde2b97a605d3de30f6d3dce0457b37ab95a4d97a4cd18551edb384d",
+      "body_fingerprint": "83396f6d8320c4de276ab0c22dd1a0c4d894d0bdde1b99cba6b96576d52946f5"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:id_references_resolve_to_the_right_kind_of_record",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "id_references_resolve_to_the_right_kind_of_record",
+      "qualified_path": "id_references_resolve_to_the_right_kind_of_record",
+      "discriminator": null,
+      "start_line": 172,
+      "start_column": 0,
+      "end_line": 183,
+      "end_column": 1,
+      "declaration": {
+        "line": 172,
+        "start_column": 3,
+        "end_column": 52
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "343d5f213a634c05486fe8a52bbcb05e41f8f9a518e85f1100721547c3568cae",
+      "body_fingerprint": "6cbe7016a94c5be01a541400c8dda537128757684a461105b5dfb5ca8e97280d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_disposition_names_the_kind_of_its_target",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_disposition_names_the_kind_of_its_target",
+      "qualified_path": "a_disposition_names_the_kind_of_its_target",
+      "discriminator": null,
+      "start_line": 186,
+      "start_column": 0,
+      "end_line": 193,
+      "end_column": 1,
+      "declaration": {
+        "line": 186,
+        "start_column": 3,
+        "end_column": 45
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e82830649d7b240899a86ef462eeb55fdab59cc09ba0a3b4ed6b4e86aafac461",
+      "body_fingerprint": "949cf8cc6412aa2016d84e6eab61414ef416c0b9226fb81cf8aa58e4dc765005"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:every_external_is_a_target",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_external_is_a_target",
+      "qualified_path": "every_external_is_a_target",
+      "discriminator": null,
+      "start_line": 196,
+      "start_column": 0,
+      "end_line": 208,
+      "end_column": 1,
+      "declaration": {
+        "line": 196,
+        "start_column": 3,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "bc94b064881a3b6d5c96f3ca90acb9887067ff6aabedea73782b8286d74c2599",
+      "body_fingerprint": "049a175db1a20dc9eaf4c73b55261f79c92e082751c801f8fc010f0e5ef4279f"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:external_keys_are_unique",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "external_keys_are_unique",
+      "qualified_path": "external_keys_are_unique",
+      "discriminator": null,
+      "start_line": 211,
+      "start_column": 0,
+      "end_line": 230,
+      "end_column": 1,
+      "declaration": {
+        "line": 211,
+        "start_column": 3,
+        "end_column": 27
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "b0b18fae74087c3f662d1544ec6d361da67bbdbb0bb9a056d5185fa39ae83a0b",
+      "body_fingerprint": "5363de261925499a452768626c882c101b02112c4ce95cecfa4ed6bbbf491358"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:every_tracked_file_has_one_inventory_entry",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_tracked_file_has_one_inventory_entry",
+      "qualified_path": "every_tracked_file_has_one_inventory_entry",
+      "discriminator": null,
+      "start_line": 235,
+      "start_column": 0,
+      "end_line": 251,
+      "end_column": 1,
+      "declaration": {
+        "line": 235,
+        "start_column": 3,
+        "end_column": 45
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "24d69e35ccbe8ffd1d3fc174fc0b9c6d3c0d5fb729203a41486fcebcb19ef500",
+      "body_fingerprint": "d8017ab3d7c6f0f90560c5c12a27a824301bdf8215e509ac252411dc65694268"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_dataset_file_is_not_a_document",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_dataset_file_is_not_a_document",
+      "qualified_path": "the_dataset_file_is_not_a_document",
+      "discriminator": null,
+      "start_line": 254,
+      "start_column": 0,
+      "end_line": 267,
+      "end_column": 1,
+      "declaration": {
+        "line": 254,
+        "start_column": 3,
+        "end_column": 37
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2c1539cd5c9f82a7d8dc341237338d943f4848e8dcd38f6259472881cf1a0244",
+      "body_fingerprint": "5128b574bd51d2990960aacc14bd91ac32d87ba0e677f3cc873a184ffb0258df"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_path_has_one_inventory_entry",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_path_has_one_inventory_entry",
+      "qualified_path": "a_path_has_one_inventory_entry",
+      "discriminator": null,
+      "start_line": 270,
+      "start_column": 0,
+      "end_line": 278,
+      "end_column": 1,
+      "declaration": {
+        "line": 270,
+        "start_column": 3,
+        "end_column": 33
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "09fe63363683ef0586eb4c79423aac125167e2e530e2ef8555307d0bead5769d",
+      "body_fingerprint": "9ae0c91a00d823c3bb6ad0e2d3e2555353d0330bd97e0b02ad4bf17a2c93fac6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_digest_mismatch_outside_indexed_documents_is_reported",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_digest_mismatch_outside_indexed_documents_is_reported",
+      "qualified_path": "a_digest_mismatch_outside_indexed_documents_is_reported",
+      "discriminator": null,
+      "start_line": 281,
+      "start_column": 0,
+      "end_line": 291,
+      "end_column": 1,
+      "declaration": {
+        "line": 281,
+        "start_column": 3,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "51c26e13e81c486f240053282732a4880adfb55023b920e4a8b9d1c3e62636ab",
+      "body_fingerprint": "125936b4999a1526f7f1ede92df091ca3adc4c94856df556cb328e11f7b0c4dc"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_changed_indexed_document_makes_its_locators_stale",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_changed_indexed_document_makes_its_locators_stale",
+      "qualified_path": "a_changed_indexed_document_makes_its_locators_stale",
+      "discriminator": null,
+      "start_line": 294,
+      "start_column": 0,
+      "end_line": 309,
+      "end_column": 1,
+      "declaration": {
+        "line": 294,
+        "start_column": 3,
+        "end_column": 54
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e48e7c67439af9d842d20cc0635329c85cb510dd8c042447d8efc888732f7516",
+      "body_fingerprint": "26132a3d25c5d52cbe5dfe4987c33b4217a3ab825cd2938c338b4355c9c4b800"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_indexed_document_is_utf8",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_indexed_document_is_utf8",
+      "qualified_path": "an_indexed_document_is_utf8",
+      "discriminator": null,
+      "start_line": 312,
+      "start_column": 0,
+      "end_line": 326,
+      "end_column": 1,
+      "declaration": {
+        "line": 312,
+        "start_column": 3,
+        "end_column": 30
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "763226572cb00c0a07a63f538a5e312c53fd43881b5a532f95d03e753ded2a7d",
+      "body_fingerprint": "822a0343df99aad67d7abfcfe46add934b9179c7824249dfabaa00578e0067df"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_locator_whose_text_differs_is_stale_and_names_where_the_text_is",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_locator_whose_text_differs_is_stale_and_names_where_the_text_is",
+      "qualified_path": "a_locator_whose_text_differs_is_stale_and_names_where_the_text_is",
+      "discriminator": null,
+      "start_line": 331,
+      "start_column": 0,
+      "end_line": 356,
+      "end_column": 1,
+      "declaration": {
+        "line": 331,
+        "start_column": 3,
+        "end_column": 68
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4666c01eab964eb923986bc8293f5ea5876645bfe8bc3b7ffe31ddada75ed15e",
+      "body_fingerprint": "5d776e3c32fc88874cbd0625d79433b191aba264be88c44244b4a1a88f146c8c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_locator_lies_in_its_document",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_locator_lies_in_its_document",
+      "qualified_path": "a_locator_lies_in_its_document",
+      "discriminator": null,
+      "start_line": 359,
+      "start_column": 0,
+      "end_line": 366,
+      "end_column": 1,
+      "declaration": {
+        "line": 359,
+        "start_column": 3,
+        "end_column": 33
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "25bb4cd08c4c1df7672844dcf3aeaefda90a55099714e82d36195b6100836dcf",
+      "body_fingerprint": "120c98b2618fb91120abf1c40f0661e19f781ff2e8b9b2552c9b06fc056e1b9f"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_locator_ends_after_it_starts",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_locator_ends_after_it_starts",
+      "qualified_path": "a_locator_ends_after_it_starts",
+      "discriminator": null,
+      "start_line": 369,
+      "start_column": 0,
+      "end_line": 376,
+      "end_column": 1,
+      "declaration": {
+        "line": 369,
+        "start_column": 3,
+        "end_column": 33
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "758bc13f074b55a66e4778de1187a047874e69ff6fb9ad1308146fa7926770e1",
+      "body_fingerprint": "1a43ff49393695bfec4a7b33cf1a49e404bdeb17bece688958835d3ddcf8eee2"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_locator_names_an_indexed_inventory_document",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_locator_names_an_indexed_inventory_document",
+      "qualified_path": "a_locator_names_an_indexed_inventory_document",
+      "discriminator": null,
+      "start_line": 379,
+      "start_column": 0,
+      "end_line": 390,
+      "end_column": 1,
+      "declaration": {
+        "line": 379,
+        "start_column": 3,
+        "end_column": 48
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f911695151cca577074ca4a712b2debae9ed0aeb6e22df069d9cb9c8e4691ee0",
+      "body_fingerprint": "a284ff410132c8c5ee33bda3f75b7965d766b0dcfde4dbd787eb7cf5ac57d2a7"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_site_is_in_a_unit_member_in_every_context_of_its_fact",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_site_is_in_a_unit_member_in_every_context_of_its_fact",
+      "qualified_path": "a_site_is_in_a_unit_member_in_every_context_of_its_fact",
+      "discriminator": null,
+      "start_line": 393,
+      "start_column": 0,
+      "end_line": 421,
+      "end_column": 1,
+      "declaration": {
+        "line": 393,
+        "start_column": 3,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "55b915475e1eebf4d93139fa9c8aacc277d0da37c7971e72b14a3a7745a765bf",
+      "body_fingerprint": "7a5c672c22a3d88c728e474ce087864911ead818b493b01976e622012917d317"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_reference_site_has_one_fact_per_from_and_role",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_reference_site_has_one_fact_per_from_and_role",
+      "qualified_path": "a_reference_site_has_one_fact_per_from_and_role",
+      "discriminator": null,
+      "start_line": 424,
+      "start_column": 0,
+      "end_line": 435,
+      "end_column": 1,
+      "declaration": {
+        "line": 424,
+        "start_column": 3,
+        "end_column": 50
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "caa99300157f0cd7276a9ae7bb3da0535a511902d4251438ee8405ee7131dd03",
+      "body_fingerprint": "8fbe432f733b4098a6ecf5e18f883184eb920426ee0432025ad74c56708a0082"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_entity_lists_a_definition_site_once",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_entity_lists_a_definition_site_once",
+      "qualified_path": "an_entity_lists_a_definition_site_once",
+      "discriminator": null,
+      "start_line": 438,
+      "start_column": 0,
+      "end_line": 450,
+      "end_column": 1,
+      "declaration": {
+        "line": 438,
+        "start_column": 3,
+        "end_column": 41
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4844452aa705c8faea68b9fac425b2e7fb36f296f58a0b201a6e621b98a5eff7",
+      "body_fingerprint": "6fd8ade50db2f46dca77eee86c229a664ffef36752bcb2f76d0adf044787b37d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_empty_span_is_a_warning",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_empty_span_is_a_warning",
+      "qualified_path": "an_empty_span_is_a_warning",
+      "discriminator": null,
+      "start_line": 453,
+      "start_column": 0,
+      "end_line": 461,
+      "end_column": 1,
+      "declaration": {
+        "line": 453,
+        "start_column": 3,
+        "end_column": 29
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "106432d14cb151e17f8f06bb0630703769ee1ce5a986ab9e773ba605bc4fe6ff",
+      "body_fingerprint": "d101df6ae9481cc4805ba3f69015b89c14fdb628ea09a4527c5e7752c6e47adb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:fact_contexts_are_declared_and_in_scope",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fact_contexts_are_declared_and_in_scope",
+      "qualified_path": "fact_contexts_are_declared_and_in_scope",
+      "discriminator": null,
+      "start_line": 466,
+      "start_column": 0,
+      "end_line": 486,
+      "end_column": 1,
+      "declaration": {
+        "line": 466,
+        "start_column": 3,
+        "end_column": 42
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ad4c48ecea17ab66c3e5204850a2c7b5d005aaa232ef6e7bcc7cc05329d57c7d",
+      "body_fingerprint": "f641e9cccf8f714a533aecfa2afdb0692d15a6d13ffb74a89a7322b8f56b3cdb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:contexts_differ_in_a_parameter",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "contexts_differ_in_a_parameter",
+      "qualified_path": "contexts_differ_in_a_parameter",
+      "discriminator": null,
+      "start_line": 489,
+      "start_column": 0,
+      "end_line": 498,
+      "end_column": 1,
+      "declaration": {
+        "line": 489,
+        "start_column": 3,
+        "end_column": 33
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "65112defc34f4cc71b3523e9a39cf6073e74124085636614f928818c79631e75",
+      "body_fingerprint": "26ac056bfb7567241a0207341a6b783407b6a0636ab581b7125d538ef1f074fc"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:context_variant_lists_partition_the_record_contexts",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "context_variant_lists_partition_the_record_contexts",
+      "qualified_path": "context_variant_lists_partition_the_record_contexts",
+      "discriminator": null,
+      "start_line": 501,
+      "start_column": 0,
+      "end_line": 533,
+      "end_column": 1,
+      "declaration": {
+        "line": 501,
+        "start_column": 3,
+        "end_column": 54
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e6c0451fc284dc76a5237c0c063c53b2f3a06421f7ae6732fd1c5542d0f9e39e",
+      "body_fingerprint": "c1d06167ea379f30836ff6e66c0c9a50f131a5014c1db47335ea8d4beea8ed27"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:sorted_profile_lists_are_sorted",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "sorted_profile_lists_are_sorted",
+      "qualified_path": "sorted_profile_lists_are_sorted",
+      "discriminator": null,
+      "start_line": 536,
+      "start_column": 0,
+      "end_line": 551,
+      "end_column": 1,
+      "declaration": {
+        "line": 536,
+        "start_column": 3,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2e9bedfb9f1e701df655e2eead97c05de61efe1d8d0e8f4727bd260c3dbdb3d7",
+      "body_fingerprint": "a401ccdf92ff470f933a81e77a019c5b91ee0fb509b1cbf6c00ba9ad2a02a2bf"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:unit_keys_are_unique_in_a_context",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "unit_keys_are_unique_in_a_context",
+      "qualified_path": "unit_keys_are_unique_in_a_context",
+      "discriminator": null,
+      "start_line": 556,
+      "start_column": 0,
+      "end_line": 566,
+      "end_column": 1,
+      "declaration": {
+        "line": 556,
+        "start_column": 3,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e6db81695a20089c1f7f7a5515a7a3366efd6000145a5d3c0513a484a971233e",
+      "body_fingerprint": "1e3e5af1a83b6edc7dd2caec52d5d273bd9dae63c09852a33aa73b001fade97d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_unit_root_is_a_module_of_the_unit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_unit_root_is_a_module_of_the_unit",
+      "qualified_path": "a_unit_root_is_a_module_of_the_unit",
+      "discriminator": null,
+      "start_line": 569,
+      "start_column": 0,
+      "end_line": 576,
+      "end_column": 1,
+      "declaration": {
+        "line": 569,
+        "start_column": 3,
+        "end_column": 38
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "bf969074a9a89568e5ad71606f6a27e4a0594e1fc781ee66681762f180ec9aea",
+      "body_fingerprint": "54b63654fe4366f4227345b575073b88df28f0705f915569cf4f61b91f7b5275"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:unit_path_and_kind_identify_one_entity_in_a_context",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "unit_path_and_kind_identify_one_entity_in_a_context",
+      "qualified_path": "unit_path_and_kind_identify_one_entity_in_a_context",
+      "discriminator": null,
+      "start_line": 579,
+      "start_column": 0,
+      "end_line": 588,
+      "end_column": 1,
+      "declaration": {
+        "line": 579,
+        "start_column": 3,
+        "end_column": 54
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "012585583293e7fac64e1279d68a6fa18884fcdae944d8e6d549d797c3a55f6b",
+      "body_fingerprint": "68e21049480b1e8aeed6689686aca14c1ae7e175e3ea8d1a557c07c21d415ad4"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_parent_chain_ends",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_parent_chain_ends",
+      "qualified_path": "the_parent_chain_ends",
+      "discriminator": null,
+      "start_line": 591,
+      "start_column": 0,
+      "end_line": 601,
+      "end_column": 1,
+      "declaration": {
+        "line": 591,
+        "start_column": 3,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fc2a786b7cec658a0f5908ddc0a35a2929bfe9b2077e3526aa920ae1950e7203",
+      "body_fingerprint": "c1667d3111fb4e8b655b13b4d6fc63037d538d5530eb455083b81a2c4126601d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_generated_entity_without_sites_has_an_anchor_and_generator",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_generated_entity_without_sites_has_an_anchor_and_generator",
+      "qualified_path": "a_generated_entity_without_sites_has_an_anchor_and_generator",
+      "discriminator": null,
+      "start_line": 604,
+      "start_column": 0,
+      "end_line": 615,
+      "end_column": 1,
+      "declaration": {
+        "line": 604,
+        "start_column": 3,
+        "end_column": 63
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "877edfd487e6b800d172953e5f8961fdb02bef414a0d05efaaf7f63a11b79faa",
+      "body_fingerprint": "712fd82318fac0ab73d3d17119fde99970e790d83fd511abd10c11a5ec66d396"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_entity_in_a_generated_document_is_generated",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_entity_in_a_generated_document_is_generated",
+      "qualified_path": "an_entity_in_a_generated_document_is_generated",
+      "discriminator": null,
+      "start_line": 618,
+      "start_column": 0,
+      "end_line": 628,
+      "end_column": 1,
+      "declaration": {
+        "line": 618,
+        "start_column": 3,
+        "end_column": 49
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "941fb0af6367edaf18c1ab561d5c4b2d845e8d6ff5cd133ab861fd50d73e1e4b",
+      "body_fingerprint": "3e418bb8fda5b0190b5eea0969e5c8b5b9068c95bb437c471e797f398bed66ba"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:scope_members_name_entities_units_or_documents",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "scope_members_name_entities_units_or_documents",
+      "qualified_path": "scope_members_name_entities_units_or_documents",
+      "discriminator": null,
+      "start_line": 631,
+      "start_column": 0,
+      "end_line": 648,
+      "end_column": 1,
+      "declaration": {
+        "line": 631,
+        "start_column": 3,
+        "end_column": 49
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "815a7f280111ba52b97a4bb45d8fa0b0dc9c8746db72324ff4c544c72adda01d",
+      "body_fingerprint": "1eb17e512c0873fce939b8b2525ae62b1ebfa8b3cd6110c8746f859fa5b74c4c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_relation_is_stated_once_per_context",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_relation_is_stated_once_per_context",
+      "qualified_path": "a_relation_is_stated_once_per_context",
+      "discriminator": null,
+      "start_line": 653,
+      "start_column": 0,
+      "end_line": 662,
+      "end_column": 1,
+      "declaration": {
+        "line": 653,
+        "start_column": 3,
+        "end_column": 40
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5776ab35fe648ae22f007b335a51017f4c06e8bca355592d324db2e6106771d3",
+      "body_fingerprint": "16e064bd362e3d6653a40035e74e9dbd8b41fd41cbe56d338f99b0d3d3308d55"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_public_api_member_is_externally_accessible_in_its_distribution",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_public_api_member_is_externally_accessible_in_its_distribution",
+      "qualified_path": "a_public_api_member_is_externally_accessible_in_its_distribution",
+      "discriminator": null,
+      "start_line": 665,
+      "start_column": 0,
+      "end_line": 694,
+      "end_column": 1,
+      "declaration": {
+        "line": 665,
+        "start_column": 3,
+        "end_column": 67
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6c1b62e61546e426f06e52736618eddac11626f90942456c22f38f3c0428be35",
+      "body_fingerprint": "e7911738370dc0da0a0b1643ab499a0d555651184c9eb85d0482899923afb2b3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_public_api_member_is_stated_once_per_context",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_public_api_member_is_stated_once_per_context",
+      "qualified_path": "a_public_api_member_is_stated_once_per_context",
+      "discriminator": null,
+      "start_line": 697,
+      "start_column": 0,
+      "end_line": 705,
+      "end_column": 1,
+      "declaration": {
+        "line": 697,
+        "start_column": 3,
+        "end_column": 49
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3d6ec186d7e9a4adcf9c1987eed5d2969ed1d8480a8a15418175238745f2dfc7",
+      "body_fingerprint": "ca85a4aa608e395e68a15d8210a42e3f99fa81622a6d4471df7ea008ea57734e"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:extension_facts_resolve_and_have_unique_keys",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "extension_facts_resolve_and_have_unique_keys",
+      "qualified_path": "extension_facts_resolve_and_have_unique_keys",
+      "discriminator": null,
+      "start_line": 710,
+      "start_column": 0,
+      "end_line": 745,
+      "end_column": 1,
+      "declaration": {
+        "line": 710,
+        "start_column": 3,
+        "end_column": 47
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b25746ade922932bf8ef39864445d9a03fd67c8911f06068fb428a66fcca6c9b",
+      "body_fingerprint": "cb9610af798693da19c30696a018d3cb18efb97e5f52fda13e46b77047761469"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_extension_target_counts_as_a_use_of_an_external",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_extension_target_counts_as_a_use_of_an_external",
+      "qualified_path": "an_extension_target_counts_as_a_use_of_an_external",
+      "discriminator": null,
+      "start_line": 748,
+      "start_column": 0,
+      "end_line": 763,
+      "end_column": 1,
+      "declaration": {
+        "line": 748,
+        "start_column": 3,
+        "end_column": 53
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c4287763557c190df87c87129f88796dc5174927f962597821813e177f09d690",
+      "body_fingerprint": "90cbf64143e0172d37720232b19b988056aacb523392882bbb1a243e8c92e901"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_audit_checks_document_classes",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_audit_checks_document_classes",
+      "qualified_path": "the_audit_checks_document_classes",
+      "discriminator": null,
+      "start_line": 768,
+      "start_column": 0,
+      "end_line": 803,
+      "end_column": 1,
+      "declaration": {
+        "line": 768,
+        "start_column": 3,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "01d478282a1bde68863b264238011b62d1a77ed64bd6a267e51566f8c3810884",
+      "body_fingerprint": "1ce89fc5ed4221294f4c58ea2ff5a899ff8ff5df6623f32dba685f96d2364823"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_audit_rejects_out_of_profile_facts",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_audit_rejects_out_of_profile_facts",
+      "qualified_path": "the_audit_rejects_out_of_profile_facts",
+      "discriminator": null,
+      "start_line": 806,
+      "start_column": 0,
+      "end_line": 833,
+      "end_column": 1,
+      "declaration": {
+        "line": 806,
+        "start_column": 3,
+        "end_column": 41
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "85459bcba89605007e5ab05dfcb4480e6814aeb1a5205e508f6c7ceaac93f830",
+      "body_fingerprint": "5c5355749a28c8fec125af8c30aaa8ed5f1defb2fe03a77a6befb84f8a696a09"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:the_audit_checks_rust_restricted_visibility_paths",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_audit_checks_rust_restricted_visibility_paths",
+      "qualified_path": "the_audit_checks_rust_restricted_visibility_paths",
+      "discriminator": null,
+      "start_line": 836,
+      "start_column": 0,
+      "end_line": 857,
+      "end_column": 1,
+      "declaration": {
+        "line": 836,
+        "start_column": 3,
+        "end_column": 52
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0577ee6b68cb60dd7b52786af79335a226966446cb483502c339b7aef53ca9b2",
+      "body_fingerprint": "e8acd88c2d8dc57253990b0ab81ff4b4c49e5036ba23b19e7a5e402efb5b78d5"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:validation_alone_does_not_audit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validation_alone_does_not_audit",
+      "qualified_path": "validation_alone_does_not_audit",
+      "discriminator": null,
+      "start_line": 860,
+      "start_column": 0,
+      "end_line": 869,
+      "end_column": 1,
+      "declaration": {
+        "line": 860,
+        "start_column": 3,
+        "end_column": 34
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "260a4d466beaee19cceaaf2f3b4e98a035fdcf7bedaaaab6091a0f40e1c0d32c",
+      "body_fingerprint": "a731f36fb6569b9411d089a4911cc245a9af17b3404f713919920641c189e72a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:two_contexts",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "two_contexts",
+      "qualified_path": "two_contexts",
+      "discriminator": null,
+      "start_line": 875,
+      "start_column": 0,
+      "end_line": 882,
+      "end_column": 1,
+      "declaration": {
+        "line": 875,
+        "start_column": 3,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c1ecdf8dcd9d5671348af0bd18f05198807dab92430137df4319d476466cd10d",
+      "body_fingerprint": "a5282e248f2c16cd273a0fa1f69c333e9bbe2c548d2761c111c799fe604c29a3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_missing_or_malformed_profile_is_a_schema_error",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_missing_or_malformed_profile_is_a_schema_error",
+      "qualified_path": "a_missing_or_malformed_profile_is_a_schema_error",
+      "discriminator": null,
+      "start_line": 885,
+      "start_column": 0,
+      "end_line": 906,
+      "end_column": 1,
+      "declaration": {
+        "line": 885,
+        "start_column": 3,
+        "end_column": 51
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "7543f2d49b239bb5eec95de0cd7ff723be9c1e4abcd15280a75154abcecf4b44",
+      "body_fingerprint": "3ba8e3a12bf4cf728f7d1095e94c9fc8aebeb9b6b2097bccd758a34fa4d4e73c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_unit_key_names_one_unit_across_contexts",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_unit_key_names_one_unit_across_contexts",
+      "qualified_path": "a_unit_key_names_one_unit_across_contexts",
+      "discriminator": null,
+      "start_line": 909,
+      "start_column": 0,
+      "end_line": 921,
+      "end_column": 1,
+      "declaration": {
+        "line": 909,
+        "start_column": 3,
+        "end_column": 44
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "dffeb2c9f081574a3e0bdc1371c0ec7ffc38bd3e682ce62a43fb27cdfafe982a",
+      "body_fingerprint": "f394b443214babad26c4ddfc8f7a8f1919693f6a1a7bd5a6b265eb48201700d6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_entity_without_a_distribution_has_no_external_access",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_entity_without_a_distribution_has_no_external_access",
+      "qualified_path": "an_entity_without_a_distribution_has_no_external_access",
+      "discriminator": null,
+      "start_line": 924,
+      "start_column": 0,
+      "end_line": 951,
+      "end_column": 1,
+      "declaration": {
+        "line": 924,
+        "start_column": 3,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "092b5c9c0f37b0cf4f2ca766ff00ff2428ef84ead3355fc4e48dea2c6a3eaac3",
+      "body_fingerprint": "abb1444e035a355c64165cd6a91b7e8e7966db71543223b20365545b204c40a3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_omitted_fact_context_list_means_every_context_of_the_unit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_omitted_fact_context_list_means_every_context_of_the_unit",
+      "qualified_path": "an_omitted_fact_context_list_means_every_context_of_the_unit",
+      "discriminator": null,
+      "start_line": 954,
+      "start_column": 0,
+      "end_line": 968,
+      "end_column": 1,
+      "declaration": {
+        "line": 954,
+        "start_column": 3,
+        "end_column": 63
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "502aa86bb2dc058cc07cc81d512234b563380b621becad00cbb74db21812a58a",
+      "body_fingerprint": "f02f421cf62b5f695767d011c6887799ee1cc8f35f15532dfe19f3814b07b58b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_target_exists_in_every_context_of_its_fact",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_target_exists_in_every_context_of_its_fact",
+      "qualified_path": "a_target_exists_in_every_context_of_its_fact",
+      "discriminator": null,
+      "start_line": 971,
+      "start_column": 0,
+      "end_line": 988,
+      "end_column": 1,
+      "declaration": {
+        "line": 971,
+        "start_column": 3,
+        "end_column": 47
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3eb16fc0eee263700627a0650a04b04eeba7b3f574763e09fb2916141c1a2eec",
+      "body_fingerprint": "7796867bcecb9a80a17e42d969b445809c479a6766aee71a742000527fa0da66"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_unknown_distribution_is_one_finding",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_unknown_distribution_is_one_finding",
+      "qualified_path": "an_unknown_distribution_is_one_finding",
+      "discriminator": null,
+      "start_line": 991,
+      "start_column": 0,
+      "end_line": 998,
+      "end_column": 1,
+      "declaration": {
+        "line": 991,
+        "start_column": 3,
+        "end_column": 41
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b6c8f89e57f28573f8dd7c502f27708f93eef3223e7214807f96ac7254d5d6b8",
+      "body_fingerprint": "255b47578aedfd497f6009e2d836e986e7f773eb832ca53dd61a818da72de00c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_extension_fact_holds_in_the_contexts_of_its_owner_unit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_extension_fact_holds_in_the_contexts_of_its_owner_unit",
+      "qualified_path": "an_extension_fact_holds_in_the_contexts_of_its_owner_unit",
+      "discriminator": null,
+      "start_line": 1001,
+      "start_column": 0,
+      "end_line": 1024,
+      "end_column": 1,
+      "declaration": {
+        "line": 1001,
+        "start_column": 3,
+        "end_column": 60
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a2178c0a83b4a0806fb07034c29f26eb495c796d7ee50dbf26958260ef51c37c",
+      "body_fingerprint": "cd31e610260c7b979a61ccc65dafd7cd323d3533d9292928ce4348556b0da2c8"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:integral_float_coordinates_are_checked_like_integers",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integral_float_coordinates_are_checked_like_integers",
+      "qualified_path": "integral_float_coordinates_are_checked_like_integers",
+      "discriminator": null,
+      "start_line": 1027,
+      "start_column": 0,
+      "end_line": 1066,
+      "end_column": 1,
+      "declaration": {
+        "line": 1027,
+        "start_column": 3,
+        "end_column": 55
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0ed7a1ac42d7aaddc11e6b9b492b1370ede162668352df0b02110fb18b655d5d",
+      "body_fingerprint": "e05f74469ee8100bd36875af398fb7bb5e9d030926f7ec543750a4bb7d0c81da"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_extension_target_exists_in_every_context_of_its_fact",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_extension_target_exists_in_every_context_of_its_fact",
+      "qualified_path": "an_extension_target_exists_in_every_context_of_its_fact",
+      "discriminator": null,
+      "start_line": 1069,
+      "start_column": 0,
+      "end_line": 1089,
+      "end_column": 1,
+      "declaration": {
+        "line": 1069,
+        "start_column": 3,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "cff8029c756929cfbfa3792ca756c2c868fc68e341c6f4835d249e654de3a87e",
+      "body_fingerprint": "cf2fa3172be45bc0ea2fb1bd9075d5153b17fe67a04abceb6863dec6ec983958"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact",
+      "qualified_path": "an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact",
+      "discriminator": null,
+      "start_line": 1092,
+      "start_column": 0,
+      "end_line": 1111,
+      "end_column": 1,
+      "declaration": {
+        "line": 1092,
+        "start_column": 3,
+        "end_column": 65
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "edba68f7991aa61e6ae2ec34d0e296e68bfee79cb506d22ebe49341cdf27769f",
+      "body_fingerprint": "462399d1f6c0fe246a4d8227884fbc352919237120746e73ee23884b30b89a13"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:a_site_is_in_a_document_of_its_fact_unit",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_site_is_in_a_document_of_its_fact_unit",
+      "qualified_path": "a_site_is_in_a_document_of_its_fact_unit",
+      "discriminator": null,
+      "start_line": 1114,
+      "start_column": 0,
+      "end_line": 1145,
+      "end_column": 1,
+      "declaration": {
+        "line": 1114,
+        "start_column": 3,
+        "end_column": 43
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "de89dd8771a5f0d3753ba326ac815e20e71b9f21adf96366b2a345446b071948",
+      "body_fingerprint": "c613322762b012395a968b758cc418c32364904afd2bb12b927f0b80c611fe55"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:an_unowned_extension_fact_holds_where_its_site_unit_is_built",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_unowned_extension_fact_holds_where_its_site_unit_is_built",
+      "qualified_path": "an_unowned_extension_fact_holds_where_its_site_unit_is_built",
+      "discriminator": null,
+      "start_line": 1148,
+      "start_column": 0,
+      "end_line": 1172,
+      "end_column": 1,
+      "declaration": {
+        "line": 1148,
+        "start_column": 3,
+        "end_column": 63
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1164799bfa004c22b1486086dcae5f8296c605ebbc4e527a562dd8dc9112e890",
+      "body_fingerprint": "479b4a04f14d7ad090687ecd8c670fca05ae1d801c8a203ed8b9cbfdb7d5a1b6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/tests/validate.rs:function:equal_coordinates_are_one_site_whatever_their_number_form",
+      "path": "crates/beholder-semantic-oracle/tests/validate.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "equal_coordinates_are_one_site_whatever_their_number_form",
+      "qualified_path": "equal_coordinates_are_one_site_whatever_their_number_form",
+      "discriminator": null,
+      "start_line": 1175,
+      "start_column": 0,
+      "end_line": 1184,
+      "end_column": 1,
+      "declaration": {
+        "line": 1175,
+        "start_column": 3,
+        "end_column": 60
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9dee73cd8687cd5179e391aae49ef58a2053f9a5dfbf7275418e8a507d4c86b2",
+      "body_fingerprint": "96e0ca631bbdd5e44595722c92e1d2a6abddbef25523e66b531c2785fbc8016a"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Path",
+      "qualifier": "path",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 23,
+      "within": 0
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "call",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "path",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 27,
+      "within": 1
+    },
+    {
+      "name": "fixture_dir",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 29,
+      "within": 1
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 29,
+      "within": 1
+    },
+    {
+      "name": "MemoryProject",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 32,
+      "within": 2
+    },
+    {
+      "name": "MemoryProject",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 33,
+      "within": 2
+    },
+    {
+      "name": "fold",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 33,
+      "within": 2
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 33,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "MemoryProject",
+      "kind": "call",
+      "target": null,
+      "line": 33,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "MemoryProject",
+      "kind": "path",
+      "target": null,
+      "line": 33,
+      "within": 2
+    },
+    {
+      "name": "fixture_dir",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "read",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "read",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 34,
+      "within": 2
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 39,
+      "within": 3
+    },
+    {
+      "name": "rsplit_once",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 40,
+      "within": 3
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 40,
+      "within": 3
+    },
+    {
+      "name": "pointer_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 3
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 3
+    },
+    {
+      "name": "Object",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 45,
+      "within": 3
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 45,
+      "within": 3
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 3
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 46,
+      "within": 3
+    },
+    {
+      "name": "Array",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 48,
+      "within": 3
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 48,
+      "within": 3
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 48,
+      "within": 3
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 53,
+      "within": 4
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 4
+    },
+    {
+      "name": "pointer_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 4
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 4
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 54,
+      "within": 4
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 56,
+      "within": 4
+    },
+    {
+      "name": "as_array_mut",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 56,
+      "within": 4
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 5
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 5
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 63,
+      "within": 5
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 63,
+      "within": 5
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 63,
+      "within": 5
+    },
+    {
+      "name": "Error",
+      "qualifier": "Severity",
+      "kind": "path",
+      "target": null,
+      "line": 68,
+      "within": 5
+    },
+    {
+      "name": "Severity",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 68,
+      "within": 5
+    },
+    {
+      "name": "Severity",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 69,
+      "within": 5
+    },
+    {
+      "name": "Warning",
+      "qualifier": "Severity",
+      "kind": "path",
+      "target": null,
+      "line": 69,
+      "within": 5
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 71,
+      "within": 5
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 76,
+      "within": 6
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 6
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 6
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 77,
+      "within": 6
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 77,
+      "within": 6
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 77,
+      "within": 6
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 79,
+      "within": 6
+    },
+    {
+      "name": "MemoryProject",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 84,
+      "within": 7
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 84,
+      "within": 7
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 84,
+      "within": 7
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 85,
+      "within": 7
+    },
+    {
+      "name": "validate",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 85,
+      "within": 7
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 90,
+      "within": 8
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 91,
+      "within": 8
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 91,
+      "within": 8
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 91,
+      "within": 8
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 93,
+      "within": 8
+    },
+    {
+      "name": "validate",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 93,
+      "within": 8
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 98,
+      "within": 9
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 99,
+      "within": 9
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 100,
+      "within": 9
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 105,
+      "within": 9
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 9
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 9
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 9
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 107,
+      "within": 9
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 107,
+      "within": 9
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 107,
+      "within": 9
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 124,
+      "within": 10
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 125,
+      "within": 10
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 126,
+      "within": 10
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 127,
+      "within": 10
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 127,
+      "within": 10
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 134,
+      "within": 11
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 135,
+      "within": 11
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 136,
+      "within": 11
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 137,
+      "within": 11
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 137,
+      "within": 11
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 144,
+      "within": 12
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 12
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 12
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 12
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 146,
+      "within": 12
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 147,
+      "within": 12
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 148,
+      "within": 12
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 148,
+      "within": 12
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 157,
+      "within": 13
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 158,
+      "within": 13
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 159,
+      "within": 13
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 160,
+      "within": 13
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 161,
+      "within": 13
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 161,
+      "within": 13
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 173,
+      "within": 14
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 174,
+      "within": 14
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 175,
+      "within": 14
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 176,
+      "within": 14
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 14
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 14
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 187,
+      "within": 15
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 15
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 189,
+      "within": 15
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 15
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 15
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 197,
+      "within": 16
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 198,
+      "within": 16
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 16
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 205,
+      "within": 16
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 205,
+      "within": 16
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 212,
+      "within": 17
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 214,
+      "within": 17
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 220,
+      "within": 17
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 226,
+      "within": 17
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 227,
+      "within": 17
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 227,
+      "within": 17
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 236,
+      "within": 18
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 237,
+      "within": 18
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 237,
+      "within": 18
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 238,
+      "within": 18
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 244,
+      "within": 18
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 245,
+      "within": 18
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 255,
+      "within": 19
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 256,
+      "within": 19
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 262,
+      "within": 19
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 262,
+      "within": 19
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 263,
+      "within": 19
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 264,
+      "within": 19
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 271,
+      "within": 20
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 272,
+      "within": 20
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 273,
+      "within": 20
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 274,
+      "within": 20
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 275,
+      "within": 20
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 275,
+      "within": 20
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 282,
+      "within": 21
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 282,
+      "within": 21
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 21
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 21
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 284,
+      "within": 21
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 295,
+      "within": 22
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 295,
+      "within": 22
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 300,
+      "within": 22
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 313,
+      "within": 23
+    },
+    {
+      "name": "to_vec",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 314,
+      "within": 23
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 315,
+      "within": 23
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 320,
+      "within": 23
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 320,
+      "within": 23
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 321,
+      "within": 23
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 322,
+      "within": 23
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 332,
+      "within": 24
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 333,
+      "within": 24
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 338,
+      "within": 24
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 343,
+      "within": 24
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 343,
+      "within": 24
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 344,
+      "within": 24
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": 25
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 361,
+      "within": 25
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 362,
+      "within": 25
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 363,
+      "within": 25
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 363,
+      "within": 25
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 370,
+      "within": 26
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 371,
+      "within": 26
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 372,
+      "within": 26
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 373,
+      "within": 26
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 373,
+      "within": 26
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 380,
+      "within": 27
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 381,
+      "within": 27
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 382,
+      "within": 27
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 383,
+      "within": 27
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 384,
+      "within": 27
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 384,
+      "within": 27
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 394,
+      "within": 28
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 395,
+      "within": 28
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 398,
+      "within": 28
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 399,
+      "within": 28
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 404,
+      "within": 28
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 405,
+      "within": 28
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 405,
+      "within": 28
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 425,
+      "within": 29
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 426,
+      "within": 29
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 427,
+      "within": 29
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 428,
+      "within": 29
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 430,
+      "within": 29
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 431,
+      "within": 29
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 432,
+      "within": 29
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 432,
+      "within": 29
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 439,
+      "within": 30
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 440,
+      "within": 30
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 441,
+      "within": 30
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 442,
+      "within": 30
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 443,
+      "within": 30
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 443,
+      "within": 30
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 454,
+      "within": 31
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 455,
+      "within": 31
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 456,
+      "within": 31
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 457,
+      "within": 31
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 458,
+      "within": 31
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 458,
+      "within": 31
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 467,
+      "within": 32
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 468,
+      "within": 32
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 469,
+      "within": 32
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 470,
+      "within": 32
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 473,
+      "within": 32
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 474,
+      "within": 32
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 475,
+      "within": 32
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 476,
+      "within": 32
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 476,
+      "within": 32
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 490,
+      "within": 33
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 491,
+      "within": 33
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 493,
+      "within": 33
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 494,
+      "within": 33
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 495,
+      "within": 33
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 495,
+      "within": 33
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 502,
+      "within": 34
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 503,
+      "within": 34
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 506,
+      "within": 34
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 507,
+      "within": 34
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 512,
+      "within": 34
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 518,
+      "within": 34
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 519,
+      "within": 34
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 519,
+      "within": 34
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 537,
+      "within": 35
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 538,
+      "within": 35
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 543,
+      "within": 35
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 544,
+      "within": 35
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 545,
+      "within": 35
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 545,
+      "within": 35
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 557,
+      "within": 36
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 558,
+      "within": 36
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 560,
+      "within": 36
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 560,
+      "within": 36
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 560,
+      "within": 36
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 561,
+      "within": 36
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 562,
+      "within": 36
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 563,
+      "within": 36
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 563,
+      "within": 36
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 570,
+      "within": 37
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 571,
+      "within": 37
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 572,
+      "within": 37
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 573,
+      "within": 37
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 573,
+      "within": 37
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 580,
+      "within": 38
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 581,
+      "within": 38
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 582,
+      "within": 38
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 583,
+      "within": 38
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 584,
+      "within": 38
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 585,
+      "within": 38
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 585,
+      "within": 38
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 592,
+      "within": 39
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 593,
+      "within": 39
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 594,
+      "within": 39
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 595,
+      "within": 39
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 595,
+      "within": 39
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 605,
+      "within": 40
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 606,
+      "within": 40
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 607,
+      "within": 40
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 608,
+      "within": 40
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 609,
+      "within": 40
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 609,
+      "within": 40
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 619,
+      "within": 41
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 620,
+      "within": 41
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 621,
+      "within": 41
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 622,
+      "within": 41
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 622,
+      "within": 41
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 632,
+      "within": 42
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 633,
+      "within": 42
+    },
+    {
+      "name": "as_array_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 639,
+      "within": 42
+    },
+    {
+      "name": "pop",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 639,
+      "within": 42
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 639,
+      "within": 42
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 640,
+      "within": 42
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 641,
+      "within": 42
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 641,
+      "within": 42
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 654,
+      "within": 43
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 656,
+      "within": 43
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 656,
+      "within": 43
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 657,
+      "within": 43
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 658,
+      "within": 43
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 659,
+      "within": 43
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 659,
+      "within": 43
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 666,
+      "within": 44
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 667,
+      "within": 44
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 672,
+      "within": 44
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 673,
+      "within": 44
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 678,
+      "within": 44
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 681,
+      "within": 44
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 682,
+      "within": 44
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 683,
+      "within": 44
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 683,
+      "within": 44
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 698,
+      "within": 45
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 699,
+      "within": 45
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 700,
+      "within": 45
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 701,
+      "within": 45
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 702,
+      "within": 45
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 702,
+      "within": 45
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 711,
+      "within": 46
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 714,
+      "within": 46
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 720,
+      "within": 46
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 721,
+      "within": 46
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 721,
+      "within": 46
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 749,
+      "within": 47
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 750,
+      "within": 47
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 756,
+      "within": 47
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 762,
+      "within": 47
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 762,
+      "within": 47
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 762,
+      "within": 47
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 769,
+      "within": 48
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 770,
+      "within": 48
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 775,
+      "within": 48
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 776,
+      "within": 48
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 777,
+      "within": 48
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 778,
+      "within": 48
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 783,
+      "within": 48
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 783,
+      "within": 48
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 783,
+      "within": 48
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 787,
+      "within": 48
+    },
+    {
+      "name": "with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 787,
+      "within": 48
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 788,
+      "within": 48
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 794,
+      "within": 48
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 795,
+      "within": 48
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 795,
+      "within": 48
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 807,
+      "within": 49
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 808,
+      "within": 49
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 818,
+      "within": 49
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 825,
+      "within": 49
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 826,
+      "within": 49
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 827,
+      "within": 49
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 827,
+      "within": 49
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 827,
+      "within": 49
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 837,
+      "within": 50
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 838,
+      "within": 50
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 843,
+      "within": 50
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 844,
+      "within": 50
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 844,
+      "within": 50
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 844,
+      "within": 50
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 851,
+      "within": 50
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 856,
+      "within": 50
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 856,
+      "within": 50
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 856,
+      "within": 50
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 856,
+      "within": 50
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 861,
+      "within": 51
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 862,
+      "within": 51
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 867,
+      "within": 51
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 868,
+      "within": 51
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 868,
+      "within": 51
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 868,
+      "within": 51
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 875,
+      "within": 52
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 876,
+      "within": 52
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 877,
+      "within": 52
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 880,
+      "within": 52
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 886,
+      "within": 53
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 887,
+      "within": 53
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 888,
+      "within": 53
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 890,
+      "within": 53
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 890,
+      "within": 53
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 890,
+      "within": 53
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 892,
+      "within": 53
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 894,
+      "within": 53
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 894,
+      "within": 53
+    },
+    {
+      "name": "two_contexts",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 910,
+      "within": 54
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 911,
+      "within": 54
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 912,
+      "within": 54
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 915,
+      "within": 54
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 915,
+      "within": 54
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 915,
+      "within": 54
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 916,
+      "within": 54
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 917,
+      "within": 54
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 918,
+      "within": 54
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 918,
+      "within": 54
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 925,
+      "within": 55
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 926,
+      "within": 55
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 926,
+      "within": 55
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 926,
+      "within": 55
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 930,
+      "within": 55
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 931,
+      "within": 55
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 932,
+      "within": 55
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 932,
+      "within": 55
+    },
+    {
+      "name": "two_contexts",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 955,
+      "within": 56
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 956,
+      "within": 56
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 957,
+      "within": 56
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 958,
+      "within": 56
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 959,
+      "within": 56
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 959,
+      "within": 56
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 965,
+      "within": 56
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 966,
+      "within": 56
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 967,
+      "within": 56
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 967,
+      "within": 56
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 967,
+      "within": 56
+    },
+    {
+      "name": "two_contexts",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 972,
+      "within": 57
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 973,
+      "within": 57
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 974,
+      "within": 57
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 975,
+      "within": 57
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 980,
+      "within": 57
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 981,
+      "within": 57
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 981,
+      "within": 57
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 992,
+      "within": 58
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 993,
+      "within": 58
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 994,
+      "within": 58
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 995,
+      "within": 58
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 995,
+      "within": 58
+    },
+    {
+      "name": "two_contexts",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1002,
+      "within": 59
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1003,
+      "within": 59
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1004,
+      "within": 59
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1010,
+      "within": 59
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1010,
+      "within": 59
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1010,
+      "within": 59
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1011,
+      "within": 59
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1016,
+      "within": 59
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1017,
+      "within": 59
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1017,
+      "within": 59
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1028,
+      "within": 60
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1029,
+      "within": 60
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1034,
+      "within": 60
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1039,
+      "within": 60
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1039,
+      "within": 60
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1039,
+      "within": 60
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1040,
+      "within": 60
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1045,
+      "within": 60
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1046,
+      "within": 60
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1046,
+      "within": 60
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1053,
+      "within": 60
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1058,
+      "within": 60
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1059,
+      "within": 60
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1059,
+      "within": 60
+    },
+    {
+      "name": "two_contexts",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1070,
+      "within": 61
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1071,
+      "within": 61
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1072,
+      "within": 61
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1073,
+      "within": 61
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1074,
+      "within": 61
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1075,
+      "within": 61
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1081,
+      "within": 61
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1082,
+      "within": 61
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1082,
+      "within": 61
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1097,
+      "within": 62
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1100,
+      "within": 62
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1105,
+      "within": 62
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1110,
+      "within": 62
+    },
+    {
+      "name": "validate",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1110,
+      "within": 62
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1115,
+      "within": 63
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1116,
+      "within": 63
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1120,
+      "within": 63
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1120,
+      "within": 63
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1120,
+      "within": 63
+    },
+    {
+      "name": "as_object_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1121,
+      "within": 63
+    },
+    {
+      "name": "remove",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1121,
+      "within": 63
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1121,
+      "within": 63
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1122,
+      "within": 63
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1123,
+      "within": 63
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1128,
+      "within": 63
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1129,
+      "within": 63
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1129,
+      "within": 63
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1153,
+      "within": 64
+    },
+    {
+      "name": "as_array_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1156,
+      "within": 64
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1156,
+      "within": 64
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1157,
+      "within": 64
+    },
+    {
+      "name": "iter_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1157,
+      "within": 64
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1157,
+      "within": 64
+    },
+    {
+      "name": "validate",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1162,
+      "within": 64
+    },
+    {
+      "name": "dataset",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1176,
+      "within": 65
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 1177,
+      "within": 65
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1179,
+      "within": 65
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1180,
+      "within": 65
+    },
+    {
+      "name": "files",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1181,
+      "within": 65
+    },
+    {
+      "name": "validate_with",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 1181,
+      "within": 65
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "MemoryProject",
+      "path": [
+        "beholder_semantic_oracle",
+        "project",
+        "MemoryProject"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Path",
+      "path": [
+        "std",
+        "path",
+        "Path"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Report",
+      "path": [
+        "beholder_semantic_oracle",
+        "Report"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Severity",
+      "path": [
+        "beholder_semantic_oracle",
+        "Severity"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Value",
+      "path": [
+        "serde_json",
+        "Value"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "audit",
+      "path": [
+        "beholder_semantic_oracle",
+        "audit"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "json",
+      "path": [
+        "serde_json",
+        "json"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "parse_yaml",
+      "path": [
+        "beholder_semantic_oracle",
+        "parse_yaml"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "sha256_hex",
+      "path": [
+        "beholder_semantic_oracle",
+        "project",
+        "sha256_hex"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "validate",
+      "path": [
+        "beholder_semantic_oracle",
+        "validate"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "crates",
+    "beholder-semantic-oracle",
+    "tests",
+    "validate"
+  ]
+}
