@@ -1,0 +1,12 @@
+{
+  "path": ".github/actionlint.yml",
+  "language": null,
+  "content_hash": "91e7996b367b072c0e7698459aafb548ad032c9b25738b1e5fbaedb68fda913f",
+  "tier": 0,
+  "density": 0.8181818,
+  "lines": 11,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

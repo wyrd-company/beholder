@@ -1,0 +1,12 @@
+{
+  "path": "docs/evidence/semantic-oracle-signatures/check_python_sample.py",
+  "language": null,
+  "content_hash": "fbaed7c2b5e673432e8928f41d120008c08b22a232b7c6a685a1c39f0baa8ec5",
+  "tier": 0,
+  "density": 0.8802437,
+  "lines": 23,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

@@ -1,0 +1,3565 @@
+{
+  "path": "crates/beholder-semantic-oracle/src/locator.rs",
+  "language": "rust",
+  "content_hash": "a22aa79a3ebb12bd8a2440f47c667c8cb0c76788a57e0b747092a4161081173a",
+  "tier": 1,
+  "density": 54.915203,
+  "lines": 438,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:type:Position",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Position",
+      "qualified_path": "Position",
+      "discriminator": null,
+      "start_line": 13,
+      "start_column": 0,
+      "end_line": 16,
+      "end_column": 1,
+      "declaration": {
+        "line": 13,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "436084b9c9fcb80805d81b9d050cd3849493f39195a1ae07433cef9ed81ca5f4",
+      "body_fingerprint": "e3f5f4cde01189903f446ab9709cc2991c800e6af7c1532144152745ac17be83"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:Position::new",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "new",
+      "qualified_path": "Position::new",
+      "discriminator": null,
+      "start_line": 19,
+      "start_column": 4,
+      "end_line": 21,
+      "end_column": 5,
+      "declaration": {
+        "line": 19,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "45658ea993eed0399143e9fa57963901181536b4de00d78798b56b25f1c14e4b",
+      "body_fingerprint": "0ccb0045ac41801234d9d227677278d79dccccd034f349210ca3b04584080eb0"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:Position::from_value",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "from_value",
+      "qualified_path": "Position::from_value",
+      "discriminator": null,
+      "start_line": 24,
+      "start_column": 4,
+      "end_line": 30,
+      "end_column": 5,
+      "declaration": {
+        "line": 24,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "a8dc6bbc56af5dd91af6e0ae0b1b78f31f9b6d12fabb7fd629f5cc8a3b094709",
+      "body_fingerprint": "fc8957883ad31e79b1b10ec0b00662b62d00946b85a3031311d5cc01233556e1"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:<Position as fmt::Display>::fmt",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fmt",
+      "qualified_path": "<Position as fmt::Display>::fmt",
+      "discriminator": null,
+      "start_line": 34,
+      "start_column": 4,
+      "end_line": 36,
+      "end_column": 5,
+      "declaration": {
+        "line": 34,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f5ac25941b45e0c5cccca00c50058b1869b75db26c8c4d6870bc3bc00719258e",
+      "body_fingerprint": "65dbdd7ffc76c53c6fa85adee4842cdb0dd5a2f6542d98bdc2bf4a56729ea7a9"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:count",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "count",
+      "qualified_path": "count",
+      "discriminator": null,
+      "start_line": 41,
+      "start_column": 0,
+      "end_line": 48,
+      "end_column": 1,
+      "declaration": {
+        "line": 41,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "9ebf23348e7f6c658ff2c8abd93228004da7bea5e39930a683bbcc52568025de",
+      "body_fingerprint": "06dff8f26deb22a7ecb58c053a4c780ca05374642ac5bbea1e203d7f99f8e272"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:type:Locator",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Locator",
+      "qualified_path": "Locator",
+      "discriminator": null,
+      "start_line": 52,
+      "start_column": 0,
+      "end_line": 57,
+      "end_column": 1,
+      "declaration": {
+        "line": 52,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6c78bf08c7112b0218e46c86a3b189d52a94bce267ab26d112d2ad1042d34bca",
+      "body_fingerprint": "f9379f9efb34e227b305ad580546a02016d121dabab0a2a92a0868115c582cb6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:Locator::from_value",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "from_value",
+      "qualified_path": "Locator::from_value",
+      "discriminator": null,
+      "start_line": 62,
+      "start_column": 4,
+      "end_line": 69,
+      "end_column": 5,
+      "declaration": {
+        "line": 62,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b55820f9b187f0a38ebef78688327bd4273ff37a6d0b5de05a1907d8c297633d",
+      "body_fingerprint": "2eece1a6bd8a736c68c1ab320be3e01a329e2001fc75e5dc7ac61d72d3941244"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:Locator::to_yaml",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "to_yaml",
+      "qualified_path": "Locator::to_yaml",
+      "discriminator": null,
+      "start_line": 72,
+      "start_column": 4,
+      "end_line": 82,
+      "end_column": 5,
+      "declaration": {
+        "line": 72,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8eb95b5520db456d126756672be5c38b4855d41b8b83c8d75ae1aa33265af6e6",
+      "body_fingerprint": "f2678eb3985671ecd09ee54845159534bcc98c916c8c02dec1902fcd40ec879e"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:yaml_scalar",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "yaml_scalar",
+      "qualified_path": "yaml_scalar",
+      "discriminator": null,
+      "start_line": 87,
+      "start_column": 0,
+      "end_line": 105,
+      "end_column": 1,
+      "declaration": {
+        "line": 87,
+        "start_column": 7,
+        "end_column": 18
+      },
+      "cognitive_complexity": 5,
+      "tier": 1,
+      "content_fingerprint": "a8617a7f6a8e8867988c2514ae396ecb9aa3c4388df7d295f322169de49c6325",
+      "body_fingerprint": "c55864dfdf9c1f117a8d0f0c907f2ddbecd612123178447fddd68640e1b31d3b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:double_quoted",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "double_quoted",
+      "qualified_path": "double_quoted",
+      "discriminator": null,
+      "start_line": 109,
+      "start_column": 0,
+      "end_line": 128,
+      "end_column": 1,
+      "declaration": {
+        "line": 109,
+        "start_column": 3,
+        "end_column": 16
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "2a1d1a88eda37316056149c235f467ad51117e3a0550e56969817cfacc95b9e3",
+      "body_fingerprint": "307be64f665700842ffead9289b871deba1e75de80e9d76ad67f1f5fa1b9ceba"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:type:LocatorError",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "LocatorError",
+      "qualified_path": "LocatorError",
+      "discriminator": null,
+      "start_line": 132,
+      "start_column": 0,
+      "end_line": 139,
+      "end_column": 1,
+      "declaration": {
+        "line": 132,
+        "start_column": 9,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "53868d5117b0910ec94c097bfbfaf312216943efb570b713c6439a0600cf811c",
+      "body_fingerprint": "30fe232e8096e6d4ed930a5c2032932c5d61a500bf50b83199d28540e331a5d5"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:<LocatorError as fmt::Display>::fmt",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fmt",
+      "qualified_path": "<LocatorError as fmt::Display>::fmt",
+      "discriminator": null,
+      "start_line": 142,
+      "start_column": 4,
+      "end_line": 150,
+      "end_column": 5,
+      "declaration": {
+        "line": 142,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "cb79d1fca40bca8b3b3ccd1f586a265f0ecb5ecc19d42d1a1cb6d8d061d53f98",
+      "body_fingerprint": "555ba4c3eec9b4b5a3eb362ec219963aeace277fe74260ebe016238d5f6bd025"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:quote",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "quote",
+      "qualified_path": "quote",
+      "discriminator": null,
+      "start_line": 153,
+      "start_column": 0,
+      "end_line": 155,
+      "end_column": 1,
+      "declaration": {
+        "line": 153,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "51a2c1ea1d356b1cba3da4462cfe691b1919887b425bc7102621572df25ecf89",
+      "body_fingerprint": "2804d1dae8e51fa17f33283d18ad5399cbb9a2f9b92a52d2597594f453861a0c"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:type:SourceText",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SourceText",
+      "qualified_path": "SourceText",
+      "discriminator": null,
+      "start_line": 159,
+      "start_column": 0,
+      "end_line": 166,
+      "end_column": 1,
+      "declaration": {
+        "line": 159,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "bb172f668ddab06ef56d48774b508b251e3a26c010eaf781a50d93e911a72c11",
+      "body_fingerprint": "baac27998884ee0cfcd83b6738bdcd4b4e9841feeb3c09cb66c5e7282ceeeefc"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::decode",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "decode",
+      "qualified_path": "SourceText::decode",
+      "discriminator": null,
+      "start_line": 170,
+      "start_column": 4,
+      "end_line": 173,
+      "end_column": 5,
+      "declaration": {
+        "line": 170,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6aaf5aac450c9e4d33ab3538d1d282912cc1e1bda4e072761fd1701ea451ef0f",
+      "body_fingerprint": "09628bde57185f51f684d6fac0bbf1886a1bbeadfa369e225d7f91027f9b3ca1"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::new",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "new",
+      "qualified_path": "SourceText::new",
+      "discriminator": null,
+      "start_line": 175,
+      "start_column": 4,
+      "end_line": 204,
+      "end_column": 5,
+      "declaration": {
+        "line": 175,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 6,
+      "tier": 1,
+      "content_fingerprint": "c7c97b89c94763413885ba8bba35c0fa310fd5db9320436cc7a888a7e89a3e98",
+      "body_fingerprint": "02ba6ddfb1725684312f5975cca1ac7e4b9ae0c4257650118f3d1fa67daaddc3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::lines",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "lines",
+      "qualified_path": "SourceText::lines",
+      "discriminator": null,
+      "start_line": 208,
+      "start_column": 4,
+      "end_line": 210,
+      "end_column": 5,
+      "declaration": {
+        "line": 208,
+        "start_column": 11,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3df58a8867ab85eed05f5260c0b714c02d528ff51c9657529f0a5273c6957d8b",
+      "body_fingerprint": "9902b35f1b93fb0d341b6128dc1e6e8dd4954b9087df74a210a945721a5f9b69"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::line",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "line",
+      "qualified_path": "SourceText::line",
+      "discriminator": null,
+      "start_line": 213,
+      "start_column": 4,
+      "end_line": 217,
+      "end_column": 5,
+      "declaration": {
+        "line": 213,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0ef6ae1029cea1a49b7ba91e036bfe227be2b781f552ca00d556b9d4e7c453bb",
+      "body_fingerprint": "7f1b9d9f61a11c612c9be848e6e6e7fbd443415b917524f07bc35563fd125c7b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::offset",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "offset",
+      "qualified_path": "SourceText::offset",
+      "discriminator": null,
+      "start_line": 221,
+      "start_column": 4,
+      "end_line": 228,
+      "end_column": 5,
+      "declaration": {
+        "line": 221,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "320cc8a3928a74e307893be40713bb27234f455652c2d940ba9f85c9be260411",
+      "body_fingerprint": "cc0eb30c267fceefdd2d94a08197dbdb3c5ccdb35e387cd33285eea31cd47dfc"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::representable",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "representable",
+      "qualified_path": "SourceText::representable",
+      "discriminator": null,
+      "start_line": 233,
+      "start_column": 4,
+      "end_line": 236,
+      "end_column": 5,
+      "declaration": {
+        "line": 233,
+        "start_column": 7,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b5f391c21a1db3b2c0908b7f082d0cc121ac2f314176695161ae2fedfd92b4a1",
+      "body_fingerprint": "c61c02a39af2b98abf4bcc1874075ac1d87eda27b7ff61f1a619ed347706f58f"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::position",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "position",
+      "qualified_path": "SourceText::position",
+      "discriminator": null,
+      "start_line": 239,
+      "start_column": 4,
+      "end_line": 242,
+      "end_column": 5,
+      "declaration": {
+        "line": 239,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9c14a37cc43d62b4b1aeaed829674fc0b9016760ec6876b8ddfdb32a9ed36e66",
+      "body_fingerprint": "2be6a072757f3d6a8ecae036309453d9ca66a358f7734c6795731f8eee6aca91"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::slice",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "slice",
+      "qualified_path": "SourceText::slice",
+      "discriminator": null,
+      "start_line": 245,
+      "start_column": 4,
+      "end_line": 252,
+      "end_column": 5,
+      "declaration": {
+        "line": 245,
+        "start_column": 11,
+        "end_column": 16
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "47030e7e505df52c99e006e62b2fb173fa4784591256d9172de5504739c5439a",
+      "body_fingerprint": "05913c6fd343a7f9aa62528f6f0e3889980d8126272f02ad81bc4efd6196bbbb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::check",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "check",
+      "qualified_path": "SourceText::check",
+      "discriminator": null,
+      "start_line": 255,
+      "start_column": 4,
+      "end_line": 262,
+      "end_column": 5,
+      "declaration": {
+        "line": 255,
+        "start_column": 11,
+        "end_column": 16
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "5c11ed8809364f64ee63cc1c4bc18ee8ba955e9ca9b726aa39dab9e86d9516f2",
+      "body_fingerprint": "bdfa7cc57395588cb725d753622b33ee6f9b313a3e6b4fb36f8ad1917407c532"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::find",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "find",
+      "qualified_path": "SourceText::find",
+      "discriminator": null,
+      "start_line": 266,
+      "start_column": 4,
+      "end_line": 276,
+      "end_column": 5,
+      "declaration": {
+        "line": 266,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "02c3f64e801df16fbfeaa306f40abc7f519b08914bf156b7caa4c836e9472eb2",
+      "body_fingerprint": "d8eb6e4e7c25b7ee96d34a90e3a1968eed7a3eaa390dda42069781c6fc8c871d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:SourceText::locator",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "locator",
+      "qualified_path": "SourceText::locator",
+      "discriminator": null,
+      "start_line": 279,
+      "start_column": 4,
+      "end_line": 294,
+      "end_column": 5,
+      "declaration": {
+        "line": 279,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "0ecc3cda144cfcfb1894660a65e9656d9e17f644074dbc0cd7c9c288ea5687cd",
+      "body_fingerprint": "2f4cd580cafa4d841cf554dcbb2af580e159cec89e5796e3df70a5f1429aa614"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:type:CaptureError",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "CaptureError",
+      "qualified_path": "CaptureError",
+      "discriminator": null,
+      "start_line": 299,
+      "start_column": 0,
+      "end_line": 304,
+      "end_column": 1,
+      "declaration": {
+        "line": 299,
+        "start_column": 9,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "931801222fe621aa90bef33467d409fe79eacb18a03c1ec44fd622f8ab9300ad",
+      "body_fingerprint": "8d4cdba5cc3ec2f45fc94d9ee4d00e7cbe90a5bcc631cf58f40edb62f189c365"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:<CaptureError as fmt::Display>::fmt",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fmt",
+      "qualified_path": "<CaptureError as fmt::Display>::fmt",
+      "discriminator": null,
+      "start_line": 307,
+      "start_column": 4,
+      "end_line": 315,
+      "end_column": 5,
+      "declaration": {
+        "line": 307,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "9e54871d9296d737cece0b462891d1f4da72c77f81c10c72400ec9fd3a1f70c2",
+      "body_fingerprint": "43178593fee4bde0519e510b33ee2fd4fb427e9e99a8f014a912d5af28ebeba6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:capture",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "capture",
+      "qualified_path": "capture",
+      "discriminator": null,
+      "start_line": 322,
+      "start_column": 0,
+      "end_line": 342,
+      "end_column": 1,
+      "declaration": {
+        "line": 322,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "fec47a750efcb40a54c174aa8a42640eb64a3c1319b215c783c079c28fe4d1f2",
+      "body_fingerprint": "162bccf4956212f3b9dd5e9ddfa6ff321d9be8e997d014528301872fcca41496"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::every_line_terminator_ends_a_line",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_line_terminator_ends_a_line",
+      "qualified_path": "tests::every_line_terminator_ends_a_line",
+      "discriminator": null,
+      "start_line": 349,
+      "start_column": 4,
+      "end_line": 360,
+      "end_column": 5,
+      "declaration": {
+        "line": 349,
+        "start_column": 7,
+        "end_column": 40
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5f964e76f5024e83376b829ebb1c2668a4a15d649ba43694d38052d064b6df7e",
+      "body_fingerprint": "c7de4497d25cf374cdfbb36f3ace43b4652607703cbe28332c131d5bee3b06fa"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::columns_count_scalar_values_and_skip_the_byte_order_mark",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "columns_count_scalar_values_and_skip_the_byte_order_mark",
+      "qualified_path": "tests::columns_count_scalar_values_and_skip_the_byte_order_mark",
+      "discriminator": null,
+      "start_line": 363,
+      "start_column": 4,
+      "end_line": 368,
+      "end_column": 5,
+      "declaration": {
+        "line": 363,
+        "start_column": 7,
+        "end_column": 63
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c66fb7dd3aae48b7e9e40c2d526271462d4b348ec35e9fd2e740cf69ff6bd36a",
+      "body_fingerprint": "ff8ea34738eab91a577e86a5a54d6c5eb6f6953efd44f1738315c327023bf754"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::a_position_past_the_line_is_out_of_range",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_position_past_the_line_is_out_of_range",
+      "qualified_path": "tests::a_position_past_the_line_is_out_of_range",
+      "discriminator": null,
+      "start_line": 371,
+      "start_column": 4,
+      "end_line": 377,
+      "end_column": 5,
+      "declaration": {
+        "line": 371,
+        "start_column": 7,
+        "end_column": 47
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "924a0ba8a5e715691f4739a23e8105717b67d99b92467c26c2d2b7d267250f97",
+      "body_fingerprint": "7a251aa123aec2ffdad2a1faf0621d4a1b3e5501c2aacf1d5ecad6c8fe4eab40"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::check_reports_text_and_order",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "check_reports_text_and_order",
+      "qualified_path": "tests::check_reports_text_and_order",
+      "discriminator": null,
+      "start_line": 380,
+      "start_column": 4,
+      "end_line": 396,
+      "end_column": 5,
+      "declaration": {
+        "line": 380,
+        "start_column": 7,
+        "end_column": 35
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7b73d1885e06d18e15d55e971f2e0d284c425d072a1219de515e57d277bafa23",
+      "body_fingerprint": "778466422601fc430faafe924731f7bff6e15771f187a5fff219c611fbdfe701"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::capture_needs_exactly_one_occurrence",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "capture_needs_exactly_one_occurrence",
+      "qualified_path": "tests::capture_needs_exactly_one_occurrence",
+      "discriminator": null,
+      "start_line": 399,
+      "start_column": 4,
+      "end_line": 421,
+      "end_column": 5,
+      "declaration": {
+        "line": 399,
+        "start_column": 7,
+        "end_column": 43
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6a65b7044dbcbf694906e455e0ae0256d44bcfae00f6eebf699a62f04eb06b3b",
+      "body_fingerprint": "0fcc2f1d9887bcb2f3cf1829d8a698df9c4ed3e67d7ce141db4583529702146a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::integral_floats_are_positions",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integral_floats_are_positions",
+      "qualified_path": "tests::integral_floats_are_positions",
+      "discriminator": null,
+      "start_line": 424,
+      "start_column": 4,
+      "end_line": 429,
+      "end_column": 5,
+      "declaration": {
+        "line": 424,
+        "start_column": 7,
+        "end_column": 36
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "25bf5726175b74383b72a6928c5ef162743160bddfd77f6d7d1065ccdcafd686",
+      "body_fingerprint": "9f2dc9276fa7f2e138c1bfee35f295172af8250a474ff8dcd17aa5fe252d305a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::an_overflowing_column_is_out_of_range",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_overflowing_column_is_out_of_range",
+      "qualified_path": "tests::an_overflowing_column_is_out_of_range",
+      "discriminator": null,
+      "start_line": 432,
+      "start_column": 4,
+      "end_line": 435,
+      "end_column": 5,
+      "declaration": {
+        "line": 432,
+        "start_column": 7,
+        "end_column": 44
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6d5571bd50e5f17bb6c6077cc45dfcc86719b48cc33f9d1b75a2cbae6e48e05a",
+      "body_fingerprint": "a99c861fcffbbf536e62f93e687d5eec86a0f225ce4d233ea4c9759bb165eebb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::a_span_cannot_split_a_cr_lf_pair",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_span_cannot_split_a_cr_lf_pair",
+      "qualified_path": "tests::a_span_cannot_split_a_cr_lf_pair",
+      "discriminator": null,
+      "start_line": 438,
+      "start_column": 4,
+      "end_line": 451,
+      "end_column": 5,
+      "declaration": {
+        "line": 438,
+        "start_column": 7,
+        "end_column": 39
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4b57cb3aac7e5846f8390f2961357987dc1fc50ceaecd0fde8f0941c145e3711",
+      "body_fingerprint": "05cc99ee8dc9abf36b1b8aa0048659cdc9cff465f31429dc8e13b2b76447a450"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::yaml_scalars_read_back_as_the_same_string",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "yaml_scalars_read_back_as_the_same_string",
+      "qualified_path": "tests::yaml_scalars_read_back_as_the_same_string",
+      "discriminator": null,
+      "start_line": 454,
+      "start_column": 4,
+      "end_line": 469,
+      "end_column": 5,
+      "declaration": {
+        "line": 454,
+        "start_column": 7,
+        "end_column": 48
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "54b7590f6371aad2618194d54baeed9e83f8e67d80c89a0073097c0f266cb024",
+      "body_fingerprint": "3b8e0ccca99cdfb4ddc1dd78ec4d99388215f004b26c3dd0857a702b6d826355"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/locator.rs:function:tests::yaml_scalars_quote_what_would_not_read_back",
+      "path": "crates/beholder-semantic-oracle/src/locator.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "yaml_scalars_quote_what_would_not_read_back",
+      "qualified_path": "tests::yaml_scalars_quote_what_would_not_read_back",
+      "discriminator": null,
+      "start_line": 472,
+      "start_column": 4,
+      "end_line": 478,
+      "end_column": 5,
+      "declaration": {
+        "line": 472,
+        "start_column": 7,
+        "end_column": 50
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a2708218552703d9470ce59d92802c5296a555422f856c4fb09fa4ec8a3831aa",
+      "body_fingerprint": "1594e3db76cd0f910d0e397269d03a91823770930c6f33e14e8245b321029694"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "fmt",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "Value",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 9,
+      "within": null
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 9,
+      "within": null
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": null
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 19,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 20,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 1
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 24,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 2
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 2
+    },
+    {
+      "name": "as_array",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 25,
+      "within": 2
+    },
+    {
+      "name": "as_slice",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 26,
+      "within": 2
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "count",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "Self",
+      "kind": "call",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 27,
+      "within": 2
+    },
+    {
+      "name": "Display",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "Display",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "Formatter",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": 3
+    },
+    {
+      "name": "Formatter",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": 3
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": 3
+    },
+    {
+      "name": "Result",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": 3
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": 3
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 41,
+      "within": 4
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 41,
+      "within": 4
+    },
+    {
+      "name": "as_u64",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 42,
+      "within": 4
+    },
+    {
+      "name": "ok",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 43,
+      "within": 4
+    },
+    {
+      "name": "try_from",
+      "qualifier": "usize",
+      "kind": "call",
+      "target": null,
+      "line": 43,
+      "within": 4
+    },
+    {
+      "name": "try_from",
+      "qualifier": "usize",
+      "kind": "path",
+      "target": null,
+      "line": 43,
+      "within": 4
+    },
+    {
+      "name": "usize",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 43,
+      "within": 4
+    },
+    {
+      "name": "as_f64",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 45,
+      "within": 4
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 47,
+      "within": 4
+    },
+    {
+      "name": "fract",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 47,
+      "within": 4
+    },
+    {
+      "name": "then_some",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 47,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 53,
+      "within": 5
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 54,
+      "within": 5
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 55,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 56,
+      "within": 5
+    },
+    {
+      "name": "Locator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": null
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 6
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 62,
+      "within": 6
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 6
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 62,
+      "within": 6
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 63,
+      "within": 6
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 63,
+      "within": 6
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 63,
+      "within": 6
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 6
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 6
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 64,
+      "within": 6
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 65,
+      "within": 6
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 65,
+      "within": 6
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 65,
+      "within": 6
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 65,
+      "within": 6
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 66,
+      "within": 6
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 66,
+      "within": 6
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 66,
+      "within": 6
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 66,
+      "within": 6
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 67,
+      "within": 6
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 67,
+      "within": 6
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 67,
+      "within": 6
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 72,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 87,
+      "within": 8
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 88,
+      "within": 8
+    },
+    {
+      "name": "all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 89,
+      "within": 8
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 89,
+      "within": 8
+    },
+    {
+      "name": "is_ascii_alphanumeric",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 91,
+      "within": 8
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "is_some_and",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 92,
+      "within": 8
+    },
+    {
+      "name": "is_ascii_alphabetic",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 95,
+      "within": 8
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 101,
+      "within": 8
+    },
+    {
+      "name": "double_quoted",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 103,
+      "within": 8
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 9
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 9
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 110,
+      "within": 9
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 110,
+      "within": 9
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 9
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 111,
+      "within": 9
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 112,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 115,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 116,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 117,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 9
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 120,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 122,
+      "within": 9
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 9
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 9
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 134,
+      "within": 10
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": 10
+    },
+    {
+      "name": "Display",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": null
+    },
+    {
+      "name": "Display",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": null
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": null
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 141,
+      "within": null
+    },
+    {
+      "name": "Formatter",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "Formatter",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "Result",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "OutOfRange",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 144,
+      "within": 11
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 144,
+      "within": 11
+    },
+    {
+      "name": "Reversed",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": 11
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": 11
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "TextMismatch",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "TextMismatch",
+      "qualifier": "Self",
+      "kind": "type",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 153,
+      "within": 12
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 12
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 154,
+      "within": 12
+    },
+    {
+      "name": "to_string",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 154,
+      "within": 12
+    },
+    {
+      "name": "to_string",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 154,
+      "within": 12
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 162,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 165,
+      "within": 13
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 168,
+      "within": null
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "Utf8Error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "Utf8Error",
+      "qualifier": "str",
+      "kind": "type",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "str",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 14
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "call",
+      "target": null,
+      "line": 171,
+      "within": 14
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 171,
+      "within": 14
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 171,
+      "within": 14
+    },
+    {
+      "name": "str",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 171,
+      "within": 14
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 172,
+      "within": 14
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 172,
+      "within": 14
+    },
+    {
+      "name": "new",
+      "qualifier": "Self",
+      "kind": "call",
+      "target": null,
+      "line": 172,
+      "within": 14
+    },
+    {
+      "name": "new",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 172,
+      "within": 14
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 175,
+      "within": 15
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 175,
+      "within": 15
+    },
+    {
+      "name": "strip_prefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 176,
+      "within": 15
+    },
+    {
+      "name": "unwrap_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 176,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 177,
+      "within": 15
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 177,
+      "within": 15
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 177,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 179,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 179,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 179,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 181,
+      "within": 15
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 184,
+      "within": 15
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 185,
+      "within": 15
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 188,
+      "within": 15
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 189,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 189,
+      "within": 15
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 198,
+      "within": 15
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 198,
+      "within": 15
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 199,
+      "within": 15
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 199,
+      "within": 15
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 16
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 213,
+      "within": 17
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 213,
+      "within": 17
+    },
+    {
+      "name": "checked_sub",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 214,
+      "within": 17
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 17
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 216,
+      "within": 17
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 216,
+      "within": 17
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 216,
+      "within": 17
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": 18
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 221,
+      "within": 18
+    },
+    {
+      "name": "checked_sub",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 222,
+      "within": 18
+    },
+    {
+      "name": "checked_sub",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 223,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 224,
+      "within": 18
+    },
+    {
+      "name": "checked_add",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 226,
+      "within": 18
+    },
+    {
+      "name": "then_some",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 227,
+      "within": 18
+    },
+    {
+      "name": "partition_point",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 234,
+      "within": 19
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 239,
+      "within": 20
+    },
+    {
+      "name": "partition_point",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 240,
+      "within": 20
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 241,
+      "within": 20
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 241,
+      "within": 20
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 241,
+      "within": 20
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 21
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 21
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 21
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 21
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 246,
+      "within": 21
+    },
+    {
+      "name": "OutOfRange",
+      "qualifier": "LocatorError",
+      "kind": "call",
+      "target": null,
+      "line": 246,
+      "within": 21
+    },
+    {
+      "name": "OutOfRange",
+      "qualifier": "LocatorError",
+      "kind": "path",
+      "target": null,
+      "line": 246,
+      "within": 21
+    },
+    {
+      "name": "offset",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 246,
+      "within": 21
+    },
+    {
+      "name": "ok_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 246,
+      "within": 21
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 247,
+      "within": 21
+    },
+    {
+      "name": "OutOfRange",
+      "qualifier": "LocatorError",
+      "kind": "call",
+      "target": null,
+      "line": 247,
+      "within": 21
+    },
+    {
+      "name": "OutOfRange",
+      "qualifier": "LocatorError",
+      "kind": "path",
+      "target": null,
+      "line": 247,
+      "within": 21
+    },
+    {
+      "name": "offset",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 247,
+      "within": 21
+    },
+    {
+      "name": "ok_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 247,
+      "within": 21
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 249,
+      "within": 21
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 249,
+      "within": 21
+    },
+    {
+      "name": "Reversed",
+      "qualifier": "LocatorError",
+      "kind": "path",
+      "target": null,
+      "line": 249,
+      "within": 21
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 251,
+      "within": 21
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 21
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 251,
+      "within": 21
+    },
+    {
+      "name": "Locator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 255,
+      "within": 22
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 255,
+      "within": 22
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 255,
+      "within": 22
+    },
+    {
+      "name": "slice",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 256,
+      "within": 22
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 258,
+      "within": 22
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 260,
+      "within": 22
+    },
+    {
+      "name": "LocatorError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 260,
+      "within": 22
+    },
+    {
+      "name": "TextMismatch",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 260,
+      "within": 22
+    },
+    {
+      "name": "TextMismatch",
+      "qualifier": "LocatorError",
+      "kind": "type",
+      "target": null,
+      "line": 260,
+      "within": 22
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 266,
+      "within": 23
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 266,
+      "within": 23
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 267,
+      "within": 23
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 267,
+      "within": 23
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 267,
+      "within": 23
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 268,
+      "within": 23
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 268,
+      "within": 23
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 269,
+      "within": 23
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 269,
+      "within": 23
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 269,
+      "within": 23
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": 23
+    },
+    {
+      "name": "filter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": 23
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": 23
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": 23
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 272,
+      "within": 23
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 273,
+      "within": 23
+    },
+    {
+      "name": "representable",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 273,
+      "within": 23
+    },
+    {
+      "name": "position",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 274,
+      "within": 23
+    },
+    {
+      "name": "Locator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 279,
+      "within": 24
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 279,
+      "within": 24
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 279,
+      "within": 24
+    },
+    {
+      "name": "offset",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 280,
+      "within": 24
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 281,
+      "within": 24
+    },
+    {
+      "name": "count",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 281,
+      "within": 24
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 282,
+      "within": 24
+    },
+    {
+      "name": "representable",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 283,
+      "within": 24
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 284,
+      "within": 24
+    },
+    {
+      "name": "copied",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 284,
+      "within": 24
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 284,
+      "within": 24
+    },
+    {
+      "name": "ne",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 284,
+      "within": 24
+    },
+    {
+      "name": "Locator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 288,
+      "within": 24
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 288,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 24
+    },
+    {
+      "name": "position",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 291,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 292,
+      "within": 24
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 303,
+      "within": 25
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 303,
+      "within": 25
+    },
+    {
+      "name": "CaptureError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": null
+    },
+    {
+      "name": "Display",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": null
+    },
+    {
+      "name": "Display",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": null
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": null
+    },
+    {
+      "name": "Formatter",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 307,
+      "within": 26
+    },
+    {
+      "name": "Formatter",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 307,
+      "within": 26
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 307,
+      "within": 26
+    },
+    {
+      "name": "Result",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 307,
+      "within": 26
+    },
+    {
+      "name": "fmt",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 307,
+      "within": 26
+    },
+    {
+      "name": "NotFound",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 309,
+      "within": 26
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 309,
+      "within": 26
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 310,
+      "within": 26
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 310,
+      "within": 26
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "to_string",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 311,
+      "within": 26
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 323,
+      "within": 27
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 326,
+      "within": 27
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 327,
+      "within": 27
+    },
+    {
+      "name": "CaptureError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": 27
+    },
+    {
+      "name": "Locator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": 27
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": 27
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "filter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 27
+    },
+    {
+      "name": "is_none_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 332,
+      "within": 27
+    },
+    {
+      "name": "is_none_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 333,
+      "within": 27
+    },
+    {
+      "name": "as_slice",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 335,
+      "within": 27
+    },
+    {
+      "name": "CaptureError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 336,
+      "within": 27
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 336,
+      "within": 27
+    },
+    {
+      "name": "NotFound",
+      "qualifier": "CaptureError",
+      "kind": "path",
+      "target": null,
+      "line": 336,
+      "within": 27
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 337,
+      "within": 27
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 337,
+      "within": 27
+    },
+    {
+      "name": "locator",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 337,
+      "within": 27
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "CaptureError",
+      "kind": "call",
+      "target": null,
+      "line": 340,
+      "within": 27
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "CaptureError",
+      "kind": "path",
+      "target": null,
+      "line": 340,
+      "within": 27
+    },
+    {
+      "name": "CaptureError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 340,
+      "within": 27
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 340,
+      "within": 27
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 350,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 350,
+      "within": 28
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 350,
+      "within": 28
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 29
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 29
+    },
+    {
+      "name": "decode",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 364,
+      "within": 29
+    },
+    {
+      "name": "decode",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 29
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 29
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 366,
+      "within": 29
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 366,
+      "within": 29
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 366,
+      "within": 29
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 372,
+      "within": 30
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 372,
+      "within": 30
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 372,
+      "within": 30
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 381,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 381,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 381,
+      "within": 31
+    },
+    {
+      "name": "locator",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 382,
+      "within": 31
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 382,
+      "within": 31
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 383,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 383,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 383,
+      "within": 31
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 387,
+      "within": 31
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 394,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 394,
+      "within": 31
+    },
+    {
+      "name": "new",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 394,
+      "within": 31
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 400,
+      "within": 32
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 400,
+      "within": 32
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 400,
+      "within": 32
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 408,
+      "within": 32
+    },
+    {
+      "name": "capture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 408,
+      "within": 32
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 408,
+      "within": 32
+    },
+    {
+      "name": "Position",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 425,
+      "within": 33
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "call",
+      "target": null,
+      "line": 425,
+      "within": 33
+    },
+    {
+      "name": "from_value",
+      "qualifier": "Position",
+      "kind": "path",
+      "target": null,
+      "line": 425,
+      "within": 33
+    },
+    {
+      "name": "json",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 425,
+      "within": 33
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 425,
+      "within": 33
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 433,
+      "within": 34
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 433,
+      "within": 34
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 433,
+      "within": 34
+    },
+    {
+      "name": "SourceText",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 439,
+      "within": 35
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "call",
+      "target": null,
+      "line": 439,
+      "within": 35
+    },
+    {
+      "name": "new",
+      "qualifier": "SourceText",
+      "kind": "path",
+      "target": null,
+      "line": 439,
+      "within": 35
+    },
+    {
+      "name": "capture",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 448,
+      "within": 35
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 448,
+      "within": 35
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": "crate",
+      "kind": "call",
+      "target": null,
+      "line": 466,
+      "within": 36
+    },
+    {
+      "name": "parse_yaml",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 466,
+      "within": 36
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 466,
+      "within": 36
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Value",
+      "path": [
+        "serde_json",
+        "Value"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "fmt",
+      "path": [
+        "std",
+        "fmt"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "locator"
+  ]
+}
