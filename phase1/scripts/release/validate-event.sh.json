@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/validate-event.sh",
+  "language": null,
+  "content_hash": "78421cd85b02de32d8488b71df621ae9d0fca9735da658cd1d0fbdeeed39c0e2",
+  "tier": 0,
+  "density": 2.7639062,
+  "lines": 25,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
