@@ -1,0 +1,2140 @@
+{
+  "path": "crates/beholder/src/analysis.rs",
+  "language": "rust",
+  "content_hash": "a1d416ac37e38927b9d13c42c54e78557c5572dc681e474ab588553533c520c6",
+  "tier": 1,
+  "density": 28.759346,
+  "lines": 264,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:Fingerprint",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Fingerprint",
+      "qualified_path": "Fingerprint",
+      "discriminator": null,
+      "start_line": 22,
+      "start_column": 0,
+      "end_line": 29,
+      "end_column": 1,
+      "declaration": {
+        "line": 22,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "43b958b9f145096276f3c485404a3cd2a0391d476f3eac7140ee5175ae65263d",
+      "body_fingerprint": "440ce64ee089b367e537eef88a990e6d52405893aedf753decfd25bc841739c0"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:Fingerprint::new",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "new",
+      "qualified_path": "Fingerprint::new",
+      "discriminator": null,
+      "start_line": 35,
+      "start_column": 4,
+      "end_line": 43,
+      "end_column": 5,
+      "declaration": {
+        "line": 35,
+        "start_column": 11,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5da30f466a06703f17927d36be559fe5f2b871e9eae212f9734a5c374b4ad720",
+      "body_fingerprint": "bfa211742401d79f0abe073f111cd8d1963fe8431d9eaa2ded2676618d3811cb"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:is_repo_relative",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_repo_relative",
+      "qualified_path": "is_repo_relative",
+      "discriminator": null,
+      "start_line": 47,
+      "start_column": 0,
+      "end_line": 54,
+      "end_column": 1,
+      "declaration": {
+        "line": 47,
+        "start_column": 7,
+        "end_column": 23
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "dd264469883a48391ddec76690734424bf54d271467dcfa9623bf67857faa641",
+      "body_fingerprint": "d80cd66d8601c23d45ab5f527cfcbf316a6815eb8ce165c67aae383aaa064dae"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:Phase2",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Phase2",
+      "qualified_path": "Phase2",
+      "discriminator": null,
+      "start_line": 63,
+      "start_column": 0,
+      "end_line": 70,
+      "end_column": 1,
+      "declaration": {
+        "line": 63,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d168c4971082a9e0ec3204879ce59757525f4cf806aa725c468dd83e84cbdea6",
+      "body_fingerprint": "e0060a74b0ef662786c99853758d15cf81074e085c1cc49118e1c29da8b3c1c6"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:Analysis",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Analysis",
+      "qualified_path": "Analysis",
+      "discriminator": null,
+      "start_line": 74,
+      "start_column": 0,
+      "end_line": 79,
+      "end_column": 1,
+      "declaration": {
+        "line": 74,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6c47e444e3b98d6b26aafc6e5b169609c55635b7360bd025ead79c9e6497cd8f",
+      "body_fingerprint": "c124ce8e973893e5505b892a7b916d769d10e62d4bcf44d5be19038eed0d5d1d"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:Analysis::symbols",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "symbols",
+      "qualified_path": "Analysis::symbols",
+      "discriminator": null,
+      "start_line": 83,
+      "start_column": 4,
+      "end_line": 85,
+      "end_column": 5,
+      "declaration": {
+        "line": 83,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2ac4d57be512f3c683c357d19e25a68f674e66e9a66f9efcb5132f00ca40c20d",
+      "body_fingerprint": "5a4975de29e5ee3f8ec2bc189750899d5728c75207a932fad2ab58fb698861e0"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:Phase1Cache",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Phase1Cache",
+      "qualified_path": "Phase1Cache",
+      "discriminator": null,
+      "start_line": 92,
+      "start_column": 0,
+      "end_line": 94,
+      "end_column": 1,
+      "declaration": {
+        "line": 92,
+        "start_column": 10,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "37cfe0b581d06e6fb838978d5e5e760c03c08d73ee57cc09c2e72fa60f97fcdc",
+      "body_fingerprint": "9ad0d934a1847d59ea3858a1d675295a85f446863bbffdf0503c1163bd3c796a"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:NoCache",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "NoCache",
+      "qualified_path": "NoCache",
+      "discriminator": null,
+      "start_line": 97,
+      "start_column": 0,
+      "end_line": 97,
+      "end_column": 19,
+      "declaration": {
+        "line": 97,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1ac3149f5ba8043ede98130c57737a58f81f134c00a8a80b8378dcd25d31d925",
+      "body_fingerprint": "4d229f4cc6c640f675d2427dd978a95ad5f8d1c019b02aea971941fe2c93eb07"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:<NoCache as Phase1Cache>::get",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "get",
+      "qualified_path": "<NoCache as Phase1Cache>::get",
+      "discriminator": null,
+      "start_line": 100,
+      "start_column": 4,
+      "end_line": 102,
+      "end_column": 5,
+      "declaration": {
+        "line": 100,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6278d4bf96428f1d1fac77a7c13004735c80403eff3ef3eef903562fb00469cd",
+      "body_fingerprint": "661cfe3383902395ea12aed98dcaa6af25f152a253e2472ea2de293bdd61eb9e"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:CacheStats",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "CacheStats",
+      "qualified_path": "CacheStats",
+      "discriminator": null,
+      "start_line": 107,
+      "start_column": 0,
+      "end_line": 110,
+      "end_column": 1,
+      "declaration": {
+        "line": 107,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fee9b69345e63e6c604ee770a53fb8ceb9c3ac00c393a2658515e3aeab81b846",
+      "body_fingerprint": "b1d841db48a1c67df2f3b44a33cabe189d2dd595f6bc7be8540df7cd12954bb3"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:run",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "run",
+      "qualified_path": "run",
+      "discriminator": null,
+      "start_line": 113,
+      "start_column": 0,
+      "end_line": 115,
+      "end_column": 1,
+      "declaration": {
+        "line": 113,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e3de589ccd13932335fc3c3d511d7d69958352a1529114bef0869128c7eccc2e",
+      "body_fingerprint": "57fb3e79ba26bcae9b91b746cca78fa016d09b2a817d0c16dc34938a324952fa"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:run_with_cache",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "run_with_cache",
+      "qualified_path": "run_with_cache",
+      "discriminator": null,
+      "start_line": 118,
+      "start_column": 0,
+      "end_line": 152,
+      "end_column": 1,
+      "declaration": {
+        "line": 118,
+        "start_column": 7,
+        "end_column": 21
+      },
+      "cognitive_complexity": 4,
+      "tier": 1,
+      "content_fingerprint": "a434bd2939f37193fe03e72276aaaed3c46033549240dba203c5aed1b011c4bf",
+      "body_fingerprint": "8ed2bee5de6adb1d7642ee6381db1d192ab4565d4f92fa99099461bc4711e8a2"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:phase2",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "phase2",
+      "qualified_path": "phase2",
+      "discriminator": null,
+      "start_line": 156,
+      "start_column": 0,
+      "end_line": 183,
+      "end_column": 1,
+      "declaration": {
+        "line": 156,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "fd7ccf3dd5a717fcd09b73f71c098076b268c18fc057799aae46b374278717aa",
+      "body_fingerprint": "703aa7024db40f5c8ce56d518bcbeb1e3ad1947aaa4079cc5012f3dc8cac3f19"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::source",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "source",
+      "qualified_path": "tests::source",
+      "discriminator": null,
+      "start_line": 189,
+      "start_column": 4,
+      "end_line": 194,
+      "end_column": 5,
+      "declaration": {
+        "line": 189,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "cee3f2fc10fbd054d0b5bc5a73c31379c6dcdae0abbaaf4c0ec5cb4865bad3b8",
+      "body_fingerprint": "6c7ff7957156f04d23f6a094e0d2a4263ba4c6d5b4341f02a084b057c91bd585"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::path_rules_reject_anything_but_repo_relative_posix",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "path_rules_reject_anything_but_repo_relative_posix",
+      "qualified_path": "tests::path_rules_reject_anything_but_repo_relative_posix",
+      "discriminator": null,
+      "start_line": 197,
+      "start_column": 4,
+      "end_line": 204,
+      "end_column": 5,
+      "declaration": {
+        "line": 197,
+        "start_column": 7,
+        "end_column": 57
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "e3a1844b6d276e8e51146b2180a1c36dc4c870551077e99a6bbea3268cc2a909",
+      "body_fingerprint": "9e54b9373e3a088fc00e4b4dba3a3d0383dca37e36b2f2464c89829bf3993568"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::fingerprint_changes_when_configuration_changes",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fingerprint_changes_when_configuration_changes",
+      "qualified_path": "tests::fingerprint_changes_when_configuration_changes",
+      "discriminator": null,
+      "start_line": 207,
+      "start_column": 4,
+      "end_line": 211,
+      "end_column": 5,
+      "declaration": {
+        "line": 207,
+        "start_column": 7,
+        "end_column": 53
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "73676a1ca40c2a20a0edcfb411be0a18de012b8e914b30310ca770e19889195a",
+      "body_fingerprint": "ad16e3a0c20feda98ff93a68ff4a4d551d74ad7742e98f9d709fdc0be2e63fd5"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::phase2_ranks_within_a_language",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "phase2_ranks_within_a_language",
+      "qualified_path": "tests::phase2_ranks_within_a_language",
+      "discriminator": null,
+      "start_line": 214,
+      "start_column": 4,
+      "end_line": 229,
+      "end_column": 5,
+      "declaration": {
+        "line": 214,
+        "start_column": 7,
+        "end_column": 37
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "01398023ef7da6dc639584b31bfdea6e9a8d264fa3e2bc1d2d5783adcd884633",
+      "body_fingerprint": "784139a2eda1f9eb48be7b7e3bef91b4649fa5a66815fb84a4559531641dd67b"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::phase2_depends_on_the_whole_set",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "phase2_depends_on_the_whole_set",
+      "qualified_path": "tests::phase2_depends_on_the_whole_set",
+      "discriminator": null,
+      "start_line": 232,
+      "start_column": 4,
+      "end_line": 253,
+      "end_column": 5,
+      "declaration": {
+        "line": 232,
+        "start_column": 7,
+        "end_column": 38
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "099a49e5bbfbffd9bc24ce5a14ffe906a6f1beb856fa892e02a132f0a444beb9",
+      "body_fingerprint": "82df7c8afad984b464c8b0eaaea878240a384affe7ad7ad93b6c3754dec01cb1"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::tier_zero_files_are_analyzed_too",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "tier_zero_files_are_analyzed_too",
+      "qualified_path": "tests::tier_zero_files_are_analyzed_too",
+      "discriminator": null,
+      "start_line": 256,
+      "start_column": 4,
+      "end_line": 263,
+      "end_column": 5,
+      "declaration": {
+        "line": 256,
+        "start_column": 7,
+        "end_column": 39
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "423e2859c29304b525c3d5ad1cc16d40497704015a7e55bd06ec684b73e32ff0",
+      "body_fingerprint": "ab67c3fa9b2e05427ec7b6e5c4490a450e240f7262cfe2a4b49ae6b397765c7e"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::a_matching_cache_entry_is_reused",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_matching_cache_entry_is_reused",
+      "qualified_path": "tests::a_matching_cache_entry_is_reused",
+      "discriminator": null,
+      "start_line": 266,
+      "start_column": 4,
+      "end_line": 285,
+      "end_column": 5,
+      "declaration": {
+        "line": 266,
+        "start_column": 7,
+        "end_column": 39
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b31e91fe774fdfd699e8e3a32e5aa4aaaa5130338d5ceb3b1408cd0b6ad88974",
+      "body_fingerprint": "0166245e14aa4cdc06fce770f54edd1cc5441460b988eb20c60b876384740cf6"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:tests::a_matching_cache_entry_is_reused::Always",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Always",
+      "qualified_path": "tests::a_matching_cache_entry_is_reused::Always",
+      "discriminator": null,
+      "start_line": 267,
+      "start_column": 8,
+      "end_line": 267,
+      "end_column": 36,
+      "declaration": {
+        "line": 267,
+        "start_column": 15,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b85c8950d5988fc0dcd6c7ddf8021ebe947ea7af9aa19df50ed5721ddc8396c1",
+      "body_fingerprint": "d693a91bab14edf89e5282293424283ba79f640f2e5cde038f5ed314979c913e"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::a_matching_cache_entry_is_reused::<Always as Phase1Cache>::get",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "get",
+      "qualified_path": "tests::a_matching_cache_entry_is_reused::<Always as Phase1Cache>::get",
+      "discriminator": null,
+      "start_line": 269,
+      "start_column": 12,
+      "end_line": 271,
+      "end_column": 13,
+      "declaration": {
+        "line": 269,
+        "start_column": 15,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "173faf1aa57daf517e77d89d8cc8a9fd58b3451aded7cda86ecb1497806793b0",
+      "body_fingerprint": "13d372374bcdf21c65107d633701e8c7b49379e6493e880bacf769694c56d59d"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::a_stale_cache_entry_is_ignored",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_stale_cache_entry_is_ignored",
+      "qualified_path": "tests::a_stale_cache_entry_is_ignored",
+      "discriminator": null,
+      "start_line": 288,
+      "start_column": 4,
+      "end_line": 309,
+      "end_column": 5,
+      "declaration": {
+        "line": 288,
+        "start_column": 7,
+        "end_column": 37
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "36f7d414a5acda5c8e7e0fb7ef2ac3a4c6d343e92cfb751dc5c2a7909ed2dcdc",
+      "body_fingerprint": "d5d9ff06dc5b4e9e6978f8a8a155fbd11406acf59c4ac0fa7562ad3e0d3f0682"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:type:tests::a_stale_cache_entry_is_ignored::Stale",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Stale",
+      "qualified_path": "tests::a_stale_cache_entry_is_ignored::Stale",
+      "discriminator": null,
+      "start_line": 289,
+      "start_column": 8,
+      "end_line": 289,
+      "end_column": 35,
+      "declaration": {
+        "line": 289,
+        "start_column": 15,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "943ee9cb82de8b9fd975eb130bd312f2374d9c2cb26a89bc188361d3a1a4ca3e",
+      "body_fingerprint": "d693a91bab14edf89e5282293424283ba79f640f2e5cde038f5ed314979c913e"
+    },
+    {
+      "id": "rust:crates/beholder/src/analysis.rs:function:tests::a_stale_cache_entry_is_ignored::<Stale as Phase1Cache>::get",
+      "path": "crates/beholder/src/analysis.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "get",
+      "qualified_path": "tests::a_stale_cache_entry_is_ignored::<Stale as Phase1Cache>::get",
+      "discriminator": null,
+      "start_line": 291,
+      "start_column": 12,
+      "end_line": 293,
+      "end_column": 13,
+      "declaration": {
+        "line": 291,
+        "start_column": 15,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fef5198c7d5e44d6efe01e0ca1805347687ac0463acac5c1fd3970aa2da2500e",
+      "body_fingerprint": "5e08e582c55ebfc154795577623dba581b0276fe989c13364ca056ad7ce52891"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "BTreeMap",
+      "qualifier": "collections",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "phase1",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 13,
+      "within": null
+    },
+    {
+      "name": "walk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 13,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 26,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 28,
+      "within": 0
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 34,
+      "within": null
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 1
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 35,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 36,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 36,
+      "within": 1
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 38,
+      "within": 1
+    },
+    {
+      "name": "fingerprint",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 39,
+      "within": 1
+    },
+    {
+      "name": "lang",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 40,
+      "within": 1
+    },
+    {
+      "name": "table_fingerprint",
+      "qualifier": "lang",
+      "kind": "call",
+      "target": null,
+      "line": 40,
+      "within": 1
+    },
+    {
+      "name": "table_fingerprint",
+      "qualifier": "lang",
+      "kind": "path",
+      "target": null,
+      "line": 40,
+      "within": 1
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 41,
+      "within": 1
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 48,
+      "within": 2
+    },
+    {
+      "name": "starts_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 49,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 50,
+      "within": 2
+    },
+    {
+      "name": "any",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 51,
+      "within": 2
+    },
+    {
+      "name": "split",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 51,
+      "within": 2
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 53,
+      "within": 2
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "Graph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 69,
+      "within": 3
+    },
+    {
+      "name": "Graph",
+      "qualifier": "graph",
+      "kind": "type",
+      "target": null,
+      "line": 69,
+      "within": 3
+    },
+    {
+      "name": "graph",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 69,
+      "within": 3
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 75,
+      "within": 4
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 4
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 4
+    },
+    {
+      "name": "Phase2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 78,
+      "within": 4
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 81,
+      "within": null
+    },
+    {
+      "name": "Item",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 5
+    },
+    {
+      "name": "Iterator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 5
+    },
+    {
+      "name": "Symbol",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 5
+    },
+    {
+      "name": "flat_map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 5
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 84,
+      "within": 5
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 93,
+      "within": 6
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 93,
+      "within": 6
+    },
+    {
+      "name": "NoCache",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 99,
+      "within": null
+    },
+    {
+      "name": "Phase1Cache",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 99,
+      "within": null
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 100,
+      "within": 8
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 100,
+      "within": 8
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 113,
+      "within": 10
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 113,
+      "within": 10
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "type",
+      "target": null,
+      "line": 113,
+      "within": 10
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 113,
+      "within": 10
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 114,
+      "within": 10
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 119,
+      "within": 11
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 120,
+      "within": 11
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "type",
+      "target": null,
+      "line": 120,
+      "within": 11
+    },
+    {
+      "name": "Phase1Cache",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 121,
+      "within": 11
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 122,
+      "within": 11
+    },
+    {
+      "name": "CacheStats",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 122,
+      "within": 11
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 123,
+      "within": 11
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 11
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 123,
+      "within": 11
+    },
+    {
+      "name": "with_capacity",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 123,
+      "within": 11
+    },
+    {
+      "name": "CacheStats",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 124,
+      "within": 11
+    },
+    {
+      "name": "default",
+      "qualifier": "CacheStats",
+      "kind": "call",
+      "target": null,
+      "line": 124,
+      "within": 11
+    },
+    {
+      "name": "default",
+      "qualifier": "CacheStats",
+      "kind": "path",
+      "target": null,
+      "line": 124,
+      "within": 11
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 127,
+      "within": 11
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "call",
+      "target": null,
+      "line": 127,
+      "within": 11
+    },
+    {
+      "name": "content_hash",
+      "qualifier": "hash",
+      "kind": "path",
+      "target": null,
+      "line": 127,
+      "within": 11
+    },
+    {
+      "name": "hash",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 127,
+      "within": 11
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 129,
+      "within": 11
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 132,
+      "within": 11
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "call",
+      "target": null,
+      "line": 136,
+      "within": 11
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "path",
+      "target": null,
+      "line": 136,
+      "within": 11
+    },
+    {
+      "name": "phase1",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 136,
+      "within": 11
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 11
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 141,
+      "within": 11
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 141,
+      "within": 11
+    },
+    {
+      "name": "Heuristic",
+      "qualifier": "resolve",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "phase2",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "resolve",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 11
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 145,
+      "within": 11
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "call",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "path",
+      "target": null,
+      "line": 146,
+      "within": 11
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 12
+    },
+    {
+      "name": "Phase2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 12
+    },
+    {
+      "name": "Resolver",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 12
+    },
+    {
+      "name": "Resolver",
+      "qualifier": "resolve",
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 12
+    },
+    {
+      "name": "resolve",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 156,
+      "within": 12
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 157,
+      "within": 12
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 157,
+      "within": 12
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 157,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "call",
+      "target": null,
+      "line": 157,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "path",
+      "target": null,
+      "line": 157,
+      "within": 12
+    },
+    {
+      "name": "flat_map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 159,
+      "within": 12
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 159,
+      "within": 12
+    },
+    {
+      "name": "entry",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 12
+    },
+    {
+      "name": "or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 12
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 12
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 161,
+      "within": 12
+    },
+    {
+      "name": "values_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 166,
+      "within": 12
+    },
+    {
+      "name": "sort_unstable",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 167,
+      "within": 12
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "call",
+      "target": null,
+      "line": 170,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "path",
+      "target": null,
+      "line": 170,
+      "within": 12
+    },
+    {
+      "name": "flat_map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 172,
+      "within": 12
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 172,
+      "within": 12
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 173,
+      "within": 12
+    },
+    {
+      "name": "partition_point",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 174,
+      "within": 12
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 12
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 176,
+      "within": 12
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 176,
+      "within": 12
+    },
+    {
+      "name": "Phase2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 179,
+      "within": 12
+    },
+    {
+      "name": "build",
+      "qualifier": "graph",
+      "kind": "call",
+      "target": null,
+      "line": 181,
+      "within": 12
+    },
+    {
+      "name": "build",
+      "qualifier": "graph",
+      "kind": "path",
+      "target": null,
+      "line": 181,
+      "within": 12
+    },
+    {
+      "name": "graph",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 181,
+      "within": 12
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 189,
+      "within": 13
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 190,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 191,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 192,
+      "within": 13
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "call",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "path",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "from_toml",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "call",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "path",
+      "target": null,
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 223,
+      "within": 16
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 223,
+      "within": 16
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 223,
+      "within": 16
+    },
+    {
+      "name": "run",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 223,
+      "within": 16
+    },
+    {
+      "name": "source",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 233,
+      "within": 17
+    },
+    {
+      "name": "source",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 238,
+      "within": 17
+    },
+    {
+      "name": "source",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 239,
+      "within": 17
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 244,
+      "within": 17
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 244,
+      "within": 17
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 244,
+      "within": 17
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 244,
+      "within": 17
+    },
+    {
+      "name": "run",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 244,
+      "within": 17
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 245,
+      "within": 17
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 245,
+      "within": 17
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 245,
+      "within": 17
+    },
+    {
+      "name": "run",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 245,
+      "within": 17
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 258,
+      "within": 18
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 258,
+      "within": 18
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 258,
+      "within": 18
+    },
+    {
+      "name": "run",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 258,
+      "within": 18
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 267,
+      "within": 20
+    },
+    {
+      "name": "Always",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 268,
+      "within": 19
+    },
+    {
+      "name": "Phase1Cache",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 268,
+      "within": 19
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 269,
+      "within": 21
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 269,
+      "within": 21
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 270,
+      "within": 21
+    },
+    {
+      "name": "then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 270,
+      "within": 21
+    },
+    {
+      "name": "source",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 274,
+      "within": 19
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "call",
+      "target": null,
+      "line": 275,
+      "within": 19
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "path",
+      "target": null,
+      "line": 275,
+      "within": 19
+    },
+    {
+      "name": "phase1",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 275,
+      "within": 19
+    },
+    {
+      "name": "Always",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 277,
+      "within": 19
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 277,
+      "within": 19
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 277,
+      "within": 19
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 277,
+      "within": 19
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 277,
+      "within": 19
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 289,
+      "within": 23
+    },
+    {
+      "name": "Phase1Cache",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 290,
+      "within": 22
+    },
+    {
+      "name": "Stale",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 290,
+      "within": 22
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 291,
+      "within": 24
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 291,
+      "within": 24
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 292,
+      "within": 24
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 292,
+      "within": 24
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "call",
+      "target": null,
+      "line": 296,
+      "within": 22
+    },
+    {
+      "name": "analyze",
+      "qualifier": "phase1",
+      "kind": "path",
+      "target": null,
+      "line": 296,
+      "within": 22
+    },
+    {
+      "name": "phase1",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 296,
+      "within": 22
+    },
+    {
+      "name": "source",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 297,
+      "within": 22
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "Stale",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 299,
+      "within": 22
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 22
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "BTreeMap",
+      "path": [
+        "std",
+        "collections",
+        "BTreeMap"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Deserialize",
+      "path": [
+        "serde",
+        "Deserialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "FileAnalysis",
+      "path": [
+        "phase1",
+        "FileAnalysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "SCHEMA_VERSION",
+      "path": [
+        "SCHEMA_VERSION"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Serialize",
+      "path": [
+        "serde",
+        "Serialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "SourceFile",
+      "path": [
+        "walk",
+        "SourceFile"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Symbol",
+      "path": [
+        "Symbol"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "TOOL_VERSION",
+      "path": [
+        "TOOL_VERSION"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "phase1",
+      "path": [
+        "phase1"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "analysis"
+  ]
+}
