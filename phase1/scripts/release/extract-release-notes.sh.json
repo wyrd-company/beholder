@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/extract-release-notes.sh",
+  "language": null,
+  "content_hash": "e377ba51f9f7061bf9302aeeb5eceaf82a4aebada849ea85176684a00d10f325",
+  "tier": 0,
+  "density": 5.2083335,
+  "lines": 30,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
