@@ -1,0 +1,10 @@
+{
+  "fingerprint": {
+    "schema_version": 2,
+    "tool_version": "0.1.0",
+    "config": "2507abb8b73c83fa90b5e129d2d637fe0abc9bb0cdb77f94e9f229ff4f2b3349",
+    "language_table": "da69067a56f93e5b87efc482670ee7e2cd68e4be526e793d73f89ec0a6eb4295",
+    "path_rules": "repo-relative-posix"
+  },
+  "source_commit": "180877e19d160af9fec1f98aead3e55fdf568b3c"
+}
