@@ -1,0 +1,981 @@
+{
+  "path": "crates/beholder/src/markdown.rs",
+  "language": "rust",
+  "content_hash": "c457ad4b44419099f7d93b55037347f209fd2a3d69b1d5942c2ef772855a1fb9",
+  "tier": 1,
+  "density": 20.724375,
+  "lines": 196,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:render",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "render",
+      "qualified_path": "render",
+      "discriminator": null,
+      "start_line": 18,
+      "start_column": 0,
+      "end_line": 23,
+      "end_column": 1,
+      "declaration": {
+        "line": 18,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "6584ca246fe4ede4751d082492a4b7e42ef4ce646a40259022cc7bb7448c56b2",
+      "body_fingerprint": "8863fec3427f157b3b18931710a2a31833610af4000e89c5909145b6c8c0e318"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:render_quiet",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "render_quiet",
+      "qualified_path": "render_quiet",
+      "discriminator": null,
+      "start_line": 31,
+      "start_column": 0,
+      "end_line": 40,
+      "end_column": 1,
+      "declaration": {
+        "line": 31,
+        "start_column": 7,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a13a44f032911522d5e1e6ae2441870888d7c3ec7a4a7c911d20a6e82c509c8d",
+      "body_fingerprint": "84465ff5893dd671abe260c455928cb46c3a4527f3f30ebcd8f9e6a245c0eb91"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:body",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "body",
+      "qualified_path": "body",
+      "discriminator": null,
+      "start_line": 42,
+      "start_column": 0,
+      "end_line": 77,
+      "end_column": 1,
+      "declaration": {
+        "line": 42,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "1642be4bc3e2d409aea30f9b9bde28799393d94b6c744a815ab4b96b51de029d",
+      "body_fingerprint": "d4609eb23e08405996ff0d8d15dc534bf13b5da7c28609152eba0f5e931fcc0c"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:describe_change",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "describe_change",
+      "qualified_path": "describe_change",
+      "discriminator": null,
+      "start_line": 79,
+      "start_column": 0,
+      "end_line": 81,
+      "end_column": 1,
+      "declaration": {
+        "line": 79,
+        "start_column": 3,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5f17d48db7b5f897b3453126572518e54d48e3e247799e7f45b5478717573550",
+      "body_fingerprint": "c0ea456a7075eae7c50a74d302b483d7147fe4457f52b2df547cd5da6fbb798d"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:complexity",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "complexity",
+      "qualified_path": "complexity",
+      "discriminator": null,
+      "start_line": 83,
+      "start_column": 0,
+      "end_line": 94,
+      "end_column": 1,
+      "declaration": {
+        "line": 83,
+        "start_column": 3,
+        "end_column": 13
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "810bd612963cf2139f1b7430bf6ff7c2d1acd1ef70308bb2900a8ef9e1c6cab4",
+      "body_fingerprint": "2a24343ced99a03128001ab628920d1756f38434314e8e93eb6e416ba0dd767f"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:fan_in",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fan_in",
+      "qualified_path": "fan_in",
+      "discriminator": null,
+      "start_line": 96,
+      "start_column": 0,
+      "end_line": 108,
+      "end_column": 1,
+      "declaration": {
+        "line": 96,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "b0f9c743747671732a820b727798ef359e5d788d11e99a4bc6bfc9d63d077ebc",
+      "body_fingerprint": "af69afe3b720821bb39949342cd692ff975331c34bb1768ac6fe1f8705dfa343"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:footer",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "footer",
+      "qualified_path": "footer",
+      "discriminator": null,
+      "start_line": 111,
+      "start_column": 0,
+      "end_line": 132,
+      "end_column": 1,
+      "declaration": {
+        "line": 111,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "073bd7dd597e015b8b90cdc40649b7de48b7b751de592391ad3670f7d1bdfba4",
+      "body_fingerprint": "6d71d9775ac0d3947b77786205e79b243511942bd3b9dd23843a1dd99c085310"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:plural",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "plural",
+      "qualified_path": "plural",
+      "discriminator": null,
+      "start_line": 134,
+      "start_column": 0,
+      "end_line": 140,
+      "end_column": 1,
+      "declaration": {
+        "line": 134,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "f18d5f23d3967e84e0a58cccd5ffabcacd4f403d1f39b062cf21acd96e0512e4",
+      "body_fingerprint": "8ac407d33f44132d3ae57a5ff535248e23da0de92f3d455011e86b5333fe014c"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::analyze",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "analyze",
+      "qualified_path": "tests::analyze",
+      "discriminator": null,
+      "start_line": 150,
+      "start_column": 4,
+      "end_line": 159,
+      "end_column": 5,
+      "declaration": {
+        "line": 150,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8cfac031b98cc4447be846e30ab42680d93b04688bc0366bb7a8f9012066b2cf",
+      "body_fingerprint": "a51c23b002c5cc142c4215d4698cf74c255afb840398d130cdfe73ed4a9e56b8"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::report",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "report",
+      "qualified_path": "tests::report",
+      "discriminator": null,
+      "start_line": 161,
+      "start_column": 4,
+      "end_line": 174,
+      "end_column": 5,
+      "declaration": {
+        "line": 161,
+        "start_column": 7,
+        "end_column": 13
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "da7e00114e420311f64344e683defd5cbf7de1153d8d8964351e5d8d7a6e0b95",
+      "body_fingerprint": "16a40e0fb02561311eef3c7c3460b27d75fbfb349f885f8fcd665553d33dec12"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::a_quiet_report_renders_nothing",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_quiet_report_renders_nothing",
+      "qualified_path": "tests::a_quiet_report_renders_nothing",
+      "discriminator": null,
+      "start_line": 183,
+      "start_column": 4,
+      "end_line": 186,
+      "end_column": 5,
+      "declaration": {
+        "line": 183,
+        "start_column": 7,
+        "end_column": 37
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ccddeea86c12069084ca1f2ef570a704bdefc9dd6e80e57b4d27d8a1b4cdefe2",
+      "body_fingerprint": "5ca82d0a559a8f224320f21e59ac5cf5333804319b388309d7a8a0ee5e05056e"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::a_risky_change_renders_one_marked_comment",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_risky_change_renders_one_marked_comment",
+      "qualified_path": "tests::a_risky_change_renders_one_marked_comment",
+      "discriminator": null,
+      "start_line": 189,
+      "start_column": 4,
+      "end_line": 201,
+      "end_column": 5,
+      "declaration": {
+        "line": 189,
+        "start_column": 7,
+        "end_column": 48
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "362eacffa07d7832dbe5e5daca283ada6b4365d231acb5177c3470de6cc8657c",
+      "body_fingerprint": "f4f8a4e2bcbb4b77ee721ebd0ac9939d31eb2dfb2f734132919b95ff42b251a8"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::the_same_report_renders_the_same_body",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "the_same_report_renders_the_same_body",
+      "qualified_path": "tests::the_same_report_renders_the_same_body",
+      "discriminator": null,
+      "start_line": 206,
+      "start_column": 4,
+      "end_line": 214,
+      "end_column": 5,
+      "declaration": {
+        "line": 206,
+        "start_column": 7,
+        "end_column": 44
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fcb49b969e30b4ce2a68e8c29b41b3f0ae065eea8a73a2bbac1a31801f84bfc3",
+      "body_fingerprint": "99c569d46afe5c2655e6a3aeaa62f7be5df7eed592fc8ac38148a5880a84e18e"
+    },
+    {
+      "id": "rust:crates/beholder/src/markdown.rs:function:tests::a_quiet_body_is_still_marked_and_says_so",
+      "path": "crates/beholder/src/markdown.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "a_quiet_body_is_still_marked_and_says_so",
+      "qualified_path": "tests::a_quiet_body_is_still_marked_and_says_so",
+      "discriminator": null,
+      "start_line": 217,
+      "start_column": 4,
+      "end_line": 223,
+      "end_column": 5,
+      "declaration": {
+        "line": 217,
+        "start_column": 7,
+        "end_column": 47
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d1465f314d9d14990837d4a5d93ff9da5f8963377ca6e770db3f28bb12fa0db2",
+      "body_fingerprint": "a35c7a046102f4f47eeea0ae5e676620bd7f700c87b8bc50831aa80a042fe761"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "risk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 11,
+      "within": null
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": 0
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": 0
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": 0
+    },
+    {
+      "name": "is_quiet",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "body",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 42,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 42,
+      "within": 2
+    },
+    {
+      "name": "Write",
+      "qualifier": "fmt",
+      "kind": "path",
+      "target": null,
+      "line": 43,
+      "within": 2
+    },
+    {
+      "name": "fmt",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 43,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 43,
+      "within": 2
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 45,
+      "within": 2
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 45,
+      "within": 2
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 45,
+      "within": 2
+    },
+    {
+      "name": "surfaced",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 45,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 46,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 46,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 46,
+      "within": 2
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 60,
+      "within": 2
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 60,
+      "within": 2
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 3
+    },
+    {
+      "name": "to_lowercase",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 3
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 4
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 87,
+      "within": 4
+    },
+    {
+      "name": "RankedChange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 96,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 96,
+      "within": 5
+    },
+    {
+      "name": "TraitMethodFanInUnreliable",
+      "qualifier": "WeightCaveat",
+      "kind": "path",
+      "target": null,
+      "line": 100,
+      "within": 5
+    },
+    {
+      "name": "WeightCaveat",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 100,
+      "within": 5
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 111,
+      "within": 6
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 111,
+      "within": 6
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 120,
+      "within": 6
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 6
+    },
+    {
+      "name": "Analysis",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": null
+    },
+    {
+      "name": "analysis",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": null
+    },
+    {
+      "name": "delta",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 146,
+      "within": null
+    },
+    {
+      "name": "risk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 147,
+      "within": null
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 148,
+      "within": null
+    },
+    {
+      "name": "walk",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 148,
+      "within": null
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 150,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 8
+    },
+    {
+      "name": "SourceFile",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 153,
+      "within": 8
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 154,
+      "within": 8
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 155,
+      "within": 8
+    },
+    {
+      "name": "Config",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "analysis",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "default",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "call",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "run",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 158,
+      "within": 8
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 161,
+      "within": 9
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 162,
+      "within": 9
+    },
+    {
+      "name": "analyze",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 163,
+      "within": 9
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 164,
+      "within": 9
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 164,
+      "within": 9
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 164,
+      "within": 9
+    },
+    {
+      "name": "rank",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 165,
+      "within": 9
+    },
+    {
+      "name": "Damped",
+      "qualifier": "FanInBasis",
+      "kind": "path",
+      "target": null,
+      "line": 171,
+      "within": 9
+    },
+    {
+      "name": "FanInBasis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 171,
+      "within": 9
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 190,
+      "within": 11
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 11
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 11
+    },
+    {
+      "name": "render_quiet",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 219,
+      "within": 13
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 219,
+      "within": 13
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Analysis",
+      "path": [
+        "analysis",
+        "Analysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "DEFAULT_THRESHOLD",
+      "path": [
+        "risk",
+        "DEFAULT_THRESHOLD"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "FanInBasis",
+      "path": [
+        "risk",
+        "FanInBasis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "RankedChange",
+      "path": [
+        "risk",
+        "RankedChange"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Report",
+      "path": [
+        "risk",
+        "Report"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "SourceFile",
+      "path": [
+        "walk",
+        "SourceFile"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "WeightCaveat",
+      "path": [
+        "risk",
+        "WeightCaveat"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Write",
+      "path": [
+        "std",
+        "fmt",
+        "Write"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "delta",
+      "path": [
+        "delta"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "rank",
+      "path": [
+        "risk",
+        "rank"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "markdown"
+  ]
+}
