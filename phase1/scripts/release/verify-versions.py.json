@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/verify-versions.py",
+  "language": null,
+  "content_hash": "6128376677f203e4c54ff63e68871bd163d97432a2f88cd9c181b25e1af79531",
+  "tier": 0,
+  "density": 4.5835443,
+  "lines": 42,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

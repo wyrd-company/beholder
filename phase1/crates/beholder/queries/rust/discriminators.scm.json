@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/rust/discriminators.scm",
+  "language": null,
+  "content_hash": "552d88160c5c36995d9e96088898b7c39e55f345a793bf5ce658fafb0c9d9944",
+  "tier": 0,
+  "density": 0.6956522,
+  "lines": 23,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
