@@ -1,0 +1,158 @@
+{
+  "path": "crates/beholder/src/lib.rs",
+  "language": "rust",
+  "content_hash": "529076d6eda40786fc83ddd677e337a7597e9cf501a03b0d588a3782f2c0b3a6",
+  "tier": 1,
+  "density": 0.025641026,
+  "lines": 39,
+  "symbols": [],
+  "occurrences": [
+    {
+      "name": "Analysis",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 30,
+      "within": null
+    },
+    {
+      "name": "analysis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 30,
+      "within": null
+    },
+    {
+      "name": "Config",
+      "qualifier": "config",
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": null
+    },
+    {
+      "name": "config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": null
+    },
+    {
+      "name": "Delta",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 32,
+      "within": null
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 32,
+      "within": null
+    },
+    {
+      "name": "FileAnalysis",
+      "qualifier": "phase1",
+      "kind": "path",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "phase1",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 33,
+      "within": null
+    },
+    {
+      "name": "Store",
+      "qualifier": "store",
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": null
+    },
+    {
+      "name": "store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 34,
+      "within": null
+    },
+    {
+      "name": "Symbol",
+      "qualifier": "symbol",
+      "kind": "path",
+      "target": null,
+      "line": 35,
+      "within": null
+    },
+    {
+      "name": "symbol",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 35,
+      "within": null
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Analysis",
+      "path": [
+        "analysis",
+        "Analysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Config",
+      "path": [
+        "config",
+        "Config"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Delta",
+      "path": [
+        "delta",
+        "Delta"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "FileAnalysis",
+      "path": [
+        "phase1",
+        "FileAnalysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Store",
+      "path": [
+        "store",
+        "Store"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Symbol",
+      "path": [
+        "symbol",
+        "Symbol"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": []
+}

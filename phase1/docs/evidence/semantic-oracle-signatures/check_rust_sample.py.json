@@ -1,0 +1,12 @@
+{
+  "path": "docs/evidence/semantic-oracle-signatures/check_rust_sample.py",
+  "language": null,
+  "content_hash": "1837bca6b2a5f4ab90424c10713a933b25136b454fa4b303f5cc4c238b79ca81",
+  "tier": 0,
+  "density": 12.381297,
+  "lines": 87,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
