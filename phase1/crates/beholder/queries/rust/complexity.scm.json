@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/rust/complexity.scm",
+  "language": null,
+  "content_hash": "7771eb23a30c797496e7443f9206cc3a6994ceafa46d3455d6c5bf4133c6620d",
+  "tier": 0,
+  "density": 0.028571429,
+  "lines": 35,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
