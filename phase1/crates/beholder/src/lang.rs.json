@@ -1,0 +1,1445 @@
+{
+  "path": "crates/beholder/src/lang.rs",
+  "language": "rust",
+  "content_hash": "19f566c8e7d77c80a492a78aa927381579da170c683842fc21576832f4820de5",
+  "tier": 1,
+  "density": 35.65395,
+  "lines": 438,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder/src/lang.rs:type:LanguageDef",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "LanguageDef",
+      "qualified_path": "LanguageDef",
+      "discriminator": null,
+      "start_line": 13,
+      "start_column": 0,
+      "end_line": 42,
+      "end_column": 1,
+      "declaration": {
+        "line": 13,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4b78481bcad74bac21604103322550792df98b3b0e75c8083617acd2f3a78676",
+      "body_fingerprint": "45dd443427972a27f3cad3ad5668de734f7ee6bd1ece15bf04bab1b3ba1e0218"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:type:ImportStyle",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ImportStyle",
+      "qualified_path": "ImportStyle",
+      "discriminator": null,
+      "start_line": 49,
+      "start_column": 0,
+      "end_line": 56,
+      "end_column": 1,
+      "declaration": {
+        "line": 49,
+        "start_column": 9,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ed87b5340f7ec94cdbe890115db731803ba51a742ef3547738fa65c4b9fe1708",
+      "body_fingerprint": "a9f050a3f3dcc8d4e1560935cb2ea8935475266b9de693a2118dc953c8615d2d"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:type:ImportSyntax",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ImportSyntax",
+      "qualified_path": "ImportSyntax",
+      "discriminator": null,
+      "start_line": 63,
+      "start_column": 0,
+      "end_line": 79,
+      "end_column": 1,
+      "declaration": {
+        "line": 63,
+        "start_column": 11,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b78506c81406b843b0eb644356a372719fb8dee9b0bc000047b2144baaeb1eb8",
+      "body_fingerprint": "9bb8b214f2c86db2ec3d1da1a4887321af59e651e7ca112ad14cad4da8f79ff2"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:type:ModulePathRules",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ModulePathRules",
+      "qualified_path": "ModulePathRules",
+      "discriminator": null,
+      "start_line": 82,
+      "start_column": 0,
+      "end_line": 89,
+      "end_column": 1,
+      "declaration": {
+        "line": 82,
+        "start_column": 11,
+        "end_column": 26
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "40ec637f2414f93a55d8cb317a66e6a05105a9bb2a684fece92f5c6e5b0f00d7",
+      "body_fingerprint": "861db42cf3849af2c5e2ce91ae5dcbcdf7e6fa767c66b662d736f18a9489f74c"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:ModulePathRules::segments",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "segments",
+      "qualified_path": "ModulePathRules::segments",
+      "discriminator": null,
+      "start_line": 96,
+      "start_column": 4,
+      "end_line": 115,
+      "end_column": 5,
+      "declaration": {
+        "line": 96,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "236394cbb616ce9a4fa3751940e46c62e19d2c828c2f64456925c63af4ad3290",
+      "body_fingerprint": "394d8194833fa7422cef04b98509e07a5d54a599e068aa5280cbf81c54ee286f"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:type:TrailingSeparator",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "TrailingSeparator",
+      "qualified_path": "TrailingSeparator",
+      "discriminator": null,
+      "start_line": 127,
+      "start_column": 0,
+      "end_line": 132,
+      "end_column": 1,
+      "declaration": {
+        "line": 127,
+        "start_column": 11,
+        "end_column": 28
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a98553f8b6829e3000a93b5262328895aa0a83370fa5cd447eac4e228fdcd93d",
+      "body_fingerprint": "b6ebbbd5779733cf45f341bd10ab965bd643c41f5f0f08684b45245c0cdb8d75"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:for_path",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "for_path",
+      "qualified_path": "for_path",
+      "discriminator": null,
+      "start_line": 363,
+      "start_column": 0,
+      "end_line": 368,
+      "end_column": 1,
+      "declaration": {
+        "line": 363,
+        "start_column": 7,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9d4e10c12581eacdd23222aec467dc63c0fa4121f9317e7394bef7698a0244d2",
+      "body_fingerprint": "5012935c02e16c73d8c479e5ba236fabf3b439538c860c535cf5f163c14cdfac"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:by_id",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "by_id",
+      "qualified_path": "by_id",
+      "discriminator": null,
+      "start_line": 371,
+      "start_column": 0,
+      "end_line": 373,
+      "end_column": 1,
+      "declaration": {
+        "line": 371,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6db8d99508ffe9f698c6c673f213f259e8b25c27db2f3e81f9e840d22a7ed961",
+      "body_fingerprint": "d9d05eb45c14f1fb18a648c2facf448f408541740bc25717a52cf6cb2f5be484"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:table_fingerprint",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "table_fingerprint",
+      "qualified_path": "table_fingerprint",
+      "discriminator": null,
+      "start_line": 379,
+      "start_column": 0,
+      "end_line": 403,
+      "end_column": 1,
+      "declaration": {
+        "line": 379,
+        "start_column": 7,
+        "end_column": 24
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "40110e9fb720e4a9de54e4de4a599713c5626be24b53db5ac4dcba9531d46a31",
+      "body_fingerprint": "f462a38491f0b6dd84128bc7d6d29b47c260238d60d1f203f3202723558ae3ad"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:tests::every_query_compiles_against_its_grammar",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "every_query_compiles_against_its_grammar",
+      "qualified_path": "tests::every_query_compiles_against_its_grammar",
+      "discriminator": null,
+      "start_line": 410,
+      "start_column": 4,
+      "end_line": 425,
+      "end_column": 5,
+      "declaration": {
+        "line": 410,
+        "start_column": 7,
+        "end_column": 47
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "4683557c59e80d413c28c7ed639e7ead38aa79e5ea680cf5558bc71a7ff059ac",
+      "body_fingerprint": "3d4cea3010c6cb3f4950f70bdf526320442197284fe0c06412b0f145e817a58c"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:tests::extensions_are_claimed_by_exactly_one_language",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "extensions_are_claimed_by_exactly_one_language",
+      "qualified_path": "tests::extensions_are_claimed_by_exactly_one_language",
+      "discriminator": null,
+      "start_line": 428,
+      "start_column": 4,
+      "end_line": 436,
+      "end_column": 5,
+      "declaration": {
+        "line": 428,
+        "start_column": 7,
+        "end_column": 53
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "12c490ef49374f44b7ed8dadb0ef7df423b5e0bf6540065daad6497a544845f5",
+      "body_fingerprint": "d12c84bbbfa84aff9cb734fc231a66f7c974a7666b4c5d7f98add1c7da4e8fe0"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:tests::paths_map_to_languages_by_extension",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "paths_map_to_languages_by_extension",
+      "qualified_path": "tests::paths_map_to_languages_by_extension",
+      "discriminator": null,
+      "start_line": 439,
+      "start_column": 4,
+      "end_line": 443,
+      "end_column": 5,
+      "declaration": {
+        "line": 439,
+        "start_column": 7,
+        "end_column": 42
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "32bbddcbcbfafaecdaca3986e49881893d6375caf96c7c6522093303831075c4",
+      "body_fingerprint": "4d6f805fc88b6fd1f0fa331a54959ac28118a17c23535dce5b025a2c97adc7f2"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:tests::module_paths_come_from_file_paths",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "module_paths_come_from_file_paths",
+      "qualified_path": "tests::module_paths_come_from_file_paths",
+      "discriminator": null,
+      "start_line": 446,
+      "start_column": 4,
+      "end_line": 456,
+      "end_column": 5,
+      "declaration": {
+        "line": 446,
+        "start_column": 7,
+        "end_column": 40
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "798b690c0328697cabf2d0c656487a19d1cbbc04883806037c714e918d3cf256",
+      "body_fingerprint": "8fed0484f4c0d650389017de8c641e072a8c8df4a30a6297679f3ba3c9ae36c7"
+    },
+    {
+      "id": "rust:crates/beholder/src/lang.rs:function:tests::fingerprint_is_stable",
+      "path": "crates/beholder/src/lang.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fingerprint_is_stable",
+      "qualified_path": "tests::fingerprint_is_stable",
+      "discriminator": null,
+      "start_line": 459,
+      "start_column": 4,
+      "end_line": 461,
+      "end_column": 5,
+      "declaration": {
+        "line": 459,
+        "start_column": 7,
+        "end_column": 28
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f167e5516d0f023fda0fd045807ec81222b20a5c854b8f06e15749f289dd4df5",
+      "body_fingerprint": "6b78956fe3eb6e25f41ef570ee1d6e86be206e38d75ca9b872ad746d9136d5db"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Language",
+      "qualifier": "tree_sitter",
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": null
+    },
+    {
+      "name": "tree_sitter",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 10,
+      "within": null
+    },
+    {
+      "name": "Language",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "ImportSyntax",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": 0
+    },
+    {
+      "name": "ModulePathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 0
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 39,
+      "within": 0
+    },
+    {
+      "name": "ImportStyle",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 41,
+      "within": 0
+    },
+    {
+      "name": "ModulePathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 91,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 96,
+      "within": 4
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 96,
+      "within": 4
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 97,
+      "within": 4
+    },
+    {
+      "name": "rsplit_once",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 97,
+      "within": 4
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 98,
+      "within": 4
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 98,
+      "within": 4
+    },
+    {
+      "name": "split",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 98,
+      "within": 4
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 4
+    },
+    {
+      "name": "rposition",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 4
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 102,
+      "within": 4
+    },
+    {
+      "name": "drain",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 104,
+      "within": 4
+    },
+    {
+      "name": "is_some_and",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 107,
+      "within": 4
+    },
+    {
+      "name": "last",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 107,
+      "within": 4
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 109,
+      "within": 4
+    },
+    {
+      "name": "pop",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 111,
+      "within": 4
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 4
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 4
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 114,
+      "within": 4
+    },
+    {
+      "name": "str",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 4
+    },
+    {
+      "name": "to_owned",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 4
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 143,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 147,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 159,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 163,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 167,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 171,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 175,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 179,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 183,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 187,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 191,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 195,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 199,
+      "within": null
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 206,
+      "within": null
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": null
+    },
+    {
+      "name": "LANGUAGE",
+      "qualifier": "tree_sitter_rust",
+      "kind": "path",
+      "target": null,
+      "line": 210,
+      "within": null
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 210,
+      "within": null
+    },
+    {
+      "name": "tree_sitter_rust",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 210,
+      "within": null
+    },
+    {
+      "name": "ImportSyntax",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 217,
+      "within": null
+    },
+    {
+      "name": "ModulePathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 227,
+      "within": null
+    },
+    {
+      "name": "ImportStyle",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 233,
+      "within": null
+    },
+    {
+      "name": "TreePath",
+      "qualifier": "ImportStyle",
+      "kind": "path",
+      "target": null,
+      "line": 233,
+      "within": null
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 235,
+      "within": null
+    },
+    {
+      "name": "LANGUAGE",
+      "qualifier": "tree_sitter_go",
+      "kind": "path",
+      "target": null,
+      "line": 238,
+      "within": null
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 238,
+      "within": null
+    },
+    {
+      "name": "tree_sitter_go",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 238,
+      "within": null
+    },
+    {
+      "name": "ImportSyntax",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": null
+    },
+    {
+      "name": "ImportStyle",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 255,
+      "within": null
+    },
+    {
+      "name": "NamedFrom",
+      "qualifier": "ImportStyle",
+      "kind": "path",
+      "target": null,
+      "line": 255,
+      "within": null
+    },
+    {
+      "name": "ModulePathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 256,
+      "within": null
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 263,
+      "within": null
+    },
+    {
+      "name": "LANGUAGE_TYPESCRIPT",
+      "qualifier": "tree_sitter_typescript",
+      "kind": "path",
+      "target": null,
+      "line": 271,
+      "within": null
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 271,
+      "within": null
+    },
+    {
+      "name": "tree_sitter_typescript",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 271,
+      "within": null
+    },
+    {
+      "name": "ImportSyntax",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 278,
+      "within": null
+    },
+    {
+      "name": "ImportStyle",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 288,
+      "within": null
+    },
+    {
+      "name": "NamedFrom",
+      "qualifier": "ImportStyle",
+      "kind": "path",
+      "target": null,
+      "line": 288,
+      "within": null
+    },
+    {
+      "name": "ModulePathRules",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 289,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 299,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 300,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 304,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 308,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 312,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 316,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 320,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 324,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 328,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 332,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 339,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 340,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 344,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 348,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 352,
+      "within": null
+    },
+    {
+      "name": "TrailingSeparator",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 356,
+      "within": null
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 363,
+      "within": 6
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 363,
+      "within": 6
+    },
+    {
+      "name": "Path",
+      "qualifier": "path",
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "extension",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "call",
+      "target": null,
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "to_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 364,
+      "within": 6
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 365,
+      "within": 6
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 365,
+      "within": 6
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 367,
+      "within": 6
+    },
+    {
+      "name": "LanguageDef",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 371,
+      "within": 7
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 371,
+      "within": 7
+    },
+    {
+      "name": "find",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 372,
+      "within": 7
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 372,
+      "within": 7
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 379,
+      "within": 8
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 380,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 380,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 380,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 382,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 383,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 384,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 385,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 387,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 388,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 389,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 390,
+      "within": 8
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 392,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 392,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 393,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 394,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 395,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 396,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 397,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 398,
+      "within": 8
+    },
+    {
+      "name": "push_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 399,
+      "within": 8
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 400,
+      "within": 8
+    },
+    {
+      "name": "as_bytes",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 402,
+      "within": 8
+    },
+    {
+      "name": "hash",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 402,
+      "within": 8
+    },
+    {
+      "name": "hex_sha256",
+      "qualifier": "hash",
+      "kind": "call",
+      "target": null,
+      "line": 402,
+      "within": 8
+    },
+    {
+      "name": "hex_sha256",
+      "qualifier": "hash",
+      "kind": "path",
+      "target": null,
+      "line": 402,
+      "within": 8
+    },
+    {
+      "name": "Query",
+      "qualifier": "tree_sitter",
+      "kind": "path",
+      "target": null,
+      "line": 421,
+      "within": 9
+    },
+    {
+      "name": "new",
+      "qualifier": "Query",
+      "kind": "call",
+      "target": null,
+      "line": 421,
+      "within": 9
+    },
+    {
+      "name": "new",
+      "qualifier": "Query",
+      "kind": "path",
+      "target": null,
+      "line": 421,
+      "within": 9
+    },
+    {
+      "name": "tree_sitter",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 421,
+      "within": 9
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 421,
+      "within": 9
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 429,
+      "within": 10
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 429,
+      "within": 10
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 429,
+      "within": 10
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 433,
+      "within": 10
+    },
+    {
+      "name": "by_id",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 447,
+      "within": 12
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 447,
+      "within": 12
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Language",
+      "path": [
+        "tree_sitter",
+        "Language"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "lang"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/tests/fixtures/phase-one-compatibility.json",
+  "language": null,
+  "content_hash": "4ad6771b9a78f128dbf60522152a88e01e5aa0b97c49b0cfe419074a0c48b501",
+  "tier": 0,
+  "density": 26.870913,
+  "lines": 432,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

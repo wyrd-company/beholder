@@ -1,0 +1,12 @@
+{
+  "path": "scripts/semantic-oracle/report-rust.py",
+  "language": null,
+  "content_hash": "d295d247a203bbf6d8317e1608e1dc2ec9bcb60dec27cc5667117b6076634443",
+  "tier": 0,
+  "density": 179.34766,
+  "lines": 940,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

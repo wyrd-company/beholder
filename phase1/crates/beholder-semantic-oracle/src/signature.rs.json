@@ -1,0 +1,3289 @@
+{
+  "path": "crates/beholder-semantic-oracle/src/signature.rs",
+  "language": "rust",
+  "content_hash": "1bb462a49ab2e940b652d833f2344e3aa1b9c5e89d2df1f14ed0d4d32dec5c4a",
+  "tier": 1,
+  "density": 39.66608,
+  "lines": 412,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:type:SlotClass",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SlotClass",
+      "qualified_path": "SlotClass",
+      "discriminator": null,
+      "start_line": 16,
+      "start_column": 0,
+      "end_line": 22,
+      "end_column": 1,
+      "declaration": {
+        "line": 16,
+        "start_column": 9,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9c9578beb0f15b80a01ee4e1f335ff9e154fd171e59a21b029697a588410c37b",
+      "body_fingerprint": "14b93c03b3954b353fc16247e428c942c1b52347b5bdba9b770f855f00648163"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:SlotClass::as_str",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "as_str",
+      "qualified_path": "SlotClass::as_str",
+      "discriminator": null,
+      "start_line": 25,
+      "start_column": 4,
+      "end_line": 33,
+      "end_column": 5,
+      "declaration": {
+        "line": 25,
+        "start_column": 11,
+        "end_column": 17
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "31933b185dc1486d7e032686400d651f0d55939b6b265f3ef550e8e9a25771ab",
+      "body_fingerprint": "03881ad2c5fe025acaa63671e3c5427e129d48a335a869a44ca46c367c1a9295"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:type:Source",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Source",
+      "qualified_path": "Source",
+      "discriminator": null,
+      "start_line": 38,
+      "start_column": 0,
+      "end_line": 50,
+      "end_column": 1,
+      "declaration": {
+        "line": 38,
+        "start_column": 9,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c604529259d74d6f4bfdc34fcf32fc6656e3b90244fd94ad794dcba4283d3b98",
+      "body_fingerprint": "1c3da5795b5761a5d3142e01471474a360a663f871222767402eee7165b12633"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:type:Slot",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Slot",
+      "qualified_path": "Slot",
+      "discriminator": null,
+      "start_line": 54,
+      "start_column": 0,
+      "end_line": 69,
+      "end_column": 1,
+      "declaration": {
+        "line": 54,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c4ee42a705b4e2edbf3240c8e7263b35aeb1f10f22db4a52e43b67d07e1bd8e4",
+      "body_fingerprint": "a645014a2a70bbbd90d3f75c1176a09dab785fce49900dfa5c207ede1a9cbba7"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:type:Frame",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Frame",
+      "qualified_path": "Frame",
+      "discriminator": null,
+      "start_line": 72,
+      "start_column": 0,
+      "end_line": 77,
+      "end_column": 1,
+      "declaration": {
+        "line": 72,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8d813418f7acac78eec7d8f608ef3c186e44cdc3514825bb8756f9a623c339ec",
+      "body_fingerprint": "6697db228d968de7e7af4d36088f0f29eccc72886405c7ee262733cac45f7624"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:Frame<'a>::child",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "child",
+      "qualified_path": "Frame<'a>::child",
+      "discriminator": null,
+      "start_line": 80,
+      "start_column": 4,
+      "end_line": 87,
+      "end_column": 5,
+      "declaration": {
+        "line": 80,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "835a01ebd4e77b6dbaa9fd907d4887acfb3bba5c0e7081b73e44f495a1ea3f25",
+      "body_fingerprint": "2ae26d56b78ee4ef3b0ec6984613bda0fc61946a7880ee8674328ad808a2fc8d"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:Frame<'a>::indexed",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "indexed",
+      "qualified_path": "Frame<'a>::indexed",
+      "discriminator": null,
+      "start_line": 89,
+      "start_column": 4,
+      "end_line": 96,
+      "end_column": 5,
+      "declaration": {
+        "line": 89,
+        "start_column": 7,
+        "end_column": 14
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "3d53c70d36edde2e70d7089e1c80474e90d5063498bc85449706431277f7743c",
+      "body_fingerprint": "098c58be5cf2a2de46b06a9979e4c31998dcb656236916c90cd8a12050824a3f"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:Frame<'a>::keyed",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "keyed",
+      "qualified_path": "Frame<'a>::keyed",
+      "discriminator": null,
+      "start_line": 98,
+      "start_column": 4,
+      "end_line": 105,
+      "end_column": 5,
+      "declaration": {
+        "line": 98,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "e2dd6856239e99f3764633085fe7d805e7a849e8f8034bacad1b18107b1a0f5a",
+      "body_fingerprint": "bf456b9b6744a5dc13f77f14179485ed4c0e041f6a589a8f8481fe10704eeb9b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:slots",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "slots",
+      "qualified_path": "slots",
+      "discriminator": null,
+      "start_line": 109,
+      "start_column": 0,
+      "end_line": 129,
+      "end_column": 1,
+      "declaration": {
+        "line": 109,
+        "start_column": 7,
+        "end_column": 12
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "d1dc3bfbc441b74395a75b26841396412ac6be15c4f3707cf8a59fd84bab687b",
+      "body_fingerprint": "7a22976c6672137ab02b1d693ea2a81cebafd0e4e78684c1248337b14b864b18"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:shape",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "shape",
+      "qualified_path": "shape",
+      "discriminator": null,
+      "start_line": 131,
+      "start_column": 0,
+      "end_line": 149,
+      "end_column": 1,
+      "declaration": {
+        "line": 131,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d9b8968c58bf3ce10f74f3ec4f893acd8a664aad305b612d4cfd0c850162b1e2",
+      "body_fingerprint": "69a76e17e13c96c305cc98547f027e4a14caa26cf4197696b3350634b65c5fc1"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:typed",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "typed",
+      "qualified_path": "typed",
+      "discriminator": null,
+      "start_line": 151,
+      "start_column": 0,
+      "end_line": 171,
+      "end_column": 1,
+      "declaration": {
+        "line": 151,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "b0b927d58c76a23fd50c6e0e23e1587070750e2c22008fd20c37b7200874cea5",
+      "body_fingerprint": "12cffba9972619ffcd807e4f56090174ede05e517bee79a6e1174652bf90e6c6"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:valued",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "valued",
+      "qualified_path": "valued",
+      "discriminator": null,
+      "start_line": 173,
+      "start_column": 0,
+      "end_line": 195,
+      "end_column": 1,
+      "declaration": {
+        "line": 173,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fb6bc148d678f5bdc44a0ee70c98c124257fbe91e67d295f3cb2316af9aba5c3",
+      "body_fingerprint": "3a531d0fd680bc0b588d5b1361e1accd92052d8ed0b55f6860ba3ec7ce78a7cb"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:unwrap",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "unwrap",
+      "qualified_path": "unwrap",
+      "discriminator": null,
+      "start_line": 197,
+      "start_column": 0,
+      "end_line": 202,
+      "end_column": 1,
+      "declaration": {
+        "line": 197,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "efaf72af63fab830134cd438e3122a037d31435ce756be0b38c014aab4fda13b",
+      "body_fingerprint": "01b587e4803847de26267e0261071db280be1678d7ca4d8be406274c3342d9d5"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:set",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "set",
+      "qualified_path": "set",
+      "discriminator": null,
+      "start_line": 204,
+      "start_column": 0,
+      "end_line": 229,
+      "end_column": 1,
+      "declaration": {
+        "line": 204,
+        "start_column": 3,
+        "end_column": 6
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "63e027c40ee3e0cd07e4a36ad40820024ceb8fc58c5953dc11d3f0ad22d82a2d",
+      "body_fingerprint": "2b0d7c9843535c5bf081044623ff9291c014178c8f7405f168359c32ddee52db"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:items",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "items",
+      "qualified_path": "items",
+      "discriminator": null,
+      "start_line": 231,
+      "start_column": 0,
+      "end_line": 236,
+      "end_column": 1,
+      "declaration": {
+        "line": 231,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9dfe5517719a45437419556e15d9c1870eae27c74b1f1911829f6aab505f6b70",
+      "body_fingerprint": "6b6fa53ff62d0b7978a76cb668000bfb8ca203df2c8d6a1f7714f9e3240d9e3e"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:type_parameters",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "type_parameters",
+      "qualified_path": "type_parameters",
+      "discriminator": null,
+      "start_line": 238,
+      "start_column": 0,
+      "end_line": 249,
+      "end_column": 1,
+      "declaration": {
+        "line": 238,
+        "start_column": 3,
+        "end_column": 18
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "57ed2db2a7423daee187c7549ff15aac58971cbfc8dc7427ba2afde82f07491f",
+      "body_fingerprint": "0d212bc414908a1504be44612571b715c5b28cccfb87abad9e0f5677437c556e"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:parameters",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "parameters",
+      "qualified_path": "parameters",
+      "discriminator": null,
+      "start_line": 251,
+      "start_column": 0,
+      "end_line": 259,
+      "end_column": 1,
+      "declaration": {
+        "line": 251,
+        "start_column": 3,
+        "end_column": 13
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "9862897d1fed6edfd02c7bf02a804f8500c50ed613a475aec34247a677ac653e",
+      "body_fingerprint": "92de9bc549600a08d725488e894d006c10fbb2bc891ab13ad682e9082a54812e"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:base_key",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "base_key",
+      "qualified_path": "base_key",
+      "discriminator": null,
+      "start_line": 262,
+      "start_column": 0,
+      "end_line": 271,
+      "end_column": 1,
+      "declaration": {
+        "line": 262,
+        "start_column": 7,
+        "end_column": 15
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "3aa44627c751c458daba832619f487963dfe325c3226f636d09e0d990fdba902",
+      "body_fingerprint": "46e8c88619c844ceba4f5803df58541e0c42de1e15f4839e68a8d9afddc9f86a"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:bases",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "bases",
+      "qualified_path": "bases",
+      "discriminator": null,
+      "start_line": 273,
+      "start_column": 0,
+      "end_line": 304,
+      "end_column": 1,
+      "declaration": {
+        "line": 273,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "f52c1411068f6e7a15970876f496ba58e1000ae478693ddf28d67ee3a3302957",
+      "body_fingerprint": "2f6dea96731c418ee881cf348a28ad6c662e131984071db8ffab0ebe6c062cae"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:accessor",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "accessor",
+      "qualified_path": "accessor",
+      "discriminator": null,
+      "start_line": 306,
+      "start_column": 0,
+      "end_line": 314,
+      "end_column": 1,
+      "declaration": {
+        "line": 306,
+        "start_column": 3,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "700676412f3b8f6b11d96a4e1bc267faefd97e7a29d92b08dbc27fbd420ece87",
+      "body_fingerprint": "dc443a630821b282b7d6a9390d127022279ca71df5008b2a29841926176984a3"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:walk",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "walk",
+      "qualified_path": "walk",
+      "discriminator": null,
+      "start_line": 316,
+      "start_column": 0,
+      "end_line": 374,
+      "end_column": 1,
+      "declaration": {
+        "line": 316,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 6,
+      "tier": 1,
+      "content_fingerprint": "44988aae4a531cbbe6b69d55a458ff8e75041ddd8e8466501c68bda7763de34f",
+      "body_fingerprint": "67233e449c90eddee35bb760dc5b5e9805b6ee28b742dbadae3a01d9bdaf659b"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:group_name",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "group_name",
+      "qualified_path": "group_name",
+      "discriminator": null,
+      "start_line": 376,
+      "start_column": 0,
+      "end_line": 383,
+      "end_column": 1,
+      "declaration": {
+        "line": 376,
+        "start_column": 3,
+        "end_column": 13
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "d03b5568f1a76e9afa52331feec1b37591b21b3f6d36edd18aca8e3e0231be8c",
+      "body_fingerprint": "a655614eadfbdf2d0a4b6fd539bf03967215ec2398821c6ae274ceaad0291a37"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:tests::slot_paths_follow_the_model",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "slot_paths_follow_the_model",
+      "qualified_path": "tests::slot_paths_follow_the_model",
+      "discriminator": null,
+      "start_line": 391,
+      "start_column": 4,
+      "end_line": 427,
+      "end_column": 5,
+      "declaration": {
+        "line": 391,
+        "start_column": 7,
+        "end_column": 34
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "ec179d8a2577b813d367b56a0c65c7a7091c43cd6a4c1fedac452b0353b76a8a",
+      "body_fingerprint": "a861eab14e2ed7eb7a713a4d58056867c09c3de562baa16fae60d1e6916b5907"
+    },
+    {
+      "id": "rust:crates/beholder-semantic-oracle/src/signature.rs:function:tests::an_alternative_has_its_own_slots",
+      "path": "crates/beholder-semantic-oracle/src/signature.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "an_alternative_has_its_own_slots",
+      "qualified_path": "tests::an_alternative_has_its_own_slots",
+      "discriminator": null,
+      "start_line": 430,
+      "start_column": 4,
+      "end_line": 437,
+      "end_column": 5,
+      "declaration": {
+        "line": 430,
+        "start_column": 7,
+        "end_column": 39
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c93b826ca61eb7553ce8287f2ba16be8275b7f4c6c9b1376129562b1878c8e18",
+      "body_fingerprint": "87cac6b4993ef9319ceb72e24c98131fa2369b6f2f50189ce328f2767c6e36c5"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Value",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 12,
+      "within": null
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": null
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 27,
+      "within": 1
+    },
+    {
+      "name": "Shape",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 27,
+      "within": 1
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 28,
+      "within": 1
+    },
+    {
+      "name": "InferredType",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 29,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 29,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "Value",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "AutoTrait",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 56,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 58,
+      "within": 3
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 59,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 61,
+      "within": 3
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 68,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 73,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 74,
+      "within": 4
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 75,
+      "within": 4
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 76,
+      "within": 4
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": null
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 80,
+      "within": 5
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 81,
+      "within": 5
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 82,
+      "within": 5
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 85,
+      "within": 5
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 89,
+      "within": 6
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 90,
+      "within": 6
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 91,
+      "within": 6
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 94,
+      "within": 6
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 98,
+      "within": 7
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 99,
+      "within": 7
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 100,
+      "within": 7
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 103,
+      "within": 7
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 8
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 109,
+      "within": 8
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "call",
+      "target": null,
+      "line": 110,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 110,
+      "within": 8
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 111,
+      "within": 8
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 112,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 112,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 112,
+      "within": 8
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 113,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 113,
+      "within": 8
+    },
+    {
+      "name": "new",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 113,
+      "within": 8
+    },
+    {
+      "name": "Member",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 8
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 8
+    },
+    {
+      "name": "walk",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 117,
+      "within": 8
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 118,
+      "within": 8
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 8
+    },
+    {
+      "name": "as_array",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 118,
+      "within": 8
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 8
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 119,
+      "within": 8
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 120,
+      "within": 8
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 122,
+      "within": 8
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 123,
+      "within": 8
+    },
+    {
+      "name": "walk",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 125,
+      "within": 8
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 131,
+      "within": 9
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 131,
+      "within": 9
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 131,
+      "within": 9
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 131,
+      "within": 9
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 131,
+      "within": 9
+    },
+    {
+      "name": "child",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 135,
+      "within": 9
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 9
+    },
+    {
+      "name": "map_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 136,
+      "within": 9
+    },
+    {
+      "name": "str",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": 9
+    },
+    {
+      "name": "to_owned",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": 9
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 9
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": 9
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 139,
+      "within": 9
+    },
+    {
+      "name": "Shape",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 10
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 10
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 10
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 10
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 151,
+      "within": 10
+    },
+    {
+      "name": "child",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 155,
+      "within": 10
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 156,
+      "within": 10
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 157,
+      "within": 10
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 157,
+      "within": 10
+    },
+    {
+      "name": "InferredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 161,
+      "within": 10
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 161,
+      "within": 10
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 163,
+      "within": 10
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 163,
+      "within": 10
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 174,
+      "within": 11
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 176,
+      "within": 11
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 176,
+      "within": 11
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 178,
+      "within": 11
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 178,
+      "within": 11
+    },
+    {
+      "name": "child",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 183,
+      "within": 11
+    },
+    {
+      "name": "unwrap",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 184,
+      "within": 11
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 185,
+      "within": 11
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 185,
+      "within": 11
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 11
+    },
+    {
+      "name": "Value",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 11
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 197,
+      "within": 12
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 197,
+      "within": 12
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 198,
+      "within": 12
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 12
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 12
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 200,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 200,
+      "within": 12
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 200,
+      "within": 12
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 205,
+      "within": 13
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 13
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 208,
+      "within": 13
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 209,
+      "within": 13
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 209,
+      "within": 13
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 211,
+      "within": 13
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 211,
+      "within": 13
+    },
+    {
+      "name": "as_array",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 211,
+      "within": 13
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 211,
+      "within": 13
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 214,
+      "within": 13
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 214,
+      "within": 13
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 13
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 13
+    },
+    {
+      "name": "auto_trait_key",
+      "qualifier": "canonical",
+      "kind": "call",
+      "target": null,
+      "line": 216,
+      "within": 13
+    },
+    {
+      "name": "auto_trait_key",
+      "qualifier": "canonical",
+      "kind": "path",
+      "target": null,
+      "line": 216,
+      "within": 13
+    },
+    {
+      "name": "canonical",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 216,
+      "within": 13
+    },
+    {
+      "name": "keyed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 13
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 218,
+      "within": 13
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 218,
+      "within": 13
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 222,
+      "within": 13
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 231,
+      "within": 14
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 232,
+      "within": 14
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 232,
+      "within": 14
+    },
+    {
+      "name": "map_or",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 232,
+      "within": 14
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 234,
+      "within": 14
+    },
+    {
+      "name": "as_array",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 234,
+      "within": 14
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 14
+    },
+    {
+      "name": "as_slice",
+      "qualifier": "Vec",
+      "kind": "path",
+      "target": null,
+      "line": 235,
+      "within": 14
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 239,
+      "within": 15
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 239,
+      "within": 15
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 239,
+      "within": 15
+    },
+    {
+      "name": "indexed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 240,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 241,
+      "within": 15
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 241,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 242,
+      "within": 15
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 242,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 243,
+      "within": 15
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 243,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 244,
+      "within": 15
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 244,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 245,
+      "within": 15
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 245,
+      "within": 15
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 246,
+      "within": 15
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 246,
+      "within": 15
+    },
+    {
+      "name": "Shape",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 247,
+      "within": 15
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 247,
+      "within": 15
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 247,
+      "within": 15
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 16
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 16
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 16
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 16
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 252,
+      "within": 16
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 252,
+      "within": 16
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 252,
+      "within": 16
+    },
+    {
+      "name": "indexed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 253,
+      "within": 16
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 254,
+      "within": 16
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 254,
+      "within": 16
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 255,
+      "within": 16
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 255,
+      "within": 16
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 256,
+      "within": 16
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 256,
+      "within": 16
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 257,
+      "within": 16
+    },
+    {
+      "name": "valued",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 257,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 17
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 17
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 263,
+      "within": 17
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 263,
+      "within": 17
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 263,
+      "within": 17
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 265,
+      "within": 17
+    },
+    {
+      "name": "as_str",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 265,
+      "within": 17
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 267,
+      "within": 17
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 267,
+      "within": 17
+    },
+    {
+      "name": "as_str",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 267,
+      "within": 17
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 267,
+      "within": 17
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 269,
+      "within": 17
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 274,
+      "within": 18
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 276,
+      "within": 18
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 277,
+      "within": 18
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 278,
+      "within": 18
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 278,
+      "within": 18
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 280,
+      "within": 18
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 280,
+      "within": 18
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 280,
+      "within": 18
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 281,
+      "within": 18
+    },
+    {
+      "name": "base_key",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 283,
+      "within": 18
+    },
+    {
+      "name": "keyed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 283,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 285,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 285,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 18
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 286,
+      "within": 18
+    },
+    {
+      "name": "type_parameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 287,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 288,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 288,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 289,
+      "within": 18
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 290,
+      "within": 18
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 290,
+      "within": 18
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 290,
+      "within": 18
+    },
+    {
+      "name": "and_then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 291,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 291,
+      "within": 18
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 291,
+      "within": 18
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 293,
+      "within": 18
+    },
+    {
+      "name": "as_str",
+      "qualifier": "Value",
+      "kind": "path",
+      "target": null,
+      "line": 293,
+      "within": 18
+    },
+    {
+      "name": "keyed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 295,
+      "within": 18
+    },
+    {
+      "name": "type_parameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 296,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 297,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 297,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 298,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 298,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 299,
+      "within": 18
+    },
+    {
+      "name": "valued",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 299,
+      "within": 18
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 300,
+      "within": 18
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 300,
+      "within": 18
+    },
+    {
+      "name": "AutoTrait",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 301,
+      "within": 18
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 301,
+      "within": 18
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 301,
+      "within": 18
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": 19
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": 19
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": 19
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 306,
+      "within": 19
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 307,
+      "within": 19
+    },
+    {
+      "name": "child",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 310,
+      "within": 19
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 311,
+      "within": 19
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 19
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 312,
+      "within": 19
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 312,
+      "within": 19
+    },
+    {
+      "name": "Shape",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 313,
+      "within": 19
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 313,
+      "within": 19
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 313,
+      "within": 19
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 316,
+      "within": 20
+    },
+    {
+      "name": "Slot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 316,
+      "within": 20
+    },
+    {
+      "name": "Value",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 316,
+      "within": 20
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 316,
+      "within": 20
+    },
+    {
+      "name": "type_parameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 317,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 318,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 318,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 319,
+      "within": 20
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 320,
+      "within": 20
+    },
+    {
+      "name": "Impl",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 321,
+      "within": 20
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 321,
+      "within": 20
+    },
+    {
+      "name": "child",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 322,
+      "within": 20
+    },
+    {
+      "name": "type_parameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 324,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 325,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 325,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 326,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 326,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 328,
+      "within": 20
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 328,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 329,
+      "within": 20
+    },
+    {
+      "name": "parameters",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 330,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 331,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 331,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 332,
+      "within": 20
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 332,
+      "within": 20
+    },
+    {
+      "name": "Shape",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 333,
+      "within": 20
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 333,
+      "within": 20
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 333,
+      "within": 20
+    },
+    {
+      "name": "AutoTrait",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 334,
+      "within": 20
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 334,
+      "within": 20
+    },
+    {
+      "name": "set",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 334,
+      "within": 20
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 335,
+      "within": 20
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 335,
+      "within": 20
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 335,
+      "within": 20
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 336,
+      "within": 20
+    },
+    {
+      "name": "Overload",
+      "qualifier": "Source",
+      "kind": "call",
+      "target": null,
+      "line": 337,
+      "within": 20
+    },
+    {
+      "name": "Overload",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 337,
+      "within": 20
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 337,
+      "within": 20
+    },
+    {
+      "name": "indexed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 338,
+      "within": 20
+    },
+    {
+      "name": "walk",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 340,
+      "within": 20
+    },
+    {
+      "name": "Base",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 342,
+      "within": 20
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 342,
+      "within": 20
+    },
+    {
+      "name": "bases",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 342,
+      "within": 20
+    },
+    {
+      "name": "bases",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 343,
+      "within": 20
+    },
+    {
+      "name": "Implementation",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 346,
+      "within": 20
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 346,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 350,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 350,
+      "within": 20
+    },
+    {
+      "name": "enumerate",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 357,
+      "within": 20
+    },
+    {
+      "name": "items",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 357,
+      "within": 20
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 357,
+      "within": 20
+    },
+    {
+      "name": "Frame",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 358,
+      "within": 20
+    },
+    {
+      "name": "Group",
+      "qualifier": "Source",
+      "kind": "call",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "Group",
+      "qualifier": "Source",
+      "kind": "path",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "Source",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "group_name",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "indexed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "walk",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 363,
+      "within": 20
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 363,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 366,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 366,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 367,
+      "within": 20
+    },
+    {
+      "name": "typed",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 367,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 368,
+      "within": 20
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 368,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "valued",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "accessor",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 371,
+      "within": 20
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 373,
+      "within": 20
+    },
+    {
+      "name": "shape",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 373,
+      "within": 20
+    },
+    {
+      "name": "json",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": null
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": null
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 402,
+      "within": 22
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 407,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 407,
+      "within": 22
+    },
+    {
+      "name": "InferredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 408,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 408,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 409,
+      "within": 22
+    },
+    {
+      "name": "Value",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 409,
+      "within": 22
+    },
+    {
+      "name": "Shape",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 410,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 410,
+      "within": 22
+    },
+    {
+      "name": "AutoTrait",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 415,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 415,
+      "within": 22
+    },
+    {
+      "name": "DeclaredType",
+      "qualifier": "SlotClass",
+      "kind": "path",
+      "target": null,
+      "line": 419,
+      "within": 22
+    },
+    {
+      "name": "SlotClass",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 419,
+      "within": 22
+    },
+    {
+      "name": "slots",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 433,
+      "within": 23
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Value",
+      "path": [
+        "serde_json",
+        "Value"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "json",
+      "path": [
+        "serde_json",
+        "json"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "signature"
+  ]
+}
