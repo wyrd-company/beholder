@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/typescript/complexity.scm",
+  "language": null,
+  "content_hash": "8a12ec40433d9ddd151ef0c0db91680a068be20b76d54fbd28e40cfeda2059f3",
+  "tier": 0,
+  "density": 0.03448276,
+  "lines": 29,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
