@@ -1,0 +1,12 @@
+{
+  "path": "scripts/release/ensure-npm.sh",
+  "language": null,
+  "content_hash": "8e37698318d01aeb0c48e33739d9ce2cf970df3804a77162c2191307bd27e639",
+  "tier": 0,
+  "density": 8.369831,
+  "lines": 75,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
