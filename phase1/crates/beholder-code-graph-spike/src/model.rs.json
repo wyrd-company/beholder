@@ -1,0 +1,5541 @@
+{
+  "path": "crates/beholder-code-graph-spike/src/model.rs",
+  "language": "rust",
+  "content_hash": "fa7665eef78b2901e6cb9999e9e16c593a9e3584e24a5e5dfd5ce726f2805711",
+  "tier": 1,
+  "density": 86.000084,
+  "lines": 674,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:CodeGraph",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "CodeGraph",
+      "qualified_path": "CodeGraph",
+      "discriminator": null,
+      "start_line": 16,
+      "start_column": 0,
+      "end_line": 26,
+      "end_column": 1,
+      "declaration": {
+        "line": 16,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d1bb465b13079a523a3cc344927c9196abe8a60902d87cec0ca86cd92b18087f",
+      "body_fingerprint": "e020f51c459450b303f87349f734e1fec06e7b5a88c82be16714fb845f2383eb"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:CodeGraph::snapshot_id",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "snapshot_id",
+      "qualified_path": "CodeGraph::snapshot_id",
+      "discriminator": null,
+      "start_line": 30,
+      "start_column": 4,
+      "end_line": 33,
+      "end_column": 5,
+      "declaration": {
+        "line": 30,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3cff3795db2e7f00a352f4ef57c1132b746d50327fc4418566ed57c398cc5740",
+      "body_fingerprint": "b7176b5ff17b2fff2712210864752b6a5feb8df2781a7abb14964e22eedf0a01"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:CodeGraph::validate",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validate",
+      "qualified_path": "CodeGraph::validate",
+      "discriminator": null,
+      "start_line": 35,
+      "start_column": 4,
+      "end_line": 188,
+      "end_column": 5,
+      "declaration": {
+        "line": 35,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 61,
+      "tier": 1,
+      "content_fingerprint": "5dddb5ca4954df31789900e300eee8ff86cfb86e625e8e30981962dfb3b924e8",
+      "body_fingerprint": "f88e43e8faa7f3576d797862050d5d0b1873d93f4bd8745341afd47563b7ef8b"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:BuildIdentity",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "BuildIdentity",
+      "qualified_path": "BuildIdentity",
+      "discriminator": null,
+      "start_line": 192,
+      "start_column": 0,
+      "end_line": 201,
+      "end_column": 1,
+      "declaration": {
+        "line": 192,
+        "start_column": 11,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1d4483332adc6e6c1fcc73a7883310533249dfbdfe60907ad0f090e7848772c2",
+      "body_fingerprint": "91ff98d2d0f3ff97c9532fbf4a42ec0ea7530402ae954f974bfe9f7c460d0cb3"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:capsule_id",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "capsule_id",
+      "qualified_path": "capsule_id",
+      "discriminator": null,
+      "start_line": 204,
+      "start_column": 0,
+      "end_line": 235,
+      "end_column": 1,
+      "declaration": {
+        "line": 204,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 6,
+      "tier": 1,
+      "content_fingerprint": "12b5433ff1260bd24f2584ea2223422b675205571e6decd6c39f0219507e5c4b",
+      "body_fingerprint": "3263121e66679efe10cef9270a2e380c1021737775ba39e4b83dd2f27e0110ba"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:CompilationUnit",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "CompilationUnit",
+      "qualified_path": "CompilationUnit",
+      "discriminator": null,
+      "start_line": 238,
+      "start_column": 0,
+      "end_line": 246,
+      "end_column": 1,
+      "declaration": {
+        "line": 238,
+        "start_column": 11,
+        "end_column": 26
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "42887ed54628d4137c7328b8df96137a6e2a01bb676db09509317b4280729bc0",
+      "body_fingerprint": "0b83c7af69f3b73d69dc1372d623b552e80a21349fc57c4832598570c8472cc1"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Knowledge",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Knowledge",
+      "qualified_path": "Knowledge",
+      "discriminator": null,
+      "start_line": 249,
+      "start_column": 0,
+      "end_line": 252,
+      "end_column": 1,
+      "declaration": {
+        "line": 249,
+        "start_column": 11,
+        "end_column": 20
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ec3a7f8e677cf60b6ed1fc4901d5ba5bbbef819cc172bf57d0ea800bb1608759",
+      "body_fingerprint": "d1757385bc1fb67920087e4dcbec7e1729456a312e8ff7a671418329a30e443c"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:Knowledge<T>::observed",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "observed",
+      "qualified_path": "Knowledge<T>::observed",
+      "discriminator": null,
+      "start_line": 255,
+      "start_column": 4,
+      "end_line": 260,
+      "end_column": 5,
+      "declaration": {
+        "line": 255,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "5572bd7370583f9d2b67cbb81d36f98999ea033e48b41dd80b62bbb6aa6ec5d3",
+      "body_fingerprint": "6ced88eb1f4eda1c3bf531c075a251a4c90257f05d5b6aa5c07b7746dd5339e7"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:Knowledge<T>::declared",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "declared",
+      "qualified_path": "Knowledge<T>::declared",
+      "discriminator": null,
+      "start_line": 262,
+      "start_column": 4,
+      "end_line": 267,
+      "end_column": 5,
+      "declaration": {
+        "line": 262,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "0bf57b248fc5859c79bf8caeb1637d174212d6179aae4edf8082b82876ada796",
+      "body_fingerprint": "2ad03f2e888f310f9446d448f68af70126396b025ebf0ec15072c3f468249241"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:Knowledge<T>::unknown",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "unknown",
+      "qualified_path": "Knowledge<T>::unknown",
+      "discriminator": null,
+      "start_line": 269,
+      "start_column": 4,
+      "end_line": 274,
+      "end_column": 5,
+      "declaration": {
+        "line": 269,
+        "start_column": 11,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ef450f12c4171ad32e7ab62cc50febd57b4a841c4baaf81fb1623018d94d580a",
+      "body_fingerprint": "ec757c77f1658c856448a8d2e7ba6ef324f1ab475b089e8918047ee9468344c8"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:Knowledge<T>::is_valid",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "is_valid",
+      "qualified_path": "Knowledge<T>::is_valid",
+      "discriminator": null,
+      "start_line": 276,
+      "start_column": 4,
+      "end_line": 282,
+      "end_column": 5,
+      "declaration": {
+        "line": 276,
+        "start_column": 7,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3e00df0d0576f0c370c1a461dbfe36093ca39c11f4e700cc424905ac98752a79",
+      "body_fingerprint": "57c6f8d08668fd3dd6bcd45d09c7a08af9e4c2b5964bde3805ae1d641db490f7"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:validate_knowledge",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validate_knowledge",
+      "qualified_path": "validate_knowledge",
+      "discriminator": null,
+      "start_line": 285,
+      "start_column": 0,
+      "end_line": 290,
+      "end_column": 1,
+      "declaration": {
+        "line": 285,
+        "start_column": 3,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "180f1ce6ca2779154234c0d13237d8c100af07f8067cd024e11bb2c424556d79",
+      "body_fingerprint": "3002904419d72085990b64eb6d963fdd12ac8c156713458f0d8e58442d8286e2"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:validate_scope",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "validate_scope",
+      "qualified_path": "validate_scope",
+      "discriminator": null,
+      "start_line": 292,
+      "start_column": 0,
+      "end_line": 320,
+      "end_column": 1,
+      "declaration": {
+        "line": 292,
+        "start_column": 3,
+        "end_column": 17
+      },
+      "cognitive_complexity": 7,
+      "tier": 1,
+      "content_fingerprint": "954682d858ec399879f18b4e7dcccbdc97027b2b4c342b4e01696e0071ed581d",
+      "body_fingerprint": "1e9d2b6bd010c78c31b12801d0a4327e2c1aedad73fad983b8f8dad405c90565"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:KnowledgeState",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "KnowledgeState",
+      "qualified_path": "KnowledgeState",
+      "discriminator": null,
+      "start_line": 324,
+      "start_column": 0,
+      "end_line": 328,
+      "end_column": 1,
+      "declaration": {
+        "line": 324,
+        "start_column": 9,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4a82f3c3a19e7645c8f6c0d4477bcb623d63b08595c3e7521621ca6f5af839a5",
+      "body_fingerprint": "53379ad856cf2cccedf43aa25fea9b89b4a23b7734cd811349eecc4e6305289c"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Producer",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Producer",
+      "qualified_path": "Producer",
+      "discriminator": null,
+      "start_line": 331,
+      "start_column": 0,
+      "end_line": 336,
+      "end_column": 1,
+      "declaration": {
+        "line": 331,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "dbd2e4761f0b82c158cddb7279c161a7b59593f868c11c6e3f6ee4bcdb45890e",
+      "body_fingerprint": "19ead47b08ad9f112a39dd23e913cea6367380bc08977b634b18533db752ae8f"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:AnalyzedScope",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "AnalyzedScope",
+      "qualified_path": "AnalyzedScope",
+      "discriminator": null,
+      "start_line": 339,
+      "start_column": 0,
+      "end_line": 348,
+      "end_column": 1,
+      "declaration": {
+        "line": 339,
+        "start_column": 11,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fb134464303d05ff85b6be6490799e1b3fe9a16fa166592fb070858e2665bb7f",
+      "body_fingerprint": "46954978946b2e611c45c8338da24a2746e4c58e77db879de866cd077665c73a"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Node",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Node",
+      "qualified_path": "Node",
+      "discriminator": null,
+      "start_line": 351,
+      "start_column": 0,
+      "end_line": 362,
+      "end_column": 1,
+      "declaration": {
+        "line": 351,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "15d7a2b69874e24b1e5aa69b48eb358a154a56f752c84b4489b38c024e4db861",
+      "body_fingerprint": "26d684e4093e130b3cda636c0d358cb3ffeead8d29ab641ac91ae9ce492b7f7c"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:NodeKind",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "NodeKind",
+      "qualified_path": "NodeKind",
+      "discriminator": null,
+      "start_line": 366,
+      "start_column": 0,
+      "end_line": 377,
+      "end_column": 1,
+      "declaration": {
+        "line": 366,
+        "start_column": 9,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d4a82366fb42cf7f6627cb0fdcb945e315bc7f999c9cc25cbcab3803e1cd3ebe",
+      "body_fingerprint": "2f7d1d07bdf66aaf3a3c610ffb4bc87950c3e3879212c3b2a74d28edd1438c9a"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:NodeScope",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "NodeScope",
+      "qualified_path": "NodeScope",
+      "discriminator": null,
+      "start_line": 381,
+      "start_column": 0,
+      "end_line": 386,
+      "end_column": 1,
+      "declaration": {
+        "line": 381,
+        "start_column": 9,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "873f31e967ca09df7e5e0df0d6345adcc4ddc6a1b3a05c0f6d2e75acac6c3eb8",
+      "body_fingerprint": "3151b2b275bb2a57780c8f8b2dbebed463726c42983ad15429c9d08c8be4781e"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Edge",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Edge",
+      "qualified_path": "Edge",
+      "discriminator": null,
+      "start_line": 389,
+      "start_column": 0,
+      "end_line": 396,
+      "end_column": 1,
+      "declaration": {
+        "line": 389,
+        "start_column": 11,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "583ceb5bac414419c40587fb03581713fc55d30945d1ac225868b1b7b385c184",
+      "body_fingerprint": "bd6da087d92dd4ead7eb308d5c300bc05e04929dea045771c328935ef64d1104"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:EdgeKind",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "EdgeKind",
+      "qualified_path": "EdgeKind",
+      "discriminator": null,
+      "start_line": 400,
+      "start_column": 0,
+      "end_line": 407,
+      "end_column": 1,
+      "declaration": {
+        "line": 400,
+        "start_column": 9,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b8edecf739a2a20940b33d9fb10f2eedaecb44a267fadb86380af94c0242fdf2",
+      "body_fingerprint": "4e52504e2622240a24c949be2eee70bc8effdb2fe2a6689d5ff5dd30b262919d"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:ReferenceFact",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ReferenceFact",
+      "qualified_path": "ReferenceFact",
+      "discriminator": null,
+      "start_line": 410,
+      "start_column": 0,
+      "end_line": 418,
+      "end_column": 1,
+      "declaration": {
+        "line": 410,
+        "start_column": 11,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4c69953c88b9ab88f82c67ff8ce1ed7619fa5594f7175d48fd41ede811e1bb3c",
+      "body_fingerprint": "4d2502fe22b21d71b12c3cabcdd1b9329add7d2565837e67c0eb2279661c81a1"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Resolution",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Resolution",
+      "qualified_path": "Resolution",
+      "discriminator": null,
+      "start_line": 422,
+      "start_column": 0,
+      "end_line": 427,
+      "end_column": 1,
+      "declaration": {
+        "line": 422,
+        "start_column": 9,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "68d46c54e118735389543a8439aef1c4ce0d5fa5c6f84617cbd3962015639469",
+      "body_fingerprint": "301ef4a438690648647eb48683711afc6f95184a5106f6e02242b6cee5f4953c"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:EvidencePolicy",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "EvidencePolicy",
+      "qualified_path": "EvidencePolicy",
+      "discriminator": null,
+      "start_line": 430,
+      "start_column": 0,
+      "end_line": 434,
+      "end_column": 1,
+      "declaration": {
+        "line": 430,
+        "start_column": 11,
+        "end_column": 25
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "31b9ab722ca4970fed3ebd5758db287b90719b2eef809c269d97b70cedbc043a",
+      "body_fingerprint": "1d1ebcedbee6639be6e02e2ae974e880f4bbea2a60bfe3552d84ff0507df7100"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:EvidencePolicy::all_stored",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "all_stored",
+      "qualified_path": "EvidencePolicy::all_stored",
+      "discriminator": null,
+      "start_line": 438,
+      "start_column": 4,
+      "end_line": 448,
+      "end_column": 5,
+      "declaration": {
+        "line": 438,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "514be700fa0c068b1e966e6ad08aa80797bf8035d6906571aedcecd199b83baf",
+      "body_fingerprint": "98562a11676c28d7a9ec33087bd1f6a3702f61032c08eb3b4ad63e5edacbc105"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:UncertaintyCounts",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "UncertaintyCounts",
+      "qualified_path": "UncertaintyCounts",
+      "discriminator": null,
+      "start_line": 452,
+      "start_column": 0,
+      "end_line": 457,
+      "end_column": 1,
+      "declaration": {
+        "line": 452,
+        "start_column": 11,
+        "end_column": 28
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7aec0377bcef129a55a3981d77e335d417af255f7250d263e108e48e49a10755",
+      "body_fingerprint": "7b8e5ad553a1502ee580fe3ecec1d9ef5587f722851d65447e65ab55fd5ae504"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:<UncertaintyCounts as From<&CodeGraph>>::from",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "from",
+      "qualified_path": "<UncertaintyCounts as From<&CodeGraph>>::from",
+      "discriminator": null,
+      "start_line": 460,
+      "start_column": 4,
+      "end_line": 471,
+      "end_column": 5,
+      "declaration": {
+        "line": 460,
+        "start_column": 7,
+        "end_column": 11
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "675950c766fc5878b4dd9e4d2cd9b3e6178c2cab58a6717142ed1da51f6eb24a",
+      "body_fingerprint": "f9454a1af10f3a95cec87c8f2fc9d4b30f49d8a608c674ee63a6221d0aa7409b"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:UnknownReason",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "UnknownReason",
+      "qualified_path": "UnknownReason",
+      "discriminator": null,
+      "start_line": 475,
+      "start_column": 0,
+      "end_line": 478,
+      "end_column": 1,
+      "declaration": {
+        "line": 475,
+        "start_column": 11,
+        "end_column": 24
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "614586317f7943e42afb5b4d0ec57c77903bede0b7da9fbe6ecee5d802da7e2e",
+      "body_fingerprint": "96ce18fd52e0499e2a26493f4e10a5bed3ea2cdd6015d3629ee917fe1274dd8c"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:UnknownReasonKind",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "UnknownReasonKind",
+      "qualified_path": "UnknownReasonKind",
+      "discriminator": null,
+      "start_line": 482,
+      "start_column": 0,
+      "end_line": 487,
+      "end_column": 1,
+      "declaration": {
+        "line": 482,
+        "start_column": 9,
+        "end_column": 26
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "fc480d976832d24617d868cf24b80a77a8c9bca4e8360ed0a1e2f67e951f041e",
+      "body_fingerprint": "1c96881ae320282f771feeef16853c8b110d2cb16e06f61788260fafe8e26794"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Location",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Location",
+      "qualified_path": "Location",
+      "discriminator": null,
+      "start_line": 490,
+      "start_column": 0,
+      "end_line": 494,
+      "end_column": 1,
+      "declaration": {
+        "line": 490,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ab45b512482c5a8904cf24fd12621988fec5e8b3fe68a1a2f31e11ea13a8d1fc",
+      "body_fingerprint": "8c2816efd322244f05232c7c28d85c287c434f6c08777fd12c3796efd00ca6fd"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:PositionEncoding",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "PositionEncoding",
+      "qualified_path": "PositionEncoding",
+      "discriminator": null,
+      "start_line": 498,
+      "start_column": 0,
+      "end_line": 503,
+      "end_column": 1,
+      "declaration": {
+        "line": 498,
+        "start_column": 9,
+        "end_column": 25
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "48bca242f34b20c3af2da38ee9b486276141ef3a22655ad7c72719ef15709d53",
+      "body_fingerprint": "320ae68d941cd59bd8fc29181ff7fa8ba5da8d9e2cbad619c9d43eadce5845df"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:SourceRange",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "SourceRange",
+      "qualified_path": "SourceRange",
+      "discriminator": null,
+      "start_line": 506,
+      "start_column": 0,
+      "end_line": 511,
+      "end_column": 1,
+      "declaration": {
+        "line": 506,
+        "start_column": 11,
+        "end_column": 22
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9b671d426123a1e4adab31b1239db97944ccfbff08dabaf3358e754d9f643a1c",
+      "body_fingerprint": "05639fff90195861b25e278896fe1c3e9bcd5b657798f9ce56417d13d97c0b88"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:SourceRange::contains",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "contains",
+      "qualified_path": "SourceRange::contains",
+      "discriminator": null,
+      "start_line": 514,
+      "start_column": 4,
+      "end_line": 517,
+      "end_column": 5,
+      "declaration": {
+        "line": 514,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "4f5ea41fa4fd55334cb1a5305dca0fea9a101bfd3ea4578977cb0d4b23d6027d",
+      "body_fingerprint": "d2a04e3a8eb6f7b6e9dbeb368bcc2435891366cefe386e0f81a5a638cbf5d01e"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:SourceRange::size_key",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "size_key",
+      "qualified_path": "SourceRange::size_key",
+      "discriminator": null,
+      "start_line": 519,
+      "start_column": 4,
+      "end_line": 524,
+      "end_column": 5,
+      "declaration": {
+        "line": 519,
+        "start_column": 11,
+        "end_column": 19
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "728aaaf5d658f310b3c7d9ae3af2bea6640fdccf863a829b184b93fb970c576a",
+      "body_fingerprint": "da16eb74d375883486abde105bac4fea89db5aa71520e7e1eab20170f45ee0e0"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Provenance",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Provenance",
+      "qualified_path": "Provenance",
+      "discriminator": null,
+      "start_line": 528,
+      "start_column": 0,
+      "end_line": 531,
+      "end_column": 1,
+      "declaration": {
+        "line": 528,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "a88691f166042661e0460e351b609b721575004346a55d52fe4e624d99513948",
+      "body_fingerprint": "db1029b70ed135e59be0031bed9eec5273e26645547b6e6a41eec3b11ca51ba9"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Diagnostic",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Diagnostic",
+      "qualified_path": "Diagnostic",
+      "discriminator": null,
+      "start_line": 534,
+      "start_column": 0,
+      "end_line": 540,
+      "end_column": 1,
+      "declaration": {
+        "line": 534,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "db63e74eb8e2d87e0ec72298c8b4ce246ee1691068b1fb3194fb9d0facfec44b",
+      "body_fingerprint": "657ce9ef94ac29467991f5a177d3be04fd1276fca5611220afbbd68d6ae155fb"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:DiagnosticSeverity",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "DiagnosticSeverity",
+      "qualified_path": "DiagnosticSeverity",
+      "discriminator": null,
+      "start_line": 544,
+      "start_column": 0,
+      "end_line": 548,
+      "end_column": 1,
+      "declaration": {
+        "line": 544,
+        "start_column": 9,
+        "end_column": 27
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d689e0845ac996f6760a7f5f4d70df67c9953ab5c8edbf6270961308012627e8",
+      "body_fingerprint": "f59086a3cb89d4357da29a749d2ad76b2d935053eb6c0ec8b7e960e77a56eef0"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:Validation",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Validation",
+      "qualified_path": "Validation",
+      "discriminator": null,
+      "start_line": 551,
+      "start_column": 0,
+      "end_line": 556,
+      "end_column": 1,
+      "declaration": {
+        "line": 551,
+        "start_column": 11,
+        "end_column": 21
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "14d3bd9663fb9c138683df78ff622f978e781780fcfdca5a4db5589273dc7fc0",
+      "body_fingerprint": "4389f949e3232b9ef22b25cdfdb4eddd6fac7bd4d595af897323387940d7e0c1"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:ValidationStatus",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ValidationStatus",
+      "qualified_path": "ValidationStatus",
+      "discriminator": null,
+      "start_line": 560,
+      "start_column": 0,
+      "end_line": 564,
+      "end_column": 1,
+      "declaration": {
+        "line": 560,
+        "start_column": 9,
+        "end_column": 25
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ec8619a4adcce4d3dbddcfe71f6cc05271157d99b22e9b60fc0861cfbccfa740",
+      "body_fingerprint": "1617d660dd41e2cb001849625b26215a796ae2e817e801e28a40816b05f69590"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:type:IntegrityError",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "IntegrityError",
+      "qualified_path": "IntegrityError",
+      "discriminator": null,
+      "start_line": 567,
+      "start_column": 0,
+      "end_line": 587,
+      "end_column": 1,
+      "declaration": {
+        "line": 567,
+        "start_column": 9,
+        "end_column": 23
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b8d1eef8870e4aa9ba6ef37253670c792b2fb73ea700076c834b8a0f94208406",
+      "body_fingerprint": "2b77cb8f8786860b03954b452c551bae43edbc39842ceb7760bbb0bb617ce3ae"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:<IntegrityError as std::fmt::Display>::fmt",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "fmt",
+      "qualified_path": "<IntegrityError as std::fmt::Display>::fmt",
+      "discriminator": null,
+      "start_line": 590,
+      "start_column": 4,
+      "end_line": 637,
+      "end_column": 5,
+      "declaration": {
+        "line": 590,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "3f55fb185025a2e930aa06d4ca12c7ad4fe43d1de5171e5bb9f9f774aade97c1",
+      "body_fingerprint": "964f015b4b810b883c0168a63a84d09f274857428fd45e974763da27678f72f3"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::integrity_rejects_knowledge_state_value_contradictions",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integrity_rejects_knowledge_state_value_contradictions",
+      "qualified_path": "tests::integrity_rejects_knowledge_state_value_contradictions",
+      "discriminator": null,
+      "start_line": 648,
+      "start_column": 4,
+      "end_line": 674,
+      "end_column": 5,
+      "declaration": {
+        "line": 648,
+        "start_column": 7,
+        "end_column": 61
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "7519b071df233d92434fe1a9f3474766138c30f0a1f14b61033b43f490ee91d6",
+      "body_fingerprint": "9fcb428c57854221e2cea72919cadfb11343beaf51ababc4b6080fd86d9266ee"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::integrity_rejects_conflicting_document_dispositions",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integrity_rejects_conflicting_document_dispositions",
+      "qualified_path": "tests::integrity_rejects_conflicting_document_dispositions",
+      "discriminator": null,
+      "start_line": 677,
+      "start_column": 4,
+      "end_line": 686,
+      "end_column": 5,
+      "declaration": {
+        "line": 677,
+        "start_column": 7,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "8ffeebc30a7501187b949fe67e448dd88fda2615d75ea11c8c3074d74fe61987",
+      "body_fingerprint": "4ae14b18fac8d80f53347506b87d1f1da38102d220376768e81fb183b05ca1ae"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::integrity_rejects_evidence_that_does_not_support_an_edge",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integrity_rejects_evidence_that_does_not_support_an_edge",
+      "qualified_path": "tests::integrity_rejects_evidence_that_does_not_support_an_edge",
+      "discriminator": null,
+      "start_line": 689,
+      "start_column": 4,
+      "end_line": 699,
+      "end_column": 5,
+      "declaration": {
+        "line": 689,
+        "start_column": 7,
+        "end_column": 63
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "462613b15f72aaceeb1265002eb5e535cbc3708d1b3712c7b137713298d9ed28",
+      "body_fingerprint": "bd037c3e204e4a5c2a33897c2f67900ee844c884d73ad1bb80111868d33d7730"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::integrity_rejects_an_edge_eligible_fact_without_an_edge",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integrity_rejects_an_edge_eligible_fact_without_an_edge",
+      "qualified_path": "tests::integrity_rejects_an_edge_eligible_fact_without_an_edge",
+      "discriminator": null,
+      "start_line": 702,
+      "start_column": 4,
+      "end_line": 710,
+      "end_column": 5,
+      "declaration": {
+        "line": 702,
+        "start_column": 7,
+        "end_column": 62
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "c3ffbe811ed42d1c5593d3ad9e7cdea22fd6a3c949014ee090071db99d31a996",
+      "body_fingerprint": "a33ebc776661c0e4a3430e20161711a0fe9f14fc4341a426c510f2781b7ed1b9"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::snapshot_identity_binds_the_projected_graph_content",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "snapshot_identity_binds_the_projected_graph_content",
+      "qualified_path": "tests::snapshot_identity_binds_the_projected_graph_content",
+      "discriminator": null,
+      "start_line": 713,
+      "start_column": 4,
+      "end_line": 720,
+      "end_column": 5,
+      "declaration": {
+        "line": 713,
+        "start_column": 7,
+        "end_column": 58
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b8a1bb7b470e328b9ee2024beb49f7008976c53bc90894b80fe08b96c14ebdc1",
+      "body_fingerprint": "d56b4f0ff34fe4dd712bfae1a383e8a16a7cbd3788d6aeaf126e131c6074ef68"
+    },
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/model.rs:function:tests::integrity_rejects_duplicate_logical_edge_projections",
+      "path": "crates/beholder-code-graph-spike/src/model.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "integrity_rejects_duplicate_logical_edge_projections",
+      "qualified_path": "tests::integrity_rejects_duplicate_logical_edge_projections",
+      "discriminator": null,
+      "start_line": 723,
+      "start_column": 4,
+      "end_line": 735,
+      "end_column": 5,
+      "declaration": {
+        "line": 723,
+        "start_column": 7,
+        "end_column": 59
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9fc52210b8de1f1b15835679b27699ae2f6761ce1a9f5bb8d2f91786f1d57acd",
+      "body_fingerprint": "4cfa827585a0554dc364cb673eb9022e52a9ff54b6b671d4c2df202b4ab4ca4c"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "collections",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "BuildIdentity",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 18,
+      "within": 0
+    },
+    {
+      "name": "Producer",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 19,
+      "within": 0
+    },
+    {
+      "name": "AnalyzedScope",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 20,
+      "within": 0
+    },
+    {
+      "name": "Node",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 21,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 21,
+      "within": 0
+    },
+    {
+      "name": "Edge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 22,
+      "within": 0
+    },
+    {
+      "name": "ReferenceFact",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 23,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 23,
+      "within": 0
+    },
+    {
+      "name": "Diagnostic",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 24,
+      "within": 0
+    },
+    {
+      "name": "Validation",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 0
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 0
+    },
+    {
+      "name": "CodeGraph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 28,
+      "within": null
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 30,
+      "within": 1
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "to_vec",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "to_vec",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 31,
+      "within": 1
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 2
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedSchema",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedSchema",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 37,
+      "within": 2
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 39,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 42,
+      "within": 2
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 43,
+      "within": 2
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 43,
+      "within": 2
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 44,
+      "within": 2
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 44,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 47,
+      "within": 2
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 48,
+      "within": 2
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 48,
+      "within": 2
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 49,
+      "within": 2
+    },
+    {
+      "name": "DuplicateNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 50,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 50,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 50,
+      "within": 2
+    },
+    {
+      "name": "capsule_id",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 52,
+      "within": 2
+    },
+    {
+      "name": "BuildIdentityMismatch",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 53,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 53,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 53,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 55,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 56,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 57,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 58,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 59,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 63,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 64,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 65,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 68,
+      "within": 2
+    },
+    {
+      "name": "validate_knowledge",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 69,
+      "within": 2
+    },
+    {
+      "name": "validate_scope",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 72,
+      "within": 2
+    },
+    {
+      "name": "as_ref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 74,
+      "within": 2
+    },
+    {
+      "name": "is_some_and",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 74,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 77,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 77,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 79,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 79,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 79,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 79,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 2
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 80,
+      "within": 2
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "call",
+      "target": null,
+      "line": 85,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "path",
+      "target": null,
+      "line": 85,
+      "within": 2
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 86,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "call",
+      "target": null,
+      "line": 86,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "path",
+      "target": null,
+      "line": 86,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 88,
+      "within": 2
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 88,
+      "within": 2
+    },
+    {
+      "name": "DuplicateReference",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 89,
+      "within": 2
+    },
+    {
+      "name": "DuplicateReference",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 89,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 89,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 89,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 89,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 91,
+      "within": 2
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 91,
+      "within": 2
+    },
+    {
+      "name": "as_ref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 94,
+      "within": 2
+    },
+    {
+      "name": "is_some_and",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 94,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 97,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 97,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 99,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 2
+    },
+    {
+      "name": "unwrap_or_default",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 100,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 2
+    },
+    {
+      "name": "Resolved",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 2
+    },
+    {
+      "name": "Resolved",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 104,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": "NodeScope",
+      "kind": "path",
+      "target": null,
+      "line": 105,
+      "within": 2
+    },
+    {
+      "name": "NodeScope",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 105,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 105,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 105,
+      "within": 2
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 105,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 106,
+      "within": 2
+    },
+    {
+      "name": "ResolutionScopeMismatch",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 106,
+      "within": 2
+    },
+    {
+      "name": "ResolutionScopeMismatch",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 106,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 106,
+      "within": 2
+    },
+    {
+      "name": "from_ref",
+      "qualifier": "slice",
+      "kind": "call",
+      "target": null,
+      "line": 108,
+      "within": 2
+    },
+    {
+      "name": "from_ref",
+      "qualifier": "slice",
+      "kind": "path",
+      "target": null,
+      "line": 108,
+      "within": 2
+    },
+    {
+      "name": "slice",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 108,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 108,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 110,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 110,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 110,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": "NodeScope",
+      "kind": "path",
+      "target": null,
+      "line": 111,
+      "within": 2
+    },
+    {
+      "name": "NodeScope",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 111,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 111,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 111,
+      "within": 2
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 111,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 112,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 112,
+      "within": 2
+    },
+    {
+      "name": "ResolutionScopeMismatch",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 112,
+      "within": 2
+    },
+    {
+      "name": "ResolutionScopeMismatch",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 112,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 112,
+      "within": 2
+    },
+    {
+      "name": "from_ref",
+      "qualifier": "slice",
+      "kind": "call",
+      "target": null,
+      "line": 114,
+      "within": 2
+    },
+    {
+      "name": "from_ref",
+      "qualifier": "slice",
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 2
+    },
+    {
+      "name": "slice",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 2
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 114,
+      "within": 2
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 116,
+      "within": 2
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 116,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 116,
+      "within": 2
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 117,
+      "within": 2
+    },
+    {
+      "name": "EmptyCandidateSet",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "EmptyCandidateSet",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 118,
+      "within": 2
+    },
+    {
+      "name": "as_slice",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 120,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 122,
+      "within": 2
+    },
+    {
+      "name": "Unknown",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 122,
+      "within": 2
+    },
+    {
+      "name": "Unknown",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 122,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 125,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 126,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 126,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 126,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 126,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 126,
+      "within": 2
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 131,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "call",
+      "target": null,
+      "line": 131,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "path",
+      "target": null,
+      "line": 131,
+      "within": 2
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 132,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "call",
+      "target": null,
+      "line": 132,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeSet",
+      "kind": "path",
+      "target": null,
+      "line": 132,
+      "within": 2
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 133,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "call",
+      "target": null,
+      "line": 133,
+      "within": 2
+    },
+    {
+      "name": "new",
+      "qualifier": "BTreeMap",
+      "kind": "path",
+      "target": null,
+      "line": 133,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 135,
+      "within": 2
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 135,
+      "within": 2
+    },
+    {
+      "name": "DuplicateEdge",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 136,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 136,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 136,
+      "within": 2
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 138,
+      "within": 2
+    },
+    {
+      "name": "DuplicateProjection",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 139,
+      "within": 2
+    },
+    {
+      "name": "DuplicateProjection",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 139,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 139,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 139,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 139,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 141,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 141,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 142,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 142,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 142,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 144,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 144,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 145,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 145,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 145,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 145,
+      "within": 2
+    },
+    {
+      "name": "is_empty",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 147,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 148,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 148,
+      "within": 2
+    },
+    {
+      "name": "MissingEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 148,
+      "within": 2
+    },
+    {
+      "name": "MissingEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 148,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 148,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 2
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 151,
+      "within": 2
+    },
+    {
+      "name": "DanglingEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 152,
+      "within": 2
+    },
+    {
+      "name": "DanglingEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 152,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 152,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 152,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 152,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 2
+    },
+    {
+      "name": "External",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 2
+    },
+    {
+      "name": "Resolved",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 2
+    },
+    {
+      "name": "Resolved",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 155,
+      "within": 2
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 2
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 2
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 2
+    },
+    {
+      "name": "Unknown",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 2
+    },
+    {
+      "name": "Unknown",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 156,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 157,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 157,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 157,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 157,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 157,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 160,
+      "within": 2
+    },
+    {
+      "name": "as_ref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 160,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 164,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 164,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 164,
+      "within": 2
+    },
+    {
+      "name": "UnsupportedEvidence",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 164,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 164,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 166,
+      "within": 2
+    },
+    {
+      "name": "entry",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 166,
+      "within": 2
+    },
+    {
+      "name": "or_insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 166,
+      "within": 2
+    },
+    {
+      "name": "is_some",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 170,
+      "within": 2
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 175,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 2
+    },
+    {
+      "name": "get",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 175,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 177,
+      "within": 2
+    },
+    {
+      "name": "MissingProjection",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 177,
+      "within": 2
+    },
+    {
+      "name": "MissingProjection",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 177,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 177,
+      "within": 2
+    },
+    {
+      "name": "as_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 182,
+      "within": 2
+    },
+    {
+      "name": "contains",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 182,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 183,
+      "within": 2
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 183,
+      "within": 2
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 183,
+      "within": 2
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 183,
+      "within": 2
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 183,
+      "within": 2
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 187,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 193,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 194,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 194,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 195,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 195,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 197,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 197,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 198,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 198,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 199,
+      "within": 3
+    },
+    {
+      "name": "CompilationUnit",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 3
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 3
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 200,
+      "within": 3
+    },
+    {
+      "name": "BuildIdentity",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 205,
+      "within": 4
+    },
+    {
+      "name": "Producer",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 206,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 208,
+      "within": 4
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 4
+    },
+    {
+      "name": "clear",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 210,
+      "within": 4
+    },
+    {
+      "name": "as_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 211,
+      "within": 4
+    },
+    {
+      "name": "iter_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 212,
+      "within": 4
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 213,
+      "within": 4
+    },
+    {
+      "name": "dedup",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 214,
+      "within": 4
+    },
+    {
+      "name": "as_mut",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 4
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 216,
+      "within": 4
+    },
+    {
+      "name": "dedup",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 217,
+      "within": 4
+    },
+    {
+      "name": "sort_by",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 220,
+      "within": 4
+    },
+    {
+      "name": "cmp",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 221,
+      "within": 4
+    },
+    {
+      "name": "to_vec",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 4
+    },
+    {
+      "name": "sort",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 230,
+      "within": 4
+    },
+    {
+      "name": "dedup",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 231,
+      "within": 4
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 232,
+      "within": 4
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 232,
+      "within": 4
+    },
+    {
+      "name": "to_vec",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 232,
+      "within": 4
+    },
+    {
+      "name": "to_vec",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 232,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 239,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 240,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 241,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 242,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 243,
+      "within": 5
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 243,
+      "within": 5
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 244,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 244,
+      "within": 5
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 5
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 5
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 245,
+      "within": 5
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 249,
+      "within": 6
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 250,
+      "within": 6
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 6
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 251,
+      "within": 6
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 254,
+      "within": null
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 254,
+      "within": null
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 255,
+      "within": 7
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 255,
+      "within": 7
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 255,
+      "within": 7
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 256,
+      "within": 7
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 256,
+      "within": 7
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 257,
+      "within": 7
+    },
+    {
+      "name": "Observed",
+      "qualifier": "KnowledgeState",
+      "kind": "path",
+      "target": null,
+      "line": 257,
+      "within": 7
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 258,
+      "within": 7
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 262,
+      "within": 8
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 8
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 262,
+      "within": 8
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 263,
+      "within": 8
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 263,
+      "within": 8
+    },
+    {
+      "name": "Declared",
+      "qualifier": "KnowledgeState",
+      "kind": "path",
+      "target": null,
+      "line": 264,
+      "within": 8
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 264,
+      "within": 8
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 265,
+      "within": 8
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 269,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 269,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 270,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 270,
+      "within": 9
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 271,
+      "within": 9
+    },
+    {
+      "name": "Unknown",
+      "qualifier": "KnowledgeState",
+      "kind": "path",
+      "target": null,
+      "line": 271,
+      "within": 9
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 11
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 11
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 11
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 11
+    },
+    {
+      "name": "is_valid",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 11
+    },
+    {
+      "name": "ok_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 11
+    },
+    {
+      "name": "then_some",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 286,
+      "within": 11
+    },
+    {
+      "name": "ContradictoryKnowledge",
+      "qualifier": "IntegrityError",
+      "kind": "call",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "ContradictoryKnowledge",
+      "qualifier": "IntegrityError",
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 11
+    },
+    {
+      "name": "AnalyzedScope",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 292,
+      "within": 12
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 292,
+      "within": 12
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 292,
+      "within": 12
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 293,
+      "within": 12
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 293,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "<String, &'static str>",
+      "kind": "call",
+      "target": null,
+      "line": 293,
+      "within": 12
+    },
+    {
+      "name": "new",
+      "qualifier": "<String, &'static str>",
+      "kind": "path",
+      "target": null,
+      "line": 293,
+      "within": 12
+    },
+    {
+      "name": "insert",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 295,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 295,
+      "within": 12
+    },
+    {
+      "name": "ContradictoryScope",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 12
+    },
+    {
+      "name": "ContradictoryScope",
+      "qualifier": "IntegrityError",
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 12
+    },
+    {
+      "name": "Err",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 296,
+      "within": 12
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 296,
+      "within": 12
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 297,
+      "within": 12
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 302,
+      "within": 12
+    },
+    {
+      "name": "record",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 305,
+      "within": 12
+    },
+    {
+      "name": "keys",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 307,
+      "within": 12
+    },
+    {
+      "name": "record",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 308,
+      "within": 12
+    },
+    {
+      "name": "record",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 12
+    },
+    {
+      "name": "record",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 314,
+      "within": 12
+    },
+    {
+      "name": "record",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 317,
+      "within": 12
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 319,
+      "within": 12
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 332,
+      "within": 14
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 333,
+      "within": 14
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 333,
+      "within": 14
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 334,
+      "within": 14
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 334,
+      "within": 14
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 334,
+      "within": 14
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 335,
+      "within": 14
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 340,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 340,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 341,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 341,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 342,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 342,
+      "within": 15
+    },
+    {
+      "name": "BTreeMap",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 343,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 343,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 344,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 344,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 345,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 345,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 346,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 346,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 347,
+      "within": 15
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 347,
+      "within": 15
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 352,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 353,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 354,
+      "within": 16
+    },
+    {
+      "name": "NodeKind",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 355,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 356,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 357,
+      "within": 16
+    },
+    {
+      "name": "NodeScope",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 358,
+      "within": 16
+    },
+    {
+      "name": "Location",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 359,
+      "within": 16
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 359,
+      "within": 16
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 360,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 360,
+      "within": 16
+    },
+    {
+      "name": "Provenance",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 361,
+      "within": 16
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 390,
+      "within": 19
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 391,
+      "within": 19
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 392,
+      "within": 19
+    },
+    {
+      "name": "EdgeKind",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 393,
+      "within": 19
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 394,
+      "within": 19
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 394,
+      "within": 19
+    },
+    {
+      "name": "Provenance",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 395,
+      "within": 19
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 406,
+      "within": 20
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 411,
+      "within": 21
+    },
+    {
+      "name": "Location",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 412,
+      "within": 21
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 412,
+      "within": 21
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 413,
+      "within": 21
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 413,
+      "within": 21
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 414,
+      "within": 21
+    },
+    {
+      "name": "EdgeKind",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 415,
+      "within": 21
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 416,
+      "within": 21
+    },
+    {
+      "name": "Provenance",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 417,
+      "within": 21
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 423,
+      "within": 22
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 424,
+      "within": 22
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 424,
+      "within": 22
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 425,
+      "within": 22
+    },
+    {
+      "name": "UnknownReason",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 426,
+      "within": 22
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 431,
+      "within": 23
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 432,
+      "within": 23
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 432,
+      "within": 23
+    },
+    {
+      "name": "BTreeSet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 433,
+      "within": 23
+    },
+    {
+      "name": "EdgeKind",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 433,
+      "within": 23
+    },
+    {
+      "name": "EvidencePolicy",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 436,
+      "within": null
+    },
+    {
+      "name": "CodeGraph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 438,
+      "within": 24
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 438,
+      "within": 24
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 438,
+      "within": 24
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 439,
+      "within": 24
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 439,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 440,
+      "within": 24
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 441,
+      "within": 24
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 441,
+      "within": 24
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 441,
+      "within": 24
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 444,
+      "within": 24
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "CodeGraph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 459,
+      "within": null
+    },
+    {
+      "name": "From",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 459,
+      "within": null
+    },
+    {
+      "name": "UncertaintyCounts",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 459,
+      "within": null
+    },
+    {
+      "name": "CodeGraph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 460,
+      "within": 26
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 460,
+      "within": 26
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 460,
+      "within": 26
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 461,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Self",
+      "kind": "call",
+      "target": null,
+      "line": 461,
+      "within": 26
+    },
+    {
+      "name": "default",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 461,
+      "within": 26
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 464,
+      "within": 26
+    },
+    {
+      "name": "Resolved",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 464,
+      "within": 26
+    },
+    {
+      "name": "Resolved",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 464,
+      "within": 26
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 465,
+      "within": 26
+    },
+    {
+      "name": "Ambiguous",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 465,
+      "within": 26
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 465,
+      "within": 26
+    },
+    {
+      "name": "External",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 466,
+      "within": 26
+    },
+    {
+      "name": "External",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 466,
+      "within": 26
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 466,
+      "within": 26
+    },
+    {
+      "name": "Resolution",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 467,
+      "within": 26
+    },
+    {
+      "name": "Unknown",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 467,
+      "within": 26
+    },
+    {
+      "name": "Unknown",
+      "qualifier": "Resolution",
+      "kind": "type",
+      "target": null,
+      "line": 467,
+      "within": 26
+    },
+    {
+      "name": "UnknownReasonKind",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 476,
+      "within": 27
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 477,
+      "within": 27
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 491,
+      "within": 29
+    },
+    {
+      "name": "SourceRange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 492,
+      "within": 29
+    },
+    {
+      "name": "PositionEncoding",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 493,
+      "within": 29
+    },
+    {
+      "name": "SourceRange",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 513,
+      "within": null
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 514,
+      "within": 32
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 514,
+      "within": 32
+    },
+    {
+      "name": "saturating_sub",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 521,
+      "within": 33
+    },
+    {
+      "name": "saturating_sub",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 522,
+      "within": 33
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 529,
+      "within": 34
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 530,
+      "within": 34
+    },
+    {
+      "name": "DiagnosticSeverity",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 535,
+      "within": 35
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 536,
+      "within": 35
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 537,
+      "within": 35
+    },
+    {
+      "name": "Location",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 538,
+      "within": 35
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 538,
+      "within": 35
+    },
+    {
+      "name": "Provenance",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 539,
+      "within": 35
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 552,
+      "within": 37
+    },
+    {
+      "name": "ValidationStatus",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 553,
+      "within": 37
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 554,
+      "within": 37
+    },
+    {
+      "name": "Provenance",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 555,
+      "within": 37
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 572,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 573,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 574,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 575,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 576,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 577,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 578,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 579,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 580,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 581,
+      "within": 39
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 583,
+      "within": 39
+    },
+    {
+      "name": "Display",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 589,
+      "within": null
+    },
+    {
+      "name": "Display",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 589,
+      "within": null
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 589,
+      "within": null
+    },
+    {
+      "name": "fmt",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 589,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 589,
+      "within": null
+    },
+    {
+      "name": "Formatter",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "Formatter",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "Result",
+      "qualifier": "fmt",
+      "kind": "type",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "fmt",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 590,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 592,
+      "within": 40
+    },
+    {
+      "name": "UnsupportedSchema",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 592,
+      "within": 40
+    },
+    {
+      "name": "BuildIdentityMismatch",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 593,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 593,
+      "within": 40
+    },
+    {
+      "name": "write_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 593,
+      "within": 40
+    },
+    {
+      "name": "DuplicateNode",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 594,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 594,
+      "within": 40
+    },
+    {
+      "name": "write_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 594,
+      "within": 40
+    },
+    {
+      "name": "DuplicateEdge",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 595,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 595,
+      "within": 40
+    },
+    {
+      "name": "write_str",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 595,
+      "within": 40
+    },
+    {
+      "name": "DuplicateProjection",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 596,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 596,
+      "within": 40
+    },
+    {
+      "name": "DuplicateReference",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 599,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 599,
+      "within": 40
+    },
+    {
+      "name": "DanglingNode",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 602,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 602,
+      "within": 40
+    },
+    {
+      "name": "DanglingEvidence",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 603,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 603,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 606,
+      "within": 40
+    },
+    {
+      "name": "UnsupportedEvidence",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 606,
+      "within": 40
+    },
+    {
+      "name": "MissingProjection",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 609,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 609,
+      "within": 40
+    },
+    {
+      "name": "MissingEvidence",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 612,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 612,
+      "within": 40
+    },
+    {
+      "name": "EmptyCandidateSet",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 613,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 613,
+      "within": 40
+    },
+    {
+      "name": "ResolutionScopeMismatch",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 619,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 619,
+      "within": 40
+    },
+    {
+      "name": "ContradictoryKnowledge",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 625,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 625,
+      "within": 40
+    },
+    {
+      "name": "ContradictoryScope",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 628,
+      "within": 40
+    },
+    {
+      "name": "ContradictoryScope",
+      "qualifier": "Self",
+      "kind": "type",
+      "target": null,
+      "line": 628,
+      "within": 40
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 628,
+      "within": 40
+    },
+    {
+      "name": "Error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 640,
+      "within": null
+    },
+    {
+      "name": "Error",
+      "qualifier": "error",
+      "kind": "type",
+      "target": null,
+      "line": 640,
+      "within": null
+    },
+    {
+      "name": "IntegrityError",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 640,
+      "within": null
+    },
+    {
+      "name": "error",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 640,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 640,
+      "within": null
+    },
+    {
+      "name": "graph",
+      "qualifier": "test_support",
+      "kind": "path",
+      "target": null,
+      "line": 645,
+      "within": null
+    },
+    {
+      "name": "test_support",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 645,
+      "within": null
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 649,
+      "within": 41
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 650,
+      "within": 41
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 651,
+      "within": 41
+    },
+    {
+      "name": "Unknown",
+      "qualifier": "KnowledgeState",
+      "kind": "path",
+      "target": null,
+      "line": 651,
+      "within": 41
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 652,
+      "within": 41
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 652,
+      "within": 41
+    },
+    {
+      "name": "capsule_id",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 654,
+      "within": 41
+    },
+    {
+      "name": "Knowledge",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 663,
+      "within": 41
+    },
+    {
+      "name": "KnowledgeState",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 664,
+      "within": 41
+    },
+    {
+      "name": "Observed",
+      "qualifier": "KnowledgeState",
+      "kind": "path",
+      "target": null,
+      "line": 664,
+      "within": 41
+    },
+    {
+      "name": "capsule_id",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 667,
+      "within": 41
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 678,
+      "within": 42
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 679,
+      "within": 42
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 679,
+      "within": 42
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 680,
+      "within": 42
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 680,
+      "within": 42
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 690,
+      "within": 43
+    },
+    {
+      "name": "Some",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 691,
+      "within": 43
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 691,
+      "within": 43
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 703,
+      "within": 44
+    },
+    {
+      "name": "clear",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 704,
+      "within": 44
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 714,
+      "within": 45
+    },
+    {
+      "name": "snapshot_id",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 715,
+      "within": 45
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 716,
+      "within": 45
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 717,
+      "within": 45
+    },
+    {
+      "name": "graph",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 724,
+      "within": 46
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 725,
+      "within": 46
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 726,
+      "within": 46
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 727,
+      "within": 46
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "BTreeMap",
+      "path": [
+        "std",
+        "collections",
+        "BTreeMap"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "BTreeSet",
+      "path": [
+        "std",
+        "collections",
+        "BTreeSet"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Deserialize",
+      "path": [
+        "serde",
+        "Deserialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Digest",
+      "path": [
+        "sha2",
+        "Digest"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Serialize",
+      "path": [
+        "serde",
+        "Serialize"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Sha256",
+      "path": [
+        "sha2",
+        "Sha256"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "graph",
+      "path": [
+        "test_support",
+        "graph"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "model"
+  ]
+}

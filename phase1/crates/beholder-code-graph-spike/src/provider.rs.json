@@ -1,0 +1,151 @@
+{
+  "path": "crates/beholder-code-graph-spike/src/provider.rs",
+  "language": "rust",
+  "content_hash": "d16fd3a656fa21c5abb2503504a6faeaf1608e92beee443292b0c09918b3a341",
+  "tier": 1,
+  "density": 0.625,
+  "lines": 10,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-code-graph-spike/src/provider.rs:type:Provider",
+      "path": "crates/beholder-code-graph-spike/src/provider.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Provider",
+      "qualified_path": "Provider",
+      "discriminator": null,
+      "start_line": 10,
+      "start_column": 0,
+      "end_line": 14,
+      "end_column": 1,
+      "declaration": {
+        "line": 10,
+        "start_column": 10,
+        "end_column": 18
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "533a75492a15693190f19679978aa294f2cefb062ec1060bf5c8c48401fa1fe1",
+      "body_fingerprint": "8755dab01c0d85fc8aa22150062ef32621bf4c148109e9a1a49ac03ebc693741"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "CodeGraph",
+      "qualifier": "model",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "model",
+      "qualifier": "crate",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "Error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "Error",
+      "qualifier": "error",
+      "kind": "type",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "Send",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "Sync",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "error",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 11,
+      "within": 0
+    },
+    {
+      "name": "CodeGraph",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "Error",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "Error",
+      "qualifier": "Self",
+      "kind": "type",
+      "target": null,
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 13,
+      "within": 0
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 13,
+      "within": 0
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "CodeGraph",
+      "path": [
+        "model",
+        "CodeGraph"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": [
+    "provider"
+  ]
+}

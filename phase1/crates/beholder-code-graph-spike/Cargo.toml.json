@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder-code-graph-spike/Cargo.toml",
+  "language": null,
+  "content_hash": "08542342d3b2a8e216ad8dc885ab3b813717c677223e189078d4efd52160439c",
+  "tier": 0,
+  "density": 0.04347826,
+  "lines": 23,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
