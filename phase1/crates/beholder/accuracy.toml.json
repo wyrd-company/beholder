@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/accuracy.toml",
+  "language": null,
+  "content_hash": "034d2b6815abf983fdd81d3bbcd2ca083a1bbe7dfebd575dd92349eb0ea72873",
+  "tier": 0,
+  "density": 0.029411765,
+  "lines": 34,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
