@@ -1,3 +1,0 @@
-# tally
-
-A counter.

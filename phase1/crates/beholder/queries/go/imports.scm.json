@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/go/imports.scm",
+  "language": null,
+  "content_hash": "3620e5a7e875cf8101947de49a4c4b4b24993f479f78ffc28a032919f7258379",
+  "tier": 0,
+  "density": 0.14285715,
+  "lines": 7,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
