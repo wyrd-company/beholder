@@ -1,0 +1,12 @@
+{
+  "path": "scripts/tests/semantic-oracle-reports.test.py",
+  "language": null,
+  "content_hash": "ec077481054c25246e6ef83049da59b48f7a2154f58ddd040a09a7b4a77369cf",
+  "tier": 0,
+  "density": 65.274925,
+  "lines": 1117,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

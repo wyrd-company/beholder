@@ -1,0 +1,12 @@
+{
+  "path": "scripts/tests/semantic-oracle-toolchains.test.py",
+  "language": null,
+  "content_hash": "295ce196f54c4faef72a5350e1cc8bf4c65d56296bf94b5535946c9a3130276e",
+  "tier": 0,
+  "density": 25.7553,
+  "lines": 438,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

@@ -1,0 +1,12 @@
+{
+  "path": "docs/evidence/semantic-oracle-signatures/sample/rust.yml",
+  "language": null,
+  "content_hash": "558674b10582e5da0d5fbb3389121b139dd4bf9c63f773d5eb6afed5d55aa665",
+  "tier": 0,
+  "density": 23.014297,
+  "lines": 103,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
