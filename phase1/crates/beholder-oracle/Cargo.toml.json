@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder-oracle/Cargo.toml",
+  "language": null,
+  "content_hash": "6db8b768dcc8131832ffd6c779ee97451f9df44c2dc75103c0c2fd4928923379",
+  "tier": 0,
+  "density": 0.04347826,
+  "lines": 23,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
