@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/queries/typescript/imports.scm",
+  "language": null,
+  "content_hash": "2a8b01beaebfe353c6969ba8e6bdcc219e9bf5a505d4b2022679818411db1b95",
+  "tier": 0,
+  "density": 2.4083333,
+  "lines": 30,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
