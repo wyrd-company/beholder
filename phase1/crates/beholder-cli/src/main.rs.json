@@ -1,0 +1,4332 @@
+{
+  "path": "crates/beholder-cli/src/main.rs",
+  "language": "rust",
+  "content_hash": "5b6d590b154e6aa74dc057d1477d8018cae1adc8b48abff49ccc29bb02ea5648",
+  "tier": 1,
+  "density": 41.32555,
+  "lines": 511,
+  "symbols": [
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:Cli",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Cli",
+      "qualified_path": "Cli",
+      "discriminator": null,
+      "start_line": 15,
+      "start_column": 0,
+      "end_line": 18,
+      "end_column": 1,
+      "declaration": {
+        "line": 15,
+        "start_column": 7,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "d9fd9e12e3b361be60e6922bc2a16f081b903d08a86893f6068c5b6ce9a5fbc7",
+      "body_fingerprint": "e674c124fc7c0993abb4fc393f64f3f6ead1d5e3dc68c5ce8ab9992cd1c67c30"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:Command",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Command",
+      "qualified_path": "Command",
+      "discriminator": null,
+      "start_line": 21,
+      "start_column": 0,
+      "end_line": 43,
+      "end_column": 1,
+      "declaration": {
+        "line": 21,
+        "start_column": 5,
+        "end_column": 12
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "b7b6039778943c83c6507d5b304f71bbefd8fcbb1c5ec20d12afcd089ae78e70",
+      "body_fingerprint": "ed4345fd3a3ca5a8d30fd492ed92f790650820265a9b8df810d4ecb64b7659b7"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:IndexArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "IndexArgs",
+      "qualified_path": "IndexArgs",
+      "discriminator": null,
+      "start_line": 46,
+      "start_column": 0,
+      "end_line": 59,
+      "end_column": 1,
+      "declaration": {
+        "line": 46,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "1327b026597bfe703d2f4fc16dba1e6af8d59a70283f33fd9d632a993b3acd44",
+      "body_fingerprint": "39350993b58d6aa2eeb4c2de8a89bd1a91b5c09add8df34e1eeaf9d3aac858e3"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:DeltaArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "DeltaArgs",
+      "qualified_path": "DeltaArgs",
+      "discriminator": null,
+      "start_line": 62,
+      "start_column": 0,
+      "end_line": 72,
+      "end_column": 1,
+      "declaration": {
+        "line": 62,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "f43713e69a80810ab64268fac79f58ba6e96f67eca03a12a6ada139f886fd70f",
+      "body_fingerprint": "7d259d8c24d17f536a7275efde7e22f6a678f5660106a2d097b8236cf93a147c"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:ReportArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "ReportArgs",
+      "qualified_path": "ReportArgs",
+      "discriminator": null,
+      "start_line": 75,
+      "start_column": 0,
+      "end_line": 96,
+      "end_column": 1,
+      "declaration": {
+        "line": 75,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2c4e4e14f9bd0dbf152a25aa62fdebca7feb75276749b393fa3ff8b36046e00a",
+      "body_fingerprint": "d01b81533ac1c9e95517bbcdc0347cb40eb30d1c66855ece60cf1464fbedd225"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:RenderArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "RenderArgs",
+      "qualified_path": "RenderArgs",
+      "discriminator": null,
+      "start_line": 99,
+      "start_column": 0,
+      "end_line": 108,
+      "end_column": 1,
+      "declaration": {
+        "line": 99,
+        "start_column": 7,
+        "end_column": 17
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "3fd12ea7b7e433d5b4d3b6217ba13f8a4a81a07808850dbe39da442983aa5135",
+      "body_fingerprint": "76145c1a77b7afc9d4b4269a580f50eedf9f5f3d7cc856b1e727928687e6b505"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:Format",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Format",
+      "qualified_path": "Format",
+      "discriminator": null,
+      "start_line": 111,
+      "start_column": 0,
+      "end_line": 120,
+      "end_column": 1,
+      "declaration": {
+        "line": 111,
+        "start_column": 5,
+        "end_column": 11
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "07c3fd730f7bffd1f1b1ccf0402fd3d8229b3a1b784c8c0f5dd548f11fd1473e",
+      "body_fingerprint": "62453976d3346a111cc95db42b00cae71ed2e8c9e7eef53dcaffb7c58763d468"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:WhenQuiet",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "WhenQuiet",
+      "qualified_path": "WhenQuiet",
+      "discriminator": null,
+      "start_line": 124,
+      "start_column": 0,
+      "end_line": 130,
+      "end_column": 1,
+      "declaration": {
+        "line": 124,
+        "start_column": 5,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "ee9b656dd634891a6b8bb0133604d0582313bb0d6b206fb1ef913c447aa10052",
+      "body_fingerprint": "1e6efe3dbcaf89dc038285e6582911f3f66fcf5598cd757d02597c8c45cecb73"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:Basis",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Basis",
+      "qualified_path": "Basis",
+      "discriminator": null,
+      "start_line": 133,
+      "start_column": 0,
+      "end_line": 136,
+      "end_column": 1,
+      "declaration": {
+        "line": 133,
+        "start_column": 5,
+        "end_column": 10
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "141cb808c734a37106ff85096ad0d085f08a9bb969d6a91b368eaf4fbe5c65c0",
+      "body_fingerprint": "8443294d3d7476e2d0fe898432791c025db2877e1aa880079e3e9b9ede9cb5b1"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:<beholder::risk::FanInBasis as From<Basis>>::from",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "from",
+      "qualified_path": "<beholder::risk::FanInBasis as From<Basis>>::from",
+      "discriminator": null,
+      "start_line": 139,
+      "start_column": 4,
+      "end_line": 144,
+      "end_column": 5,
+      "declaration": {
+        "line": 139,
+        "start_column": 7,
+        "end_column": 11
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "ba95858a1206c5797daacef4f4401693e7560a0eab6e540fef76ca7c91c9c604",
+      "body_fingerprint": "25af853c897cd858b86430fd2d930108ce49409584f508d8a3039ac7e43d8bef"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:GitprArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "GitprArgs",
+      "qualified_path": "GitprArgs",
+      "discriminator": null,
+      "start_line": 148,
+      "start_column": 0,
+      "end_line": 161,
+      "end_column": 1,
+      "declaration": {
+        "line": 148,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "9d17afcdefc91926110cf5cf143ba42408f2358378807126c92d656fdef62334",
+      "body_fingerprint": "f531abee2c6a9c69806b756f942f208f594f7c042cc9be52de23507010d4c6b4"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:StoreArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "StoreArgs",
+      "qualified_path": "StoreArgs",
+      "discriminator": null,
+      "start_line": 164,
+      "start_column": 0,
+      "end_line": 170,
+      "end_column": 1,
+      "declaration": {
+        "line": 164,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "2886746f52cb663100d0724c3a8da0ef30d2417f766b14e14a182f2d3079c70e",
+      "body_fingerprint": "7b3d19e8048c58f58981ec0bb379e33a85006a952e973a60711fdc27ed0f407d"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:AuditArgs",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "AuditArgs",
+      "qualified_path": "AuditArgs",
+      "discriminator": null,
+      "start_line": 173,
+      "start_column": 0,
+      "end_line": 182,
+      "end_column": 1,
+      "declaration": {
+        "line": 173,
+        "start_column": 7,
+        "end_column": 16
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "4718a141f434e2fbc556c8943244b125881e02950d6f8105a74808efb6ca0b4a",
+      "body_fingerprint": "ed5752f5bc57f109d234cb22060eb54aa21daea5e9f36af4348f575e0ab7194e"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:main",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "main",
+      "qualified_path": "main",
+      "discriminator": null,
+      "start_line": 184,
+      "start_column": 0,
+      "end_line": 194,
+      "end_column": 1,
+      "declaration": {
+        "line": 184,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "2080d43ef610f5913bb0919e00bbc8330d34e1fbac97c986c458ba62e3b39896",
+      "body_fingerprint": "ec768be6e8d3933e5447e17919961edd7cbe1b2a0064556a05f1793549bae7fa"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:open",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "open",
+      "qualified_path": "open",
+      "discriminator": null,
+      "start_line": 196,
+      "start_column": 0,
+      "end_line": 205,
+      "end_column": 1,
+      "declaration": {
+        "line": 196,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "6e277caac941931fee91a7bb01ea655f0c466768355547ddb84f60c87017a2c1",
+      "body_fingerprint": "dbbce5fd29da7715ce908af72b3b997421a7a126d49aad15262ab07531dd2da7"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:index",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "index",
+      "qualified_path": "index",
+      "discriminator": null,
+      "start_line": 207,
+      "start_column": 0,
+      "end_line": 276,
+      "end_column": 1,
+      "declaration": {
+        "line": 207,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 6,
+      "tier": 1,
+      "content_fingerprint": "df89890b387ac321ed69b51b9e03bdf3a5ead8b184924adcb856f61cd64fac84",
+      "body_fingerprint": "eb858ea9669a65dfaec03963d5e3dfce32bf07a74135dca8773966b1ccffc308"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:refuse_to_store_a_dirty_tree",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "refuse_to_store_a_dirty_tree",
+      "qualified_path": "refuse_to_store_a_dirty_tree",
+      "discriminator": null,
+      "start_line": 283,
+      "start_column": 0,
+      "end_line": 299,
+      "end_column": 1,
+      "declaration": {
+        "line": 283,
+        "start_column": 3,
+        "end_column": 31
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "9161850bcd9813ada75b5fcf8a34b318268febe90820a8cc0fcf91b5ce1dbecd",
+      "body_fingerprint": "058c62f39297c8974685d4aaac1912284a0c3b5d299d55b029e797bf67cc47e6"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:write_jsonl",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "write_jsonl",
+      "qualified_path": "write_jsonl",
+      "discriminator": null,
+      "start_line": 301,
+      "start_column": 0,
+      "end_line": 308,
+      "end_column": 1,
+      "declaration": {
+        "line": 301,
+        "start_column": 3,
+        "end_column": 14
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "494301b59bd095463bb84d9dcc8a36c7785898d9c0e675afb918ee3520ac4217",
+      "body_fingerprint": "ce4c677bbaf714038e1af2acbbcd274b7b18f657c47cbf57577cd8cca1f0dde6"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:run_delta",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "run_delta",
+      "qualified_path": "run_delta",
+      "discriminator": null,
+      "start_line": 310,
+      "start_column": 0,
+      "end_line": 325,
+      "end_column": 1,
+      "declaration": {
+        "line": 310,
+        "start_column": 3,
+        "end_column": 12
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "6b9085d6bcab5500aedbcc9fbcb384bfd6f5911c09f137ce458cde2a8f22daf0",
+      "body_fingerprint": "45a62cb542fcaa994756450b3428199c391f9f4f10da388cc1a21834f1801be1"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:report",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "report",
+      "qualified_path": "report",
+      "discriminator": null,
+      "start_line": 327,
+      "start_column": 0,
+      "end_line": 357,
+      "end_column": 1,
+      "declaration": {
+        "line": 327,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "85da704e7dd0a0bf54c86548ad3464a2c09b5ceed4e33057234459e9eee550c9",
+      "body_fingerprint": "bd555dfeeb5c578c2bb1652c3026a711af250a52f84253041e1faaee4c13246d"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:render",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "render",
+      "qualified_path": "render",
+      "discriminator": null,
+      "start_line": 359,
+      "start_column": 0,
+      "end_line": 373,
+      "end_column": 1,
+      "declaration": {
+        "line": 359,
+        "start_column": 3,
+        "end_column": 9
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "b72173d842923e7fbb52dad14b4e2510cfcea2389f152cb8151d6678c4bf3140",
+      "body_fingerprint": "96c052f150b3a15364078ddfe3aef1a9b9d0c920093d62ca040cc31d3617f067"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:emit",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "emit",
+      "qualified_path": "emit",
+      "discriminator": null,
+      "start_line": 380,
+      "start_column": 0,
+      "end_line": 398,
+      "end_column": 1,
+      "declaration": {
+        "line": 380,
+        "start_column": 3,
+        "end_column": 7
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "c2d2d2e1f27c3da596ef2ad42d36e68448eab8eeea6cc03f426ea71678af56b2",
+      "body_fingerprint": "5062c427969e0e934aff547992701fd5465e30031f389f0cdd0e923e901eafc5"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:gitpr",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "gitpr",
+      "qualified_path": "gitpr",
+      "discriminator": null,
+      "start_line": 406,
+      "start_column": 0,
+      "end_line": 429,
+      "end_column": 1,
+      "declaration": {
+        "line": 406,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "999dc572a8c560dcbef252bc3d4b3165c53af7b9c911022caec7311be25f6300",
+      "body_fingerprint": "de96fe638fcb1dc3db50847cc86b5d84120791f3a7714f56fe7e2184ab84deb6"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:type:Snapshot",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "type",
+      "name": "Snapshot",
+      "qualified_path": "Snapshot",
+      "discriminator": null,
+      "start_line": 431,
+      "start_column": 0,
+      "end_line": 436,
+      "end_column": 1,
+      "declaration": {
+        "line": 431,
+        "start_column": 7,
+        "end_column": 15
+      },
+      "cognitive_complexity": 0,
+      "tier": 1,
+      "content_fingerprint": "694df4500a12cf7a93db608c8aba2dc380783322c0067ce751c7bafe3f246433",
+      "body_fingerprint": "e08a95cfd9b894dac6fdb95c93d5d7eda3e27f8bcf102000b4574cffeccbd45d"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:read_gitpr_snapshot",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "read_gitpr_snapshot",
+      "qualified_path": "read_gitpr_snapshot",
+      "discriminator": null,
+      "start_line": 443,
+      "start_column": 0,
+      "end_line": 479,
+      "end_column": 1,
+      "declaration": {
+        "line": 443,
+        "start_column": 3,
+        "end_column": 22
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "6313797bda9c5963c7ae4a673feb4b598f92ebedf22f02607eea8b9631f02109",
+      "body_fingerprint": "f6b4332fa7b962df9635af9ce9a2aa52766b3fe99871cbbf3605016b19b9dac2"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:only_open_snapshot",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "only_open_snapshot",
+      "qualified_path": "only_open_snapshot",
+      "discriminator": null,
+      "start_line": 481,
+      "start_column": 0,
+      "end_line": 504,
+      "end_column": 1,
+      "declaration": {
+        "line": 481,
+        "start_column": 3,
+        "end_column": 21
+      },
+      "cognitive_complexity": 1,
+      "tier": 1,
+      "content_fingerprint": "d88c4332dd50017539405d77dd9d683f24e2c9c8faf4efd722bf353102916772",
+      "body_fingerprint": "36bbb86ee08f133b4088299f8e18cee84e6bc8fc9e09390e5443dbbbf5732998"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:store",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "store",
+      "qualified_path": "store",
+      "discriminator": null,
+      "start_line": 506,
+      "start_column": 0,
+      "end_line": 526,
+      "end_column": 1,
+      "declaration": {
+        "line": 506,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "493563af78a8f4717968d512500efd9dc77c3b5d7ccea308d1c5e8cda884354e",
+      "body_fingerprint": "a73d04cad0f157a012ddec42b43f867d51c10ab138a8019dcd283d75bfe4bda6"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:short",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "short",
+      "qualified_path": "short",
+      "discriminator": null,
+      "start_line": 528,
+      "start_column": 0,
+      "end_line": 534,
+      "end_column": 1,
+      "declaration": {
+        "line": 528,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 3,
+      "tier": 1,
+      "content_fingerprint": "820e5e6b422e2dee44a53b650e336a554d5fa56afd045b0ac980aa4d5a37d18b",
+      "body_fingerprint": "42eddd6b75ab5dbceb4bbd9623f725b688fd5ea72ffba98fb06676207e8e005e"
+    },
+    {
+      "id": "rust:crates/beholder-cli/src/main.rs:function:audit",
+      "path": "crates/beholder-cli/src/main.rs",
+      "language": "rust",
+      "kind": "function",
+      "name": "audit",
+      "qualified_path": "audit",
+      "discriminator": null,
+      "start_line": 536,
+      "start_column": 0,
+      "end_line": 581,
+      "end_column": 1,
+      "declaration": {
+        "line": 536,
+        "start_column": 3,
+        "end_column": 8
+      },
+      "cognitive_complexity": 2,
+      "tier": 1,
+      "content_fingerprint": "43cd2b044a95f3b489d2860a0929543edd6797c0098e1c5829bce84542c32a33",
+      "body_fingerprint": "10f74a85e08447543ffe8c3254fa80ff61ec8b7f02f94f3e18e23978560f604d"
+    }
+  ],
+  "occurrences": [
+    {
+      "name": "Write",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 3,
+      "within": null
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 3,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 3,
+      "within": null
+    },
+    {
+      "name": "path",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 4,
+      "within": null
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 4,
+      "within": null
+    },
+    {
+      "name": "analysis",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 7,
+      "within": null
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "delta",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 8,
+      "within": null
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 9,
+      "within": null
+    },
+    {
+      "name": "store",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 9,
+      "within": null
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 17,
+      "within": 0
+    },
+    {
+      "name": "IndexArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 23,
+      "within": 1
+    },
+    {
+      "name": "DeltaArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 25,
+      "within": 1
+    },
+    {
+      "name": "ReportArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 27,
+      "within": 1
+    },
+    {
+      "name": "RenderArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 33,
+      "within": 1
+    },
+    {
+      "name": "GitprArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 35,
+      "within": 1
+    },
+    {
+      "name": "StoreArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 37,
+      "within": 1
+    },
+    {
+      "name": "AuditArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 42,
+      "within": 1
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 49,
+      "within": 2
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 52,
+      "within": 2
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 52,
+      "within": 2
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 64,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 66,
+      "within": 3
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 68,
+      "within": 3
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 76,
+      "within": 4
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 77,
+      "within": 4
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 79,
+      "within": 4
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 83,
+      "within": 4
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 89,
+      "within": 4
+    },
+    {
+      "name": "WhenQuiet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 95,
+      "within": 4
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 103,
+      "within": 5
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 103,
+      "within": 5
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 105,
+      "within": 5
+    },
+    {
+      "name": "WhenQuiet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 107,
+      "within": 5
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "FanInBasis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "FanInBasis",
+      "qualifier": "risk",
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "From",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "risk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 138,
+      "within": null
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "self_type",
+      "target": "enclosing_scope",
+      "line": 139,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 139,
+      "within": 9
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 141,
+      "within": 9
+    },
+    {
+      "name": "Raw",
+      "qualifier": "Basis",
+      "kind": "path",
+      "target": null,
+      "line": 141,
+      "within": 9
+    },
+    {
+      "name": "Raw",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 141,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 141,
+      "within": 9
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "Damped",
+      "qualifier": "Basis",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "Damped",
+      "qualifier": "Self",
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "Self",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 142,
+      "within": 9
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 150,
+      "within": 10
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 150,
+      "within": 10
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 152,
+      "within": 10
+    },
+    {
+      "name": "Basis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 154,
+      "within": 10
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 158,
+      "within": 10
+    },
+    {
+      "name": "WhenQuiet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 160,
+      "within": 10
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 166,
+      "within": 11
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 176,
+      "within": 12
+    },
+    {
+      "name": "PathBuf",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 178,
+      "within": 12
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 184,
+      "within": 13
+    },
+    {
+      "name": "Cli",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 185,
+      "within": 13
+    },
+    {
+      "name": "parse",
+      "qualifier": "Cli",
+      "kind": "call",
+      "target": null,
+      "line": 185,
+      "within": 13
+    },
+    {
+      "name": "parse",
+      "qualifier": "Cli",
+      "kind": "path",
+      "target": null,
+      "line": 185,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 186,
+      "within": 13
+    },
+    {
+      "name": "Index",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 186,
+      "within": 13
+    },
+    {
+      "name": "index",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 186,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 187,
+      "within": 13
+    },
+    {
+      "name": "Delta",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 187,
+      "within": 13
+    },
+    {
+      "name": "run_delta",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 187,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 13
+    },
+    {
+      "name": "Report",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 188,
+      "within": 13
+    },
+    {
+      "name": "report",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 188,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 189,
+      "within": 13
+    },
+    {
+      "name": "Render",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 189,
+      "within": 13
+    },
+    {
+      "name": "render",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 189,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 190,
+      "within": 13
+    },
+    {
+      "name": "Gitpr",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 190,
+      "within": 13
+    },
+    {
+      "name": "gitpr",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 190,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 191,
+      "within": 13
+    },
+    {
+      "name": "Store",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 191,
+      "within": 13
+    },
+    {
+      "name": "store",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 191,
+      "within": 13
+    },
+    {
+      "name": "AuditIdentity",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 192,
+      "within": 13
+    },
+    {
+      "name": "Command",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 192,
+      "within": 13
+    },
+    {
+      "name": "audit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 192,
+      "within": 13
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 196,
+      "within": 14
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 197,
+      "within": 14
+    },
+    {
+      "name": "discover",
+      "qualifier": "Repository",
+      "kind": "call",
+      "target": null,
+      "line": 197,
+      "within": 14
+    },
+    {
+      "name": "discover",
+      "qualifier": "Repository",
+      "kind": "path",
+      "target": null,
+      "line": 197,
+      "within": 14
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 197,
+      "within": 14
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 197,
+      "within": 14
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 14
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 14
+    },
+    {
+      "name": "workdir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 199,
+      "within": 14
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 203,
+      "within": 14
+    },
+    {
+      "name": "load",
+      "qualifier": "Config",
+      "kind": "call",
+      "target": null,
+      "line": 203,
+      "within": 14
+    },
+    {
+      "name": "load",
+      "qualifier": "Config",
+      "kind": "path",
+      "target": null,
+      "line": 203,
+      "within": 14
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 204,
+      "within": 14
+    },
+    {
+      "name": "IndexArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 15
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 207,
+      "within": 15
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 208,
+      "within": 15
+    },
+    {
+      "name": "expect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "workdir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 209,
+      "within": 15
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 210,
+      "within": 15
+    },
+    {
+      "name": "walk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 210,
+      "within": 15
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": "walk",
+      "kind": "call",
+      "target": null,
+      "line": 210,
+      "within": 15
+    },
+    {
+      "name": "walk_worktree",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 210,
+      "within": 15
+    },
+    {
+      "name": "Fingerprint",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 211,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "call",
+      "target": null,
+      "line": 211,
+      "within": 15
+    },
+    {
+      "name": "new",
+      "qualifier": "Fingerprint",
+      "kind": "path",
+      "target": null,
+      "line": 211,
+      "within": 15
+    },
+    {
+      "name": "Store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 214,
+      "within": 15
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 214,
+      "within": 15
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 214,
+      "within": 15
+    },
+    {
+      "name": "phase1_cache",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 215,
+      "within": 15
+    },
+    {
+      "name": "analysis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 216,
+      "within": 15
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": "analysis",
+      "kind": "call",
+      "target": null,
+      "line": 216,
+      "within": 15
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 216,
+      "within": 15
+    },
+    {
+      "name": "NoCache",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 218,
+      "within": 15
+    },
+    {
+      "name": "analysis",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 218,
+      "within": 15
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": "analysis",
+      "kind": "call",
+      "target": null,
+      "line": 218,
+      "within": 15
+    },
+    {
+      "name": "run_with_cache",
+      "qualifier": "analysis",
+      "kind": "path",
+      "target": null,
+      "line": 218,
+      "within": 15
+    },
+    {
+      "name": "clone",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 221,
+      "within": 15
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 221,
+      "within": 15
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 222,
+      "within": 15
+    },
+    {
+      "name": "create_dir_all",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 222,
+      "within": 15
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 222,
+      "within": 15
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 222,
+      "within": 15
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 222,
+      "within": 15
+    },
+    {
+      "name": "write_jsonl",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 224,
+      "within": 15
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 225,
+      "within": 15
+    },
+    {
+      "name": "jsonl",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 15
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": "jsonl",
+      "kind": "call",
+      "target": null,
+      "line": 226,
+      "within": 15
+    },
+    {
+      "name": "symbol_records",
+      "qualifier": "jsonl",
+      "kind": "path",
+      "target": null,
+      "line": 226,
+      "within": 15
+    },
+    {
+      "name": "write_jsonl",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 228,
+      "within": 15
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 229,
+      "within": 15
+    },
+    {
+      "name": "file_records",
+      "qualifier": "jsonl",
+      "kind": "call",
+      "target": null,
+      "line": 230,
+      "within": 15
+    },
+    {
+      "name": "file_records",
+      "qualifier": "jsonl",
+      "kind": "path",
+      "target": null,
+      "line": 230,
+      "within": 15
+    },
+    {
+      "name": "jsonl",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 230,
+      "within": 15
+    },
+    {
+      "name": "write_jsonl",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 232,
+      "within": 15
+    },
+    {
+      "name": "join",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 233,
+      "within": 15
+    },
+    {
+      "name": "edge_records",
+      "qualifier": "jsonl",
+      "kind": "call",
+      "target": null,
+      "line": 234,
+      "within": 15
+    },
+    {
+      "name": "edge_records",
+      "qualifier": "jsonl",
+      "kind": "path",
+      "target": null,
+      "line": 234,
+      "within": 15
+    },
+    {
+      "name": "jsonl",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 234,
+      "within": 15
+    },
+    {
+      "name": "head",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "id",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "peel_to_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 238,
+      "within": 15
+    },
+    {
+      "name": "refuse_to_store_a_dirty_tree",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 239,
+      "within": 15
+    },
+    {
+      "name": "Store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 240,
+      "within": 15
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 240,
+      "within": 15
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 240,
+      "within": 15
+    },
+    {
+      "name": "write",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 240,
+      "within": 15
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 275,
+      "within": 15
+    },
+    {
+      "name": "Repository",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 284,
+      "within": 16
+    },
+    {
+      "name": "Repository",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 284,
+      "within": 16
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 284,
+      "within": 16
+    },
+    {
+      "name": "Oid",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 16
+    },
+    {
+      "name": "Oid",
+      "qualifier": "git2",
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 16
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 285,
+      "within": 16
+    },
+    {
+      "name": "Analysis",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 286,
+      "within": 16
+    },
+    {
+      "name": "Analysis",
+      "qualifier": "beholder",
+      "kind": "type",
+      "target": null,
+      "line": 286,
+      "within": 16
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 286,
+      "within": 16
+    },
+    {
+      "name": "Config",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 287,
+      "within": 16
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 288,
+      "within": 16
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 16
+    },
+    {
+      "name": "revision_manifest",
+      "qualifier": "walk",
+      "kind": "call",
+      "target": null,
+      "line": 289,
+      "within": 16
+    },
+    {
+      "name": "revision_manifest",
+      "qualifier": "walk",
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 16
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 289,
+      "within": 16
+    },
+    {
+      "name": "walk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 289,
+      "within": 16
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 291,
+      "within": 16
+    },
+    {
+      "name": "store",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 291,
+      "within": 16
+    },
+    {
+      "name": "validate_payload",
+      "qualifier": "store",
+      "kind": "call",
+      "target": null,
+      "line": 291,
+      "within": 16
+    },
+    {
+      "name": "validate_payload",
+      "qualifier": "store",
+      "kind": "path",
+      "target": null,
+      "line": 291,
+      "within": 16
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 292,
+      "within": 16
+    },
+    {
+      "name": "bail",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 292,
+      "within": 16
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 298,
+      "within": 16
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "Serialize",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "Serialize",
+      "qualifier": "serde",
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "T",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "serde",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 301,
+      "within": 17
+    },
+    {
+      "name": "File",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "create",
+      "qualifier": "File",
+      "kind": "call",
+      "target": null,
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "create",
+      "qualifier": "File",
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 303,
+      "within": 17
+    },
+    {
+      "name": "BufWriter",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 304,
+      "within": 17
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 304,
+      "within": 17
+    },
+    {
+      "name": "new",
+      "qualifier": "BufWriter",
+      "kind": "call",
+      "target": null,
+      "line": 304,
+      "within": 17
+    },
+    {
+      "name": "new",
+      "qualifier": "BufWriter",
+      "kind": "path",
+      "target": null,
+      "line": 304,
+      "within": 17
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 304,
+      "within": 17
+    },
+    {
+      "name": "jsonl",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 305,
+      "within": 17
+    },
+    {
+      "name": "write",
+      "qualifier": "jsonl",
+      "kind": "call",
+      "target": null,
+      "line": 305,
+      "within": 17
+    },
+    {
+      "name": "write",
+      "qualifier": "jsonl",
+      "kind": "path",
+      "target": null,
+      "line": 305,
+      "within": 17
+    },
+    {
+      "name": "flush",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 306,
+      "within": 17
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 307,
+      "within": 17
+    },
+    {
+      "name": "DeltaArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 310,
+      "within": 18
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 310,
+      "within": 18
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 311,
+      "within": 18
+    },
+    {
+      "name": "Store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 312,
+      "within": 18
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 312,
+      "within": 18
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 312,
+      "within": 18
+    },
+    {
+      "name": "then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 312,
+      "within": 18
+    },
+    {
+      "name": "as_ref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 315,
+      "within": 18
+    },
+    {
+      "name": "compare_revisions",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 315,
+      "within": 18
+    },
+    {
+      "name": "compare_revisions",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 315,
+      "within": 18
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 315,
+      "within": 18
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 317,
+      "within": 18
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 317,
+      "within": 18
+    },
+    {
+      "name": "stdout",
+      "qualifier": "io",
+      "kind": "call",
+      "target": null,
+      "line": 317,
+      "within": 18
+    },
+    {
+      "name": "stdout",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 317,
+      "within": 18
+    },
+    {
+      "name": "lock",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 318,
+      "within": 18
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 320,
+      "within": 18
+    },
+    {
+      "name": "to_writer",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 320,
+      "within": 18
+    },
+    {
+      "name": "to_writer",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 320,
+      "within": 18
+    },
+    {
+      "name": "write_all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 321,
+      "within": 18
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 324,
+      "within": 18
+    },
+    {
+      "name": "ReportArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 327,
+      "within": 19
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 327,
+      "within": 19
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 328,
+      "within": 19
+    },
+    {
+      "name": "Store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 329,
+      "within": 19
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 329,
+      "within": 19
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 329,
+      "within": 19
+    },
+    {
+      "name": "then",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 329,
+      "within": 19
+    },
+    {
+      "name": "compare_revisions_detailed",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 331,
+      "within": 19
+    },
+    {
+      "name": "compare_revisions_detailed",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 331,
+      "within": 19
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 331,
+      "within": 19
+    },
+    {
+      "name": "as_ref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 336,
+      "within": 19
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 346,
+      "within": 19
+    },
+    {
+      "name": "rank",
+      "qualifier": "risk",
+      "kind": "call",
+      "target": null,
+      "line": 346,
+      "within": 19
+    },
+    {
+      "name": "rank",
+      "qualifier": "risk",
+      "kind": "path",
+      "target": null,
+      "line": 346,
+      "within": 19
+    },
+    {
+      "name": "risk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 346,
+      "within": 19
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 352,
+      "within": 19
+    },
+    {
+      "name": "emit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 356,
+      "within": 19
+    },
+    {
+      "name": "RenderArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 359,
+      "within": 20
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "as_deref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "filter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "call",
+      "target": null,
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "new",
+      "qualifier": "Path",
+      "kind": "path",
+      "target": null,
+      "line": 360,
+      "within": 20
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "io",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "lock",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "io",
+      "kind": "call",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "stdin",
+      "qualifier": "io",
+      "kind": "call",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "stdin",
+      "qualifier": "io",
+      "kind": "path",
+      "target": null,
+      "line": 362,
+      "within": 20
+    },
+    {
+      "name": "fs",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 20
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "call",
+      "target": null,
+      "line": 365,
+      "within": 20
+    },
+    {
+      "name": "read_to_string",
+      "qualifier": "fs",
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 20
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 365,
+      "within": 20
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 365,
+      "within": 20
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "Report",
+      "qualifier": "risk",
+      "kind": "type",
+      "target": null,
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "risk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 369,
+      "within": 20
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 370,
+      "within": 20
+    },
+    {
+      "name": "from_str",
+      "qualifier": "serde_json",
+      "kind": "call",
+      "target": null,
+      "line": 370,
+      "within": 20
+    },
+    {
+      "name": "from_str",
+      "qualifier": "serde_json",
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 20
+    },
+    {
+      "name": "serde_json",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 370,
+      "within": 20
+    },
+    {
+      "name": "emit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 372,
+      "within": 20
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "Report",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "Report",
+      "qualifier": "risk",
+      "kind": "type",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "WhenQuiet",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "risk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 380,
+      "within": 21
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 382,
+      "within": 21
+    },
+    {
+      "name": "Text",
+      "qualifier": "Format",
+      "kind": "path",
+      "target": null,
+      "line": 382,
+      "within": 21
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 383,
+      "within": 21
+    },
+    {
+      "name": "Json",
+      "qualifier": "Format",
+      "kind": "path",
+      "target": null,
+      "line": 383,
+      "within": 21
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 384,
+      "within": 21
+    },
+    {
+      "name": "Sarif",
+      "qualifier": "Format",
+      "kind": "path",
+      "target": null,
+      "line": 384,
+      "within": 21
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "Markdown",
+      "qualifier": "Format",
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "markdown",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "render",
+      "qualifier": "markdown",
+      "kind": "call",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "render",
+      "qualifier": "markdown",
+      "kind": "path",
+      "target": null,
+      "line": 388,
+      "within": 21
+    },
+    {
+      "name": "Note",
+      "qualifier": "WhenQuiet",
+      "kind": "path",
+      "target": null,
+      "line": 390,
+      "within": 21
+    },
+    {
+      "name": "WhenQuiet",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 390,
+      "within": 21
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 397,
+      "within": 21
+    },
+    {
+      "name": "GitprArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 406,
+      "within": 22
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 406,
+      "within": 22
+    },
+    {
+      "name": "as_deref",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 407,
+      "within": 22
+    },
+    {
+      "name": "read_gitpr_snapshot",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 407,
+      "within": 22
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 409,
+      "within": 22
+    },
+    {
+      "name": "analyze_revision",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 410,
+      "within": 22
+    },
+    {
+      "name": "analyze_revision",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 410,
+      "within": 22
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 410,
+      "within": 22
+    },
+    {
+      "name": "analyze_revision",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "analyze_revision",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 411,
+      "within": 22
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "compare",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 412,
+      "within": 22
+    },
+    {
+      "name": "beholder",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 414,
+      "within": 22
+    },
+    {
+      "name": "rank",
+      "qualifier": "risk",
+      "kind": "call",
+      "target": null,
+      "line": 414,
+      "within": 22
+    },
+    {
+      "name": "rank",
+      "qualifier": "risk",
+      "kind": "path",
+      "target": null,
+      "line": 414,
+      "within": 22
+    },
+    {
+      "name": "risk",
+      "qualifier": "beholder",
+      "kind": "path",
+      "target": null,
+      "line": 414,
+      "within": 22
+    },
+    {
+      "name": "into",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 420,
+      "within": 22
+    },
+    {
+      "name": "Format",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 424,
+      "within": 22
+    },
+    {
+      "name": "Text",
+      "qualifier": "Format",
+      "kind": "path",
+      "target": null,
+      "line": 424,
+      "within": 22
+    },
+    {
+      "name": "emit",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 428,
+      "within": 22
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 432,
+      "within": 23
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 433,
+      "within": 23
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 434,
+      "within": 23
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 435,
+      "within": 23
+    },
+    {
+      "name": "Option",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 443,
+      "within": 24
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 443,
+      "within": 24
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 443,
+      "within": 24
+    },
+    {
+      "name": "Snapshot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 443,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 445,
+      "within": 24
+    },
+    {
+      "name": "only_open_snapshot",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 446,
+      "within": 24
+    },
+    {
+      "name": "Command",
+      "qualifier": "process",
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "arg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "current_dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "call",
+      "target": null,
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "output",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "process",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 449,
+      "within": 24
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "ensure",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 456,
+      "within": 24
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 462,
+      "within": 24
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 462,
+      "within": 24
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 462,
+      "within": 24
+    },
+    {
+      "name": "from_utf8",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 462,
+      "within": 24
+    },
+    {
+      "name": "find_map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "lines",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "take_while",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 464,
+      "within": 24
+    },
+    {
+      "name": "starts_with",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 465,
+      "within": 24
+    },
+    {
+      "name": "strip_prefix",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 466,
+      "within": 24
+    },
+    {
+      "name": "str",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 467,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": "str",
+      "kind": "path",
+      "target": null,
+      "line": 467,
+      "within": 24
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 470,
+      "within": 24
+    },
+    {
+      "name": "Snapshot",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 470,
+      "within": 24
+    },
+    {
+      "name": "field",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 471,
+      "within": 24
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 471,
+      "within": 24
+    },
+    {
+      "name": "unwrap_or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 471,
+      "within": 24
+    },
+    {
+      "name": "field",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 472,
+      "within": 24
+    },
+    {
+      "name": "or_else",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 472,
+      "within": 24
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 472,
+      "within": 24
+    },
+    {
+      "name": "field",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 473,
+      "within": 24
+    },
+    {
+      "name": "field",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 475,
+      "within": 24
+    },
+    {
+      "name": "with_context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 475,
+      "within": 24
+    },
+    {
+      "name": "Path",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 481,
+      "within": 25
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 481,
+      "within": 25
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 481,
+      "within": 25
+    },
+    {
+      "name": "Command",
+      "qualifier": "process",
+      "kind": "path",
+      "target": null,
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "arg",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "context",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "current_dir",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "call",
+      "target": null,
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "new",
+      "qualifier": "Command",
+      "kind": "path",
+      "target": null,
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "output",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "process",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 482,
+      "within": 25
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 492,
+      "within": 25
+    },
+    {
+      "name": "from_utf8_lossy",
+      "qualifier": "String",
+      "kind": "call",
+      "target": null,
+      "line": 492,
+      "within": 25
+    },
+    {
+      "name": "from_utf8_lossy",
+      "qualifier": "String",
+      "kind": "path",
+      "target": null,
+      "line": 492,
+      "within": 25
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 493,
+      "within": 25
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 493,
+      "within": 25
+    },
+    {
+      "name": "filter_map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 493,
+      "within": 25
+    },
+    {
+      "name": "lines",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 493,
+      "within": 25
+    },
+    {
+      "name": "skip",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 493,
+      "within": 25
+    },
+    {
+      "name": "next",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 496,
+      "within": 25
+    },
+    {
+      "name": "split_whitespace",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 496,
+      "within": 25
+    },
+    {
+      "name": "as_slice",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 499,
+      "within": 25
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 500,
+      "within": 25
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 500,
+      "within": 25
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 501,
+      "within": 25
+    },
+    {
+      "name": "bail",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 501,
+      "within": 25
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 502,
+      "within": 25
+    },
+    {
+      "name": "bail",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 502,
+      "within": 25
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 506,
+      "within": 26
+    },
+    {
+      "name": "StoreArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 506,
+      "within": 26
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 507,
+      "within": 26
+    },
+    {
+      "name": "Store",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 508,
+      "within": 26
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "call",
+      "target": null,
+      "line": 508,
+      "within": 26
+    },
+    {
+      "name": "open",
+      "qualifier": "Store",
+      "kind": "path",
+      "target": null,
+      "line": 508,
+      "within": 26
+    },
+    {
+      "name": "tip",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 513,
+      "within": 26
+    },
+    {
+      "name": "history",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 518,
+      "within": 26
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 525,
+      "within": 26
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 528,
+      "within": 27
+    },
+    {
+      "name": "all",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 529,
+      "within": 27
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 529,
+      "within": 27
+    },
+    {
+      "name": "is_ascii_hexdigit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 529,
+      "within": 27
+    },
+    {
+      "name": "len",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 529,
+      "within": 27
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 530,
+      "within": 27
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 530,
+      "within": 27
+    },
+    {
+      "name": "take",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 530,
+      "within": 27
+    },
+    {
+      "name": "to_owned",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 532,
+      "within": 27
+    },
+    {
+      "name": "AuditArgs",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 536,
+      "within": 28
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 536,
+      "within": 28
+    },
+    {
+      "name": "open",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 537,
+      "within": 28
+    },
+    {
+      "name": "revwalk",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 539,
+      "within": 28
+    },
+    {
+      "name": "id",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 540,
+      "within": 28
+    },
+    {
+      "name": "peel_to_commit",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 540,
+      "within": 28
+    },
+    {
+      "name": "push",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 540,
+      "within": 28
+    },
+    {
+      "name": "revparse_single",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 540,
+      "within": 28
+    },
+    {
+      "name": "Sort",
+      "qualifier": "git2",
+      "kind": "path",
+      "target": null,
+      "line": 541,
+      "within": 28
+    },
+    {
+      "name": "TOPOLOGICAL",
+      "qualifier": "Sort",
+      "kind": "path",
+      "target": null,
+      "line": 541,
+      "within": 28
+    },
+    {
+      "name": "git2",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 541,
+      "within": 28
+    },
+    {
+      "name": "set_sorting",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 541,
+      "within": 28
+    },
+    {
+      "name": "simplify_first_parent",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 544,
+      "within": 28
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "collect",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "into_iter",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "map",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "take",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 546,
+      "within": 28
+    },
+    {
+      "name": "Result",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "Result",
+      "qualifier": "result",
+      "kind": "type",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "Vec",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "_",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "result",
+      "qualifier": "std",
+      "kind": "path",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "std",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 548,
+      "within": 28
+    },
+    {
+      "name": "to_string",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 550,
+      "within": 28
+    },
+    {
+      "name": "reverse",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 552,
+      "within": 28
+    },
+    {
+      "name": "audit_identity",
+      "qualifier": "delta",
+      "kind": "call",
+      "target": null,
+      "line": 554,
+      "within": 28
+    },
+    {
+      "name": "audit_identity",
+      "qualifier": "delta",
+      "kind": "path",
+      "target": null,
+      "line": 554,
+      "within": 28
+    },
+    {
+      "name": "delta",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 554,
+      "within": 28
+    },
+    {
+      "name": "String",
+      "qualifier": null,
+      "kind": "type",
+      "target": null,
+      "line": 566,
+      "within": 28
+    },
+    {
+      "name": "chars",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 566,
+      "within": 28
+    },
+    {
+      "name": "take",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 566,
+      "within": 28
+    },
+    {
+      "name": "passed",
+      "qualifier": null,
+      "kind": "method",
+      "target": "scoped",
+      "line": 576,
+      "within": 28
+    },
+    {
+      "name": "anyhow",
+      "qualifier": null,
+      "kind": "path",
+      "target": null,
+      "line": 577,
+      "within": 28
+    },
+    {
+      "name": "bail",
+      "qualifier": "anyhow",
+      "kind": "path",
+      "target": null,
+      "line": 577,
+      "within": 28
+    },
+    {
+      "name": "Ok",
+      "qualifier": null,
+      "kind": "call",
+      "target": null,
+      "line": 580,
+      "within": 28
+    }
+  ],
+  "imports": [
+    {
+      "local_name": "Args",
+      "path": [
+        "clap",
+        "Args"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Config",
+      "path": [
+        "beholder",
+        "Config"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Context",
+      "path": [
+        "anyhow",
+        "Context"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "DEFAULT_REF",
+      "path": [
+        "beholder",
+        "store",
+        "DEFAULT_REF"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Fingerprint",
+      "path": [
+        "beholder",
+        "analysis",
+        "Fingerprint"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Parser",
+      "path": [
+        "clap",
+        "Parser"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Path",
+      "path": [
+        "std",
+        "path",
+        "Path"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "PathBuf",
+      "path": [
+        "std",
+        "path",
+        "PathBuf"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "REFSPEC",
+      "path": [
+        "beholder",
+        "store",
+        "REFSPEC"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Result",
+      "path": [
+        "anyhow",
+        "Result"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Store",
+      "path": [
+        "beholder",
+        "store",
+        "Store"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Subcommand",
+      "path": [
+        "clap",
+        "Subcommand"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "Write",
+      "path": [
+        "std",
+        "io",
+        "Write"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "analysis",
+      "path": [
+        "beholder",
+        "analysis"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "delta",
+      "path": [
+        "beholder",
+        "delta"
+      ],
+      "kind": "binding"
+    },
+    {
+      "local_name": "jsonl",
+      "path": [
+        "beholder",
+        "jsonl"
+      ],
+      "kind": "binding"
+    }
+  ],
+  "module_segments": []
+}
