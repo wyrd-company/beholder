@@ -1,0 +1,12 @@
+{
+  "path": "scripts/gate5-evaluation.py",
+  "language": null,
+  "content_hash": "aef280126013636b1b22bbbb6a531c6684e9a8f3959c69cc8edb6ebdfa3df304",
+  "tier": 0,
+  "density": 25.933947,
+  "lines": 206,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}

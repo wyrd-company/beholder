@@ -1,0 +1,12 @@
+{
+  "path": "crates/beholder/Cargo.toml",
+  "language": null,
+  "content_hash": "e5e3ad1bc9b1526f570b699d318e40201c7f6c4b68a8d0e418f77408da986008",
+  "tier": 0,
+  "density": 0.03846154,
+  "lines": 26,
+  "symbols": [],
+  "occurrences": [],
+  "imports": [],
+  "module_segments": []
+}
