@@ -25,6 +25,12 @@ enum Command {
     Delta(DeltaArgs),
     /// Rank the symbols a change touched, most risky first.
     Report(ReportArgs),
+    /// Render a report that has already been produced.
+    ///
+    /// A review surface wants the same report as SARIF and as a comment. The
+    /// analysis is the expensive part, so it runs once, and every rendering
+    /// comes from the report it produced.
+    Render(RenderArgs),
     /// Report on a local gitpr review snapshot.
     Gitpr(GitprArgs),
     /// Report on the stored index ref.
@@ -81,6 +87,24 @@ struct ReportArgs {
     /// How to render the report.
     #[arg(long, value_enum, default_value_t = Format::Text)]
     format: Format,
+    /// Read and append phase results in the beholder ref.
+    #[arg(long)]
+    use_store: bool,
+    /// What to render when nothing crossed the threshold.
+    #[arg(long, value_enum, default_value_t = WhenQuiet::Omit)]
+    when_quiet: WhenQuiet,
+}
+
+#[derive(Args)]
+struct RenderArgs {
+    /// A report written by `beholder report --format json`. Reads stdin when
+    /// this is `-` or absent.
+    #[arg(long)]
+    from: Option<PathBuf>,
+    #[arg(long, value_enum, default_value_t = Format::Text)]
+    format: Format,
+    #[arg(long, value_enum, default_value_t = WhenQuiet::Omit)]
+    when_quiet: WhenQuiet,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -91,6 +115,18 @@ enum Format {
     Json,
     /// SARIF 2.1.0, for inline annotations on a review surface.
     Sarif,
+    /// A sticky pull request comment.
+    Markdown,
+}
+
+/// What a surface should be handed when a report has nothing to say.
+#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+enum WhenQuiet {
+    /// Render nothing. Empty output is how a surface learns to stay silent.
+    Omit,
+    /// Render a body saying so, for a comment that already exists and would
+    /// otherwise keep making a claim about code that has since changed.
+    Note,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -120,6 +156,8 @@ struct GitprArgs {
     threshold: f64,
     #[arg(long, value_enum, default_value_t = Format::Text)]
     format: Format,
+    #[arg(long, value_enum, default_value_t = WhenQuiet::Omit)]
+    when_quiet: WhenQuiet,
 }
 
 #[derive(Args)]
@@ -129,6 +167,15 @@ struct StoreArgs {
     /// How many index commits to list.
     #[arg(long, default_value_t = 20)]
     limit: usize,
+    /// Fetch the ref from this remote before reporting on it.
+    ///
+    /// A missing ref on the remote is not an error: a repository nobody has
+    /// indexed yet is the ordinary cold start.
+    #[arg(long, value_name = "REMOTE")]
+    fetch: Option<String>,
+    /// Publish the ref to this remote, never overwriting another writer.
+    #[arg(long, value_name = "REMOTE")]
+    push: Option<String>,
 }
 
 #[derive(Args)]
@@ -148,6 +195,7 @@ fn main() -> Result<()> {
         Command::Index(args) => index(args),
         Command::Delta(args) => run_delta(args),
         Command::Report(args) => report(args),
+        Command::Render(args) => render(args),
         Command::Gitpr(args) => gitpr(args),
         Command::Store(args) => store(args),
         Command::AuditIdentity(args) => audit(args),
@@ -287,28 +335,65 @@ fn run_delta(args: DeltaArgs) -> Result<()> {
 
 fn report(args: ReportArgs) -> Result<()> {
     let (repo, config) = open(&args.root)?;
+    let store = args.use_store.then(|| Store::open(&repo));
 
-    let before = delta::analyze_revision(&repo, &args.before, &config, None)?;
-    let after = delta::analyze_revision(&repo, &args.after, &config, None)?;
-    let changed = delta::compare(&before, &after);
+    let compared = delta::compare_revisions_detailed(
+        &repo,
+        &args.before,
+        &args.after,
+        &config,
+        store.as_ref(),
+    )?;
 
     let report = beholder::risk::rank(
         &args.before,
         &args.after,
-        &changed,
-        &before,
-        &after,
+        &compared.delta,
+        &compared.before,
+        &compared.after,
         args.basis.into(),
         args.threshold,
     );
 
-    match args.format {
-        Format::Text => print!("{}", beholder::risk::render(&report)),
-        Format::Json => println!("{}", serde_json::to_string_pretty(&report)?),
+    emit(&report, args.format, args.when_quiet)
+}
+
+fn render(args: RenderArgs) -> Result<()> {
+    let from = args.from.as_deref().filter(|path| *path != Path::new("-"));
+    let text = match from {
+        None => std::io::read_to_string(std::io::stdin().lock())
+            .context("reading a report from stdin")?,
+        Some(path) => {
+            std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?
+        }
+    };
+
+    let report: beholder::risk::Report =
+        serde_json::from_str(&text).context("parsing a beholder report")?;
+
+    emit(&report, args.format, args.when_quiet)
+}
+
+/// Render one report onto one surface.
+///
+/// Every surface consumes the same structure; the only thing a format decides
+/// is how it reads. Silence is a rendering too: an empty markdown body is what
+/// tells a review surface to post nothing.
+fn emit(report: &beholder::risk::Report, format: Format, when_quiet: WhenQuiet) -> Result<()> {
+    match format {
+        Format::Text => print!("{}", beholder::risk::render(report)),
+        Format::Json => println!("{}", serde_json::to_string_pretty(report)?),
         Format::Sarif => println!(
             "{}",
-            serde_json::to_string_pretty(&beholder::sarif::render(&report))?
+            serde_json::to_string_pretty(&beholder::sarif::render(report))?
         ),
+        Format::Markdown => match beholder::markdown::render(report) {
+            Some(body) => print!("{body}"),
+            None if when_quiet == WhenQuiet::Note => {
+                print!("{}", beholder::markdown::render_quiet(report))
+            }
+            None => {}
+        },
     }
 
     Ok(())
@@ -338,19 +423,11 @@ fn gitpr(args: GitprArgs) -> Result<()> {
         args.threshold,
     );
 
-    match args.format {
-        Format::Text => {
-            println!("gitpr {} — {}", snapshot.id, snapshot.title);
-            print!("{}", beholder::risk::render(&report));
-        }
-        Format::Json => println!("{}", serde_json::to_string_pretty(&report)?),
-        Format::Sarif => println!(
-            "{}",
-            serde_json::to_string_pretty(&beholder::sarif::render(&report))?
-        ),
+    if let Format::Text = args.format {
+        println!("gitpr {} — {}", snapshot.id, snapshot.title);
     }
 
-    Ok(())
+    emit(&report, args.format, args.when_quiet)
 }
 
 struct Snapshot {
@@ -430,7 +507,27 @@ fn only_open_snapshot(root: &Path) -> Result<String> {
 
 fn store(args: StoreArgs) -> Result<()> {
     let (repo, _) = open(&args.root)?;
-    let store = Store::open(&repo);
+    let mut store = Store::open(&repo);
+
+    if let Some(remote) = &args.fetch {
+        match store.fetch(remote) {
+            Ok(()) => println!("fetched {REFSPEC} from {remote}"),
+            // Nothing to fetch is the cold start, not a failure. A remote that
+            // has never been indexed has no ref to hand over.
+            Err(err) => println!("no index fetched from {remote}: {}", root_cause(&err)),
+        }
+    }
+
+    if let Some(remote) = &args.push {
+        store = store.with_remote(remote.clone());
+        match store.tip()? {
+            None => println!("nothing to push to {remote}: no index yet"),
+            Some(_) => {
+                store.push(remote)?;
+                println!("pushed {} to {remote}", store.refname());
+            }
+        }
+    }
 
     println!("ref:     {}", store.refname());
     println!("refspec: {REFSPEC}");
@@ -448,6 +545,10 @@ fn store(args: StoreArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn root_cause(err: &anyhow::Error) -> String {
+    err.root_cause().to_string()
 }
 
 fn audit(args: AuditArgs) -> Result<()> {

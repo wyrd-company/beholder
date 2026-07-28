@@ -270,6 +270,27 @@ pub fn compare_revisions(
     config: &Config,
     store: Option<&crate::Store<'_>>,
 ) -> Result<Delta> {
+    Ok(compare_revisions_detailed(repo, before, after, config, store)?.delta)
+}
+
+/// Both sides of a comparison, and the comparison itself.
+///
+/// Ranking needs the analyses as well as the delta: a symbol takes its degree
+/// from the revision it exists in.
+pub struct Comparison {
+    pub before: Analysis,
+    pub after: Analysis,
+    pub delta: Delta,
+}
+
+/// Compare two revisions, keeping both analyses.
+pub fn compare_revisions_detailed(
+    repo: &git2::Repository,
+    before: &str,
+    after: &str,
+    config: &Config,
+    store: Option<&crate::Store<'_>>,
+) -> Result<Comparison> {
     let before_analysis = analyze_revision(repo, before, config, store)?;
     let after_analysis = analyze_revision(repo, after, config, store)?;
 
@@ -285,7 +306,12 @@ pub fn compare_revisions(
         }
     }
 
-    Ok(compare(&before_analysis, &after_analysis))
+    let delta = compare(&before_analysis, &after_analysis);
+    Ok(Comparison {
+        before: before_analysis,
+        after: after_analysis,
+        delta,
+    })
 }
 
 // ---------------------------------------------------------------------------
