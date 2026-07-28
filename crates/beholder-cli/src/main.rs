@@ -25,6 +25,8 @@ enum Command {
     Delta(DeltaArgs),
     /// Rank the symbols a change touched, most risky first.
     Report(ReportArgs),
+    /// Report on a local gitpr review snapshot.
+    Gitpr(GitprArgs),
     /// Report on the stored index ref.
     Store(StoreArgs),
     /// Run delta across a run of revisions and count phantom changes.
@@ -107,6 +109,20 @@ impl From<Basis> for beholder::risk::FanInBasis {
 }
 
 #[derive(Args)]
+struct GitprArgs {
+    /// Snapshot id. Defaults to the only open snapshot.
+    pr: Option<String>,
+    #[arg(long, default_value = ".")]
+    root: PathBuf,
+    #[arg(long, value_enum, default_value_t = Basis::Damped)]
+    basis: Basis,
+    #[arg(long, default_value_t = beholder::risk::DEFAULT_THRESHOLD)]
+    threshold: f64,
+    #[arg(long, value_enum, default_value_t = Format::Text)]
+    format: Format,
+}
+
+#[derive(Args)]
 struct StoreArgs {
     #[arg(long, default_value = ".")]
     root: PathBuf,
@@ -132,6 +148,7 @@ fn main() -> Result<()> {
         Command::Index(args) => index(args),
         Command::Delta(args) => run_delta(args),
         Command::Report(args) => report(args),
+        Command::Gitpr(args) => gitpr(args),
         Command::Store(args) => store(args),
         Command::AuditIdentity(args) => audit(args),
     }
@@ -295,6 +312,120 @@ fn report(args: ReportArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Report on a gitpr snapshot.
+///
+/// The adapter's whole job is turning a snapshot into two revisions. Everything
+/// after that is the same code path a GitHub pull request takes, rendering the
+/// same report structure — which is the point of the structure being
+/// surface-agnostic.
+fn gitpr(args: GitprArgs) -> Result<()> {
+    let snapshot = read_gitpr_snapshot(&args.root, args.pr.as_deref())?;
+
+    let (repo, config) = open(&args.root)?;
+    let before = delta::analyze_revision(&repo, &snapshot.merge_base, &config, None)?;
+    let after = delta::analyze_revision(&repo, &snapshot.head, &config, None)?;
+    let changed = delta::compare(&before, &after);
+
+    let report = beholder::risk::rank(
+        &snapshot.merge_base,
+        &snapshot.head,
+        &changed,
+        &before,
+        &after,
+        args.basis.into(),
+        args.threshold,
+    );
+
+    match args.format {
+        Format::Text => {
+            println!("gitpr {} — {}", snapshot.id, snapshot.title);
+            print!("{}", beholder::risk::render(&report));
+        }
+        Format::Json => println!("{}", serde_json::to_string_pretty(&report)?),
+        Format::Sarif => println!(
+            "{}",
+            serde_json::to_string_pretty(&beholder::sarif::render(&report))?
+        ),
+    }
+
+    Ok(())
+}
+
+struct Snapshot {
+    id: String,
+    title: String,
+    merge_base: String,
+    head: String,
+}
+
+/// Read the revisions a gitpr snapshot describes.
+///
+/// `gitpr show` emits YAML whose leading block is flat scalars. Only four of
+/// them are needed, so they are read directly rather than taking on a YAML
+/// parser for the privilege.
+fn read_gitpr_snapshot(root: &Path, pr: Option<&str>) -> Result<Snapshot> {
+    let id = match pr {
+        Some(id) => id.to_owned(),
+        None => only_open_snapshot(root)?,
+    };
+
+    let output = std::process::Command::new("gitpr")
+        .arg("show")
+        .arg(&id)
+        .current_dir(root)
+        .output()
+        .context("running `gitpr show`; is gitpr installed?")?;
+
+    anyhow::ensure!(
+        output.status.success(),
+        "gitpr show {id} failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
+
+    let text = String::from_utf8(output.stdout).context("gitpr show emitted invalid UTF-8")?;
+    let field = |key: &str| {
+        text.lines()
+            .take_while(|line| !line.starts_with("file_diffs:"))
+            .find_map(|line| line.strip_prefix(&format!("{key}: ")))
+            .map(str::to_owned)
+    };
+
+    Ok(Snapshot {
+        title: field("title").unwrap_or_else(|| "(untitled)".to_owned()),
+        merge_base: field("merge_base_sha")
+            .or_else(|| field("base_head_sha"))
+            .with_context(|| format!("snapshot {id} names no base revision"))?,
+        head: field("source_head_sha")
+            .with_context(|| format!("snapshot {id} names no head revision"))?,
+        id,
+    })
+}
+
+fn only_open_snapshot(root: &Path) -> Result<String> {
+    let output = std::process::Command::new("gitpr")
+        .arg("list")
+        .arg("--status")
+        .arg("open")
+        .current_dir(root)
+        .output()
+        .context("running `gitpr list`")?;
+
+    // `gitpr list` prints a header row and then one snapshot per line, whose
+    // first column is the id — abbreviated, which `gitpr show` accepts.
+    let text = String::from_utf8_lossy(&output.stdout);
+    let ids: Vec<&str> = text
+        .lines()
+        .skip(1)
+        .filter_map(|line| line.split_whitespace().next())
+        .collect();
+
+    match ids.as_slice() {
+        [only] => Ok((*only).to_owned()),
+        [] => anyhow::bail!("no open gitpr snapshot; name one explicitly"),
+        many => anyhow::bail!("{} open gitpr snapshots; name one explicitly", many.len()),
+    }
 }
 
 fn store(args: StoreArgs) -> Result<()> {
