@@ -1,0 +1,31 @@
+name: versions
+
+# Beholder ships one version through three manifests. Intentional owns that
+# arithmetic for the org, so the check is its own rather than a second opinion
+# written here: it reads .intentional/config.yml and reports drift between the
+# manifests and the tags.
+#
+# Until the repository has a baseline tag this fails with missing-baseline,
+# which is accurate — before the first release there is nothing to be consistent
+# with. `intentional tag --baseline --version beholder=<version>` settles it
+# once, at the first release.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Current versions come from tags, which a shallow clone does not have.
+          fetch-depth: 0
+
+      - uses: wyrd-company/intentional@0.1.6
+        with:
+          command: check
+          intentional-version: 0.1.6
