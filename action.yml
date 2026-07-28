@@ -109,6 +109,10 @@ runs:
         head="${HEAD:-${HEAD_SHA:-HEAD}}"
         if [ -n "$BASE" ]; then
           base="$BASE"
+        elif [ -z "$BASE_REF" ]; then
+          echo "outside a pull request there is no merge base to compare against;" \
+               "pass base and head" >&2
+          exit 1
         else
           # The merge base, not the base branch tip: a report should describe
           # what this pull request did, not what landed on the base since.
