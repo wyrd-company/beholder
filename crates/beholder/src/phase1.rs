@@ -72,6 +72,7 @@ struct Compiled {
     symbols: Query,
     scopes: Query,
     complexity: Query,
+    discriminators: Query,
 }
 
 fn compiled(language: &LanguageDef) -> &'static Compiled {
@@ -90,6 +91,7 @@ fn compiled(language: &LanguageDef) -> &'static Compiled {
                     symbols: compile("symbols", l.symbols_query),
                     scopes: compile("scopes", l.scopes_query),
                     complexity: compile("complexity", l.complexity_query),
+                    discriminators: compile("discriminators", l.discriminators_query),
                 }
             })
             .collect()
@@ -109,6 +111,23 @@ fn property<'q>(query: &'q Query, pattern: usize, key: &str) -> Option<&'q str> 
         .iter()
         .find(|p| &*p.key == key)
         .and_then(|p| p.value.as_deref())
+}
+
+/// Does every `require.<capture>` property on this pattern hold?
+///
+/// A query cannot constrain a capture's text on its own, so a pattern declares
+/// the constraint and this checks it. That keeps a rule such as "only `cfg`
+/// attributes, not every attribute" in the query file rather than in code.
+fn requirements_met(query: &Query, pattern: usize, variables: &HashMap<String, String>) -> bool {
+    query
+        .property_settings(pattern)
+        .iter()
+        .filter_map(|p| {
+            p.key
+                .strip_prefix("require.")
+                .map(|capture| (capture, p.value.as_deref().unwrap_or_default()))
+        })
+        .all(|(capture, expected)| variables.get(capture).map(String::as_str) == Some(expected))
 }
 
 /// Substitute `{capture}` placeholders with captured text.
@@ -151,8 +170,17 @@ fn tier1_symbols(language: &'static LanguageDef, path: &str, contents: &str) -> 
     let source = contents.as_bytes();
     let root = tree.root_node();
 
-    let scopes = collect_scopes(&queries.scopes, root, source);
-    let mut found = collect_symbols(&queries.symbols, root, source, &scopes, language, path);
+    let scopes = collect_labels(&queries.scopes, "scope", root, source);
+    let discriminators = collect_labels(&queries.discriminators, "discriminator", root, source);
+    let mut found = collect_symbols(
+        &queries.symbols,
+        root,
+        source,
+        &scopes,
+        &discriminators,
+        language,
+        path,
+    );
     let costs = complexity_by_symbol(&queries.complexity, root, source, &found);
 
     for (symbol, cost) in found.iter_mut().zip(costs) {
@@ -169,9 +197,18 @@ struct Pending {
     symbol: Symbol,
 }
 
-/// Map every scope node to the qualified-path segment it contributes.
-fn collect_scopes(query: &Query, root: Node<'_>, source: &[u8]) -> HashMap<usize, String> {
-    let mut scopes = HashMap::new();
+/// Map every node a query anchors on to the text it contributes.
+///
+/// Scopes and discriminators are the same shape: a node, an optional `format`
+/// template over the pattern's other captures, and optional `require.<capture>`
+/// constraints.
+fn collect_labels(
+    query: &Query,
+    anchor: &str,
+    root: Node<'_>,
+    source: &[u8],
+) -> HashMap<usize, String> {
+    let mut labels = HashMap::new();
     let mut cursor = QueryCursor::new();
     let mut matches = cursor.matches(query, root, source);
 
@@ -181,7 +218,7 @@ fn collect_scopes(query: &Query, root: Node<'_>, source: &[u8]) -> HashMap<usize
 
         for capture in m.captures {
             let name = &query.capture_names()[capture.index as usize];
-            if *name == "scope" {
+            if *name == anchor {
                 node = Some(capture.node);
             } else {
                 variables.insert(
@@ -196,18 +233,54 @@ fn collect_scopes(query: &Query, root: Node<'_>, source: &[u8]) -> HashMap<usize
         }
 
         let Some(node) = node else { continue };
+        if !requirements_met(query, m.pattern_index, &variables) {
+            continue;
+        }
+
         let format = property(query, m.pattern_index, "format").unwrap_or("{name}");
-        scopes.insert(node.id(), render(format, &variables));
+        labels.insert(node.id(), normalize_whitespace(&render(format, &variables)));
     }
 
-    scopes
+    labels
 }
 
+/// Collapse whitespace runs so a reformatted label is the same label.
+fn normalize_whitespace(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+/// Every discriminator attached to a symbol, outermost first.
+///
+/// Discriminators sit immediately before the symbol they qualify, and they
+/// stack. Walking back over the run of them means `#[cfg(a)] #[cfg(b)] fn f`
+/// keeps both.
+fn discriminator_for(node: Node<'_>, discriminators: &HashMap<usize, String>) -> Option<String> {
+    let mut found = Vec::new();
+    let mut current = node.prev_named_sibling();
+
+    while let Some(sibling) = current {
+        match discriminators.get(&sibling.id()) {
+            Some(text) => found.push(text.as_str()),
+            None => break,
+        }
+        current = sibling.prev_named_sibling();
+    }
+
+    if found.is_empty() {
+        return None;
+    }
+
+    found.reverse();
+    Some(found.join(" "))
+}
+
+#[allow(clippy::too_many_arguments)]
 fn collect_symbols(
     query: &Query,
     root: Node<'_>,
     source: &[u8],
     scopes: &HashMap<usize, String>,
+    discriminators: &HashMap<usize, String>,
     language: &LanguageDef,
     path: &str,
 ) -> Vec<Pending> {
@@ -243,6 +316,9 @@ fn collect_symbols(
         let Some(kind) = property(query, m.pattern_index, "kind") else {
             continue;
         };
+        if !requirements_met(query, m.pattern_index, &variables) {
+            continue;
+        }
 
         let format = property(query, m.pattern_index, "format").unwrap_or("{name}");
         let name = render(format, &variables);
@@ -258,6 +334,7 @@ fn collect_symbols(
                 kind: kind.to_owned(),
                 name,
                 qualified_path,
+                discriminator: discriminator_for(node, discriminators),
                 start_line: node.start_position().row + 1,
                 end_line: node.end_position().row + 1,
                 cognitive_complexity: 0,
@@ -315,22 +392,33 @@ fn collect_tokens<'a>(
     let children: Vec<Node<'_>> = node.children(&mut cursor).collect();
 
     for (index, child) in children.iter().enumerate() {
-        if is_optional_trailing(*child, &children[index + 1..], language) {
+        if is_optional_trailing(kind, *child, &children[index + 1..], language) {
             continue;
         }
         collect_tokens(*child, source, skip, language, out);
     }
 }
 
-/// Is this an optional separator with nothing meaningful left after it?
+/// Is this an optional separator, in a list that tolerates one, with nothing
+/// meaningful left after it?
 ///
 /// `struct Ledger { entries: Vec<u32> }` and the same declaration with a
 /// trailing comma are the same declaration. A formatter picks one; beholder
-/// must not read that choice as a change.
-fn is_optional_trailing(node: Node<'_>, rest: &[Node<'_>], language: &LanguageDef) -> bool {
+/// must not read that choice as a change. The container has to be named for
+/// that to be true, because the same comma means something in a tuple and in a
+/// macro's token tree.
+fn is_optional_trailing(
+    container: &str,
+    node: Node<'_>,
+    rest: &[Node<'_>],
+    language: &LanguageDef,
+) -> bool {
     !node.is_named()
-        && language.optional_trailing_tokens.contains(&node.kind())
         && !rest.iter().any(|n| n.is_named())
+        && language
+            .optional_trailing
+            .iter()
+            .any(|s| s.container == container && s.token == node.kind())
 }
 
 /// Join enclosing scope segments, outermost first, with the symbol's own name.
@@ -451,24 +539,31 @@ fn accumulate(
 
 /// Assign identity, disambiguating symbols that are otherwise identical.
 fn finish(pending: Vec<Pending>) -> Vec<Symbol> {
-    let mut counts: HashMap<(&str, &str), usize> = HashMap::new();
-    for p in &pending {
-        *counts
-            .entry((p.symbol.kind.as_str(), p.symbol.qualified_path.as_str()))
-            .or_default() += 1;
+    /// Everything that identity is made of before the positional fallback.
+    fn key(symbol: &Symbol) -> (String, String, Option<String>) {
+        (
+            symbol.kind.clone(),
+            symbol.qualified_path.clone(),
+            symbol.discriminator.clone(),
+        )
     }
 
-    let duplicated: HashSet<(String, String)> = counts
+    let mut counts: HashMap<(String, String, Option<String>), usize> = HashMap::new();
+    for p in &pending {
+        *counts.entry(key(&p.symbol)).or_default() += 1;
+    }
+
+    let duplicated: HashSet<(String, String, Option<String>)> = counts
         .into_iter()
         .filter(|(_, n)| *n > 1)
-        .map(|((k, q), _)| (k.to_owned(), q.to_owned()))
+        .map(|(k, _)| k)
         .collect();
 
-    let mut seen: HashMap<(String, String), usize> = HashMap::new();
+    let mut seen: HashMap<(String, String, Option<String>), usize> = HashMap::new();
     let mut symbols = Vec::with_capacity(pending.len());
 
     for p in pending {
-        let key = (p.symbol.kind.clone(), p.symbol.qualified_path.clone());
+        let key = key(&p.symbol);
         let ordinal = if duplicated.contains(&key) {
             let counter = seen.entry(key).or_insert(0);
             *counter += 1;
@@ -483,6 +578,7 @@ fn finish(pending: Vec<Pending>) -> Vec<Symbol> {
             &symbol.path,
             &symbol.kind,
             &symbol.qualified_path,
+            symbol.discriminator.as_deref(),
             ordinal,
         );
         symbols.push(symbol);
@@ -590,7 +686,7 @@ impl Paint for Canvas { fn draw(&self) {} }
     }
 
     #[test]
-    fn identical_symbols_in_one_file_get_ordinals() {
+    fn cfg_variants_are_told_apart_by_their_guard() {
         let symbols = analyze_rust(
             r#"
 #[cfg(unix)]
@@ -604,10 +700,82 @@ fn platform() {}
         assert_eq!(
             ids,
             vec![
+                "rust:src/lib.rs:function:platform@cfg(unix)",
+                "rust:src/lib.rs:function:platform@cfg(windows)"
+            ]
+        );
+    }
+
+    #[test]
+    fn deleting_one_cfg_variant_leaves_the_other_identity_alone() {
+        // The failure this replaces: with positional ordinals, deleting
+        // platform#1 renamed platform#2 to plain platform, so one deletion
+        // reported a removal and a rename.
+        let both =
+            analyze_rust("#[cfg(unix)]\nfn platform() {}\n#[cfg(windows)]\nfn platform() {}\n");
+        let one = analyze_rust("#[cfg(windows)]\nfn platform() {}\n");
+
+        let survivor = both
+            .iter()
+            .find(|s| s.discriminator.as_deref() == Some("cfg(windows)"))
+            .unwrap();
+
+        assert_eq!(one.len(), 1);
+        assert_eq!(one[0].id, survivor.id);
+    }
+
+    #[test]
+    fn stacked_guards_all_reach_identity() {
+        let symbols = analyze_rust("#[cfg(unix)]\n#[cfg(feature = \"x\")]\nfn platform() {}\n");
+        assert_eq!(
+            symbols[0].discriminator.as_deref(),
+            Some("cfg(unix) cfg(feature = \"x\")")
+        );
+    }
+
+    #[test]
+    fn attributes_that_say_nothing_about_identity_are_not_discriminators() {
+        // #[inline] and #[derive] describe behaviour, not which symbol this is.
+        // Treating them as identity would make adding one look like a delete.
+        let bare = analyze_rust("fn platform() {}\n");
+        let annotated = analyze_rust("#[inline]\nfn platform() {}\n");
+
+        assert_eq!(bare[0].id, annotated[0].id);
+        assert_eq!(annotated[0].discriminator, None);
+    }
+
+    #[test]
+    fn truly_indistinguishable_symbols_still_fall_back_to_ordinals() {
+        // The documented residual case: nothing declared tells these apart.
+        let symbols = analyze_rust("fn platform() {}\nfn platform() {}\n");
+        let ids: Vec<_> = symbols.iter().map(|s| s.id.as_str()).collect();
+
+        assert_eq!(
+            ids,
+            vec![
                 "rust:src/lib.rs:function:platform#1",
                 "rust:src/lib.rs:function:platform#2"
             ]
         );
+    }
+
+    #[test]
+    fn a_trailing_comma_in_a_macro_is_not_formatting() {
+        // f!(x) and f!(x,) are different inputs to whatever the macro does, so
+        // the optional-trailing rule must not reach inside a token tree.
+        let one = analyze_rust("fn f() { assert_matches!(x) }\n");
+        let two = analyze_rust("fn f() { assert_matches!(x,) }\n");
+
+        assert_ne!(one[0].content_fingerprint, two[0].content_fingerprint);
+    }
+
+    #[test]
+    fn a_trailing_comma_in_a_tuple_is_not_formatting() {
+        // (a,) is a one-tuple; (a) is a parenthesized expression.
+        let tuple = analyze_rust("fn f() -> (u32,) { (1,) }\n");
+        let paren = analyze_rust("fn f() -> (u32,) { (1) }\n");
+
+        assert_ne!(tuple[0].content_fingerprint, paren[0].content_fingerprint);
     }
 
     #[test]

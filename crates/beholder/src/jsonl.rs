@@ -20,6 +20,8 @@ pub struct SymbolRecord {
     pub kind: String,
     pub name: String,
     pub qualified_path: String,
+    /// Declared metadata that is part of this symbol's identity, when any is.
+    pub discriminator: Option<String>,
     pub start_line: usize,
     pub end_line: usize,
     pub cognitive_complexity: u32,
@@ -54,6 +56,7 @@ pub fn symbol_records(analysis: &Analysis) -> Vec<SymbolRecord> {
             kind: s.kind.clone(),
             name: s.name.clone(),
             qualified_path: s.qualified_path.clone(),
+            discriminator: s.discriminator.clone(),
             start_line: s.start_line,
             end_line: s.end_line,
             cognitive_complexity: s.cognitive_complexity,

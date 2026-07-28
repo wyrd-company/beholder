@@ -22,6 +22,10 @@ pub struct Symbol {
     pub name: String,
     /// Scope segments plus name, joined by the language's separator.
     pub qualified_path: String,
+    /// Declared metadata that tells this symbol apart from another with the same
+    /// qualified path — a `#[cfg]` guard, for instance. Part of identity
+    /// whenever it is present. See [`symbol_id`].
+    pub discriminator: Option<String>,
     /// 1-based, inclusive.
     pub start_line: usize,
     /// 1-based, inclusive.
@@ -42,21 +46,41 @@ pub struct Symbol {
 
 /// Build a symbol's stable identity.
 ///
-/// `ordinal` disambiguates symbols that are otherwise identical within one file
-/// — two `#[cfg]` variants of the same function, for instance. It is `None` for
-/// the overwhelmingly common unique case so that identity stays readable and
-/// does not shift when an unrelated symbol is added.
+/// Two things can distinguish symbols that share a qualified path, and the order
+/// matters.
+///
+/// `discriminator` is declared, content-derived metadata — a `#[cfg]` guard, a
+/// signature. It is applied whenever it is present, never only when a duplicate
+/// currently exists. That distinction is the whole point: an identity that
+/// appears only in the presence of a twin is an identity that rewrites itself
+/// the moment the twin is deleted.
+///
+/// `ordinal` is the fallback for symbols that remain indistinguishable after
+/// that, and it is positional. Two symbols with the same qualified path, the
+/// same kind and the same discriminator in one file will renumber if one is
+/// removed. Languages avoid that by declaring a discriminator that actually
+/// tells their duplicates apart; see `queries/<id>/discriminators.scm`.
 pub fn symbol_id(
     language: &str,
     path: &str,
     kind: &str,
     qualified_path: &str,
+    discriminator: Option<&str>,
     ordinal: Option<usize>,
 ) -> String {
-    match ordinal {
-        None => format!("{language}:{path}:{kind}:{qualified_path}"),
-        Some(n) => format!("{language}:{path}:{kind}:{qualified_path}#{n}"),
+    let mut id = format!("{language}:{path}:{kind}:{qualified_path}");
+
+    if let Some(discriminator) = discriminator {
+        id.push('@');
+        id.push_str(discriminator);
     }
+
+    if let Some(ordinal) = ordinal {
+        id.push('#');
+        id.push_str(&ordinal.to_string());
+    }
+
+    id
 }
 
 /// Hash of a symbol's token stream.
@@ -86,7 +110,14 @@ mod tests {
 
     #[test]
     fn identity_carries_no_line_number_or_absolute_path() {
-        let id = symbol_id("rust", "crates/a/src/lib.rs", "function", "Foo::bar", None);
+        let id = symbol_id(
+            "rust",
+            "crates/a/src/lib.rs",
+            "function",
+            "Foo::bar",
+            None,
+            None,
+        );
         assert_eq!(id, "rust:crates/a/src/lib.rs:function:Foo::bar");
         assert!(!id.starts_with('/'));
         assert!(!id.chars().any(|c| c.is_ascii_digit()));
@@ -94,8 +125,20 @@ mod tests {
 
     #[test]
     fn ordinal_only_appears_when_needed() {
-        assert!(!symbol_id("rust", "a.rs", "function", "f", None).contains('#'));
-        assert!(symbol_id("rust", "a.rs", "function", "f", Some(2)).ends_with("#2"));
+        assert!(!symbol_id("rust", "a.rs", "function", "f", None, None).contains('#'));
+        assert!(symbol_id("rust", "a.rs", "function", "f", None, Some(2)).ends_with("#2"));
+    }
+
+    #[test]
+    fn a_discriminator_applies_whether_or_not_a_twin_exists() {
+        // The identity of a cfg-guarded symbol must not depend on how many
+        // other variants of it happen to be in the file today.
+        let guarded = symbol_id("rust", "a.rs", "function", "f", Some("cfg(unix)"), None);
+        assert_eq!(guarded, "rust:a.rs:function:f@cfg(unix)");
+        assert_ne!(
+            guarded,
+            symbol_id("rust", "a.rs", "function", "f", None, None)
+        );
     }
 
     #[test]

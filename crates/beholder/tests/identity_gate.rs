@@ -236,6 +236,87 @@ fn moving_a_symbol_between_files_is_one_move_not_two_changes() {
 }
 
 // ---------------------------------------------------------------------------
+// review reproductions
+// ---------------------------------------------------------------------------
+
+#[test]
+fn deleting_one_cfg_variant_reports_one_removal_and_nothing_else() {
+    // Reviewer reproduction. Positional ordinals made the surviving variant
+    // change identity when its twin was deleted, so one deletion surfaced as a
+    // removal plus a spurious rename, and audit-identity flagged a phantom.
+    let both = "#[cfg(unix)]\npub fn platform() -> u32 {\n    1\n}\n\n#[cfg(windows)]\npub fn platform() -> u32 {\n    2\n}\n";
+    let one = "#[cfg(windows)]\npub fn platform() -> u32 {\n    2\n}\n";
+
+    let fixture = Fixture::new();
+    fixture.write("src/platform.rs", both);
+    let before = fixture.commit_all("both variants");
+
+    fixture.write("src/platform.rs", one);
+    let after = fixture.commit_all("drop the unix variant");
+
+    let delta = delta::compare_revisions(
+        &fixture.repo,
+        &before.to_string(),
+        &after.to_string(),
+        &Config::default(),
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(delta.changes.len(), 1, "{:#?}", delta.changes);
+    assert_eq!(delta.changes[0].change, ChangeKind::Removed);
+    assert_eq!(
+        delta.changes[0]
+            .before
+            .as_ref()
+            .unwrap()
+            .discriminator
+            .as_deref(),
+        Some("cfg(unix)")
+    );
+
+    let audit = delta::audit_identity(
+        &fixture.repo,
+        &[before.to_string(), after.to_string()],
+        &Config::default(),
+    )
+    .unwrap();
+
+    assert!(audit.passed(), "{:#?}", audit.phantoms);
+    assert_eq!(audit.renamed, 0);
+}
+
+#[test]
+fn a_macro_trailing_comma_edit_is_reported_as_a_change() {
+    // Reviewer reproduction. The optional-trailing rule reached inside macro
+    // token trees, so a semantic edit produced an empty delta.
+    let fixture = Fixture::new();
+    fixture.write(
+        "src/ledger.rs",
+        "pub fn tally() {\n    count_fields!(entries)\n}\n",
+    );
+    let before = fixture.commit_all("one form");
+
+    fixture.write(
+        "src/ledger.rs",
+        "pub fn tally() {\n    count_fields!(entries,)\n}\n",
+    );
+    let after = fixture.commit_all("a different macro input");
+
+    let delta = delta::compare_revisions(
+        &fixture.repo,
+        &before.to_string(),
+        &after.to_string(),
+        &Config::default(),
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(delta.changes.len(), 1, "{:#?}", delta.changes);
+    assert_eq!(delta.changes[0].change, ChangeKind::Modified);
+}
+
+// ---------------------------------------------------------------------------
 // real history
 // ---------------------------------------------------------------------------
 
