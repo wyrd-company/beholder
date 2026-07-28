@@ -345,6 +345,13 @@ fn report(args: ReportArgs) -> Result<()> {
         store.as_ref(),
     )?;
 
+    if args.use_store {
+        // On stdout the report is the output, so this goes to stderr — where a
+        // CI log still shows whether fetching the index saved the run any work.
+        eprintln!("{}: {}", short(&args.before), compared.origins.0);
+        eprintln!("{}: {}", short(&args.after), compared.origins.1);
+    }
+
     let report = beholder::risk::rank(
         &args.before,
         &args.after,
@@ -545,6 +552,14 @@ fn store(args: StoreArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn short(revision: &str) -> String {
+    if revision.len() > 8 && revision.chars().all(|c| c.is_ascii_hexdigit()) {
+        revision.chars().take(8).collect()
+    } else {
+        revision.to_owned()
+    }
 }
 
 fn root_cause(err: &anyhow::Error) -> String {

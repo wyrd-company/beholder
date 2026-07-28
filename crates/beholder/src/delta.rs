@@ -227,6 +227,33 @@ fn sort(changes: &mut [SymbolChange]) {
 // Revisions
 // ---------------------------------------------------------------------------
 
+/// Where an analysis came from.
+///
+/// Worth reporting rather than inferring: it is the difference between a cold
+/// start and a warm one, and the only way a run can show that fetching the
+/// stored index actually saved it any work.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Origin {
+    /// The whole analysis was read back from the index.
+    Stored,
+    /// Analyzed now, reusing whatever stored phase 1 results were still valid.
+    Analyzed(analysis::CacheStats),
+}
+
+impl std::fmt::Display for Origin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Stored => write!(f, "reused a stored analysis"),
+            Self::Analyzed(stats) => write!(
+                f,
+                "analyzed {} files, {} reused from the index",
+                stats.reused + stats.computed,
+                stats.reused
+            ),
+        }
+    }
+}
+
 /// Analyze one revision of a repository, reusing stored results where valid.
 pub fn analyze_revision(
     repo: &git2::Repository,
@@ -234,6 +261,16 @@ pub fn analyze_revision(
     config: &Config,
     store: Option<&crate::Store<'_>>,
 ) -> Result<Analysis> {
+    Ok(analyze_revision_with_origin(repo, revision, config, store)?.0)
+}
+
+/// Analyze one revision, saying where the result came from.
+pub fn analyze_revision_with_origin(
+    repo: &git2::Repository,
+    revision: &str,
+    config: &Config,
+    store: Option<&crate::Store<'_>>,
+) -> Result<(Analysis, Origin)> {
     let fingerprint = Fingerprint::new(config);
     let commit = repo
         .revparse_single(revision)
@@ -243,23 +280,23 @@ pub fn analyze_revision(
 
     if let Some(store) = store {
         if let Some(stored) = store.find(commit.id(), &fingerprint, config)? {
-            return Ok(stored);
+            return Ok((stored, Origin::Stored));
         }
     }
 
     let files = crate::walk::read_revision(repo, revision, config)?;
 
-    let analysis = match store {
+    let analyzed = match store {
         // Missing results are generated, never faked, and the cache only
         // supplies files whose content is unchanged.
         Some(store) => {
             let cache = store.phase1_cache(&fingerprint)?;
-            analysis::run_with_cache(&files, config, &cache).0
+            analysis::run_with_cache(&files, config, &cache)
         }
-        None => analysis::run(&files, config),
+        None => analysis::run_with_cache(&files, config, &analysis::NoCache),
     };
 
-    Ok(analysis)
+    Ok((analyzed.0, Origin::Analyzed(analyzed.1)))
 }
 
 /// Compare two revisions, appending newly generated results to the index.
@@ -281,6 +318,8 @@ pub struct Comparison {
     pub before: Analysis,
     pub after: Analysis,
     pub delta: Delta,
+    /// Where each side came from, in the same order.
+    pub origins: (Origin, Origin),
 }
 
 /// Compare two revisions, keeping both analyses.
@@ -291,8 +330,9 @@ pub fn compare_revisions_detailed(
     config: &Config,
     store: Option<&crate::Store<'_>>,
 ) -> Result<Comparison> {
-    let before_analysis = analyze_revision(repo, before, config, store)?;
-    let after_analysis = analyze_revision(repo, after, config, store)?;
+    let (before_analysis, before_origin) =
+        analyze_revision_with_origin(repo, before, config, store)?;
+    let (after_analysis, after_origin) = analyze_revision_with_origin(repo, after, config, store)?;
 
     if let Some(store) = store {
         for (revision, analysis) in [(before, &before_analysis), (after, &after_analysis)] {
@@ -311,6 +351,7 @@ pub fn compare_revisions_detailed(
         before: before_analysis,
         after: after_analysis,
         delta,
+        origins: (before_origin, after_origin),
     })
 }
 
