@@ -19,9 +19,15 @@ set -euo pipefail
 
 remote="${REMOTE:-origin}"
 
-if ! git fetch --no-tags "$remote" '+refs/beholder/*:refs/beholder/*' 2> "${TMPDIR:-/tmp}/beholder-fetch.err"; then
+# Fresh and unpredictable: a fixed name in a shared temporary directory is a
+# symlink someone else can plant, and two runs on one machine would overwrite
+# each other's diagnosis.
+errors="$(mktemp)"
+trap 'rm -f "$errors"' EXIT
+
+if ! git fetch --no-tags "$remote" '+refs/beholder/*:refs/beholder/*' 2> "$errors"; then
   echo "::warning title=beholder::could not fetch the stored index from $remote; \
-analyzing from scratch. $(tr '\n' ' ' < "${TMPDIR:-/tmp}/beholder-fetch.err")"
+analyzing from scratch. $(tr '\n' ' ' < "$errors")"
   exit 0
 fi
 
