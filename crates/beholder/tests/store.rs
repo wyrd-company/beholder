@@ -30,14 +30,16 @@ impl Fixture {
         self.repo.workdir().unwrap()
     }
 
-    /// Commit one file and return the new commit id.
+    /// Write and commit one file, returning the new commit id.
     fn commit(&self, path: &str, contents: &str) -> Oid {
         let full = self.path().join(path);
         std::fs::create_dir_all(full.parent().unwrap()).unwrap();
         std::fs::write(&full, contents).unwrap();
 
         let mut index = self.repo.index().unwrap();
-        index.add_path(Path::new(path)).unwrap();
+        index
+            .add_all(["*"], git2::IndexAddOption::DEFAULT, None)
+            .unwrap();
         index.write().unwrap();
         let tree = self.repo.find_tree(index.write_tree().unwrap()).unwrap();
 
@@ -65,15 +67,19 @@ impl Fixture {
     }
 }
 
-fn analyze(files: &[(&str, &str)]) -> Analysis {
-    let sources: Vec<_> = files
-        .iter()
-        .map(|(path, contents)| SourceFile {
-            path: (*path).to_owned(),
-            contents: (*contents).to_owned(),
-        })
-        .collect();
-    analysis::run(&sources, &Config::default())
+/// Analyze a revision exactly as beholder would.
+///
+/// Stored results are validated against the tree they claim to describe, so a
+/// test that stored a hand-built file set would only be proving that the
+/// validation is missing.
+fn analyze_at(repo: &Repository, source: Oid) -> Analysis {
+    let files =
+        beholder::walk::read_revision(repo, &source.to_string(), &Config::default()).unwrap();
+    analysis::run(&files, &Config::default())
+}
+
+fn config() -> Config {
+    Config::default()
 }
 
 // ---------------------------------------------------------------------------
@@ -87,7 +93,7 @@ fn the_first_index_has_only_the_source_parent() {
     let store = Store::open(&fixture.repo);
 
     let index = store
-        .write(source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
     let commit = fixture.repo.find_commit(index).unwrap();
 
@@ -102,15 +108,12 @@ fn later_indexes_carry_the_source_then_the_previous_index() {
 
     let first_source = fixture.commit("src/lib.rs", "fn draw() {}\n");
     let first_index = store
-        .write(first_source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(first_source, &analyze_at(&fixture.repo, first_source))
         .unwrap();
 
     let second_source = fixture.commit("src/lib.rs", "fn draw() {}\nfn erase() {}\n");
     let second_index = store
-        .write(
-            second_source,
-            &analyze(&[("src/lib.rs", "fn draw() {}\nfn erase() {}\n")]),
-        )
+        .write(second_source, &analyze_at(&fixture.repo, second_source))
         .unwrap();
 
     let commit = fixture.repo.find_commit(second_index).unwrap();
@@ -137,7 +140,7 @@ fn history_walks_parent_one_newest_first() {
         let contents = format!("fn draw() {{}}\n// revision {n}\n");
         let source = fixture.commit("src/lib.rs", &contents);
         store
-            .write(source, &analyze(&[("src/lib.rs", &contents)]))
+            .write(source, &analyze_at(&fixture.repo, source))
             .unwrap();
         sources.push(source);
     }
@@ -155,7 +158,7 @@ fn the_ref_lives_outside_refs_heads() {
     let store = Store::open(&fixture.repo);
     let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
     store
-        .write(source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
 
     assert_eq!(store.refname(), "refs/beholder/index");
@@ -171,7 +174,7 @@ fn index_commits_are_reproducible() {
         let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
         let store = Store::open(&fixture.repo);
         let index = store
-            .write(source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+            .write(source, &analyze_at(&fixture.repo, source))
             .unwrap();
         (source, index)
     };
@@ -191,14 +194,13 @@ fn index_commits_are_reproducible() {
 fn a_stored_analysis_round_trips() {
     let fixture = Fixture::new();
     let store = Store::open(&fixture.repo);
-    let files = [("src/lib.rs", "fn draw(a: bool) {\n    if a {}\n}\n")];
-    let source = fixture.commit("src/lib.rs", files[0].1);
-    let original = analyze(&files);
+    let source = fixture.commit("src/lib.rs", "fn draw(a: bool) {\n    if a {}\n}\n");
+    let original = analyze_at(&fixture.repo, source);
 
     store.write(source, &original).unwrap();
 
     let found = store
-        .find(source, &Fingerprint::new(&Config::default()))
+        .find(source, &Fingerprint::new(&config()), &config())
         .unwrap()
         .expect("a valid stored analysis");
 
@@ -211,13 +213,13 @@ fn a_stored_analysis_of_another_commit_is_not_reused() {
     let store = Store::open(&fixture.repo);
     let stored_source = fixture.commit("src/lib.rs", "fn draw() {}\n");
     store
-        .write(stored_source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(stored_source, &analyze_at(&fixture.repo, stored_source))
         .unwrap();
 
     let other_source = fixture.commit("src/lib.rs", "fn erase() {}\n");
 
     assert!(store
-        .find(other_source, &Fingerprint::new(&Config::default()))
+        .find(other_source, &Fingerprint::new(&config()), &config())
         .unwrap()
         .is_none());
 }
@@ -228,13 +230,13 @@ fn a_stored_analysis_under_a_different_configuration_is_not_reused() {
     let store = Store::open(&fixture.repo);
     let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
     store
-        .write(source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
 
     let other = Config::from_toml(r#"ignored_paths = ["vendor/"]"#).unwrap();
 
     assert!(store
-        .find(source, &Fingerprint::new(&other))
+        .find(source, &Fingerprint::new(&other), &other)
         .unwrap()
         .is_none());
 }
@@ -245,24 +247,36 @@ fn a_stored_analysis_under_a_different_schema_or_tool_version_is_not_reused() {
     let store = Store::open(&fixture.repo);
     let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
     store
-        .write(source, &analyze(&[("src/lib.rs", "fn draw() {}\n")]))
+        .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
 
-    let mut future_schema = Fingerprint::new(&Config::default());
+    let mut future_schema = Fingerprint::new(&config());
     future_schema.schema_version += 1;
-    assert!(store.find(source, &future_schema).unwrap().is_none());
+    assert!(store
+        .find(source, &future_schema, &config())
+        .unwrap()
+        .is_none());
 
-    let mut future_tool = Fingerprint::new(&Config::default());
+    let mut future_tool = Fingerprint::new(&config());
     future_tool.tool_version = "999.0.0".into();
-    assert!(store.find(source, &future_tool).unwrap().is_none());
+    assert!(store
+        .find(source, &future_tool, &config())
+        .unwrap()
+        .is_none());
 
-    let mut other_languages = Fingerprint::new(&Config::default());
+    let mut other_languages = Fingerprint::new(&config());
     other_languages.language_table = "different".into();
-    assert!(store.find(source, &other_languages).unwrap().is_none());
+    assert!(store
+        .find(source, &other_languages, &config())
+        .unwrap()
+        .is_none());
 
-    let mut other_paths = Fingerprint::new(&Config::default());
+    let mut other_paths = Fingerprint::new(&config());
     other_paths.path_rules = "absolute".into();
-    assert!(store.find(source, &other_paths).unwrap().is_none());
+    assert!(store
+        .find(source, &other_paths, &config())
+        .unwrap()
+        .is_none());
 }
 
 #[test]
@@ -271,13 +285,15 @@ fn phase1_results_are_reused_only_for_unchanged_content() {
     let store = Store::open(&fixture.repo);
 
     let unchanged = ("src/keep.rs", "fn keep() {}\n");
-    let before = ("src/edit.rs", "fn edit() {}\n");
     let after = ("src/edit.rs", "fn edit(a: bool) {\n    if a {}\n}\n");
 
-    let source = fixture.commit("src/keep.rs", unchanged.1);
-    store.write(source, &analyze(&[unchanged, before])).unwrap();
+    fixture.commit("src/keep.rs", unchanged.1);
+    let source = fixture.commit("src/edit.rs", "fn edit() {}\n");
+    store
+        .write(source, &analyze_at(&fixture.repo, source))
+        .unwrap();
 
-    let fingerprint = Fingerprint::new(&Config::default());
+    let fingerprint = Fingerprint::new(&config());
     let cache = store.phase1_cache(&fingerprint).unwrap();
 
     let sources: Vec<_> = [unchanged, after]
@@ -311,7 +327,7 @@ fn phase1_reuse_does_not_depend_on_the_checkout_location() {
     let files = [("src/lib.rs", "fn draw(a: bool) {\n    if a {}\n}\n")];
     let source = origin.commit("src/lib.rs", files[0].1);
     Store::open(&origin.repo)
-        .write(source, &analyze(&files))
+        .write(source, &analyze_at(&origin.repo, source))
         .unwrap();
 
     let clone_dir = tempfile::tempdir().unwrap();
@@ -319,7 +335,7 @@ fn phase1_reuse_does_not_depend_on_the_checkout_location() {
     let clone = Repository::clone(origin.path().to_str().unwrap(), &clone_path).unwrap();
     Store::open(&clone).fetch("origin").unwrap();
 
-    let fingerprint = Fingerprint::new(&Config::default());
+    let fingerprint = Fingerprint::new(&config());
     let cache = Store::open(&clone).phase1_cache(&fingerprint).unwrap();
 
     let sources: Vec<_> = files
@@ -336,6 +352,113 @@ fn phase1_reuse_does_not_depend_on_the_checkout_location() {
 }
 
 // ---------------------------------------------------------------------------
+// payload validation
+// ---------------------------------------------------------------------------
+
+#[test]
+fn a_stored_analysis_of_different_content_is_not_reused() {
+    // Metadata can agree while the payload describes something else entirely.
+    // Without a payload check, a result computed from a dirty working tree
+    // would be served as the analysis of the commit it was filed under.
+    let fixture = Fixture::new();
+    let store = Store::open(&fixture.repo);
+    let source = fixture.commit("src/lib.rs", "fn draw(a: bool) {\n    if a {}\n}\n");
+
+    let mut poisoned = analyze_at(&fixture.repo, source);
+    poisoned.files[0] = beholder::phase1::analyze("src/lib.rs", "fn draw() {}\n");
+
+    store.write(source, &poisoned).unwrap();
+
+    assert!(store
+        .find(source, &Fingerprint::new(&config()), &config())
+        .unwrap()
+        .is_none());
+}
+
+#[test]
+fn a_stored_analysis_missing_a_file_is_not_reused() {
+    let fixture = Fixture::new();
+    let store = Store::open(&fixture.repo);
+    fixture.commit("src/keep.rs", "fn keep() {}\n");
+    let source = fixture.commit("src/other.rs", "fn other() {}\n");
+
+    let mut truncated = analyze_at(&fixture.repo, source);
+    truncated.files.pop();
+
+    store.write(source, &truncated).unwrap();
+
+    assert!(store
+        .find(source, &Fingerprint::new(&config()), &config())
+        .unwrap()
+        .is_none());
+}
+
+#[test]
+fn a_stored_analysis_with_an_extra_file_is_not_reused() {
+    let fixture = Fixture::new();
+    let store = Store::open(&fixture.repo);
+    let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
+
+    let mut padded = analyze_at(&fixture.repo, source);
+    padded
+        .files
+        .push(beholder::phase1::analyze("src/ghost.rs", "fn ghost() {}\n"));
+
+    store.write(source, &padded).unwrap();
+
+    assert!(store
+        .find(source, &Fingerprint::new(&config()), &config())
+        .unwrap()
+        .is_none());
+}
+
+#[test]
+fn a_non_repo_relative_path_is_refused_on_the_way_in() {
+    let fixture = Fixture::new();
+    let store = Store::open(&fixture.repo);
+    let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
+
+    let mut escaping = analyze_at(&fixture.repo, source);
+    escaping.files[0].path = "/etc/passwd".into();
+
+    assert!(store.write(source, &escaping).is_err());
+}
+
+#[test]
+fn validate_payload_names_what_went_wrong() {
+    use beholder::store::{validate_payload, Invalid};
+
+    let fixture = Fixture::new();
+    let source = fixture.commit("src/lib.rs", "fn draw() {}\n");
+    let analysis = analyze_at(&fixture.repo, source);
+    let manifest =
+        beholder::walk::revision_manifest(&fixture.repo, &source.to_string(), &config()).unwrap();
+
+    assert!(validate_payload(&analysis, &manifest).is_ok());
+
+    let mut wrong_path = analysis.clone();
+    wrong_path.files[0].path = "../escape.rs".into();
+    assert!(matches!(
+        validate_payload(&wrong_path, &manifest),
+        Err(Invalid::Path { .. })
+    ));
+
+    let mut wrong_hash = analysis.clone();
+    wrong_hash.files[0].content_hash = "0".repeat(64);
+    assert!(matches!(
+        validate_payload(&wrong_hash, &manifest),
+        Err(Invalid::ContentHash { .. })
+    ));
+
+    let mut wrong_set = analysis;
+    wrong_set.files.clear();
+    assert!(matches!(
+        validate_payload(&wrong_set, &manifest),
+        Err(Invalid::FileSet { .. })
+    ));
+}
+
+// ---------------------------------------------------------------------------
 // portability
 // ---------------------------------------------------------------------------
 
@@ -344,7 +467,7 @@ fn a_fresh_clone_can_fetch_the_ref_and_reuse_the_analysis() {
     let origin = Fixture::new();
     let files = [("src/lib.rs", "fn draw(a: bool) {\n    if a {}\n}\n")];
     let source = origin.commit("src/lib.rs", files[0].1);
-    let original = analyze(&files);
+    let original = analyze_at(&origin.repo, source);
     Store::open(&origin.repo).write(source, &original).unwrap();
 
     let clone_dir = tempfile::tempdir().unwrap();
@@ -359,7 +482,7 @@ fn a_fresh_clone_can_fetch_the_ref_and_reuse_the_analysis() {
     let store = Store::open(&clone);
     assert!(store.tip().is_ok());
     let found = store
-        .find(source, &Fingerprint::new(&Config::default()))
+        .find(source, &Fingerprint::new(&config()), &config())
         .unwrap()
         .expect("the fetched analysis");
 
@@ -381,7 +504,9 @@ fn the_ref_pushes_with_an_ordinary_refspec() {
     let files = [("src/lib.rs", "fn draw() {}\n")];
     let source = fixture.commit("src/lib.rs", files[0].1);
     let store = Store::open(&fixture.repo);
-    let index = store.write(source, &analyze(&files)).unwrap();
+    let index = store
+        .write(source, &analyze_at(&fixture.repo, source))
+        .unwrap();
 
     store.push("origin").unwrap();
 
@@ -414,7 +539,7 @@ fn a_concurrent_writer_forces_a_retry_and_loses_nothing() {
 
     // Their index is already on the ref.
     let their_index = Store::open(&fixture.repo)
-        .write(their_source, &analyze(&[theirs]))
+        .write(their_source, &analyze_at(&fixture.repo, their_source))
         .unwrap();
 
     // My write reads the tip, then a third writer lands another index before my
@@ -425,14 +550,18 @@ fn a_concurrent_writer_forces_a_retry_and_loses_nothing() {
             let extra = fixture.commit("src/extra.rs", "fn extra() {}\n");
             interloper_index = Some(
                 Store::open(&fixture.repo)
-                    .write(extra, &analyze(&[("src/extra.rs", "fn extra() {}\n")]))
+                    .write(extra, &analyze_at(&fixture.repo, extra))
                     .unwrap(),
             );
         }
     };
 
     let my_index = Store::open(&fixture.repo)
-        .write_with_probe(first_source, &analyze(&[mine]), &mut probe)
+        .write_with_probe(
+            first_source,
+            &analyze_at(&fixture.repo, first_source),
+            &mut probe,
+        )
         .unwrap();
 
     let interloper_index = interloper_index.unwrap();
@@ -452,7 +581,7 @@ fn a_concurrent_writer_forces_a_retry_and_loses_nothing() {
     );
 
     // Every earlier result is still reachable and still valid.
-    let fingerprint = Fingerprint::new(&Config::default());
+    let fingerprint = Fingerprint::new(&config());
     let history: Vec<_> = store
         .history(10)
         .unwrap()
@@ -460,7 +589,10 @@ fn a_concurrent_writer_forces_a_retry_and_loses_nothing() {
         .map(|e| e.id)
         .collect();
     assert_eq!(history, vec![my_index, interloper_index, their_index]);
-    assert!(store.find(their_source, &fingerprint).unwrap().is_some());
+    assert!(store
+        .find(their_source, &fingerprint, &config())
+        .unwrap()
+        .is_some());
 }
 
 #[test]
@@ -477,14 +609,14 @@ fn a_concurrent_first_writer_does_not_get_clobbered() {
             let other = fixture.commit("src/theirs.rs", "fn theirs() {}\n");
             theirs = Some(
                 Store::open(&fixture.repo)
-                    .write(other, &analyze(&[("src/theirs.rs", "fn theirs() {}\n")]))
+                    .write(other, &analyze_at(&fixture.repo, other))
                     .unwrap(),
             );
         }
     };
 
     let my_index = Store::open(&fixture.repo)
-        .write_with_probe(source, &analyze(&[mine]), &mut probe)
+        .write_with_probe(source, &analyze_at(&fixture.repo, source), &mut probe)
         .unwrap();
 
     let their_index = theirs.unwrap();

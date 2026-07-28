@@ -78,13 +78,35 @@ pub struct Meta {
 /// Why a stored result could not be reused.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Invalid {
-    SourceCommit { expected: String, found: String },
-    SchemaVersion { expected: u32, found: u32 },
-    ToolVersion { expected: String, found: String },
+    SourceCommit {
+        expected: String,
+        found: String,
+    },
+    SchemaVersion {
+        expected: u32,
+        found: u32,
+    },
+    ToolVersion {
+        expected: String,
+        found: String,
+    },
     Config,
     LanguageTable,
-    PathRules { found: String },
-    Path { path: String },
+    PathRules {
+        found: String,
+    },
+    Path {
+        path: String,
+    },
+    /// The stored analysis covers a different set of files than the source.
+    FileSet {
+        missing: Vec<String>,
+        extra: Vec<String>,
+    },
+    /// A stored file's content hash does not match the source blob.
+    ContentHash {
+        path: String,
+    },
 }
 
 impl std::fmt::Display for Invalid {
@@ -103,6 +125,18 @@ impl std::fmt::Display for Invalid {
             Self::LanguageTable => write!(f, "stored under a different language table"),
             Self::PathRules { found } => write!(f, "stored under path rules {found}"),
             Self::Path { path } => write!(f, "stored path {path} is not repo-relative"),
+            Self::FileSet { missing, extra } => write!(
+                f,
+                "stored analysis covers a different file set: {} missing, {} unexpected",
+                missing.len(),
+                extra.len()
+            ),
+            Self::ContentHash { path } => {
+                write!(
+                    f,
+                    "stored result for {path} was computed from other content"
+                )
+            }
         }
     }
 }
@@ -147,6 +181,54 @@ impl Meta {
         }
         Ok(())
     }
+}
+
+/// Check a stored analysis against the source it claims to describe.
+///
+/// Metadata agreeing is not enough. The payload itself has to be the analysis of
+/// this tree: the same files, each analyzed from the content that is actually
+/// there, and every path spelled the one way beholder stores paths. Anything
+/// else is a derived cache pretending to be a source of truth.
+pub fn validate_payload(
+    analysis: &Analysis,
+    manifest: &BTreeMap<String, String>,
+) -> std::result::Result<(), Invalid> {
+    for file in &analysis.files {
+        if !is_repo_relative(&file.path) {
+            return Err(Invalid::Path {
+                path: file.path.clone(),
+            });
+        }
+    }
+
+    let stored: BTreeMap<&str, &str> = analysis
+        .files
+        .iter()
+        .map(|f| (f.path.as_str(), f.content_hash.as_str()))
+        .collect();
+
+    let missing: Vec<String> = manifest
+        .keys()
+        .filter(|path| !stored.contains_key(path.as_str()))
+        .cloned()
+        .collect();
+    let extra: Vec<String> = stored
+        .keys()
+        .filter(|path| !manifest.contains_key(**path))
+        .map(|path| (*path).to_owned())
+        .collect();
+
+    if !missing.is_empty() || !extra.is_empty() {
+        return Err(Invalid::FileSet { missing, extra });
+    }
+
+    for (path, hash) in manifest {
+        if stored.get(path.as_str()) != Some(&hash.as_str()) {
+            return Err(Invalid::ContentHash { path: path.clone() });
+        }
+    }
+
+    Ok(())
 }
 
 /// One entry in the index history.
@@ -257,7 +339,18 @@ impl<'r> Store<'r> {
     }
 
     /// The stored analysis of `source_commit`, if one is valid for reuse.
-    pub fn find(&self, source_commit: Oid, expected: &Fingerprint) -> Result<Option<Analysis>> {
+    ///
+    /// Validation runs in two stages because they cost different amounts. The
+    /// metadata check is free and rules out most misses; only then is the source
+    /// tree read so the payload can be checked against it.
+    pub fn find(
+        &self,
+        source_commit: Oid,
+        expected: &Fingerprint,
+        config: &crate::Config,
+    ) -> Result<Option<Analysis>> {
+        let mut manifest = None;
+
         for entry in self.history(DEFAULT_CACHE_DEPTH)? {
             if entry.source_commit != source_commit {
                 continue;
@@ -265,7 +358,23 @@ impl<'r> Store<'r> {
             if entry.meta.validate(source_commit, expected).is_err() {
                 continue;
             }
-            return Ok(Some(self.read_analysis(entry.id)?));
+
+            let analysis = self.read_analysis(entry.id)?;
+
+            let manifest = match &manifest {
+                Some(manifest) => manifest,
+                None => manifest.insert(crate::walk::revision_manifest(
+                    self.repo,
+                    &source_commit.to_string(),
+                    config,
+                )?),
+            };
+
+            if validate_payload(&analysis, manifest).is_err() {
+                continue;
+            }
+
+            return Ok(Some(analysis));
         }
 
         Ok(None)

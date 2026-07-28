@@ -130,6 +130,7 @@ fn index(args: IndexArgs) -> Result<()> {
 
     if args.store {
         let head = repo.head()?.peel_to_commit()?.id();
+        refuse_to_store_a_dirty_tree(&repo, head, &analysis, &config)?;
         let index_commit = Store::open(&repo).write(head, &analysis)?;
         println!("stored {index_commit} on {DEFAULT_REF}");
     }
@@ -141,6 +142,29 @@ fn index(args: IndexArgs) -> Result<()> {
         stats.reused,
         stats.computed
     );
+
+    Ok(())
+}
+
+/// Refuse to file a working-tree analysis under a commit it does not describe.
+///
+/// `index` analyzes what is on disk. Storing that against HEAD is only honest
+/// when the two agree, and a stored result that is wrong is worse than no stored
+/// result: every later run and every fresh clone would trust it.
+fn refuse_to_store_a_dirty_tree(
+    repo: &git2::Repository,
+    head: git2::Oid,
+    analysis: &beholder::Analysis,
+    config: &Config,
+) -> Result<()> {
+    let manifest = beholder::walk::revision_manifest(repo, &head.to_string(), config)?;
+
+    if let Err(divergence) = beholder::store::validate_payload(analysis, &manifest) {
+        anyhow::bail!(
+            "refusing to store an analysis of the working tree against {head}: {divergence}.\n\
+             Commit the changes first, or drop --store to write JSONL only."
+        );
+    }
 
     Ok(())
 }

@@ -242,7 +242,7 @@ pub fn analyze_revision(
         .with_context(|| format!("{revision} is not a commit"))?;
 
     if let Some(store) = store {
-        if let Some(stored) = store.find(commit.id(), &fingerprint)? {
+        if let Some(stored) = store.find(commit.id(), &fingerprint, config)? {
             return Ok(stored);
         }
     }
@@ -277,7 +277,7 @@ pub fn compare_revisions(
         for (revision, analysis) in [(before, &before_analysis), (after, &after_analysis)] {
             let commit = repo.revparse_single(revision)?.peel_to_commit()?;
             if store
-                .find(commit.id(), &Fingerprint::new(config))?
+                .find(commit.id(), &Fingerprint::new(config), config)?
                 .is_none()
             {
                 store.write(commit.id(), analysis)?;
