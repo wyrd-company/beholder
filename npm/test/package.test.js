@@ -11,7 +11,7 @@ test("npm pack contains only the public launcher contract", () => {
   const packageRoot = path.resolve(__dirname, "..");
   const metadata = require(path.join(packageRoot, "package.json"));
   assert.equal(metadata.name, "@wyrd-company/beholder");
-  assert.equal(metadata.license, "MIT");
+  assert.equal(metadata.license, "Apache-2.0");
   assert.equal(metadata.repository.url, "git+https://github.com/wyrd-company/beholder.git");
   assert.equal(metadata.engines.node, ">=18");
   assert.deepEqual(metadata.bin, { beholder: "bin/beholder.js" });

@@ -9,6 +9,9 @@
 //! from [`thoughtbot/complexity`](https://github.com/thoughtbot/complexity)
 //! (`src/parser.rs`, `src/scoring.rs`, `src/scoring/standard.rs`).
 //!
+//! Beholder is Apache-2.0. This vendored work is MIT, which Apache-2.0
+//! distribution permits, and the notice below travels with it as MIT requires.
+//!
 //! ```text
 //! Copyright (c) 2020 Josh Clayton and thoughtbot, inc.
 //!

@@ -27,7 +27,7 @@ class Beholder < Formula
   desc "Structural code index: symbols, complexity, and change-scoped risk"
   homepage "https://github.com/$repository"
   version "$version"
-  license "MIT"
+  license "Apache-2.0"
 
   on_macos do
     on_arm do
