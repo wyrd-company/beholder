@@ -1,0 +1,251 @@
+# Gate 5 — report usefulness. Machine-readable evaluation record.
+#
+# Regenerate any row with:
+#   beholder report <revision>~1 <revision> --root <repository> --basis <basis> --json
+#
+# [corpus] states how these changes were chosen and where the selection falls
+# short of the Definition of Done. Each [[change]] records what the ranking put
+# first under each basis, so the summary claims are auditable rather than
+# asserted.
+
+[corpus]
+selection = """
+The Definition of Done asks for ten already-merged pull requests. Wyrd
+repositories squash-merge, so a merged pull request is one commit on the default
+branch carrying GitHub's (#N) suffix.
+
+Across every Rust repository in this workspace there are fourteen such commits
+and only TWO of them touch a .rs file; the rest are CI, release plumbing and
+documentation. Both qualifying pull requests are included. The remaining twelve
+entries are pull-request-shaped commits from the default branches of the three
+Rust repositories, selected by highest count of scored symbol changes so the
+reports have enough content to judge.
+
+This does not literally satisfy the Definition of Done. Only two merged Rust
+pull requests exist to evaluate; the other twelve are commits that were never
+confirmed to have been reviewed as a unit. That is an environmental shortfall,
+not a reinterpretation of the requirement, and it is recorded here as a fact.
+"""
+merged_pull_requests_available = 2
+merged_pull_requests_used = 2
+pull_request_shaped_commits_used = 12
+repositories = ["wyrd-company/intentional", "wyrd-company/tagver", "wyrd-company/agent-svgtools"]
+
+[summary]
+# Counted over the top five surfaced entries of all fourteen reports.
+reports = 14
+verdict = "useful; damped basis recommended"
+on_subject = 12
+thin = 2
+trivial_symbols_promoted_by_unstated_fan_in_raw = 3
+trivial_symbols_promoted_by_unstated_fan_in_damped = 1
+test_file_entries_in_top_five = 7
+trait_method_entries_in_top_five = 2
+notes = """
+Twelve of fourteen put a substantial piece of the change's subject first. The
+two thin reports are changes that moved almost no complexity, and the ranking
+said so rather than inventing something.
+
+Two limitations. A change that hardens behaviour without adding branches is
+invisible, because the complexity delta is the multiplicand. And fan-in in this
+corpus is small, mostly 0 to 8, so complexity delta dominates the ordering and
+the weighting only earns its keep in the tail — which is precisely where the
+resolver's collisions land, and why the basis still matters.
+"""
+
+[[change]]
+repository = "intentional"
+revision = "55a789db4367e90913b5f85cc2d98efbaccec574"
+pull_request = "PR#10"
+changed_symbols = 16
+raw_surfaced = 1
+raw_top = ["TestRepo::cli_with_env"]
+damped_surfaced = 1
+damped_top = ["TestRepo::cli_with_env"]
+top_complexity_delta = 1
+top_fan_in = 1
+top_fan_in_stated = 0
+verdict = "thin: little complexity moved"
+
+[[change]]
+repository = "intentional"
+revision = "328159643c23ebfbc59fd5feec1052bbcd3ef09d"
+pull_request = "PR#6"
+changed_symbols = 9
+raw_surfaced = 2
+raw_top = ["TagResult::build_baseline", "TagResult::from_versions"]
+damped_surfaced = 2
+damped_top = ["TagResult::build_baseline", "TagResult::from_versions"]
+top_complexity_delta = -4
+top_fan_in = 1
+top_fan_in_stated = 1
+verdict = "thin: little complexity moved"
+
+[[change]]
+repository = "intentional"
+revision = "5b7c33e6a144e35355ee108e52b301182e659d01"
+pull_request = ""
+changed_symbols = 170
+raw_surfaced = 34
+raw_top = ["resolve_versions", "effective_bumps", "resolve_changesets_source"]
+damped_surfaced = 34
+damped_top = ["resolve_versions", "effective_bumps", "resolve_changesets_source"]
+top_complexity_delta = 17
+top_fan_in = 8
+top_fan_in_stated = 3
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "dcbdbb12687b5dcb89ad01daf74c53f20e1c8164"
+pull_request = ""
+changed_symbols = 49
+raw_surfaced = 10
+raw_top = ["ReleasePlan::from_inputs_before", "ReleasePlan::from_inputs", "resolve_changesets_source"]
+damped_surfaced = 10
+damped_top = ["ReleasePlan::from_inputs_before", "ReleasePlan::from_inputs", "resolve_changesets_source"]
+top_complexity_delta = 20
+top_fan_in = 3
+top_fan_in_stated = 2
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "d6e78c51e0ca95057eb298266433385e299f7ed0"
+pull_request = ""
+changed_symbols = 54
+raw_surfaced = 11
+raw_top = ["discover", "release_tool_proxy_diagnostics", "apply_changesets_candidate_resolutions"]
+damped_surfaced = 11
+damped_top = ["discover", "release_tool_proxy_diagnostics", "materialize_discovery_inventory"]
+top_complexity_delta = -30
+top_fan_in = 3
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "dbbd60797d504ea17c5511b1511705a1993aa49c"
+pull_request = ""
+changed_symbols = 36
+raw_surfaced = 7
+raw_top = ["TagResult::build_with_plan", "verify_materialized_release", "changesets_plan"]
+damped_surfaced = 8
+damped_top = ["TagResult::build_with_plan", "verify_materialized_release", "changesets_plan"]
+top_complexity_delta = 20
+top_fan_in = 2
+top_fan_in_stated = 1
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "b669491bf91c1024fe113047060656b40a22d884"
+pull_request = ""
+changed_symbols = 33
+raw_surfaced = 7
+raw_top = ["apply_changesets_candidate_receipts", "apply_candidate_resolutions", "reconcile_candidate_resolutions"]
+damped_surfaced = 7
+damped_top = ["apply_changesets_candidate_receipts", "apply_candidate_resolutions", "reconcile_candidate_resolutions"]
+top_complexity_delta = 20
+top_fan_in = 1
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "069a9b4a135718762999ff3f38fd3e48902ab93a"
+pull_request = ""
+changed_symbols = 42
+raw_surfaced = 8
+raw_top = ["DiscoveryCandidate::validate", "DiscoveryConfig::is_empty", "validate_source_evidence"]
+damped_surfaced = 9
+damped_top = ["DiscoveryCandidate::validate", "validate_source_evidence", "validate_exact_discovery_path"]
+top_complexity_delta = 31
+top_fan_in = 0
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "tagver"
+revision = "b396282dd1f5b492df1853441296913da9d4231f"
+pull_request = ""
+changed_symbols = 56
+raw_surfaced = 8
+raw_top = ["apply_config", "walk_to_tag", "parse_tags"]
+damped_surfaced = 8
+damped_top = ["walk_to_tag", "parse_tags", "apply_config"]
+top_complexity_delta = 13
+top_fan_in = 1
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "tagver"
+revision = "6142920054075519812f00777d8af0f4eb4f1f8b"
+pull_request = ""
+changed_symbols = 28
+raw_surfaced = 8
+raw_top = ["test_repo_with_history", "run_git_command", "test_minimum_major_minor_after_tag"]
+damped_surfaced = 8
+damped_top = ["test_repo_with_history", "run_git_command", "test_minimum_major_minor_after_tag"]
+top_complexity_delta = 26
+top_fan_in = 0
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "agent-svgtools"
+revision = "54111451308a31b2b2784f9ce7e8240036192a37"
+pull_request = ""
+changed_symbols = 52
+raw_surfaced = 10
+raw_top = ["pixel_match_masked", "ssim_plane", "normalize_color"]
+damped_surfaced = 10
+damped_top = ["pixel_match_masked", "ssim_plane", "normalize_color"]
+top_complexity_delta = 7
+top_fan_in = 2
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "agent-svgtools"
+revision = "6e8079334f7b0a0392e01f31b5d95f9e0f120ea6"
+pull_request = ""
+changed_symbols = 40
+raw_surfaced = 8
+raw_top = ["write_artifacts", "<CompareReport as crate::output::Report>::jsonl_records", "<JudgeReport as crate::output::Report>::jsonl_records"]
+damped_surfaced = 8
+damped_top = ["write_artifacts", "<CompareReport as crate::output::Report>::jsonl_records", "<JudgeReport as crate::output::Report>::jsonl_records"]
+top_complexity_delta = 8
+top_fan_in = 2
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "agent-svgtools"
+revision = "642393b19f9dec508f716789e5245b837b6375cc"
+pull_request = ""
+changed_symbols = 24
+raw_surfaced = 5
+raw_top = ["blur_separable", "flood", "regions"]
+damped_surfaced = 5
+damped_top = ["blur_separable", "flood", "regions"]
+top_complexity_delta = 12
+top_fan_in = 1
+top_fan_in_stated = 0
+verdict = "on subject"
+
+[[change]]
+repository = "intentional"
+revision = "3e58e328f02b99a350ad77d2b2257155aa11245f"
+pull_request = ""
+changed_symbols = 17
+raw_surfaced = 4
+raw_top = ["devcontainer_candidate", "apply_changesets_candidate_receipts", "apply_candidate_resolutions"]
+damped_surfaced = 3
+damped_top = ["devcontainer_candidate", "apply_changesets_candidate_receipts", "apply_candidate_resolutions"]
+top_complexity_delta = 10
+top_fan_in = 1
+top_fan_in_stated = 0
+verdict = "on subject"
+

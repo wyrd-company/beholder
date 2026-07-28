@@ -21,14 +21,19 @@
 //! subject at the top. The two that did not are changes that moved almost no
 //! complexity, and the reports said so rather than inventing something.
 //!
-//! [`FanInBasis::Damped`] is the recommended basis. Both bases agree on the top
-//! five in five of fourteen reports, and where they disagree damping is right.
+//! [`FanInBasis::Damped`] is the default, and raw stays selectable for auditing
+//! and for benchmarking against the resolver measurement. Both bases agree on
+//! the top five in five of fourteen reports, and where they disagree damping is
+//! right.
 //! The clearest case: a three-line predicate, `DiscoveryConfig::is_empty`,
 //! ranks second in its whole change under [`FanInBasis::Raw`] on the strength
 //! of 27 references — none of them stated by the source, all of them
 //! `Vec::is_empty` calls the resolver could not tell apart. Damping drops it
 //! out of the top five and promotes real logic instead. Across all fourteen
 //! reports, damping cuts such promotions from three to one.
+//!
+//! The full record — every revision, what each basis surfaced, and where the
+//! corpus falls short of the Definition of Done — is `docs/gate5-evaluation.toml`.
 //!
 //! Two limitations are worth carrying forward. A change that hardens behaviour
 //! without adding branches ranks at the bottom, because the complexity delta is
@@ -169,11 +174,16 @@ pub const DEFAULT_THRESHOLD: f64 = 80.0;
 
 /// Rank a delta.
 ///
-/// `after` supplies the graph, because risk is about the code as it now stands.
+/// Both analyses are needed. A surviving symbol takes its degree from `after`,
+/// because risk is about the code as it now stands. A deleted one has to take
+/// its degree from `before`, where it still existed — reading the after-graph
+/// for a symbol that is no longer in it returns nothing, and deleting the most
+/// depended-upon function in a codebase would rank as if nothing depended on it.
 pub fn rank(
     before_revision: &str,
     after_revision: &str,
     delta: &Delta,
+    before: &Analysis,
     after: &Analysis,
     basis: FanInBasis,
     threshold_percentile: f64,
@@ -181,19 +191,25 @@ pub fn rank(
     let mut changes: Vec<RankedChange> = delta
         .changes
         .iter()
-        .map(|change| score(change, after, basis))
+        .map(|change| score(change, before, after, basis))
         .collect();
 
     assign_percentiles(&mut changes);
 
-    // Most risky first. Percentile is the merge key across languages; score
-    // breaks ties only within one language, and the id keeps it deterministic.
+    // Most risky first. Percentile is the only key that crosses languages.
+    //
+    // Language sorts before score deliberately. Raw scores from two languages
+    // measure different things, so allowing one to outrank the other would
+    // smuggle exactly the comparison percentiles exist to prevent. Grouping by
+    // language first means score is only ever consulted between two changes in
+    // the same language, and the id makes the rest deterministic.
     changes.sort_by(|a, b| {
         b.percentile
             .partial_cmp(&a.percentile)
             .expect("no NaN")
-            .then(b.score.partial_cmp(&a.score).expect("no NaN"))
-            .then(a.id.cmp(&b.id))
+            .then_with(|| a.language.cmp(&b.language))
+            .then_with(|| b.score.partial_cmp(&a.score).expect("no NaN"))
+            .then_with(|| a.id.cmp(&b.id))
     });
 
     Report {
@@ -206,19 +222,28 @@ pub fn rank(
     }
 }
 
-fn score(change: &SymbolChange, after: &Analysis, basis: FanInBasis) -> RankedChange {
+fn score(
+    change: &SymbolChange,
+    before: &Analysis,
+    after: &Analysis,
+    basis: FanInBasis,
+) -> RankedChange {
     let side = change
         .after
         .as_ref()
         .or(change.before.as_ref())
         .expect("a side");
-    let degree = after
-        .phase2
-        .graph
-        .degree
-        .get(&side.id)
-        .cloned()
-        .unwrap_or_default();
+
+    // Look the degree up in the revision where the symbol exists. Reading the
+    // after-graph for a deleted symbol returns nothing, which would rank
+    // deleting the most depended-upon function in a codebase as if nothing
+    // depended on it.
+    let (graph, lookup) = match (&change.after, &change.before) {
+        (Some(current), _) => (&after.phase2.graph, &current.id),
+        (None, Some(gone)) => (&before.phase2.graph, &gone.id),
+        (None, None) => unreachable!("a change has at least one side"),
+    };
+    let degree = graph.degree.get(lookup).cloned().unwrap_or_default();
 
     let complexity_delta = change.complexity_delta.unwrap_or_else(|| {
         // An added or removed symbol is a change of its whole complexity.
@@ -407,6 +432,7 @@ mod tests {
             "before",
             "after",
             &delta,
+            &before_analysis,
             &after_analysis,
             basis,
             DEFAULT_THRESHOLD,
@@ -571,6 +597,103 @@ mod tests {
             "identical changes must rank identically: {percentiles:?}"
         );
         assert_eq!(percentiles[0], 50.0, "and at the middle, not the top");
+    }
+
+    #[test]
+    fn deleting_depended_on_code_outranks_deleting_isolated_code() {
+        // A removed symbol no longer exists in the after-graph, so its degree
+        // has to come from before. Reading it from after would score every
+        // deletion as if nothing had depended on it.
+        let callers = (
+            "src/callers.rs",
+            "use crate::hot::hot;\nfn a() {\n    hot();\n}\nfn b() {\n    hot();\n}\nfn c() {\n    hot();\n}\n",
+        );
+        let before = [
+            ("src/hot.rs", "pub fn hot() {\n    if true {}\n}\n"),
+            ("src/cold.rs", "pub fn cold() {\n    if true {}\n}\n"),
+            callers,
+        ];
+        // Both deleted, with identical complexity. Only the dependants differ.
+        let after = [
+            ("src/hot.rs", "\n"),
+            ("src/cold.rs", "\n"),
+            ("src/callers.rs", "fn a() {}\nfn b() {}\nfn c() {}\n"),
+        ];
+
+        let report = report(&before, &after, FanInBasis::Raw);
+        let removals: Vec<&RankedChange> = report
+            .changes
+            .iter()
+            .filter(|c| c.change == ChangeKind::Removed)
+            .collect();
+
+        let hot = removals
+            .iter()
+            .find(|c| c.path == "src/hot.rs")
+            .expect("hot was removed");
+        let cold = removals
+            .iter()
+            .find(|c| c.path == "src/cold.rs")
+            .expect("cold was removed");
+
+        assert!(
+            hot.fan_in > 0,
+            "a removed symbol must carry the fan-in it had before it was removed"
+        );
+        assert_eq!(cold.fan_in, 0);
+        assert!(
+            hot.score > cold.score,
+            "deleting depended-on code is riskier: {} vs {}",
+            hot.score,
+            cold.score
+        );
+    }
+
+    #[test]
+    fn cross_language_ties_do_not_consult_raw_scores() {
+        // Percentile is the only quantity comparable across languages. Two
+        // changes at equal percentile in different languages must order the
+        // same way whatever their raw scores are.
+        let ranked = |score_a: f64, score_b: f64| {
+            let mut changes = vec![
+                sample("rust:a.rs:function:a", "rust", 50.0, score_a),
+                sample("go:b.go:function:b", "go", 50.0, score_b),
+            ];
+            changes.sort_by(|a, b| {
+                b.percentile
+                    .partial_cmp(&a.percentile)
+                    .expect("no NaN")
+                    .then_with(|| a.language.cmp(&b.language))
+                    .then_with(|| b.score.partial_cmp(&a.score).expect("no NaN"))
+                    .then_with(|| a.id.cmp(&b.id))
+            });
+            changes.into_iter().map(|c| c.id).collect::<Vec<_>>()
+        };
+
+        // Swapping which language carries the larger raw score changes nothing.
+        assert_eq!(ranked(1.0, 1000.0), ranked(1000.0, 1.0));
+    }
+
+    fn sample(id: &str, language: &str, percentile: f64, score: f64) -> RankedChange {
+        RankedChange {
+            id: id.to_owned(),
+            path: "x".into(),
+            qualified_path: "x".into(),
+            language: language.to_owned(),
+            kind: "function".into(),
+            change: ChangeKind::Modified,
+            start_line: 1,
+            end_line: 1,
+            complexity_before: Some(0),
+            complexity_after: Some(1),
+            complexity_delta: 1,
+            fan_in: 0,
+            fan_in_high_confidence: 0,
+            fan_in_weight: 1.0,
+            caveat: None,
+            score,
+            percentile,
+        }
     }
 
     #[test]

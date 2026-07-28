@@ -211,6 +211,29 @@ recorded on `crate::risk`.
 fan-in. Presenting it as the graph's answer to "what depends on this" would
 understate every dependency the source did not spell out.
 
+## Micro-decision: damped is the default basis
+
+**Context.** Two fan-in bases survived measurement. Raw reconstructs the
+oracle's whole ordering best; damped removes the promotions the measurement
+predicts are wrong. Statistics alone could not choose between them, so both were
+run over fourteen already-merged changes.
+
+**Decision.** `beholder report` defaults to the damped basis. Raw remains
+selectable with `--basis raw`.
+
+**Why.** Where the two disagree, damping is right. A three-line predicate ranked
+second in its whole change under raw, on 27 references none of which the source
+stated. Across the corpus, damping cut such promotions from three to one at no
+observed cost, and no report got worse. Raw's advantage is in reconstructing the
+full distribution; a report only needs the top of it not to be wrong.
+
+**Why raw stays.** It is the benchmark the resolver is measured against, and
+keeping it selectable means a future change to the damping function can be
+compared rather than asserted. Both fan-ins remain in `edges.jsonl` and in every
+report either way, so a consumer can always audit the weighting.
+
+**Evidence.** `docs/gate5-evaluation.toml`.
+
 ## Reproducing
 
 ```sh

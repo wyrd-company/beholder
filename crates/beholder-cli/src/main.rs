@@ -69,8 +69,9 @@ struct ReportArgs {
     after: String,
     #[arg(long, default_value = ".")]
     root: PathBuf,
-    /// Which fan-in to weight by.
-    #[arg(long, value_enum, default_value_t = Basis::Raw)]
+    /// Which fan-in to weight by. Damped is the default; raw is for auditing
+    /// and benchmarking against the resolver measurement.
+    #[arg(long, value_enum, default_value_t = Basis::Damped)]
     basis: Basis,
     /// Percentile at or above which a change is surfaced.
     #[arg(long, default_value_t = beholder::risk::DEFAULT_THRESHOLD)]
@@ -268,6 +269,7 @@ fn report(args: ReportArgs) -> Result<()> {
         &args.before,
         &args.after,
         &changed,
+        &before,
         &after,
         args.basis.into(),
         args.threshold,
