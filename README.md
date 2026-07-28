@@ -167,6 +167,8 @@ The action compares the merge base with the pull request head, so the report des
 
 6. **Risk ranking.** Complexity delta weighted by fan-in, ranked by percentile within a language and merged across languages. Scores from different languages are not comparable; percentile ranks are. Ranking decides what surfaces and what stays quiet, so it is a core calculation rather than a presentation concern.
 
+   The percentile is a rank over the distinct scores a language's changes took, so the riskiest change in a diff sits at the hundredth percentile however small the diff is, and a crowd of identical trivial edits does not climb by being numerous. One threshold then governs every surface: nothing below it is shown anywhere, and a change that moved no complexity is never shown at all. `--threshold 100` means the top percentile and nothing else.
+
 7. **Machine-first output.** JSONL primary, SARIF second, human format last. `symbols.jsonl` carries one record per function and type; `files.jsonl` carries one record per file the walk visits, including files no grammar claims. Output is deterministic, stably sorted, and repo-relative.
 
 8. **Review surfaces.** GitHub Action and gitpr. One sticky comment edited in place, SARIF annotations inline on the risky lines, and silence when nothing is risky.
