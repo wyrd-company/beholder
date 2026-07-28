@@ -217,6 +217,7 @@ fn collect_symbols(
 
     while let Some(m) = matches.next() {
         let mut node = None;
+        let mut name_node = None;
         let mut variables = HashMap::new();
 
         for capture in m.captures {
@@ -224,6 +225,9 @@ fn collect_symbols(
             if *name == "symbol" {
                 node = Some(capture.node);
             } else {
+                if *name == "name" {
+                    name_node = Some(capture.node);
+                }
                 variables.insert(
                     (*name).to_owned(),
                     capture
@@ -258,7 +262,8 @@ fn collect_symbols(
                 end_line: node.end_position().row + 1,
                 cognitive_complexity: 0,
                 tier: 1,
-                content_fingerprint: content_fingerprint(tokens(node, source)),
+                content_fingerprint: content_fingerprint(tokens(node, source, None, language)),
+                body_fingerprint: content_fingerprint(tokens(node, source, name_node, language)),
             },
         });
     }
@@ -273,16 +278,29 @@ fn collect_symbols(
 /// Leaves are where all the text lives; interior node kinds are implied by the
 /// leaf sequence for any given grammar. Comments are dropped so a rewrapped doc
 /// comment does not read as a structural change.
-fn tokens<'a>(node: Node<'_>, source: &'a [u8]) -> Vec<(&'a str, &'a str)> {
+/// `skip` excludes one subtree, used to leave the symbol's own name out of the
+/// body fingerprint so a rename is recognizable as a rename.
+fn tokens<'a>(
+    node: Node<'_>,
+    source: &'a [u8],
+    skip: Option<Node<'_>>,
+    language: &LanguageDef,
+) -> Vec<(&'a str, &'a str)> {
     let mut out = Vec::new();
-    collect_tokens(node, source, &mut out);
+    collect_tokens(node, source, skip.map(|n| n.id()), language, &mut out);
     out
 }
 
-fn collect_tokens<'a>(node: Node<'_>, source: &'a [u8], out: &mut Vec<(&'a str, &'a str)>) {
+fn collect_tokens<'a>(
+    node: Node<'_>,
+    source: &'a [u8],
+    skip: Option<usize>,
+    language: &LanguageDef,
+    out: &mut Vec<(&'a str, &'a str)>,
+) {
     let kind = node.kind();
 
-    if kind.contains("comment") {
+    if kind.contains("comment") || skip == Some(node.id()) {
         return;
     }
 
@@ -294,9 +312,25 @@ fn collect_tokens<'a>(node: Node<'_>, source: &'a [u8], out: &mut Vec<(&'a str, 
     }
 
     let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        collect_tokens(child, source, out);
+    let children: Vec<Node<'_>> = node.children(&mut cursor).collect();
+
+    for (index, child) in children.iter().enumerate() {
+        if is_optional_trailing(*child, &children[index + 1..], language) {
+            continue;
+        }
+        collect_tokens(*child, source, skip, language, out);
     }
+}
+
+/// Is this an optional separator with nothing meaningful left after it?
+///
+/// `struct Ledger { entries: Vec<u32> }` and the same declaration with a
+/// trailing comma are the same declaration. A formatter picks one; beholder
+/// must not read that choice as a change.
+fn is_optional_trailing(node: Node<'_>, rest: &[Node<'_>], language: &LanguageDef) -> bool {
+    !node.is_named()
+        && language.optional_trailing_tokens.contains(&node.kind())
+        && !rest.iter().any(|n| n.is_named())
 }
 
 /// Join enclosing scope segments, outermost first, with the symbol's own name.
@@ -659,6 +693,32 @@ fn platform() {}
         assert_eq!(
             analyze("src/phase1.rs", source),
             analyze("src/phase1.rs", source)
+        );
+    }
+
+    #[test]
+    fn a_trailing_comma_is_not_a_change() {
+        // rustfmt adds one when it breaks a list across lines. Reading that as
+        // a structural edit would make every reformat noisy.
+        let tight = analyze_rust("struct Ledger { entries: u32 }\n");
+        let formatted = analyze_rust("struct Ledger {\n    entries: u32,\n}\n");
+
+        assert_eq!(
+            tight[0].content_fingerprint,
+            formatted[0].content_fingerprint
+        );
+    }
+
+    #[test]
+    fn a_semicolon_is_still_part_of_the_fingerprint() {
+        // A trailing expression and a statement are different code, so the
+        // optional-trailing rule must not reach that far.
+        let tail = analyze_rust("fn f() -> u32 { g() }\n");
+        let statement = analyze_rust("fn f() -> u32 { g(); }\n");
+
+        assert_ne!(
+            tail[0].content_fingerprint,
+            statement[0].content_fingerprint
         );
     }
 

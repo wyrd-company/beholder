@@ -33,6 +33,11 @@ pub struct Symbol {
     /// symbol from a genuinely new one, and to tell a structural edit from a
     /// reformat. Never part of identity. See [`content_fingerprint`].
     pub content_fingerprint: String,
+    /// As [`Symbol::content_fingerprint`], but with the symbol's own name left
+    /// out. Two revisions of one symbol share this across a rename, which is
+    /// what lets a rename be reported as a rename rather than as a delete and
+    /// an unrelated add.
+    pub body_fingerprint: String,
 }
 
 /// Build a symbol's stable identity.

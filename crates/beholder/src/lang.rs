@@ -25,6 +25,10 @@ pub struct LanguageDef {
     pub complexity_query: &'static str,
     /// Separator between qualified-path segments.
     pub path_separator: &'static str,
+    /// Punctuation a formatter may add or drop at the end of a list without
+    /// changing meaning. Excluded from fingerprints so a reformat that adds a
+    /// trailing comma is not mistaken for a structural edit.
+    pub optional_trailing_tokens: &'static [&'static str],
 }
 
 /// Every language beholder can reach tier 1 for.
@@ -36,6 +40,7 @@ pub static LANGUAGES: &[LanguageDef] = &[LanguageDef {
     scopes_query: include_str!("../queries/rust/scopes.scm"),
     complexity_query: include_str!("../queries/rust/complexity.scm"),
     path_separator: "::",
+    optional_trailing_tokens: &[","],
 }];
 
 /// The language for a repo-relative path, if any grammar claims its extension.
@@ -61,6 +66,8 @@ pub fn table_fingerprint() -> String {
         material.push_str(lang.id);
         material.push('\0');
         material.push_str(lang.path_separator);
+        material.push('\0');
+        material.push_str(&lang.optional_trailing_tokens.join(","));
         material.push('\0');
         material.push_str(&lang.extensions.join(","));
         material.push('\0');

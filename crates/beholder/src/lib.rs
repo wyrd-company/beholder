@@ -12,6 +12,7 @@
 
 pub mod analysis;
 pub mod config;
+pub mod delta;
 pub mod hash;
 pub mod jsonl;
 pub mod lang;
@@ -23,6 +24,7 @@ pub mod walk;
 
 pub use analysis::Analysis;
 pub use config::Config;
+pub use delta::Delta;
 pub use phase1::FileAnalysis;
 pub use store::Store;
 pub use symbol::Symbol;
