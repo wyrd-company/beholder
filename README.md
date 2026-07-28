@@ -35,6 +35,8 @@ A pure function of one file's repo-relative path and its content, with no knowle
 
 Both inputs matter. The path is what a qualified name is built against and what a symbol's identity is anchored to, so it cannot be dropped. What phase 1 must never depend on is machine-local state: an absolute path, the checkout location, the wall clock, or anything about the machine that ran it. A repo-relative path carries none of that — it is the same string in every clone.
 
+The same rule decides which files are analyzed at all. Only ignore rules that live in the repository count: its own `.gitignore` files and `beholder.toml`. A global excludes file, `.git/info/exclude`, and `.gitignore` files above the repository are all machine-local and invisible to a committed tree, so beholder does not read them. Otherwise the same commit would analyze differently on a laptop and in CI.
+
 Produces:
 
 - Symbols: kind, name, qualified path, line range

@@ -31,7 +31,15 @@ pub struct SourceFile {
 /// Which files analysis is allowed to see.
 ///
 /// Three layers, in order: files that describe the repository or that beholder
-/// itself produced, `.gitignore`, and the configured ignores.
+/// itself produced, the repository's own `.gitignore` files, and the configured
+/// ignores.
+///
+/// Only rules that live in the repository count. A global excludes file,
+/// `.git/info/exclude`, and `.gitignore` files in directories above the
+/// repository are all machine-local: they differ between a laptop and CI, and
+/// they are invisible to a committed tree. Honoring them would make the file set
+/// — and therefore the analysis, and therefore anything stored under a commit —
+/// depend on which machine ran it.
 pub struct PathRules<'c> {
     config: &'c Config,
     /// One matcher per directory that holds a `.gitignore`, shallowest first.
@@ -113,10 +121,14 @@ pub fn walk_worktree(root: &Path, config: &Config) -> Result<Vec<SourceFile>> {
 
     let walker = WalkBuilder::new(root)
         .hidden(false)
+        // The repository's own rules, as checked out.
         .git_ignore(true)
-        .git_global(true)
-        .git_exclude(true)
-        .parents(true)
+        // Everything below is machine-local or outside the repository, and a
+        // committed tree cannot see any of it.
+        .ignore(false)
+        .git_global(false)
+        .git_exclude(false)
+        .parents(false)
         .build();
 
     for entry in walker {
@@ -472,6 +484,56 @@ mod tests {
         let revision = paths(read_revision(&repo, "HEAD", &Config::default()).unwrap());
 
         assert_eq!(worktree, vec!["src/main.rs".to_string()]);
+        assert_eq!(worktree, revision);
+    }
+
+    #[test]
+    fn machine_local_git_rules_are_ignored_by_both_walkers() {
+        // .git/info/exclude, a global excludes file and rules above the
+        // repository are all invisible to a committed tree. Honoring them in the
+        // working tree alone would make index and delta disagree, and would make
+        // the analysis depend on the machine that ran it.
+        let (dir, repo) = fixture(&[
+            ("src/main.rs", "fn main() {}\n"),
+            ("src/excluded_locally.rs", "fn excluded_locally() {}\n"),
+        ]);
+
+        std::fs::write(
+            dir.path().join(".git/info/exclude"),
+            "excluded_locally.rs\n",
+        )
+        .unwrap();
+
+        // Git itself agrees the file is excluded on this machine.
+        assert!(repo
+            .status_should_ignore(Path::new("src/excluded_locally.rs"))
+            .unwrap());
+
+        let worktree = paths(walk_worktree(dir.path(), &Config::default()).unwrap());
+        let revision = paths(read_revision(&repo, "HEAD", &Config::default()).unwrap());
+
+        assert_eq!(
+            worktree,
+            vec!["src/excluded_locally.rs", "src/main.rs"],
+            "a local exclude must not remove a committed file from analysis"
+        );
+        assert_eq!(worktree, revision);
+    }
+
+    #[test]
+    fn a_dot_ignore_file_is_not_a_git_rule() {
+        // The ignore crate reads .ignore files by default. Git does not, and a
+        // revision walk has no notion of them, so neither walker may.
+        let (dir, repo) = fixture(&[
+            ("src/main.rs", "fn main() {}\n"),
+            (".ignore", "src/hidden.rs\n"),
+            ("src/hidden.rs", "fn hidden() {}\n"),
+        ]);
+
+        let worktree = paths(walk_worktree(dir.path(), &Config::default()).unwrap());
+        let revision = paths(read_revision(&repo, "HEAD", &Config::default()).unwrap());
+
+        assert!(worktree.contains(&"src/hidden.rs".to_string()));
         assert_eq!(worktree, revision);
     }
 
