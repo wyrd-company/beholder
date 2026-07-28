@@ -151,29 +151,16 @@ pub struct Report {
 impl Report {
     /// Changes a surface should actually show.
     ///
-    /// A percentile alone cannot decide this, for two reasons.
+    /// The threshold governs everything. A change below it never surfaces, on
+    /// any surface, whatever its rank — that is what makes the threshold a
+    /// contract a consumer can rely on rather than a suggestion.
     ///
-    /// A score of zero means no complexity moved, and no amount of relative
-    /// ranking makes that worth a reviewer's attention. Those never surface.
-    ///
-    /// And a percentile is relative to the other changes in the same diff, so
-    /// it cannot single anything out of a small one. Midrank puts a lone change
-    /// at the 50th percentile and the top of a pair at the 75th — under any
-    /// sane threshold, a two-function change would report nothing, which is
-    /// precisely the change a reviewer can most easily be helped with. The
-    /// highest-ranked few therefore always surface if they moved complexity at
-    /// all, and the threshold governs the tail.
+    /// One rule sits beside it: a score of zero means no complexity moved, and
+    /// no amount of relative ranking makes that worth a reviewer's attention.
     pub fn surfaced(&self) -> impl Iterator<Item = &RankedChange> {
         self.changes
             .iter()
-            .take(ALWAYS_SURFACE)
-            .chain(
-                self.changes
-                    .iter()
-                    .skip(ALWAYS_SURFACE)
-                    .filter(|change| change.percentile >= self.threshold_percentile),
-            )
-            .filter(|change| change.score > 0.0)
+            .filter(|change| change.score > 0.0 && change.percentile >= self.threshold_percentile)
     }
 
     /// Is there anything worth saying? Silence is a valid report.
@@ -184,12 +171,6 @@ impl Report {
 
 /// Default percentile at or above which a change is worth surfacing.
 pub const DEFAULT_THRESHOLD: f64 = 80.0;
-
-/// How many top-ranked changes surface regardless of percentile.
-///
-/// Small enough that a large diff is still governed by the threshold, large
-/// enough that a focused change is not silent.
-const ALWAYS_SURFACE: usize = 3;
 
 /// Rank a delta.
 ///
@@ -313,6 +294,26 @@ fn score(
 ///
 /// Raw scores from different languages measure different things, so they are
 /// never compared. Merging happens on the percentile and nothing else.
+///
+/// The rank is over the distinct scores a language's changes took, not over the
+/// changes themselves: a score's percentile is its standing among the scores
+/// observed, and every change that scored it shares that standing.
+///
+/// Two properties have to hold together, and this is the definition that holds
+/// both. The riskiest change in a diff sits at 100 however small the diff is,
+/// because the threshold is the only thing deciding what surfaces — under a
+/// midrank definition a lone change scores 50 and a two-function change reports
+/// nothing, which is precisely the change a reviewer can most easily act on.
+/// Reaching for a floor on top of the threshold would fix that symptom and
+/// break the contract, because a below-threshold symbol would still reach a
+/// surface. And a crowd of identical trivial edits stays quiet: counting
+/// changes rather than scores would hand a tied run the rank of its last
+/// member, so five identical one-branch edits in a six-change diff would arrive
+/// at the 83rd percentile on the strength of being numerous.
+///
+/// A change is not demoted for having company. If everything in a diff scored
+/// the same, everything is the top of that diff, and the zero-score rule is
+/// what keeps a diff that moved no complexity quiet.
 fn assign_percentiles(changes: &mut [RankedChange]) {
     let mut by_language: BTreeMap<String, Vec<f64>> = BTreeMap::new();
 
@@ -324,15 +325,13 @@ fn assign_percentiles(changes: &mut [RankedChange]) {
     }
     for scores in by_language.values_mut() {
         scores.sort_by(|a, b| a.partial_cmp(b).expect("no NaN"));
+        scores.dedup();
     }
 
     for change in changes.iter_mut() {
         let scores = &by_language[&change.language];
-        // Midrank, so a run of equal scores shares one percentile instead of
-        // every one of them being handed the top of the range.
         let below = scores.partition_point(|s| *s < change.score) as f64;
-        let at_or_below = scores.partition_point(|s| *s <= change.score) as f64;
-        change.percentile = (below + at_or_below) * 50.0 / scores.len() as f64;
+        change.percentile = (below + 1.0) * 100.0 / scores.len() as f64;
     }
 }
 
@@ -605,9 +604,9 @@ mod tests {
 
     #[test]
     fn a_small_change_still_surfaces_its_riskiest_symbol() {
-        // Midrank puts a lone change at the 50th percentile, so a threshold
-        // alone would silence exactly the change a reviewer is most able to act
-        // on.
+        // The riskiest change in a diff is the whole top of its distribution,
+        // however few changes there are. Any other definition silences exactly
+        // the change a reviewer is most able to act on.
         let report = report(
             &[("src/a.rs", "fn a() {}\n")],
             &[(
@@ -618,8 +617,126 @@ mod tests {
         );
 
         assert_eq!(report.changes.len(), 1);
-        assert!(report.changes[0].percentile < DEFAULT_THRESHOLD);
-        assert_eq!(report.surfaced().count(), 1, "but it still surfaces");
+        assert_eq!(report.changes[0].percentile, 100.0);
+        assert_eq!(report.surfaced().count(), 1);
+    }
+
+    /// The threshold is a contract, not a hint: nothing below it reaches a
+    /// surface, however highly it ranks among the rest.
+    #[test]
+    fn a_below_threshold_change_never_surfaces() {
+        let function = |name: &str, depth: usize| {
+            let mut body = String::new();
+            for level in 0..depth {
+                body.push_str(&"    ".repeat(level + 1));
+                body.push_str("if x {\n");
+            }
+            for level in (0..depth).rev() {
+                body.push_str(&"    ".repeat(level + 1));
+                body.push_str("}\n");
+            }
+            format!("fn {name}(x: bool) {{\n{body}}}\n")
+        };
+
+        // Ten changes of increasing depth: a clear distribution, so the
+        // threshold has something to cut.
+        let before: String = (0..10).map(|i| function(&format!("f{i}"), 1)).collect();
+        let after: String = (0..10).map(|i| function(&format!("f{i}"), i + 2)).collect();
+        let report = report(
+            &[("src/a.rs", before.as_str())],
+            &[("src/a.rs", after.as_str())],
+            FanInBasis::Raw,
+        );
+
+        assert_eq!(report.changes.len(), 10);
+        let surfaced: Vec<&RankedChange> = report.surfaced().collect();
+        assert!(
+            surfaced.iter().all(|c| c.percentile >= DEFAULT_THRESHOLD),
+            "{:?}",
+            surfaced.iter().map(|c| c.percentile).collect::<Vec<_>>()
+        );
+        assert!(
+            surfaced.len() < report.changes.len(),
+            "the threshold has to be cutting something for this to prove anything"
+        );
+
+        // A change ranked mid-table is under the threshold, and no surface may
+        // show it however visible its position in the ranking is.
+        let ranked_fourth = &report.changes[3];
+        assert!(
+            ranked_fourth.percentile < DEFAULT_THRESHOLD,
+            "{ranked_fourth:?}"
+        );
+        assert!(!surfaced.iter().any(|c| c.id == ranked_fourth.id));
+
+        let sarif = crate::sarif::render(&report);
+        assert_eq!(sarif.runs[0].results.len(), surfaced.len());
+        let comment = crate::markdown::render(&report).expect("something surfaced");
+        assert!(
+            !comment.contains(&ranked_fourth.qualified_path),
+            "{comment}"
+        );
+    }
+
+    /// A threshold of 100 means the top percentile and nothing else, which is
+    /// only expressible if the top of a distribution actually reaches 100.
+    #[test]
+    fn the_highest_threshold_admits_only_the_riskiest() {
+        let before = [("src/a.rs", "fn a() {}\nfn b() {}\nfn c() {}\nfn d() {}\n")];
+        let after = [(
+            "src/a.rs",
+            "fn a(x: bool) {\n    if x {\n        if x {\n            if x {}\n        }\n    }\n}\n\
+             fn b(x: bool) {\n    if x {\n        if x {}\n    }\n}\n\
+             fn c(x: bool) {\n    if x {}\n}\n\
+             fn d() {}\n",
+        )];
+
+        let before_analysis = analyze(&before);
+        let after_analysis = analyze(&after);
+        let changed = delta::compare(&before_analysis, &after_analysis);
+        let report = rank(
+            "before",
+            "after",
+            &changed,
+            &before_analysis,
+            &after_analysis,
+            FanInBasis::Raw,
+            100.0,
+        );
+
+        let surfaced: Vec<&RankedChange> = report.surfaced().collect();
+        assert_eq!(surfaced.len(), 1, "{surfaced:?}");
+        assert_eq!(surfaced[0].percentile, 100.0);
+        assert!(surfaced[0].qualified_path.contains('a'));
+    }
+
+    /// Being numerous is not being risky. Counting changes rather than distinct
+    /// scores would let a tied run inherit the rank of its last member.
+    #[test]
+    fn a_crowd_of_identical_edits_does_not_outrank_the_one_deep_change() {
+        let shallow = |name: &str| format!("fn {name}(x: bool) {{\n    if x {{}}\n}}\n");
+        let before: String = ["a", "b", "c", "d", "e", "f"]
+            .iter()
+            .map(|name| format!("fn {name}() {{}}\n"))
+            .collect();
+        let after: String = std::iter::once(
+            "fn a(x: bool) {\n    if x {\n        if x {\n            if x {}\n        }\n    }\n}\n"
+                .to_owned(),
+        )
+        .chain(["b", "c", "d", "e", "f"].iter().map(|name| shallow(name)))
+        .collect();
+
+        let report = report(
+            &[("src/a.rs", before.as_str())],
+            &[("src/a.rs", after.as_str())],
+            FanInBasis::Raw,
+        );
+
+        let surfaced: Vec<&str> = report
+            .surfaced()
+            .map(|change| change.qualified_path.as_str())
+            .collect();
+        assert_eq!(surfaced, vec!["a"], "{surfaced:?}");
     }
 
     #[test]
@@ -638,7 +755,11 @@ mod tests {
             percentiles.iter().all(|p| *p == percentiles[0]),
             "identical changes must rank identically: {percentiles:?}"
         );
-        assert_eq!(percentiles[0], 50.0, "and at the middle, not the top");
+        assert_eq!(
+            percentiles[0], 100.0,
+            "a tie is indistinguishable to this ranking, so it shares the top \
+             of its run rather than being demoted for being one of several"
+        );
     }
 
     #[test]
@@ -791,9 +912,9 @@ mod tests {
         // Percentiles are per language, so each language ranks its own pair.
         for change in &report.changes {
             let expected = if change.qualified_path == "big" {
-                75.0
+                100.0
             } else {
-                25.0
+                50.0
             };
             assert_eq!(
                 change.percentile, expected,

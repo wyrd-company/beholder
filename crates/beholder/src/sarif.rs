@@ -138,8 +138,9 @@ pub fn render(report: &Report) -> Log {
                 },
             },
             results: report.surfaced().map(result).collect(),
-            // Beholder counts columns in bytes, and says so rather than letting
-            // a consumer assume UTF-16.
+            // Declared rather than left to a consumer's assumption. Every
+            // region beholder emits is whole lines, so nothing here depends on
+            // it yet; a column would.
             column_kind: "utf16CodeUnits".to_owned(),
         }],
     }
@@ -256,8 +257,8 @@ mod tests {
 
     #[test]
     fn only_surfaced_changes_become_results() {
-        // A wide change, so the threshold rather than the always-surface floor
-        // is what decides.
+        // One deep change among five shallow identical ones: the threshold has
+        // something to cut, and the crowd does not out-rank the outlier.
         let wide = report(
             &[("src/a.rs", "fn a() {}\nfn b() {}\nfn c() {}\nfn d() {}\nfn e() {}\nfn f() {}\n")],
             &[(
