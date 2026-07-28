@@ -6,6 +6,9 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
+readme = "../../README.md"
+keywords = ["static-analysis", "complexity", "sarif", "code-review"]
+categories = ["development-tools", "command-line-utilities"]
 
 [[bin]]
 name = "beholder"

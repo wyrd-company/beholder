@@ -1,0 +1,38 @@
+{
+  "name": "@wyrd-company/beholder",
+  "version": "0.1.0",
+  "description": "Public npm launcher for beholder, a structural code index.",
+  "keywords": [
+    "static-analysis",
+    "complexity",
+    "code-review",
+    "cli",
+    "sarif"
+  ],
+  "homepage": "https://github.com/wyrd-company/beholder#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wyrd-company/beholder.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "beholder": "bin/beholder.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js",
+    "test": "node --test test/*.test.js"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "bin/beholder.js",
+    "install.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  }
+}

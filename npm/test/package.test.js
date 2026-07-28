@@ -1,0 +1,34 @@
+
+"use strict";
+
+const assert = require("node:assert/strict");
+const os = require("node:os");
+const path = require("node:path");
+const { spawnSync } = require("node:child_process");
+const test = require("node:test");
+
+test("npm pack contains only the public launcher contract", () => {
+  const packageRoot = path.resolve(__dirname, "..");
+  const metadata = require(path.join(packageRoot, "package.json"));
+  assert.equal(metadata.name, "@wyrd-company/beholder");
+  assert.equal(metadata.license, "MIT");
+  assert.equal(metadata.repository.url, "git+https://github.com/wyrd-company/beholder.git");
+  assert.equal(metadata.engines.node, ">=18");
+  assert.deepEqual(metadata.bin, { beholder: "bin/beholder.js" });
+  assert.deepEqual(metadata.publishConfig, {
+    access: "public",
+    registry: "https://registry.npmjs.org",
+  });
+  const result = spawnSync(
+    process.platform === "win32" ? "npm.cmd" : "npm",
+    ["pack", "--dry-run", "--json", "--ignore-scripts", `--userconfig=${os.devNull}`],
+    { cwd: packageRoot, encoding: "utf8", shell: process.platform === "win32" },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  const [packed] = JSON.parse(result.stdout);
+  assert.equal(packed.name, "@wyrd-company/beholder");
+  assert.deepEqual(
+    packed.files.map((file) => file.path).sort(),
+    ["LICENSE", "README.md", "bin/beholder.js", "install.js", "package.json"],
+  );
+});
