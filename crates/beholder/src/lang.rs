@@ -25,10 +25,78 @@ pub struct LanguageDef {
     pub complexity_query: &'static str,
     /// Query selecting identity discriminators. See `queries/<id>/discriminators.scm`.
     pub discriminators_query: &'static str,
+    /// Query selecting identifier occurrences. See `queries/<id>/references.scm`.
+    pub references_query: &'static str,
+    /// Query selecting import declarations. See `queries/<id>/imports.scm`.
+    pub imports_query: &'static str,
+    /// How an import tree is spelled.
+    pub import_syntax: ImportSyntax,
+    /// How a file path becomes a module path.
+    pub module_path: ModulePathRules,
     /// Separator between qualified-path segments.
     pub path_separator: &'static str,
     /// Lists whose trailing separator is a formatter's choice.
     pub optional_trailing: &'static [TrailingSeparator],
+}
+
+/// How a language spells an import tree.
+///
+/// Expanding `use a::{b, c as d, e::*}` into individual bindings is one
+/// algorithm; only the punctuation differs between languages. Declaring the
+/// punctuation keeps the algorithm generic.
+pub struct ImportSyntax {
+    /// Between path segments.
+    pub separator: &'static str,
+    pub group_open: char,
+    pub group_close: char,
+    /// Between items inside a group.
+    pub item_separator: char,
+    /// Introduces a local alias, as in `use a::b as c`.
+    pub alias_keyword: &'static str,
+    /// Imports everything under a path.
+    pub glob: &'static str,
+    /// Refers to the path itself rather than a child, as in `use a::{self, b}`.
+    pub self_segment: &'static str,
+    /// Leading segments that mean "somewhere in this project" rather than a
+    /// dependency, and are dropped before matching.
+    pub crate_roots: &'static [&'static str],
+}
+
+/// How a repo-relative file path becomes a module path.
+pub struct ModulePathRules {
+    /// Leading directory segments that name no module. Everything up to and
+    /// including the last of these is dropped.
+    pub strip_prefixes: &'static [&'static str],
+    /// File stems that name their containing directory rather than a module of
+    /// their own.
+    pub root_stems: &'static [&'static str],
+}
+
+impl ModulePathRules {
+    /// The module path a file contributes, as segments.
+    ///
+    /// `crates/core/src/git.rs` is `git`; `crates/core/src/lib.rs` is the crate
+    /// root and contributes nothing; `src/a/mod.rs` is `a`.
+    pub fn segments(&self, path: &str) -> Vec<String> {
+        let without_extension = path.rsplit_once('.').map_or(path, |(stem, _)| stem);
+        let mut segments: Vec<&str> = without_extension.split('/').collect();
+
+        if let Some(last) = segments
+            .iter()
+            .rposition(|segment| self.strip_prefixes.contains(segment))
+        {
+            segments.drain(..=last);
+        }
+
+        if segments
+            .last()
+            .is_some_and(|stem| self.root_stems.contains(stem))
+        {
+            segments.pop();
+        }
+
+        segments.into_iter().map(str::to_owned).collect()
+    }
 }
 
 /// A separator a formatter may add or drop at the end of one kind of list
@@ -127,6 +195,22 @@ pub static LANGUAGES: &[LanguageDef] = &[LanguageDef {
     scopes_query: include_str!("../queries/rust/scopes.scm"),
     complexity_query: include_str!("../queries/rust/complexity.scm"),
     discriminators_query: include_str!("../queries/rust/discriminators.scm"),
+    references_query: include_str!("../queries/rust/references.scm"),
+    imports_query: include_str!("../queries/rust/imports.scm"),
+    import_syntax: ImportSyntax {
+        separator: "::",
+        group_open: '{',
+        group_close: '}',
+        item_separator: ',',
+        alias_keyword: "as",
+        glob: "*",
+        self_segment: "self",
+        crate_roots: &["crate", "self", "super"],
+    },
+    module_path: ModulePathRules {
+        strip_prefixes: &["src"],
+        root_stems: &["lib", "main", "mod"],
+    },
     path_separator: "::",
     optional_trailing: RUST_OPTIONAL_TRAILING,
 }];
@@ -167,6 +251,8 @@ pub fn table_fingerprint() -> String {
         material.push_str(lang.scopes_query);
         material.push_str(lang.complexity_query);
         material.push_str(lang.discriminators_query);
+        material.push_str(lang.references_query);
+        material.push_str(lang.imports_query);
         material.push('\0');
     }
     crate::hash::hex_sha256(material.as_bytes())
@@ -185,6 +271,8 @@ mod tests {
                 ("scopes", lang.scopes_query),
                 ("complexity", lang.complexity_query),
                 ("discriminators", lang.discriminators_query),
+                ("references", lang.references_query),
+                ("imports", lang.imports_query),
             ] {
                 tree_sitter::Query::new(&grammar, source)
                     .unwrap_or_else(|e| panic!("{}/{name}.scm failed to compile: {e}", lang.id));
@@ -208,6 +296,19 @@ mod tests {
         assert_eq!(for_path("src/main.rs").map(|l| l.id), Some("rust"));
         assert_eq!(for_path("README.md").map(|l| l.id), None);
         assert_eq!(for_path("Makefile").map(|l| l.id), None);
+    }
+
+    #[test]
+    fn module_paths_come_from_file_paths() {
+        let rules = &by_id("rust").unwrap().module_path;
+
+        assert_eq!(rules.segments("crates/core/src/git.rs"), vec!["git"]);
+        assert!(rules.segments("crates/core/src/lib.rs").is_empty());
+        assert!(rules.segments("src/main.rs").is_empty());
+        assert_eq!(rules.segments("src/a/mod.rs"), vec!["a"]);
+        assert_eq!(rules.segments("src/a/b.rs"), vec!["a", "b"]);
+        // The last `src` wins, so a crate nested under another path still works.
+        assert_eq!(rules.segments("a/src/b/src/c.rs"), vec!["c"]);
     }
 
     #[test]

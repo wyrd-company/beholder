@@ -31,6 +31,44 @@ pub struct FileAnalysis {
     pub lines: usize,
     /// Empty when the file did not reach tier 1.
     pub symbols: Vec<Symbol>,
+    /// Identifier occurrences that refer to something, in source order.
+    #[serde(default)]
+    pub occurrences: Vec<Occurrence>,
+    /// Bindings this file brought into scope.
+    #[serde(default)]
+    pub imports: Vec<Import>,
+    /// Module path this file contributes, as segments.
+    #[serde(default)]
+    pub module_segments: Vec<String>,
+}
+
+/// One identifier occurrence that refers to something.
+///
+/// Phase 1 records what was written and where. It cannot say what the name
+/// refers to: that needs the whole file set, and so belongs to phase 2.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Occurrence {
+    /// The name as written, without any qualifier.
+    pub name: String,
+    /// Whatever narrowed the lookup — the `Type` in `Type::method`.
+    pub qualifier: Option<String>,
+    /// What syntactic position it appeared in, from the query.
+    pub kind: String,
+    /// 1-based.
+    pub line: usize,
+    /// Index into this file's symbols of the symbol it appeared inside.
+    pub within: Option<usize>,
+}
+
+/// One binding an import brought into scope.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Import {
+    /// What the binding is called in this file.
+    pub local_name: String,
+    /// Path segments it refers to, with any project-root prefix stripped.
+    pub path: Vec<String>,
+    /// True for `use a::b::*`, where `local_name` is meaningless.
+    pub glob: bool,
 }
 
 /// Analyze one file.
@@ -48,10 +86,13 @@ pub fn analyze(path: &str, contents: &str) -> FileAnalysis {
             density,
             lines,
             symbols: Vec::new(),
+            occurrences: Vec::new(),
+            imports: Vec::new(),
+            module_segments: Vec::new(),
         };
     };
 
-    let symbols = tier1_symbols(language, path, contents);
+    let tier1 = tier1(language, path, contents);
 
     FileAnalysis {
         path: path.to_owned(),
@@ -60,7 +101,10 @@ pub fn analyze(path: &str, contents: &str) -> FileAnalysis {
         tier: 1,
         density,
         lines,
-        symbols,
+        symbols: tier1.symbols,
+        occurrences: tier1.occurrences,
+        imports: tier1.imports,
+        module_segments: language.module_path.segments(path),
     }
 }
 
@@ -73,6 +117,8 @@ struct Compiled {
     scopes: Query,
     complexity: Query,
     discriminators: Query,
+    references: Query,
+    imports: Query,
 }
 
 fn compiled(language: &LanguageDef) -> &'static Compiled {
@@ -92,6 +138,8 @@ fn compiled(language: &LanguageDef) -> &'static Compiled {
                     scopes: compile("scopes", l.scopes_query),
                     complexity: compile("complexity", l.complexity_query),
                     discriminators: compile("discriminators", l.discriminators_query),
+                    references: compile("references", l.references_query),
+                    imports: compile("imports", l.imports_query),
                 }
             })
             .collect()
@@ -155,16 +203,24 @@ fn render(format: &str, variables: &HashMap<String, String>) -> String {
 // Tier 1
 // ---------------------------------------------------------------------------
 
-fn tier1_symbols(language: &'static LanguageDef, path: &str, contents: &str) -> Vec<Symbol> {
+/// Everything tier 1 reads out of one file.
+#[derive(Default)]
+struct Tier1 {
+    symbols: Vec<Symbol>,
+    occurrences: Vec<Occurrence>,
+    imports: Vec<Import>,
+}
+
+fn tier1(language: &'static LanguageDef, path: &str, contents: &str) -> Tier1 {
     let queries = compiled(language);
     let grammar = (language.grammar)();
 
     let mut parser = Parser::new();
     if parser.set_language(&grammar).is_err() {
-        return Vec::new();
+        return Tier1::default();
     }
     let Some(tree) = parser.parse(contents, None) else {
-        return Vec::new();
+        return Tier1::default();
     };
 
     let source = contents.as_bytes();
@@ -187,13 +243,260 @@ fn tier1_symbols(language: &'static LanguageDef, path: &str, contents: &str) -> 
         symbol.symbol.cognitive_complexity = cost;
     }
 
-    finish(found)
+    let occurrences = collect_occurrences(&queries.references, root, source, &found);
+    let imports = collect_imports(&queries.imports, root, source, language);
+
+    Tier1 {
+        symbols: finish(found),
+        occurrences,
+        imports,
+    }
+}
+
+/// Identifier occurrences, each attributed to the symbol it sits inside.
+fn collect_occurrences(
+    query: &Query,
+    root: Node<'_>,
+    source: &[u8],
+    symbols: &[Pending],
+) -> Vec<Occurrence> {
+    // A symbol's own declared name is not a reference to it.
+    let declarations: HashSet<usize> = symbols.iter().filter_map(|p| p.name_start_byte).collect();
+
+    let mut out = Vec::new();
+    let mut cursor = QueryCursor::new();
+    let mut matches = cursor.matches(query, root, source);
+
+    while let Some(m) = matches.next() {
+        let mut node = None;
+        let mut name = None;
+        let mut qualifier = None;
+
+        for capture in m.captures {
+            match query.capture_names()[capture.index as usize] {
+                "reference" => node = Some(capture.node),
+                "name" => name = Some(capture.node),
+                "qualifier" => {
+                    qualifier = capture.node.utf8_text(source).ok().map(|t| {
+                        // A qualifier may itself be a path; only its last
+                        // segment narrows the lookup.
+                        t.rsplit(':').next().unwrap_or(t).trim().to_owned()
+                    })
+                }
+                _ => {}
+            }
+        }
+
+        let (Some(node), Some(name_node)) = (node, name) else {
+            continue;
+        };
+        if declarations.contains(&name_node.start_byte()) {
+            continue;
+        }
+        let Some(kind) = property(query, m.pattern_index, "kind") else {
+            continue;
+        };
+        let Ok(text) = name_node.utf8_text(source) else {
+            continue;
+        };
+
+        out.push(Occurrence {
+            name: text.to_owned(),
+            qualifier: qualifier.filter(|q| !q.is_empty()),
+            kind: kind.to_owned(),
+            line: node.start_position().row + 1,
+            within: enclosing_symbol(node.start_byte(), symbols),
+        });
+    }
+
+    // Deterministic order, and a stable one: several patterns can match the
+    // same position.
+    out.sort_by(|a, b| {
+        (a.line, &a.name, &a.kind, &a.qualifier).cmp(&(b.line, &b.name, &b.kind, &b.qualifier))
+    });
+    out.dedup();
+    out
+}
+
+/// Bindings brought into scope by this file's imports.
+fn collect_imports(
+    query: &Query,
+    root: Node<'_>,
+    source: &[u8],
+    language: &LanguageDef,
+) -> Vec<Import> {
+    let mut out = Vec::new();
+    let mut cursor = QueryCursor::new();
+    let mut matches = cursor.matches(query, root, source);
+
+    while let Some(m) = matches.next() {
+        for capture in m.captures {
+            if query.capture_names()[capture.index as usize] != "import" {
+                continue;
+            }
+            let Ok(text) = capture.node.utf8_text(source) else {
+                continue;
+            };
+            expand_import(text, language, &mut out);
+        }
+    }
+
+    out.sort_by(|a, b| (&a.local_name, &a.path, a.glob).cmp(&(&b.local_name, &b.path, b.glob)));
+    out.dedup();
+    out
+}
+
+/// Expand one import tree into individual bindings.
+///
+/// `a::{b, c as d, e::*}` becomes three bindings. Only the punctuation is
+/// language-specific, and it comes from the language table, so this reads any
+/// language whose imports nest the same way.
+fn expand_import(text: &str, language: &LanguageDef, out: &mut Vec<Import>) {
+    let syntax = &language.import_syntax;
+    let mut stack: Vec<(String, Vec<String>)> = vec![(text.to_owned(), Vec::new())];
+
+    while let Some((text, prefix)) = stack.pop() {
+        let text = text.trim();
+
+        match split_group(text, syntax.group_open, syntax.group_close) {
+            // `a::{b, c}` — push each item with `a` prepended.
+            Some((before, inside)) => {
+                let mut prefix = prefix.clone();
+                prefix.extend(path_segments(before, syntax));
+
+                for item in split_items(inside, syntax) {
+                    stack.push((item.to_owned(), prefix.clone()));
+                }
+            }
+            // A leaf: `a::b`, `a::b as c`, or `a::*`.
+            None => {
+                if let Some(import) = leaf_import(text, &prefix, syntax) {
+                    out.push(import);
+                }
+            }
+        }
+    }
+}
+
+fn leaf_import(
+    text: &str,
+    prefix: &[String],
+    syntax: &crate::lang::ImportSyntax,
+) -> Option<Import> {
+    let (path_text, alias) = match text.split_once(&format!(" {} ", syntax.alias_keyword)) {
+        Some((path, alias)) => (path, Some(alias.trim().to_owned())),
+        None => (text, None),
+    };
+
+    let mut path: Vec<String> = prefix.to_vec();
+    path.extend(path_segments(path_text, syntax));
+
+    // A project-root prefix says where to look, not what to look for.
+    while path
+        .first()
+        .is_some_and(|segment| syntax.crate_roots.contains(&segment.as_str()))
+    {
+        path.remove(0);
+    }
+
+    let last = path.last()?.clone();
+
+    if last == syntax.glob {
+        path.pop();
+        return (!path.is_empty()).then(|| Import {
+            local_name: String::new(),
+            path,
+            glob: true,
+        });
+    }
+
+    // `use a::{self, b}` binds `a` itself.
+    if last == syntax.self_segment {
+        path.pop();
+        let name = path.last()?.clone();
+        return Some(Import {
+            local_name: name,
+            path,
+            glob: false,
+        });
+    }
+
+    Some(Import {
+        local_name: alias.unwrap_or(last),
+        path,
+        glob: false,
+    })
+}
+
+/// Split at the outermost group, returning what came before it and its contents.
+fn split_group(text: &str, open: char, close: char) -> Option<(&str, &str)> {
+    let start = text.find(open)?;
+    let mut depth = 0usize;
+
+    for (offset, c) in text[start..].char_indices() {
+        if c == open {
+            depth += 1;
+        } else if c == close {
+            depth -= 1;
+            if depth == 0 {
+                return Some((
+                    &text[..start],
+                    &text[start + open.len_utf8()..start + offset],
+                ));
+            }
+        }
+    }
+
+    None
+}
+
+/// Split a group's contents on the item separator, ignoring nested groups.
+fn split_items<'t>(text: &'t str, syntax: &crate::lang::ImportSyntax) -> Vec<&'t str> {
+    let mut items = Vec::new();
+    let mut depth = 0usize;
+    let mut start = 0usize;
+
+    for (offset, c) in text.char_indices() {
+        if c == syntax.group_open {
+            depth += 1;
+        } else if c == syntax.group_close {
+            depth = depth.saturating_sub(1);
+        } else if c == syntax.item_separator && depth == 0 {
+            items.push(text[start..offset].trim());
+            start = offset + c.len_utf8();
+        }
+    }
+
+    items.push(text[start..].trim());
+    items.into_iter().filter(|i| !i.is_empty()).collect()
+}
+
+fn path_segments(text: &str, syntax: &crate::lang::ImportSyntax) -> Vec<String> {
+    text.split(syntax.separator)
+        .map(str::trim)
+        .filter(|segment| !segment.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+/// The innermost symbol whose source range contains this byte.
+fn enclosing_symbol(byte: usize, symbols: &[Pending]) -> Option<usize> {
+    symbols
+        .iter()
+        .enumerate()
+        .filter(|(_, p)| p.start_byte <= byte && byte < p.end_byte)
+        .max_by_key(|(_, p)| p.start_byte)
+        .map(|(index, _)| index)
 }
 
 /// A symbol under construction, still carrying the syntax node it came from.
 struct Pending {
     node_id: usize,
     start_byte: usize,
+    end_byte: usize,
+    /// Start of the symbol's own name token, so an occurrence there can be told
+    /// from a reference.
+    name_start_byte: Option<usize>,
     symbol: Symbol,
 }
 
@@ -327,6 +630,8 @@ fn collect_symbols(
         found.push(Pending {
             node_id: node.id(),
             start_byte: node.start_byte(),
+            end_byte: node.end_byte(),
+            name_start_byte: name_node.map(|n| n.start_byte()),
             symbol: Symbol {
                 id: String::new(),
                 path: path.to_owned(),
@@ -853,6 +1158,128 @@ fn platform() {}
         );
         // outer loop 1, inner loop 1+1, labelled break 1
         assert_eq!(symbols[0].cognitive_complexity, 4);
+    }
+
+    fn imports_of(source: &str) -> Vec<Import> {
+        analyze("src/lib.rs", source).imports
+    }
+
+    #[test]
+    fn a_simple_import_binds_its_last_segment() {
+        let imports = imports_of("use crate::git::walk_to_tag;\n");
+        assert_eq!(imports.len(), 1);
+        assert_eq!(imports[0].local_name, "walk_to_tag");
+        assert_eq!(imports[0].path, vec!["git", "walk_to_tag"]);
+        assert!(!imports[0].glob);
+    }
+
+    #[test]
+    fn a_grouped_import_expands_to_one_binding_each() {
+        let imports = imports_of("use crate::a::{b, c, d};\n");
+        let names: Vec<_> = imports.iter().map(|i| i.local_name.as_str()).collect();
+        assert_eq!(names, vec!["b", "c", "d"]);
+        assert!(imports.iter().all(|i| i.path[0] == "a"));
+    }
+
+    #[test]
+    fn nested_groups_and_aliases_expand() {
+        let imports = imports_of("use crate::a::{b, c::{d, e as f}};\n");
+        let mut got: Vec<_> = imports
+            .iter()
+            .map(|i| (i.local_name.clone(), i.path.join("::")))
+            .collect();
+        got.sort();
+
+        assert_eq!(
+            got,
+            vec![
+                ("b".to_string(), "a::b".to_string()),
+                ("d".to_string(), "a::c::d".to_string()),
+                ("f".to_string(), "a::c::e".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_glob_import_records_its_prefix() {
+        let imports = imports_of("use crate::a::b::*;\n");
+        assert_eq!(imports.len(), 1);
+        assert!(imports[0].glob);
+        assert_eq!(imports[0].path, vec!["a", "b"]);
+    }
+
+    #[test]
+    fn self_in_a_group_binds_the_module() {
+        let imports = imports_of("use crate::a::{self, b};\n");
+        let mut names: Vec<_> = imports.iter().map(|i| i.local_name.as_str()).collect();
+        names.sort();
+        assert_eq!(names, vec!["a", "b"]);
+    }
+
+    #[test]
+    fn an_external_crate_keeps_its_root_segment() {
+        // Only project-root prefixes are stripped. `serde` is a dependency and
+        // has to stay distinguishable from a local module called `serde`.
+        let imports = imports_of("use serde::Deserialize;\n");
+        assert_eq!(imports[0].path, vec!["serde", "Deserialize"]);
+    }
+
+    #[test]
+    fn occurrences_carry_their_enclosing_symbol() {
+        let file = analyze(
+            "src/lib.rs",
+            "fn caller() {\n    callee();\n}\n\nfn callee() {}\n",
+        );
+
+        let call = file
+            .occurrences
+            .iter()
+            .find(|o| o.name == "callee")
+            .expect("the call");
+
+        assert_eq!(call.kind, "call");
+        assert_eq!(file.symbols[call.within.unwrap()].name, "caller");
+    }
+
+    #[test]
+    fn a_declaration_is_not_a_reference_to_itself() {
+        let file = analyze("src/lib.rs", "struct Ledger;\nfn tally() {}\n");
+
+        assert!(
+            !file
+                .occurrences
+                .iter()
+                .any(|o| o.name == "Ledger" || o.name == "tally"),
+            "{:#?}",
+            file.occurrences
+        );
+    }
+
+    #[test]
+    fn a_qualified_call_records_its_qualifier() {
+        let file = analyze("src/lib.rs", "fn run() {\n    Ledger::tally();\n}\n");
+
+        let call = file
+            .occurrences
+            .iter()
+            .find(|o| o.name == "tally")
+            .expect("the call");
+
+        assert_eq!(call.qualifier.as_deref(), Some("Ledger"));
+    }
+
+    #[test]
+    fn a_method_call_is_recorded_without_a_receiver_type() {
+        let file = analyze("src/lib.rs", "fn run(l: Ledger) {\n    l.tally();\n}\n");
+
+        let call = file
+            .occurrences
+            .iter()
+            .find(|o| o.name == "tally")
+            .expect("the call");
+
+        assert_eq!(call.kind, "method");
+        assert_eq!(call.qualifier, None);
     }
 
     #[test]
