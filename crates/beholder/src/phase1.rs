@@ -397,11 +397,19 @@ fn read_named_import(
     }
 
     let Some(module) = module else { return };
-    let segments: Vec<String> = module
+    let mut segments: Vec<String> = module
         .split(syntax.separator)
         .filter(|segment| !segment.is_empty())
         .map(str::to_owned)
         .collect();
+
+    // A leading `./` or `../` says where to look, not what to look for.
+    while segments
+        .first()
+        .is_some_and(|segment| syntax.crate_roots.contains(&segment.as_str()))
+    {
+        segments.remove(0);
+    }
 
     let glob = property(query, m.pattern_index, "glob") == Some("true");
 
@@ -1464,6 +1472,113 @@ fn platform() {}
     fn go_reformatting_changes_no_identity_and_no_score() {
         let tight = analyze_go("package main\nfunc f(a bool){if a{}}\n");
         let loose = analyze_go("package main\nfunc f(a bool) {\n\tif a {\n\t}\n}\n");
+
+        assert_eq!(tight[0].id, loose[0].id);
+        assert_eq!(tight[0].cognitive_complexity, loose[0].cognitive_complexity);
+        assert_eq!(tight[0].content_fingerprint, loose[0].content_fingerprint);
+    }
+
+    // -- TypeScript ---------------------------------------------------------
+
+    fn analyze_ts(source: &str) -> Vec<Symbol> {
+        analyze("src/app.ts", source).symbols
+    }
+
+    #[test]
+    fn typescript_extracts_functions_classes_and_type_aliases() {
+        let symbols = analyze_ts(
+            "export class Ledger {\n  tally(): number { return 1; }\n}\nexport interface Entry { id: string }\ntype Id = string;\nexport function run(): void {}\nexport const go = () => {};\n",
+        );
+        let got: Vec<_> = symbols
+            .iter()
+            .map(|s| (s.kind.as_str(), s.qualified_path.as_str()))
+            .collect();
+
+        assert!(got.contains(&("type", "Ledger")), "{got:?}");
+        assert!(got.contains(&("type", "Entry")), "{got:?}");
+        assert!(got.contains(&("type", "Id")), "{got:?}");
+        assert!(got.contains(&("function", "run")), "{got:?}");
+        assert!(got.contains(&("function", "go")), "{got:?}");
+        assert!(got.contains(&("function", "Ledger.tally")), "{got:?}");
+    }
+
+    #[test]
+    fn typescript_methods_on_different_classes_stay_distinct() {
+        let symbols = analyze_ts("class A {\n  close() {}\n}\nclass B {\n  close() {}\n}\n");
+        let ids: HashSet<_> = symbols.iter().map(|s| s.id.clone()).collect();
+        assert_eq!(
+            ids.len(),
+            symbols.len(),
+            "identities collided: {symbols:#?}"
+        );
+    }
+
+    #[test]
+    fn typescript_nesting_is_weighted() {
+        let flat =
+            analyze_ts("function f(a: boolean, b: boolean) {\n  if (a) {}\n  if (b) {}\n}\n");
+        let nested =
+            analyze_ts("function f(a: boolean, b: boolean) {\n  if (a) {\n    if (b) {}\n  }\n}\n");
+
+        assert_eq!(flat[0].cognitive_complexity, 2);
+        assert_eq!(nested[0].cognitive_complexity, 3);
+    }
+
+    #[test]
+    fn typescript_nullish_and_boolean_sequences_count_once() {
+        let one = analyze_ts("function f(a: any, b: any, c: any) {\n  if (a && b && c) {}\n}\n");
+        let mixed = analyze_ts("function f(a: any, b: any, c: any) {\n  if (a && b || c) {}\n}\n");
+
+        assert_eq!(one[0].cognitive_complexity, 2);
+        assert_eq!(mixed[0].cognitive_complexity, 3);
+    }
+
+    #[test]
+    fn typescript_named_and_aliased_imports_bind() {
+        let file = analyze(
+            "src/app.ts",
+            "import { parse, format as fmt } from './lib/text';\nimport def from './lib/def';\n",
+        );
+        let got: Vec<_> = file
+            .imports
+            .iter()
+            .map(|i| (i.local_name.as_str(), i.path.join("/"), i.glob))
+            .collect();
+
+        assert!(
+            got.iter()
+                .any(|(n, p, _)| *n == "parse" && p == "lib/text/parse"),
+            "{got:?}"
+        );
+        assert!(got.iter().any(|(n, _, _)| *n == "def"), "{got:?}");
+    }
+
+    #[test]
+    fn typescript_namespace_and_barrel_imports_are_globs() {
+        let file = analyze(
+            "src/app.ts",
+            "import * as helpers from './helpers';\nexport * from './public';\n",
+        );
+        let globs: Vec<_> = file
+            .imports
+            .iter()
+            .filter(|i| i.glob)
+            .map(|i| i.path.join("/"))
+            .collect();
+
+        assert!(globs.contains(&"helpers".to_string()), "{globs:?}");
+        assert!(globs.contains(&"public".to_string()), "{globs:?}");
+        assert_eq!(
+            globs.len(),
+            2,
+            "a barrel re-export is a glob too: {globs:?}"
+        );
+    }
+
+    #[test]
+    fn typescript_reformatting_changes_no_identity_and_no_score() {
+        let tight = analyze_ts("function f(a:boolean){if(a){}}\n");
+        let loose = analyze_ts("function f(a: boolean) {\n  if (a) {\n  }\n}\n");
 
         assert_eq!(tight[0].id, loose[0].id);
         assert_eq!(tight[0].cognitive_complexity, loose[0].cognitive_complexity);

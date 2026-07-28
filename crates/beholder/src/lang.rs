@@ -260,6 +260,79 @@ pub static LANGUAGES: &[LanguageDef] = &[
         path_separator: ".",
         optional_trailing: GO_OPTIONAL_TRAILING,
     },
+    LanguageDef {
+        // Scoped to .ts and its module variants. tree-sitter-typescript ships a
+        // separate TSX grammar because `<T>` is a type assertion in one and an
+        // element in the other; supporting .tsx means a second table entry
+        // pointing at LANGUAGE_TSX and reusing these query files, not a change
+        // to any of this.
+        id: "typescript",
+        extensions: &["ts", "mts", "cts"],
+        grammar: || tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        symbols_query: include_str!("../queries/typescript/symbols.scm"),
+        scopes_query: include_str!("../queries/typescript/scopes.scm"),
+        complexity_query: include_str!("../queries/typescript/complexity.scm"),
+        discriminators_query: include_str!("../queries/typescript/discriminators.scm"),
+        references_query: include_str!("../queries/typescript/references.scm"),
+        imports_query: include_str!("../queries/typescript/imports.scm"),
+        import_syntax: ImportSyntax {
+            separator: "/",
+            group_open: '{',
+            group_close: '}',
+            item_separator: ',',
+            alias_keyword: "as",
+            glob: "*",
+            self_segment: ".",
+            crate_roots: &[".", ".."],
+        },
+        import_style: ImportStyle::NamedFrom,
+        module_path: ModulePathRules {
+            strip_prefixes: &["src"],
+            root_stems: &["index"],
+        },
+        path_separator: ".",
+        optional_trailing: TYPESCRIPT_OPTIONAL_TRAILING,
+    },
+];
+
+/// TypeScript lists that tolerate a trailing comma.
+const TYPESCRIPT_OPTIONAL_TRAILING: &[TrailingSeparator] = &[
+    TrailingSeparator {
+        container: "arguments",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "array",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "formal_parameters",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "named_imports",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "object",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "object_pattern",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "object_type",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "type_arguments",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "type_parameters",
+        token: ",",
+    },
 ];
 
 /// Go lists that tolerate a trailing comma.

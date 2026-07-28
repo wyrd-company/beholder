@@ -695,6 +695,77 @@ mod tests {
     }
 
     #[test]
+    fn three_languages_merge_on_percentile_alone() {
+        // Percentile merging only becomes real once more than one language is
+        // in the index. Each language gets a big change and a small one; the
+        // big ones must all outrank the small ones regardless of language,
+        // because ranks are comparable and raw scores are not.
+        let before = [
+            ("src/a.rs", "fn big() {}\nfn small() {}\n"),
+            ("src/b.go", "package main\nfunc big() {}\nfunc small() {}\n"),
+            ("src/c.ts", "function big() {}\nfunction small() {}\n"),
+        ];
+        let after = [
+            (
+                "src/a.rs",
+                "fn big(x: bool) {\n    if x {\n        if x {\n            if x {}\n        }\n    }\n}\nfn small(x: bool) {\n    if x {}\n}\n",
+            ),
+            (
+                "src/b.go",
+                "package main\nfunc big(x bool) {\n\tif x {\n\t\tif x {\n\t\t\tif x {\n\t\t\t}\n\t\t}\n\t}\n}\nfunc small(x bool) {\n\tif x {\n\t}\n}\n",
+            ),
+            (
+                "src/c.ts",
+                "function big(x: boolean) {\n  if (x) {\n    if (x) {\n      if (x) {}\n    }\n  }\n}\nfunction small(x: boolean) {\n  if (x) {}\n}\n",
+            ),
+        ];
+
+        let report = report(&before, &after, FanInBasis::Damped);
+        let languages: BTreeMap<&str, usize> =
+            report
+                .changes
+                .iter()
+                .fold(BTreeMap::new(), |mut acc, change| {
+                    *acc.entry(change.language.as_str()).or_default() += 1;
+                    acc
+                });
+
+        assert_eq!(
+            languages.keys().copied().collect::<Vec<_>>(),
+            vec!["go", "rust", "typescript"],
+            "every language reached tier 1"
+        );
+
+        // The three heavier changes come first, in some order, then the lighter
+        // three. Which language a change is in never decides that.
+        let order: Vec<&str> = report
+            .changes
+            .iter()
+            .map(|c| c.qualified_path.as_str())
+            .collect();
+        assert_eq!(order.len(), 6, "{order:?}");
+        assert!(
+            order[..3].iter().all(|name| *name == "big"),
+            "heavier changes should sort first across languages: {order:?}"
+        );
+        assert!(order[3..].iter().all(|name| *name == "small"), "{order:?}");
+
+        // Percentiles are per language, so each language ranks its own pair.
+        for change in &report.changes {
+            let expected = if change.qualified_path == "big" {
+                75.0
+            } else {
+                25.0
+            };
+            assert_eq!(
+                change.percentile, expected,
+                "{} in {}",
+                change.qualified_path, change.language
+            );
+        }
+    }
+
+    #[test]
     fn output_is_deterministic() {
         let before = [("src/a.rs", "fn a() {}\nfn b() {}\n")];
         let after = [(
