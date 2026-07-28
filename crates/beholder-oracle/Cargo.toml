@@ -22,3 +22,4 @@ scip = "0.9"
 protobuf = "3"
 serde.workspace = true
 serde_json.workspace = true
+tempfile = "3"

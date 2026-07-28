@@ -107,6 +107,7 @@ dependencies = [
  "scip",
  "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]

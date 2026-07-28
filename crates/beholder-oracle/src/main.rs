@@ -47,21 +47,40 @@ type Pair = (String, String);
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let provenance = Provenance::read(&cli.repository, cli.revision.as_deref())?;
-    provenance.warn();
+    let mut provenance = Provenance::read(&cli.repository, cli.revision.as_deref())?;
+
+    // A SCIP index describes whatever tree it was built from. The only way to
+    // know that is the tree being analyzed is to build it from that tree.
+    let checkout = match (&cli.revision, cli.index.is_some() && !cli.generate) {
+        (Some(revision), false) => Some(Checkout::at(&cli.repository, revision)?),
+        _ => None,
+    };
+    let source_root = checkout
+        .as_ref()
+        .map(|c| c.path().to_owned())
+        .unwrap_or_else(|| cli.repository.clone());
 
     let index_path = match (&cli.index, cli.generate) {
-        (Some(path), false) => path.clone(),
-        _ => generate_index(&cli.repository)?,
+        (Some(path), false) => {
+            provenance.index_source = IndexSource::UnverifiedExternal;
+            path.clone()
+        }
+        _ => {
+            provenance.index_source = IndexSource::GeneratedHere;
+            generate_index(&source_root)?
+        }
     };
 
-    let config = Config::load(&cli.repository)?;
-    let files = match &cli.revision {
-        Some(revision) => {
+    provenance.warn();
+
+    let config = Config::load(&source_root)?;
+    let files = match (&cli.revision, checkout.is_some()) {
+        // Analyzed from the same checkout the index was built from.
+        (Some(_), true) | (None, _) => beholder::walk::walk_worktree(&source_root, &config)?,
+        (Some(revision), false) => {
             let repo = git2::Repository::discover(&cli.repository)?;
             beholder::walk::read_revision(&repo, revision, &config)?
         }
-        None => beholder::walk::walk_worktree(&cli.repository, &config)?,
     };
 
     let analyzed: Vec<FileAnalysis> = files
@@ -425,11 +444,73 @@ fn is_local(symbol: &str) -> bool {
 /// A SCIP index is just a file; nothing in it says which revision it was built
 /// from. Recording the revision and whether the tree was dirty is the minimum
 /// that lets a reader tell whether the two sides saw the same code.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+enum IndexSource {
+    /// Built by this run, from the tree that was analyzed.
+    GeneratedHere,
+    /// Supplied from outside. SCIP carries no source revision, so nothing here
+    /// can confirm it describes the analyzed tree.
+    #[default]
+    UnverifiedExternal,
+}
+
 #[derive(Debug, Default, Clone, serde::Serialize)]
 struct Provenance {
     revision: Option<String>,
     head: Option<String>,
     dirty: bool,
+    index_source: IndexSource,
+}
+
+/// A throwaway checkout of one revision.
+///
+/// Generating an index from the working tree while analyzing some other
+/// revision measures two different programs against each other. Checking the
+/// revision out makes them the same one.
+struct Checkout {
+    repository: PathBuf,
+    directory: tempfile::TempDir,
+}
+
+impl Checkout {
+    fn at(repository: &Path, revision: &str) -> Result<Self> {
+        let directory = tempfile::tempdir().context("creating a temporary checkout")?;
+        let path = directory.path().join("tree");
+
+        let status = std::process::Command::new("git")
+            .arg("worktree")
+            .arg("add")
+            .arg("--detach")
+            .arg(&path)
+            .arg(revision)
+            .current_dir(repository)
+            .status()
+            .context("running `git worktree add`")?;
+
+        anyhow::ensure!(status.success(), "could not check out {revision}: {status}");
+
+        Ok(Self {
+            repository: repository.to_owned(),
+            directory,
+        })
+    }
+
+    fn path(&self) -> PathBuf {
+        self.directory.path().join("tree")
+    }
+}
+
+impl Drop for Checkout {
+    fn drop(&mut self) {
+        let _ = std::process::Command::new("git")
+            .arg("worktree")
+            .arg("remove")
+            .arg("--force")
+            .arg(self.path())
+            .current_dir(&self.repository)
+            .status();
+    }
 }
 
 impl Provenance {
@@ -454,14 +535,22 @@ impl Provenance {
             revision: revision.map(str::to_owned),
             head,
             dirty,
+            index_source: IndexSource::default(),
         })
     }
 
     fn warn(&self) {
-        if self.dirty {
+        if self.dirty && self.revision.is_none() {
             eprintln!(
                 "WARNING: the working tree has uncommitted changes, so the index and the \
                  analysis may describe different code"
+            );
+        }
+        if self.index_source == IndexSource::UnverifiedExternal {
+            eprintln!(
+                "WARNING: using an externally supplied SCIP index. It carries no source \
+                 revision, so this measurement is UNVERIFIED: nothing confirms the index \
+                 describes the tree that was analyzed. Use --generate for a verified run."
             );
         }
     }
@@ -611,8 +700,12 @@ impl Report {
         for report in &self.fan_in {
             println!("\nfan-in, {} basis:", report.basis);
             println!(
-                "  spearman {:.3}   top-10 overlap {:.2}   top-25 overlap {:.2}",
-                report.spearman, report.top_10_overlap, report.top_25_overlap
+                "  spearman {:.3}   top-10 overlap {:.2}-{:.2}   top-25 overlap {:.2}-{:.2}",
+                report.spearman,
+                report.top_10_overlap.0,
+                report.top_10_overlap.1,
+                report.top_25_overlap.0,
+                report.top_25_overlap.1
             );
             println!(
                 "  mean abs error {:.2}   median {:.2}   mean relative {:.2}",
@@ -687,8 +780,9 @@ struct FanInReport {
     mean_relative_error: f64,
     /// Rank correlation over every symbol. This is what percentile ranking rides on.
     spearman: f64,
-    top_10_overlap: f64,
-    top_25_overlap: f64,
+    /// Lower and upper bound under any tie-breaking rule.
+    top_10_overlap: (f64, f64),
+    top_25_overlap: (f64, f64),
     /// Share of all overstatement absorbed by the ten worst symbols.
     overstatement_concentration: f64,
     by_class: BTreeMap<String, ClassFanIn>,
@@ -878,23 +972,61 @@ fn spearman(paired: &[(&String, f64, f64)]) -> f64 {
 }
 
 /// Share of the oracle's top k that beholder's top k also contains.
-fn top_k_overlap(paired: &[(&String, f64, f64)], k: usize) -> f64 {
-    let top = |pick: fn(&(&String, f64, f64)) -> f64| {
-        let mut sorted: Vec<&(&String, f64, f64)> = paired.iter().collect();
-        sorted.sort_by(|a, b| pick(b).partial_cmp(&pick(a)).expect("no NaN"));
-        sorted
-            .into_iter()
-            .take(k)
-            .map(|(id, _, _)| (*id).clone())
-            .collect::<BTreeSet<String>>()
-    };
-
-    let ours = top(|entry| entry.1);
-    let theirs = top(|entry| entry.2);
-
-    if theirs.is_empty() {
-        return 0.0;
+/// How much of the oracle's top k beholder's top k also contains, as a range.
+///
+/// Fan-in is heavily tied — most symbols sit at zero or one — so which symbols
+/// occupy a top-k list is often undetermined. Breaking ties by source order
+/// would make the figure depend on which file happened to be walked first.
+/// Including every tie instead makes it degenerate: at k=25 the tied set can
+/// swallow most of the population and the overlap reads near 1 regardless.
+///
+/// So both bounds are reported. The lower bound counts only symbols that must
+/// be in any top k, the upper bound counts every symbol that could be. The true
+/// overlap under any tie-breaking rule lies between them, and a wide range is
+/// itself the finding: the ordering is not determined by the data.
+fn top_k_overlap(paired: &[(&String, f64, f64)], k: usize) -> (f64, f64) {
+    if paired.is_empty() || k == 0 {
+        return (0.0, 0.0);
     }
 
-    ours.intersection(&theirs).count() as f64 / theirs.len() as f64
+    let (ours_certain, ours_possible) = top_k_bounds(paired, k, |entry| entry.1);
+    let (theirs_certain, theirs_possible) = top_k_bounds(paired, k, |entry| entry.2);
+
+    let denominator = k.min(paired.len()) as f64;
+    let lower = ours_certain.intersection(&theirs_certain).count() as f64 / denominator;
+    let upper = ours_possible
+        .intersection(&theirs_possible)
+        .count()
+        .min(k.min(paired.len())) as f64
+        / denominator;
+
+    (lower, upper)
+}
+
+/// Symbols guaranteed to be in the top k, and symbols that could be.
+fn top_k_bounds(
+    paired: &[(&String, f64, f64)],
+    k: usize,
+    pick: fn(&(&String, f64, f64)) -> f64,
+) -> (BTreeSet<String>, BTreeSet<String>) {
+    let mut values: Vec<f64> = paired.iter().map(pick).collect();
+    values.sort_by(|a, b| b.partial_cmp(a).expect("no NaN"));
+
+    let cutoff = values
+        .get(k.saturating_sub(1))
+        .copied()
+        .unwrap_or(f64::NEG_INFINITY);
+
+    let certain = paired
+        .iter()
+        .filter(|entry| pick(entry) > cutoff)
+        .map(|(id, _, _)| (*id).clone())
+        .collect();
+    let possible = paired
+        .iter()
+        .filter(|entry| pick(entry) >= cutoff)
+        .map(|(id, _, _)| (*id).clone())
+        .collect();
+
+    (certain, possible)
 }
