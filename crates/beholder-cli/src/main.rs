@@ -517,11 +517,18 @@ fn store(args: StoreArgs) -> Result<()> {
     let mut store = Store::open(&repo);
 
     if let Some(remote) = &args.fetch {
-        match store.fetch(remote) {
-            Ok(()) => println!("fetched {REFSPEC} from {remote}"),
-            // Nothing to fetch is the cold start, not a failure. A remote that
-            // has never been indexed has no ref to hand over.
-            Err(err) => println!("no index fetched from {remote}: {}", root_cause(&err)),
+        // A remote nobody has indexed yet matches the wildcard refspec with
+        // nothing and succeeds, which is the cold start. Anything that does
+        // fail here — an unreachable remote, refused credentials — is a fault,
+        // and reporting it as an empty index would hide it forever behind work
+        // that merely looks slow.
+        store
+            .fetch(remote)
+            .with_context(|| format!("fetching the stored index from {remote}"))?;
+
+        match store.tip()? {
+            Some(_) => println!("fetched {REFSPEC} from {remote}"),
+            None => println!("cold start: {remote} has no stored index yet"),
         }
     }
 
@@ -560,10 +567,6 @@ fn short(revision: &str) -> String {
     } else {
         revision.to_owned()
     }
-}
-
-fn root_cause(err: &anyhow::Error) -> String {
-    err.root_cause().to_string()
 }
 
 fn audit(args: AuditArgs) -> Result<()> {

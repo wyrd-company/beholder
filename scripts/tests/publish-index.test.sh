@@ -12,6 +12,7 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 publish="$here/../publish-index.sh"
+fetch="$here/../fetch-index.sh"
 
 beholder="${BEHOLDER:-}"
 if [ -z "$beholder" ]; then
@@ -54,6 +55,11 @@ run_publish() {
       bash "$publish" )
 }
 
+run_fetch() {
+  local dir="$1" remote="${2:-origin}"
+  ( cd "$dir" && REMOTE="$remote" bash "$fetch" )
+}
+
 indexed_sources() {
   ( cd "$1" && "$beholder" store --limit 50 | sed -n 's/.*source \([0-9a-f]*\).*/\1/p' )
 }
@@ -64,16 +70,32 @@ commit "$work/first" tally '    items.iter().sum()\n'
 commit "$work/first" tally '    let mut t = 0;\n    for i in items {\n        if *i > 0 {\n            t += i;\n        }\n    }\n    t\n'
 git -C "$work/first" push -q origin HEAD:main
 
-# Nothing is indexed yet, so there is nothing to publish. That is the cold start.
+# Nothing is indexed yet: fetching says so plainly, and there is nothing to
+# publish. That is the cold start, and it is not a fault.
+run_fetch "$work/first" > "$work/cold" 2>&1 || fail "a cold start must not fail"
+grep -q 'cold start' "$work/cold" || fail "the cold start should say so: $(cat "$work/cold")"
+if grep -q '::warning' "$work/cold"; then fail "an empty remote is not a fault"; fi
+
 run_publish "$work/first" | grep -q 'no index to publish' \
   || fail "an unindexed repository should have nothing to publish"
+
+# A remote that cannot be reached looks the same from a distance and is not the
+# same thing at all: the run continues, because everything the index holds can
+# be recomputed, but it says loudly that it is doing so.
+git -C "$work/first" remote add broken "$work/nowhere.git"
+run_fetch "$work/first" broken > "$work/broken" 2>&1 \
+  || fail "an unreachable remote must not stop the run"
+grep -q '::warning' "$work/broken" \
+  || fail "an unreachable remote should warn: $(cat "$work/broken")"
+if grep -q 'cold start' "$work/broken"; then fail "a fault must not read as a cold start"; fi
 
 report "$work/first"
 run_publish "$work/first" | grep -q 'published' || fail "the first publish should succeed"
 
 # A second machine cold-starts from the remote and finds the work already done.
 clone second
-git -C "$work/second" fetch -q origin '+refs/beholder/*:refs/beholder/*'
+run_fetch "$work/second" > "$work/warm" 2>&1 || fail "fetching a stored index should work"
+grep -q 'stored index: ' "$work/warm" || fail "the fetched index should be named: $(cat "$work/warm")"
 first_head="$(git -C "$work/first" rev-parse HEAD)"
 ( cd "$work/second" && "$beholder" report "$first_head~1" "$first_head" --use-store --format json \
     > /dev/null ) 2> "$work/second-origins"

@@ -86,12 +86,7 @@ runs:
     - name: Fetch the stored index
       shell: bash
       working-directory: ${{ inputs.root }}
-      run: |
-        set -euo pipefail
-        # A remote nobody has indexed yet has no ref to hand over, and that is
-        # the ordinary cold start rather than a failure.
-        git fetch origin '+refs/beholder/*:refs/beholder/*' 2>&1 || echo "no stored index on the remote yet"
-        git for-each-ref refs/beholder --format 'stored index: %(refname) %(objectname)'
+      run: bash "$GITHUB_ACTION_PATH/scripts/fetch-index.sh"
 
     - name: Report
       id: report
