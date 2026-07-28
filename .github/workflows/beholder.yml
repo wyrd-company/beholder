@@ -1,0 +1,33 @@
+name: beholder
+
+# Beholder reporting on beholder. Nothing here gates a merge: the comment and
+# the annotations are the whole output.
+
+on:
+  pull_request:
+
+permissions:
+  contents: write # publishing refs/beholder/index back to the remote
+  pull-requests: write # the one sticky comment
+  security-events: write # SARIF annotations
+
+concurrency:
+  group: beholder-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Reporting on a pull request means comparing against its merge base,
+          # which a shallow clone does not have.
+          fetch-depth: 0
+
+      - id: beholder
+        uses: ./
+
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.beholder.outputs.sarif }}

@@ -1,0 +1,168 @@
+name: beholder
+description: Rank the symbols a pull request changed, as one sticky comment and a SARIF file.
+author: Wyrd Company
+
+# One comment, edited in place, and silence when nothing is risky. Everything
+# the action stores travels through ordinary git: it fetches the beholder ref
+# before analyzing and publishes it afterwards, so a runner cold-starts from
+# whatever anyone else has already indexed, exactly as a fresh clone does.
+
+inputs:
+  root:
+    description: Repository root to analyze.
+    default: .
+  base:
+    description: Revision to compare from. Defaults to the merge base with the pull request's base branch.
+    default: ""
+  head:
+    description: Revision to compare to. Defaults to the pull request's head commit.
+    default: ""
+  threshold:
+    description: Percentile at or above which a change is surfaced.
+    default: "80"
+  basis:
+    description: Which fan-in to weight by, damped or raw.
+    default: damped
+  comment:
+    description: Post the sticky pull request comment.
+    default: "true"
+  publish-index:
+    description: Publish generated results back to the beholder ref on the remote.
+    default: "true"
+  sarif-file:
+    description: Where to write SARIF. Upload it with github/codeql-action/upload-sarif.
+    default: beholder.sarif
+  beholder:
+    description: Path to a beholder binary. Built from this action's own checkout when empty.
+    default: ""
+  token:
+    description: Token used to read and write the pull request comment.
+    default: ${{ github.token }}
+
+outputs:
+  report:
+    description: Path to the report as JSON.
+    value: ${{ steps.report.outputs.report }}
+  sarif:
+    description: Path to the SARIF file.
+    value: ${{ steps.report.outputs.sarif }}
+  quiet:
+    description: "true when no changed symbol crossed the threshold."
+    value: ${{ steps.report.outputs.quiet }}
+
+runs:
+  using: composite
+  steps:
+    - name: Key the build on beholder's own lockfile
+      id: build-key
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -n "${{ inputs.beholder }}" ]; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "hash=$(sha256sum "$GITHUB_ACTION_PATH/Cargo.lock" | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Restore the beholder build
+      if: steps.build-key.outputs.skip == 'false'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          ${{ github.action_path }}/target
+        key: beholder-${{ runner.os }}-${{ steps.build-key.outputs.hash }}
+
+    - name: Build beholder
+      if: steps.build-key.outputs.skip == 'false'
+      shell: bash
+      run: |
+        set -euo pipefail
+        cargo build --release --locked \
+          --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml" -p beholder-cli
+
+    - name: Fetch the stored index
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      run: |
+        set -euo pipefail
+        # A remote nobody has indexed yet has no ref to hand over, and that is
+        # the ordinary cold start rather than a failure.
+        git fetch origin '+refs/beholder/*:refs/beholder/*' 2>&1 || echo "no stored index on the remote yet"
+        git for-each-ref refs/beholder --format 'stored index: %(refname) %(objectname)'
+
+    - name: Report
+      id: report
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      env:
+        BEHOLDER: ${{ inputs.beholder != '' && inputs.beholder || format('{0}/target/release/beholder', github.action_path) }}
+        BASE: ${{ inputs.base }}
+        HEAD: ${{ inputs.head }}
+        BASE_REF: ${{ github.base_ref }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set -euo pipefail
+
+        head="${HEAD:-${HEAD_SHA:-HEAD}}"
+        if [ -n "$BASE" ]; then
+          base="$BASE"
+        else
+          # The merge base, not the base branch tip: a report should describe
+          # what this pull request did, not what landed on the base since.
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          base="$(git merge-base "origin/${BASE_REF}" "$head")"
+        fi
+        echo "comparing $base..$head"
+
+        report="$RUNNER_TEMP/beholder-report.json"
+        "$BEHOLDER" report "$base" "$head" \
+          --basis '${{ inputs.basis }}' \
+          --threshold '${{ inputs.threshold }}' \
+          --use-store \
+          --format json > "$report"
+
+        # One analysis, every rendering. The comment body is empty exactly when
+        # nothing crossed the threshold, which is how silence is decided.
+        "$BEHOLDER" render --from "$report" --format sarif > '${{ inputs.sarif-file }}'
+        "$BEHOLDER" render --from "$report" --format markdown > "$RUNNER_TEMP/beholder-comment.md"
+        "$BEHOLDER" render --from "$report" --format markdown --when-quiet note \
+          > "$RUNNER_TEMP/beholder-quiet.md"
+        "$BEHOLDER" render --from "$report" --format text
+
+        quiet=true
+        [ -s "$RUNNER_TEMP/beholder-comment.md" ] && quiet=false
+        {
+          echo "report=$report"
+          echo "sarif=${{ inputs.sarif-file }}"
+          echo "quiet=$quiet"
+          echo "base=$base"
+          echo "head=$head"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Sticky comment
+      if: inputs.comment == 'true' && github.event.pull_request.number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ github.repository }}
+        PR: ${{ github.event.pull_request.number }}
+        BODY: ${{ runner.temp }}/beholder-comment.md
+        QUIET_BODY: ${{ runner.temp }}/beholder-quiet.md
+      run: bash "$GITHUB_ACTION_PATH/scripts/sticky-comment.sh"
+
+    - name: Publish the stored index
+      if: inputs.publish-index == 'true'
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      env:
+        BEHOLDER: ${{ inputs.beholder != '' && inputs.beholder || format('{0}/target/release/beholder', github.action_path) }}
+        BASE: ${{ steps.report.outputs.base }}
+        HEAD: ${{ steps.report.outputs.head }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/publish-index.sh"
+
+branding:
+  icon: eye
+  color: purple
