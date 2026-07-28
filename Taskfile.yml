@@ -17,10 +17,26 @@ tasks:
     cmds:
       - cargo test --workspace
 
+  test:action:
+    desc: Exercise the shell the GitHub Action runs
+    summary: |
+      The action is shell around the binary, and the two things it must get
+      right — one comment ever, and never forcing the index ref — are not
+      provable from Rust.
+    cmds:
+      - for: ["sticky-comment", "publish-index"]
+        cmd: bash scripts/tests/{{.ITEM}}.test.sh
+
   lint:
     desc: Run clippy with warnings denied
     cmds:
       - cargo clippy --workspace --all-targets -- -D warnings
+
+  lint:action:
+    desc: Lint the action definition and the shell it runs
+    cmds:
+      - actionlint
+      - shellcheck scripts/*.sh scripts/tests/*.sh
 
   fmt:
     desc: Format the workspace
@@ -38,7 +54,9 @@ tasks:
       - task: fmt:check
       - task: build
       - task: test
+      - task: test:action
       - task: lint
+      - task: lint:action
 
   audit:identity:
     desc: Run the symbol identity gate against a repository
