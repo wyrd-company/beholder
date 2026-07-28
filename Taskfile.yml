@@ -1,0 +1,52 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build the workspace
+    cmds:
+      - cargo build --workspace --all-targets
+
+  test:
+    desc: Run every test
+    cmds:
+      - cargo test --workspace
+
+  lint:
+    desc: Run clippy with warnings denied
+    cmds:
+      - cargo clippy --workspace --all-targets -- -D warnings
+
+  fmt:
+    desc: Format the workspace
+    cmds:
+      - cargo fmt --all
+
+  fmt:check:
+    desc: Check formatting without changing anything
+    cmds:
+      - cargo fmt --all -- --check
+
+  ci:
+    desc: Everything that must pass before review
+    cmds:
+      - task: fmt:check
+      - task: build
+      - task: test
+      - task: lint
+
+  audit:identity:
+    desc: Run the symbol identity gate against a repository
+    summary: |
+      Counts phantom changes: symbol changes reported in files that did not
+      change. Pass REPO to point at another checkout.
+    vars:
+      REPO: '{{.REPO | default "."}}'
+      DEPTH: '{{.DEPTH | default "50"}}'
+    cmds:
+      - cargo run --release -q -p beholder-cli -- audit-identity --root {{.REPO}} --depth {{.DEPTH}}
