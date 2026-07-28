@@ -17,6 +17,7 @@ pub mod graph;
 pub mod hash;
 pub mod jsonl;
 pub mod lang;
+pub mod markdown;
 pub mod phase1;
 pub mod resolve;
 pub mod risk;
