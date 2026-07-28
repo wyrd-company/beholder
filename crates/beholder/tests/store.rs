@@ -524,6 +524,88 @@ fn the_ref_pushes_with_an_ordinary_refspec() {
     assert_eq!(REFSPEC, "+refs/beholder/*:refs/beholder/*");
 }
 
+#[test]
+fn a_second_pusher_rebuilds_instead_of_overwriting() {
+    // Compare-and-swap on the local ref only protects writers in one clone. A
+    // forced push would let the second machine drop the first machine's index
+    // without ever noticing it existed.
+    let origin_dir = tempfile::tempdir().unwrap();
+    let origin_path = origin_dir.path().join("origin.git");
+    Repository::init_bare(&origin_path).unwrap();
+    let origin_url = origin_path.to_str().unwrap().to_owned();
+
+    // A shared history both machines already have.
+    let seed = Fixture::new();
+    seed.repo.remote("origin", &origin_url).unwrap();
+    let first_source = seed.commit("src/first.rs", "fn first() {}\n");
+    let second_source = seed.commit("src/second.rs", "fn second() {}\n");
+    seed.repo
+        .find_remote("origin")
+        .unwrap()
+        .push(&["refs/heads/master:refs/heads/master"], None)
+        .or_else(|_| {
+            seed.repo
+                .find_remote("origin")
+                .unwrap()
+                .push(&["refs/heads/main:refs/heads/main"], None)
+        })
+        .unwrap();
+
+    let clone_of = |name: &str| {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(name);
+        let repo = Repository::clone(&origin_url, &path).unwrap();
+        (dir, repo)
+    };
+
+    let (_a_dir, a) = clone_of("a");
+    let (_b_dir, b) = clone_of("b");
+
+    // Machine A indexes one commit and pushes first.
+    let a_index = Store::open(&a)
+        .write(first_source, &analyze_at(&a, first_source))
+        .unwrap();
+    Store::open(&a).push("origin").unwrap();
+
+    // Machine B never saw A's index and indexes a different commit.
+    let b_index = Store::open(&b)
+        .write(second_source, &analyze_at(&b, second_source))
+        .unwrap();
+    assert_eq!(Store::open(&b).tip().unwrap(), Some(b_index));
+
+    Store::open(&b).push("origin").unwrap();
+
+    // A's index survived, and B's now sits on top of it.
+    let origin = Repository::open(&origin_path).unwrap();
+    let tip = origin
+        .find_reference("refs/beholder/index")
+        .unwrap()
+        .target()
+        .unwrap();
+
+    assert_ne!(
+        tip, b_index,
+        "B's original index was built on nothing; a rebuilt one must differ"
+    );
+
+    let tip_commit = origin.find_commit(tip).unwrap();
+    assert_eq!(tip_commit.parent_id(0).unwrap(), second_source);
+    assert_eq!(
+        tip_commit.parent_id(1).unwrap(),
+        a_index,
+        "B rebuilt on A's tip rather than replacing it"
+    );
+
+    let store = Store::open(&b);
+    let sources: Vec<_> = store
+        .history(10)
+        .unwrap()
+        .into_iter()
+        .map(|e| e.source_commit)
+        .collect();
+    assert_eq!(sources, vec![second_source, first_source]);
+}
+
 // ---------------------------------------------------------------------------
 // concurrent writers
 // ---------------------------------------------------------------------------

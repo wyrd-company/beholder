@@ -290,18 +290,108 @@ impl<'r> Store<'r> {
             .with_context(|| format!("fetching {REFSPEC} from {remote}"))
     }
 
-    /// Push the ref to a remote.
+    /// Push the ref to a remote, never overwriting another writer's index.
+    ///
+    /// The push is not forced, which is the whole point: a force push would make
+    /// the compare-and-swap on ref updates meaningless the moment two machines
+    /// are involved, because the loser would never learn it had lost. On
+    /// rejection this fetches the tip that beat it, rebuilds its own index
+    /// commits on top of that tip, and tries again.
     ///
     /// The wildcard [`REFSPEC`] is what `git push` on the command line takes;
     /// libgit2 does not expand wildcards on push, so this names the ref
     /// concretely. Both land the same objects under the same name.
     pub fn push(&self, remote: &str) -> Result<()> {
-        let refspec = format!("+{0}:{0}", self.refname);
+        for _ in 0..self.attempts {
+            match self.push_once(remote) {
+                Ok(()) => return Ok(()),
+                Err(err) if is_conflict(&err) => {
+                    let mine = self.tip()?;
+                    self.fetch(remote)?;
+                    let theirs = self.tip()?;
+                    self.rebuild_onto(mine, theirs)?;
+                }
+                Err(err) => {
+                    return Err(anyhow::Error::new(err)
+                        .context(format!("pushing {} to {remote}", self.refname)))
+                }
+            }
+        }
+
+        bail!(
+            "gave up pushing {} to {remote} after {} attempts against concurrent writers",
+            self.refname,
+            self.attempts
+        )
+    }
+
+    fn push_once(&self, remote: &str) -> std::result::Result<(), git2::Error> {
+        // No leading '+': a rejection here is the signal to go and look.
+        let refspec = format!("{0}:{0}", self.refname);
         self.repo
-            .find_remote(remote)
-            .with_context(|| format!("finding remote {remote}"))?
+            .find_remote(remote)?
             .push(&[refspec.as_str()], None)
-            .with_context(|| format!("pushing {refspec} to {remote}"))
+    }
+
+    /// Re-parent index commits that only exist locally onto a new base.
+    ///
+    /// A fetch of the ref replaces the local tip with the remote's. Whatever was
+    /// only here is still in the object database, so it is rebuilt on top of
+    /// what arrived: same source commits, same trees, new index parents. Nothing
+    /// anyone else wrote is rewritten or dropped.
+    fn rebuild_onto(&self, mine: Option<Oid>, theirs: Option<Oid>) -> Result<()> {
+        let theirs_chain: Vec<Oid> = self.chain(theirs)?;
+        let mut local_only = Vec::new();
+
+        for id in self.chain(mine)? {
+            if theirs_chain.contains(&id) {
+                break;
+            }
+            local_only.push(id);
+        }
+
+        if local_only.is_empty() {
+            return Ok(());
+        }
+
+        let mut base = theirs;
+
+        // Oldest first, so the rebuilt chain keeps its original write order.
+        for id in local_only.into_iter().rev() {
+            let commit = self.repo.find_commit(id)?;
+            let source = commit
+                .parent_id(0)
+                .with_context(|| format!("index commit {id} has no source parent"))?;
+            base = Some(self.build_commit(source, commit.tree_id(), base)?);
+        }
+
+        let new_tip = base.expect("a rebuilt chain has a tip");
+        self.repo
+            .reference(
+                &self.refname,
+                new_tip,
+                true,
+                &format!("beholder index rebuilt onto {theirs:?}"),
+            )
+            .context("moving the local beholder ref onto the fetched tip")?;
+
+        Ok(())
+    }
+
+    /// Index commit ids from a tip, newest first, following parent 1.
+    fn chain(&self, from: Option<Oid>) -> Result<Vec<Oid>> {
+        let mut out = Vec::new();
+        let mut current = from;
+
+        while let Some(id) = current {
+            if out.len() >= DEFAULT_CACHE_DEPTH {
+                break;
+            }
+            out.push(id);
+            current = self.repo.find_commit(id)?.parent_id(1).ok();
+        }
+
+        Ok(out)
     }
 
     /// Index commits from newest to oldest, following parent 1.
