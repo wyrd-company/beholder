@@ -31,7 +31,9 @@ Analysis runs in two phases with a hard boundary between them. The boundary dete
 
 ### Phase 1 — per file
 
-A pure function of one file's content, with no knowledge of any other file.
+A pure function of one file's repo-relative path and its content, with no knowledge of any other file.
+
+Both inputs matter. The path is what a qualified name is built against and what a symbol's identity is anchored to, so it cannot be dropped. What phase 1 must never depend on is machine-local state: an absolute path, the checkout location, the wall clock, or anything about the machine that ran it. A repo-relative path carries none of that — it is the same string in every clone.
 
 Produces:
 
@@ -42,7 +44,7 @@ Produces:
 - Import and module declarations
 - Identifier occurrences
 
-Phase 1 is embarrassingly parallel and deterministic: identical file content always yields an identical result, on any machine, in any checkout location. Nothing in it depends on absolute paths, wall-clock time, or where the repository happens to sit. That determinism is what makes a phase 1 result safe to store and reuse, keyed on the file's content hash.
+Phase 1 is embarrassingly parallel and deterministic: the same path and the same content always yield the same result, on any machine, in any checkout location. That determinism is what makes a phase 1 result safe to store and reuse, keyed on the path together with the content hash.
 
 ### Phase 2 — whole set
 
@@ -94,11 +96,15 @@ phase2.json               the whole-set phase 2 result
 
 ### Derived cache, not source of truth
 
-Nothing stored is authoritative, and beholder never trusts it on sight. A stored result is reused only when the source commit, schema version, tool version, analysis configuration, language table and path rules all match, and per file only when the content hash still matches. Anything else is recomputed. Results that are missing are generated and appended; results that are stale are ignored.
+Nothing stored is authoritative, and beholder never trusts it on sight. Metadata is checked first: source commit, schema version, tool version, analysis configuration, language table and path rules. Then the payload is checked against the tree it claims to describe — the same set of files, every path repo-relative, and each file's content hash matching the blob that is actually there. Anything else is recomputed. Results that are missing are generated and appended; results that are stale are ignored.
+
+`index --store` refuses to file an analysis of a dirty working tree against `HEAD`, because a stored result that is quietly wrong is worse than no stored result: every later run and every fresh clone would trust it.
 
 ### Concurrent writers
 
-Ref updates are compare-and-swap against the tip the commit was built on. A writer that loses fetches the tip that beat it, rebuilds against that new index parent, and retries. No existing result is rewritten, and no history is discarded.
+Ref updates are compare-and-swap against the tip the commit was built on. A writer that loses fetches the tip that beat it, rebuilds against that new index parent, and retries.
+
+Pushes are never forced, for the same reason. A force push would make the compare-and-swap meaningless the moment two machines were involved, because the loser would never learn it had lost. A rejected push is the signal to fetch the winning tip and rebuild on it. No existing result is rewritten, and no history is discarded.
 
 ## Core features
 

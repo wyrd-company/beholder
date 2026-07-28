@@ -13,6 +13,7 @@ Four files and one dependency.
 | `crates/beholder/queries/<id>/symbols.scm` | Selects functions and types, and sets each one's `kind` |
 | `crates/beholder/queries/<id>/scopes.scm` | Selects the nodes that contribute qualified-path segments |
 | `crates/beholder/queries/<id>/complexity.scm` | Selects the nodes that increment or nest cognitive complexity |
+| `crates/beholder/queries/<id>/discriminators.scm` | Selects declared metadata that tells same-named symbols apart |
 | `crates/beholder/src/lang.rs` | One `LanguageDef` appended to `LANGUAGES` |
 | `crates/beholder/Cargo.toml` | The grammar crate, e.g. `tree-sitter-go` |
 
@@ -29,14 +30,20 @@ LanguageDef {
     symbols_query: include_str!("../queries/go/symbols.scm"),
     scopes_query: include_str!("../queries/go/scopes.scm"),
     complexity_query: include_str!("../queries/go/complexity.scm"),
+    discriminators_query: include_str!("../queries/go/discriminators.scm"),
     path_separator: ".",
-    optional_trailing_tokens: &[","],
+    optional_trailing: GO_OPTIONAL_TRAILING,
 }
 ```
 
-`optional_trailing_tokens` names punctuation the language's formatter may add or
-drop at the end of a list. Those tokens are left out of fingerprints so a
+`optional_trailing` names the lists whose trailing separator the language's
+formatter may add or drop. Those separators are left out of fingerprints so a
 reformat is not read as a structural edit.
+
+Name the container, never just the token. A trailing comma is a formatter's
+choice in a field list and in an argument list; inside a macro's token tree it is
+part of the macro's input, and in a Rust tuple it is the difference between
+`(a,)` and `(a)`. A rule that only knew the token would erase real edits.
 
 ## symbols.scm
 
@@ -69,6 +76,36 @@ Use `format` when a segment needs more than one capture.
 Spell out anything that distinguishes two same-named symbols on the same type.
 Rust writes `<Type as Trait>::method` for exactly that reason.
 
+## discriminators.scm
+
+Two symbols can share a qualified path and still be two different symbols. Rust's
+case is conditional compilation: `#[cfg(unix)] fn platform` and
+`#[cfg(windows)] fn platform` are both `platform`. Other languages have their own
+— an overload set is told apart by its signature.
+
+A discriminator is declared, content-derived metadata that tells them apart. It
+joins identity whenever it is present, never only when a duplicate happens to
+exist. That distinction is the whole point. An identity that appears only in the
+presence of a twin rewrites itself the moment the twin is deleted, which reports
+one deletion as a removal plus a spurious rename.
+
+```scheme
+((attribute_item (attribute (identifier) @guard) @text) @discriminator
+ (#set! require.guard "cfg")
+ (#set! format "{text}"))
+```
+
+`require.<capture>` constrains a capture's text, because a tree-sitter query
+cannot do that on its own. Use it to select only the metadata that says *which
+symbol this is*. `#[inline]` and `#[derive(Debug)]` describe behaviour, so making
+them part of identity would turn adding one into a delete and an add.
+
+Discriminators attach to the symbol that follows them, and they stack.
+
+Symbols that nothing declared can tell apart fall back to a positional ordinal.
+That fallback is unstable under deletion of a sibling, which is exactly why a
+language should declare a real discriminator instead of relying on it.
+
 ## complexity.scm
 
 Five capture classes, resolved per node with suppression winning:
@@ -96,7 +133,9 @@ Three checks, in order.
 1. `cargo test -p beholder lang::` compiles every query against its grammar.
 2. Write tier 1 tests beside the Rust ones in `crates/beholder/src/phase1.rs`
    covering: symbol kinds, line ranges, qualified paths, two same-named symbols
-   kept distinct, flat versus nested complexity, and a reformat changing nothing.
+   kept distinct, deleting one of them leaving the other's identity alone, flat
+   versus nested complexity, a reformat changing nothing, and a trailing
+   separator that is *not* formatting still counting as a change.
 3. Run the identity gate against a real repository in that language:
 
    ```bash
