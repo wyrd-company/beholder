@@ -37,6 +37,22 @@ pub struct LanguageDef {
     pub path_separator: &'static str,
     /// Lists whose trailing separator is a formatter's choice.
     pub optional_trailing: &'static [TrailingSeparator],
+    /// How the imports query's captures should be read.
+    pub import_style: ImportStyle,
+}
+
+/// The shape of a language's import syntax.
+///
+/// Two shapes exist in the wild and they need different readings, so a language
+/// declares which one it has rather than the crate guessing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ImportStyle {
+    /// One nested path tree names everything: `use a::{b, c as d}`. The query
+    /// captures the whole tree and it is expanded using [`ImportSyntax`].
+    TreePath,
+    /// Names and a source are separate: `import { a, b as c } from "mod"`,
+    /// `import "fmt"`. The query captures each part directly.
+    NamedFrom,
 }
 
 /// How a language spells an import tree.
@@ -187,33 +203,88 @@ const RUST_OPTIONAL_TRAILING: &[TrailingSeparator] = &[
 ];
 
 /// Every language beholder can reach tier 1 for.
-pub static LANGUAGES: &[LanguageDef] = &[LanguageDef {
-    id: "rust",
-    extensions: &["rs"],
-    grammar: || tree_sitter_rust::LANGUAGE.into(),
-    symbols_query: include_str!("../queries/rust/symbols.scm"),
-    scopes_query: include_str!("../queries/rust/scopes.scm"),
-    complexity_query: include_str!("../queries/rust/complexity.scm"),
-    discriminators_query: include_str!("../queries/rust/discriminators.scm"),
-    references_query: include_str!("../queries/rust/references.scm"),
-    imports_query: include_str!("../queries/rust/imports.scm"),
-    import_syntax: ImportSyntax {
-        separator: "::",
-        group_open: '{',
-        group_close: '}',
-        item_separator: ',',
-        alias_keyword: "as",
-        glob: "*",
-        self_segment: "self",
-        crate_roots: &["crate", "self", "super"],
+pub static LANGUAGES: &[LanguageDef] = &[
+    LanguageDef {
+        id: "rust",
+        extensions: &["rs"],
+        grammar: || tree_sitter_rust::LANGUAGE.into(),
+        symbols_query: include_str!("../queries/rust/symbols.scm"),
+        scopes_query: include_str!("../queries/rust/scopes.scm"),
+        complexity_query: include_str!("../queries/rust/complexity.scm"),
+        discriminators_query: include_str!("../queries/rust/discriminators.scm"),
+        references_query: include_str!("../queries/rust/references.scm"),
+        imports_query: include_str!("../queries/rust/imports.scm"),
+        import_syntax: ImportSyntax {
+            separator: "::",
+            group_open: '{',
+            group_close: '}',
+            item_separator: ',',
+            alias_keyword: "as",
+            glob: "*",
+            self_segment: "self",
+            crate_roots: &["crate", "self", "super"],
+        },
+        module_path: ModulePathRules {
+            strip_prefixes: &["src"],
+            root_stems: &["lib", "main", "mod"],
+        },
+        path_separator: "::",
+        optional_trailing: RUST_OPTIONAL_TRAILING,
+        import_style: ImportStyle::TreePath,
     },
-    module_path: ModulePathRules {
-        strip_prefixes: &["src"],
-        root_stems: &["lib", "main", "mod"],
+    LanguageDef {
+        id: "go",
+        extensions: &["go"],
+        grammar: || tree_sitter_go::LANGUAGE.into(),
+        symbols_query: include_str!("../queries/go/symbols.scm"),
+        scopes_query: include_str!("../queries/go/scopes.scm"),
+        complexity_query: include_str!("../queries/go/complexity.scm"),
+        discriminators_query: include_str!("../queries/go/discriminators.scm"),
+        references_query: include_str!("../queries/go/references.scm"),
+        imports_query: include_str!("../queries/go/imports.scm"),
+        import_syntax: ImportSyntax {
+            separator: "/",
+            group_open: '(',
+            group_close: ')',
+            item_separator: '\n',
+            alias_keyword: " ",
+            glob: "*",
+            self_segment: ".",
+            crate_roots: &[],
+        },
+        import_style: ImportStyle::NamedFrom,
+        module_path: ModulePathRules {
+            strip_prefixes: &[],
+            root_stems: &[],
+        },
+        path_separator: ".",
+        optional_trailing: GO_OPTIONAL_TRAILING,
     },
-    path_separator: "::",
-    optional_trailing: RUST_OPTIONAL_TRAILING,
-}];
+];
+
+/// Go lists that tolerate a trailing comma.
+const GO_OPTIONAL_TRAILING: &[TrailingSeparator] = &[
+    TrailingSeparator {
+        container: "argument_list",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "literal_value",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "parameter_list",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "type_parameter_list",
+        token: ",",
+    },
+    TrailingSeparator {
+        container: "expression_list",
+        token: ",",
+    },
+];
 
 /// The language for a repo-relative path, if any grammar claims its extension.
 pub fn for_path(path: &str) -> Option<&'static LanguageDef> {

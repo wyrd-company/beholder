@@ -342,20 +342,97 @@ fn collect_imports(
     let mut matches = cursor.matches(query, root, source);
 
     while let Some(m) = matches.next() {
-        for capture in m.captures {
-            if query.capture_names()[capture.index as usize] != "import" {
-                continue;
+        match language.import_style {
+            // One nested tree names everything; expand it.
+            lang::ImportStyle::TreePath => {
+                for capture in m.captures {
+                    if query.capture_names()[capture.index as usize] != "import" {
+                        continue;
+                    }
+                    if let Ok(text) = capture.node.utf8_text(source) {
+                        expand_import(text, language, &mut out);
+                    }
+                }
             }
-            let Ok(text) = capture.node.utf8_text(source) else {
-                continue;
-            };
-            expand_import(text, language, &mut out);
+            // Source and names are separate captures; read them directly.
+            lang::ImportStyle::NamedFrom => {
+                read_named_import(query, m, source, language, &mut out);
+            }
         }
     }
 
     out.sort_by(|a, b| (&a.local_name, &a.path, a.glob).cmp(&(&b.local_name, &b.path, b.glob)));
     out.dedup();
     out
+}
+
+/// Read an import whose source and bound names are separate captures.
+///
+/// Covers `import "fmt"`, `import alias "path/to/pkg"`,
+/// `import { a, b as c } from "mod"` and `import * as ns from "mod"` — the
+/// difference between them is which captures are present, not which language
+/// it is.
+fn read_named_import(
+    query: &Query,
+    m: &tree_sitter::QueryMatch<'_, '_>,
+    source: &[u8],
+    language: &LanguageDef,
+    out: &mut Vec<Import>,
+) {
+    let syntax = &language.import_syntax;
+    let mut module = None;
+    let mut alias = None;
+    let mut names = Vec::new();
+
+    for capture in m.captures {
+        let Ok(text) = capture.node.utf8_text(source) else {
+            continue;
+        };
+        match query.capture_names()[capture.index as usize] {
+            "source" => module = Some(text.trim_matches(|c| c == '"' || c == '\'' || c == '`')),
+            "alias" => alias = Some(text.to_owned()),
+            "name" => names.push(text.to_owned()),
+            _ => {}
+        }
+    }
+
+    let Some(module) = module else { return };
+    let segments: Vec<String> = module
+        .split(syntax.separator)
+        .filter(|segment| !segment.is_empty())
+        .map(str::to_owned)
+        .collect();
+
+    let glob = property(query, m.pattern_index, "glob") == Some("true");
+
+    if names.is_empty() {
+        // The module itself is the binding: `import "fmt"` binds `fmt`.
+        let local_name = alias
+            .or_else(|| segments.last().cloned())
+            .unwrap_or_default();
+        out.push(Import {
+            local_name,
+            path: segments,
+            glob,
+        });
+        return;
+    }
+
+    // Each named binding hangs off the module path. An alias only applies when
+    // exactly one name was captured, which is the shape a query can express.
+    for name in &names {
+        let mut path = segments.clone();
+        path.push(name.clone());
+        out.push(Import {
+            local_name: if names.len() == 1 {
+                alias.clone().unwrap_or_else(|| name.clone())
+            } else {
+                name.clone()
+            },
+            path,
+            glob: false,
+        });
+    }
 }
 
 /// Expand one import tree into individual bindings.
@@ -1299,6 +1376,98 @@ fn platform() {}
 
         assert_eq!(call.kind, "method");
         assert_eq!(call.qualifier, None);
+    }
+
+    // -- Go -----------------------------------------------------------------
+
+    fn analyze_go(source: &str) -> Vec<Symbol> {
+        analyze("server.go", source).symbols
+    }
+
+    #[test]
+    fn go_extracts_functions_types_and_methods() {
+        let symbols = analyze_go(
+            "package main\ntype Server struct{}\nfunc (s *Server) Close() {}\nfunc Run() {}\n",
+        );
+        let got: Vec<_> = symbols
+            .iter()
+            .map(|s| (s.kind.as_str(), s.qualified_path.as_str()))
+            .collect();
+
+        assert!(got.contains(&("type", "Server")), "{got:?}");
+        assert!(got.contains(&("function", "Run")), "{got:?}");
+        assert!(
+            got.iter()
+                .any(|(k, q)| *k == "function" && q.contains("Close")),
+            "{got:?}"
+        );
+    }
+
+    #[test]
+    fn go_methods_on_different_receivers_stay_distinct() {
+        let symbols = analyze_go(
+            "package main\ntype A struct{}\ntype B struct{}\nfunc (a *A) Close() {}\nfunc (b *B) Close() {}\n",
+        );
+        let ids: HashSet<_> = symbols.iter().map(|s| s.id.clone()).collect();
+        assert_eq!(
+            ids.len(),
+            symbols.len(),
+            "identities collided: {symbols:#?}"
+        );
+    }
+
+    #[test]
+    fn go_nesting_is_weighted() {
+        let flat =
+            analyze_go("package main\nfunc f(a bool, b bool) {\n\tif a {\n\t}\n\tif b {\n\t}\n}\n");
+        let nested = analyze_go(
+            "package main\nfunc f(a bool, b bool) {\n\tif a {\n\t\tif b {\n\t\t}\n\t}\n}\n",
+        );
+
+        assert_eq!(flat[0].cognitive_complexity, 2);
+        assert_eq!(nested[0].cognitive_complexity, 3);
+    }
+
+    #[test]
+    fn go_boolean_sequences_count_once() {
+        let one = analyze_go(
+            "package main\nfunc f(a bool, b bool, c bool) {\n\tif a && b && c {\n\t}\n}\n",
+        );
+        let two = analyze_go(
+            "package main\nfunc f(a bool, b bool, c bool) {\n\tif a && b || c {\n\t}\n}\n",
+        );
+
+        assert_eq!(one[0].cognitive_complexity, 2);
+        assert_eq!(two[0].cognitive_complexity, 3);
+    }
+
+    #[test]
+    fn go_imports_bind_their_last_segment_or_alias() {
+        let file = analyze(
+            "server.go",
+            "package main\nimport (\n\t\"fmt\"\n\tlog2 \"example.com/x/log\"\n)\n",
+        );
+        let got: Vec<_> = file
+            .imports
+            .iter()
+            .map(|i| (i.local_name.as_str(), i.path.join("/")))
+            .collect();
+
+        assert!(got.contains(&("fmt", "fmt".to_string())), "{got:?}");
+        assert!(
+            got.contains(&("log2", "example.com/x/log".to_string())),
+            "{got:?}"
+        );
+    }
+
+    #[test]
+    fn go_reformatting_changes_no_identity_and_no_score() {
+        let tight = analyze_go("package main\nfunc f(a bool){if a{}}\n");
+        let loose = analyze_go("package main\nfunc f(a bool) {\n\tif a {\n\t}\n}\n");
+
+        assert_eq!(tight[0].id, loose[0].id);
+        assert_eq!(tight[0].cognitive_complexity, loose[0].cognitive_complexity);
+        assert_eq!(tight[0].content_fingerprint, loose[0].content_fingerprint);
     }
 
     #[test]
