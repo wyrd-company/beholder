@@ -28,8 +28,21 @@ pub struct Symbol {
     pub discriminator: Option<String>,
     /// 1-based, inclusive.
     pub start_line: usize,
+    /// 0-based byte offset within [`Symbol::start_line`].
+    #[serde(default)]
+    pub start_column: usize,
     /// 1-based, inclusive.
     pub end_line: usize,
+    /// 0-based byte offset within [`Symbol::end_line`], exclusive.
+    #[serde(default)]
+    pub end_column: usize,
+    /// Where the symbol's own name token is written.
+    ///
+    /// This is what identifies a declaration to an external index: two
+    /// declarations can share a line, and a nested one sits inside another's
+    /// span, so only the name token distinguishes them.
+    #[serde(default)]
+    pub declaration: Option<Span>,
     pub cognitive_complexity: u32,
     /// The tier that produced this record.
     pub tier: u8,
@@ -42,6 +55,17 @@ pub struct Symbol {
     /// what lets a rename be reported as a rename rather than as a delete and
     /// an unrelated add.
     pub body_fingerprint: String,
+}
+
+/// A single-line span of source, as an external index spells one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Span {
+    /// 1-based.
+    pub line: usize,
+    /// 0-based byte offset within the line.
+    pub start_column: usize,
+    /// 0-based byte offset within the line, exclusive.
+    pub end_column: usize,
 }
 
 /// Build a symbol's stable identity.

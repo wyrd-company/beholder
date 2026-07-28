@@ -25,6 +25,24 @@ pub struct Edge {
     pub to: String,
     /// The syntactic position it was written in, from the references query.
     pub kind: String,
+    /// How much evidence stood behind this particular resolution.
+    pub confidence: Confidence,
+}
+
+/// How much evidence stood behind one resolution.
+///
+/// The distinction is not decoration. An edge backed by an explicit import, a
+/// path qualifier or `Self` rests on something the source actually states. An
+/// edge from a bare method name rests on the name being unique in the project,
+/// which says nothing about what the receiver's type really was — and that is
+/// precisely where the resolver was measured to be wrong.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Confidence {
+    /// The source states where the name comes from.
+    High,
+    /// The name matched and nothing contradicted it.
+    Low,
 }
 
 /// How much an edge set can be trusted.
@@ -35,14 +53,30 @@ pub struct Edge {
 pub struct Accuracy {
     /// Which resolver produced the edges.
     pub resolver: String,
-    /// Fraction of emitted edges that are correct, where measured.
-    pub precision: Option<f32>,
-    /// Fraction of real edges that were emitted, where measured.
-    pub recall: Option<f32>,
     /// What the measurement compared against.
     pub measured_against: Option<String>,
-    /// Which repositories the measurement covered.
-    pub corpus: Option<String>,
+    /// Lowest and highest precision observed across the corpus.
+    ///
+    /// A range, not a point, and calibration rather than per-edge confidence.
+    /// The spread between repositories is structural, so collapsing it to one
+    /// number would read as a probability for an individual edge and it is not
+    /// one. Per edge, [`Edge::confidence`] is what beholder can actually say.
+    pub precision_range: Option<(f32, f32)>,
+    /// Lowest and highest recall observed across the corpus.
+    pub recall_range: Option<(f32, f32)>,
+    /// Every repository the measurement covered.
+    pub measurements: Vec<Measurement>,
+}
+
+/// One repository's measured accuracy.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Measurement {
+    pub repository: String,
+    pub revision: String,
+    pub precision: f32,
+    pub recall: f32,
+    pub beholder_edges: usize,
+    pub oracle_edges: usize,
 }
 
 impl Accuracy {
@@ -54,10 +88,13 @@ impl Accuracy {
     pub fn recorded(language: &str) -> Self {
         #[derive(Deserialize)]
         struct Recorded {
-            precision: f32,
-            recall: f32,
             measured_against: String,
-            corpus: String,
+            precision_min: f32,
+            precision_max: f32,
+            recall_min: f32,
+            recall_max: f32,
+            #[serde(default)]
+            measurements: Vec<Measurement>,
         }
 
         let table: BTreeMap<String, Recorded> =
@@ -66,17 +103,17 @@ impl Accuracy {
         match table.get(language) {
             Some(recorded) => Self {
                 resolver: HEURISTIC.to_owned(),
-                precision: Some(recorded.precision),
-                recall: Some(recorded.recall),
                 measured_against: Some(recorded.measured_against.clone()),
-                corpus: Some(recorded.corpus.clone()),
+                precision_range: Some((recorded.precision_min, recorded.precision_max)),
+                recall_range: Some((recorded.recall_min, recorded.recall_max)),
+                measurements: recorded.measurements.clone(),
             },
             None => Self {
                 resolver: HEURISTIC.to_owned(),
-                precision: None,
-                recall: None,
                 measured_against: None,
-                corpus: None,
+                precision_range: None,
+                recall_range: None,
+                measurements: Vec::new(),
             },
         }
     }
@@ -154,7 +191,7 @@ impl Resolver for Heuristic {
                 };
 
                 match index.resolve(file, occurrence) {
-                    Ok(to) => {
+                    Ok((to, confidence)) => {
                         stats.resolved += 1;
                         // A symbol referring to itself says nothing about what
                         // depends on it, so recursion is not an edge.
@@ -163,6 +200,7 @@ impl Resolver for Heuristic {
                                 from: from.id.clone(),
                                 to,
                                 kind: occurrence.kind.clone(),
+                                confidence,
                             });
                         }
                     }
@@ -244,23 +282,33 @@ impl<'a> SymbolIndex<'a> {
         &self,
         file: &'a FileAnalysis,
         occurrence: &Occurrence,
-    ) -> Result<String, Unresolved> {
+    ) -> Result<(String, Confidence), Unresolved> {
         let separator = separator_for(file);
 
         if occurrence.target.as_deref() == Some("enclosing_scope") {
-            return self.enclosing_scope(file, occurrence, separator);
+            return self
+                .enclosing_scope(file, occurrence, separator)
+                .map(|id| (id, Confidence::High));
         }
 
         let mut saw_candidate = false;
 
         // Strongest signal first. Each rule either names exactly one symbol or
-        // steps aside; nothing votes.
-        for candidates in [
-            self.by_import(file, occurrence, separator),
-            self.by_qualifier(occurrence, separator),
-            self.in_same_file(file, occurrence),
-            self.by_glob_import(file, occurrence, separator),
-            self.anywhere(occurrence),
+        // steps aside; nothing votes. The confidence beside each rule is what
+        // the rule actually rests on: the first two read a statement in the
+        // source, the rest read a name.
+        for (candidates, confidence) in [
+            (
+                self.by_import(file, occurrence, separator),
+                Confidence::High,
+            ),
+            (self.by_qualifier(occurrence, separator), Confidence::High),
+            (self.in_same_file(file, occurrence), Confidence::Low),
+            (
+                self.by_glob_import(file, occurrence, separator),
+                Confidence::Low,
+            ),
+            (self.anywhere(occurrence), Confidence::Low),
         ] {
             // A method call cannot land on a free function however close it
             // sits. Without this, `value.apply()` resolves to whatever `apply`
@@ -272,7 +320,7 @@ impl<'a> SymbolIndex<'a> {
 
             match candidates.len() {
                 0 => continue,
-                1 => return Ok(candidates[0].id.clone()),
+                1 => return Ok((candidates[0].id.clone(), confidence)),
                 _ => saw_candidate = true,
             }
         }
@@ -288,6 +336,18 @@ impl<'a> SymbolIndex<'a> {
     ///
     /// The referring symbol already carries its own scope in its qualified
     /// path, so the answer is there rather than in any symbol table.
+    ///
+    /// Scope words are scanned left to right — outermost first — and the first
+    /// one naming exactly one symbol wins. That order is wrong for a symbol
+    /// whose outer scope also names a symbol: in `mod ledger { impl Tally { .. } }`
+    /// the scope reads `ledger::Tally`, and if a type called `ledger` exists
+    /// anywhere in the project, `Self` resolves to it instead of to `Tally`.
+    /// For a trait impl the scope reads `<Type as Trait>`, so `Type` is scanned
+    /// before `Trait` and wins, which is correct — but only because of how the
+    /// segment happens to be spelled, not because the scan understands it.
+    ///
+    /// A scope word naming several symbols is skipped rather than treated as
+    /// ambiguous, so the scan continues outward past it.
     fn enclosing_scope(
         &self,
         file: &'a FileAnalysis,
@@ -601,6 +661,51 @@ mod tests {
     }
 
     #[test]
+    fn self_resolves_to_the_type_being_implemented() {
+        let (edges, _) = resolve(&[(
+            "src/lib.rs",
+            "pub struct Ledger;\nimpl Ledger {\n    fn make() -> Self { Ledger }\n}\n",
+        )]);
+
+        assert!(targets(&edges, "function:Ledger::make")
+            .contains(&"rust:src/lib.rs:type:Ledger".to_string()));
+    }
+
+    #[test]
+    fn self_in_a_trait_impl_resolves_to_the_type_not_the_trait() {
+        let (edges, _) = resolve(&[(
+            "src/lib.rs",
+            "pub struct Ledger;\npub trait Build { fn make() -> Self; }\nimpl Build for Ledger {\n    fn make() -> Self { Ledger }\n}\n",
+        )]);
+
+        let from_impl = targets(&edges, "<Ledger as Build>::make");
+        assert!(
+            from_impl.contains(&"rust:src/lib.rs:type:Ledger".to_string()),
+            "{from_impl:?}"
+        );
+    }
+
+    #[test]
+    fn self_under_module_nesting_takes_the_outermost_naming_scope() {
+        // Documents a known limitation rather than asserting correctness. The
+        // scan is outermost-first, so a module whose name also names a type
+        // captures `Self` before the impl does.
+        let (edges, _) = resolve(&[
+            ("src/shadow.rs", "pub struct ledger;\n"),
+            (
+                "src/lib.rs",
+                "mod ledger {\n    pub struct Tally;\n    impl Tally {\n        fn make() -> Self { Tally }\n    }\n}\n",
+            ),
+        ]);
+
+        let from_make = targets(&edges, "ledger::Tally::make");
+        assert!(
+            from_make.contains(&"rust:src/shadow.rs:type:ledger".to_string()),
+            "expected the documented mis-resolution, got {from_make:?}"
+        );
+    }
+
+    #[test]
     fn edges_are_deterministic_and_stably_sorted() {
         let files = [
             ("src/z.rs", "pub fn zeta() {}\n"),
@@ -625,8 +730,15 @@ mod tests {
         let rust = Heuristic.accuracy("rust");
         assert_eq!(rust.resolver, HEURISTIC);
 
+        // Measured languages report a range across the corpus, never a single
+        // number that would read as per-edge confidence.
+        let (low, high) = rust.precision_range.expect("rust is measured");
+        assert!(low <= high);
+        assert!(rust.measurements.len() >= 2);
+
         let unmeasured = Heuristic.accuracy("cobol");
-        assert_eq!(unmeasured.precision, None);
-        assert_eq!(unmeasured.recall, None);
+        assert_eq!(unmeasured.precision_range, None);
+        assert_eq!(unmeasured.recall_range, None);
+        assert!(unmeasured.measurements.is_empty());
     }
 }

@@ -5,130 +5,207 @@ imports, module paths, qualifiers and identifier occurrences, and it has no type
 information. A graph built that way is useful only if its error bar is known, so
 it is measured rather than asserted.
 
-The measured figures live in `crates/beholder/accuracy.toml` and are carried on
-every edge in `edges.jsonl`.
+Measured figures live in `crates/beholder/accuracy.toml`. Every edge in
+`edges.jsonl` carries the language's observed range and its own resolution
+confidence.
 
 ## What is compared
 
 An external resolved index supplies ground truth. Beholder neither produces nor
-requires one; `beholder-oracle` reads an index that already exists.
+requires one.
 
 ```sh
-rust-analyzer scip /path/to/repo
-beholder-oracle /path/to/repo --index /path/to/repo/index.scip
+# Generate and compare in one operation, so the two cannot describe
+# different code.
+cargo run --release -p beholder-oracle -- /path/to/repo --generate
 ```
 
-Both sides are reduced to the same unit: a **directed pair of beholder symbol
-ids**, `(referring symbol, referenced symbol)`.
-
-- Beholder's edges are taken from `graph::build`, deduplicated to distinct pairs.
-  One pair may carry several edge kinds — a call and a type mention between the
-  same two symbols — and counts once.
-- The oracle's edges are projected onto beholder's symbols. Every SCIP occurrence
-  is a (file, range, symbol) triple. A definition occurrence maps its SCIP symbol
-  to the beholder symbol whose line range contains it. A reference occurrence
-  maps the same way to the symbol it was written inside. An edge exists when both
-  ends land on beholder symbols.
-
-An edge matches when both ends agree. Edge kind is not compared: the question is
-whether beholder found the dependency, not how it labelled it.
+Both sides reduce to the same unit: a **directed pair of beholder symbol ids**,
+`(referring symbol, referenced symbol)`. Beholder's edges are deduplicated to
+distinct pairs — one pair may carry a call and a type mention and counts once.
+Edge kind is not compared: the question is whether the dependency was found, not
+how it was labelled.
 
 ```text
 precision = |beholder ∩ oracle| / |beholder|
 recall    = |beholder ∩ oracle| / |oracle|
 ```
 
-## What is excluded
+### Projecting SCIP onto beholder's symbols
 
-Excluded from **both** sides, so neither is credited or penalised:
+Every SCIP occurrence is a (file, range, symbol) triple. Ranges are compared as
+(line, column) pairs, because two declarations can share a line and a nested one
+sits inside another's span.
 
-- **References with an endpoint beholder does not model.** Constants, statics,
-  macros, closures, local bindings, struct fields and enum variants are not
-  symbols in beholder's index. On the corpus below this is the large majority of
-  SCIP reference occurrences — 2008 of 2622 in `tagver`, 13387 of 19694 in
-  `intentional`.
-- **References into dependencies.** A symbol defined outside the analyzed file
-  set has no beholder id, so no edge is expected in either direction.
-- **SCIP `local N` symbols**, which are function-local bindings.
-- **Recursion.** Neither side emits an edge from a symbol to itself.
+- A **definition** occurrence contributes only when its range is exactly some
+  beholder symbol's own declared name.
+- A **reference** occurrence contributes only when it falls inside some beholder
+  symbol's span *and* names a symbol that cleared the same bar.
 
-Excluded from the oracle only:
+Requiring an exact declaration match is what keeps the measurement honest.
+Mapping a definition to whatever symbol merely *contains* it would fold fields,
+enum variants, associated constants, statics, macros and nested declarations
+onto their enclosing function or type. References to things beholder does not
+model would then become apparently-correct edges, flattering precision and
+recall together.
 
-- **Occurrences outside any symbol.** An `impl` header or a `use` declaration
-  sits at file scope, so there is no referring symbol to attach an edge to.
+### The exclusion set
 
-## Results
+Excluded from **both** sides, counted separately so the set is auditable.
 
-Measured against `rust-analyzer scip 1.97.1` at each repository's `HEAD`.
+| Reason | `tagver` | `intentional` |
+| --- | ---: | ---: |
+| External dependency — referent defined outside the analyzed files | 1564 | 12013 |
+| Local binding — a SCIP `local N`, never a symbol | 671 | 6461 |
+| Unmodeled referent — a field, variant, associated constant, static or macro | 392 | 3398 |
+| No modeled referrer — an `impl` header or `use`, outside any symbol | 339 | 1240 |
+| Recursion — neither side emits a self-edge | 0 | 11 |
+| Malformed range | 0 | 0 |
+| **Reference occurrences seen** | **3293** | **26155** |
 
-| Repository | Beholder edges | Oracle edges | Agreed | Precision | Recall |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `tagver` | 286 | 288 | 267 | 0.934 | 0.927 |
-| `intentional` | 2155 | 2312 | 1725 | 0.800 | 0.746 |
-| **pooled** | **2441** | **2600** | **1992** | **0.816** | **0.766** |
+The exclusions dwarf the compared set. That is expected — most of what a
+codebase mentions is standard library, dependency, or something finer-grained
+than a function or type — but it means these figures describe beholder's graph
+over the symbols beholder models, and nothing wider.
 
-`accuracy.toml` records the pooled figure, because that is the number a consumer
-of an arbitrary repository should expect. The spread between the two
-repositories is itself informative: `tagver` is small and mostly free functions,
-`intentional` is larger and leans on traits and generic containers, and accuracy
-tracks that difference.
+SCIP columns are read in the encoding the index declares; both measurements
+below used UTF-8. The oracle warns when the working tree is dirty and when a
+SCIP document names a file the analysis never saw.
+
+## Pair-level results
+
+Measured against `rust-analyzer scip 1.97.1`.
+
+| Repository | Beholder edges | High confidence | Oracle edges | Agreed | Precision | Recall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `tagver` | 286 | 102 | 257 | 249 | 0.871 | 0.969 |
+| `intentional` | 2155 | 802 | 1945 | 1699 | 0.788 | 0.874 |
+
+`accuracy.toml` records both repositories and the observed range. It does not
+record a pooled figure: the spread is structural — `tagver` is small and mostly
+free functions, `intentional` leans on traits and generic containers — and a
+pool dominated by the larger repository would read as a per-edge probability
+that it is not.
+
+## Fan-in, which is what ranking consumes
+
+Pair-level precision and recall say whether individual edges are right. They do
+not say whether the *number* ranking consumes is right, because errors can
+cancel or concentrate. Three bases were measured against oracle fan-in over
+every beholder symbol.
+
+| Repository | Basis | Spearman | Top-10 | Top-25 | Mean abs. error | Mean rel. error |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `tagver` | raw | **0.954** | 0.90 | 0.92 | 0.39 | 0.16 |
+| `tagver` | high confidence only | 0.548 | 0.50 | 0.48 | 1.59 | 0.74 |
+| `tagver` | high + capped low | 0.951 | 0.60 | 0.92 | 0.80 | 0.23 |
+| `intentional` | raw | 0.757 | 0.50 | 0.76 | 1.32 | 0.37 |
+| `intentional` | high confidence only | 0.405 | 0.70 | 0.44 | 2.24 | 0.88 |
+| `intentional` | high + capped low | **0.763** | 0.70 | 0.44 | **1.18** | **0.26** |
+
+"High confidence" means the source states where the reference points: an
+explicit import, a path qualifier, or `Self`. "Capped low" adds low-confidence
+edges but stops any one target absorbing more than five of them.
+
+### Stratified by symbol class, raw basis
+
+| Class | `tagver` n / Spearman | `intentional` n / Spearman |
+| --- | --- | --- |
+| free function | 65 / 0.925 | 243 / 0.953 |
+| inherent method | 24 / 0.983 | 181 / 0.716 |
+| trait method | 9 / 1.000 | 12 / **−0.363** |
+| type | 17 / 0.935 | 91 / 0.662 |
+
+Trait methods on `intentional` are anti-correlated. With twelve symbols that is
+a small sample, but it is the one stratum where fan-in actively misleads.
+
+### Concentration of error
+
+Overstatement is extremely concentrated. On `tagver` the ten worst symbols
+absorb 100% of it; on `intentional`, 84%. The worst cases are exactly the
+low-confidence method-name collisions:
+
+| Overstated by | Symbol | What the calls really were |
+| ---: | --- | --- |
+| +111 | `JsonParser::expect` | `Option::expect`, `Result::expect` |
+| +78 | `<Bump as FromStr>::Err` | the `Err` variant of `Result` |
+| +46 | `DiscoveryConfig::is_empty` | `Vec::is_empty`, `str::is_empty` |
+
+Capping low-confidence contributions cuts `intentional`'s concentration from 84%
+to 56% and its mean relative error from 0.37 to 0.26 while leaving rank
+correlation intact.
 
 ## Error classes
 
 ### Method dispatch without receiver types
 
-The dominant precision failure, and inherent to a type-free resolver. A method
-call gives beholder a name and nothing else. When exactly one symbol in the
-project carries that name, beholder resolves to it — even when the real receiver
-is a type from the standard library or a dependency.
-
-| Spurious edges | Target | What the call really was |
-| ---: | --- | --- |
-| 111 | `JsonParser::expect` | `Option::expect`, `Result::expect` |
-| 78 | `<Bump as FromStr>::Err` | the `Err` variant of `Result` |
-| 46 | `DiscoveryConfig::is_empty` | `Vec::is_empty`, `str::is_empty` |
-| 36 | `JsonNode::find` | `Iterator::find` |
-| 37 | `<Bump as FromStr>::from_str` | `from_str` on other types |
-
-Every one of these is a project symbol whose name collides with a ubiquitous
-standard-library method. Constraining a method call to targets that are declared
-inside something already stops it landing on free functions; nothing short of
-type information will stop it landing on the wrong type's method.
+The dominant precision failure and inherent to a type-free resolver. A method
+call supplies a name and nothing else; when exactly one project symbol carries
+that name, beholder resolves to it even though the real receiver is a standard
+library type. Constraining method calls to targets declared inside something
+already stops them landing on free functions. Nothing short of type information
+stops them landing on the wrong type's method.
 
 ### External-crate name collisions
 
-An explicit import of a name from a dependency does not stop that name
-resolving to a project symbol of the same name. `use anyhow::Result` in a
-project that also defines `Result` produces edges to the project's alias.
+An explicit import from a dependency does not stop the name resolving to a
+project symbol of the same name: `use anyhow::Result` in a project that also
+defines `Result`. Beholder cannot tell `intentional_core::Config` — a workspace
+crate, a real project symbol — from `anyhow::Result`. Both are import paths
+whose leading segment names no file-derived module, and separating them needs
+the build manifest, deliberately outside what tier 2 reads.
 
-Beholder cannot currently tell `intentional_core::Config` — a workspace crate,
-and a real project symbol — from `anyhow::Result` — a dependency. Both are
-import paths whose leading segment names no file-derived module. Distinguishing
-them needs the build manifest, which is deliberately outside what tier 2 reads.
+### Type references over-attributed
 
-### Referrer attribution mismatches
+On `tagver` the largest remaining false positives are type mentions: `Version`
+(+15) and `Result` (+11). Beholder counts a distinct referrer for mentions the
+oracle attributes elsewhere or does not model.
 
-A smaller class where both sides agree an edge exists but disagree about which
-symbol it came from, so it appears as a false positive and a false negative at
-once. On `intentional`, `Projection` (15 spurious, 16 missed) and `git` (13 and
-13) are the visible cases.
+### `Self` resolution is outermost-first
 
-### Remaining recall gaps
+`Self` resolves against the referring symbol's own scope by scanning scope words
+left to right and taking the first that names exactly one symbol. For a trait
+impl the scope reads `<Type as Trait>`, so `Type` is scanned before `Trait` and
+wins — correct, but only because of how that segment is spelled. Under module
+nesting the order is wrong: in `mod ledger { impl Tally { … } }` the scope reads
+`ledger::Tally`, and a type named `ledger` anywhere in the project captures
+`Self` before `Tally` does. A scope word naming several symbols is skipped
+rather than treated as ambiguous, so the scan continues outward past it.
+`self_under_module_nesting_takes_the_outermost_naming_scope` pins this so a
+future change to innermost-first is a deliberate one.
 
-After resolving `Self` against the referring symbol's own scope, and recording a
-path's qualifier as a reference in its own right — `Error::io` refers to `Error`
-as well as to `io` — the largest remaining misses are references to types
-(`ReleaseUnitConfig` 46, `DiscoveryCandidate` 35, `Config` 26). These are
-partially resolved already, so the gap is in specific syntactic positions rather
-than in the type being unreachable.
+## Micro-decision: fan-in is confidence-aware, not confidence-filtered
+
+**Context.** The Definition of Done ranks risk by complexity delta weighted by
+fan-in. Measurement showed raw fan-in is inflated by low-confidence method-name
+collisions, so the question was how to make that weight trustworthy.
+
+**Decision.** `Degree` reports `fan_in` and `fan_in_high_confidence` separately,
+and every edge carries its own `confidence`. Ranking will combine them rather
+than filter to high confidence alone.
+
+**Why not high-confidence only.** It was measured and it is worse. High
+confidence covers 102 of 286 edges on `tagver` and 802 of 2155 on `intentional`,
+and most of what it discards is correct. Rank correlation against the oracle
+falls from 0.954 to 0.548 and from 0.757 to 0.405. Filtering buys precision on
+individual edges at the cost of the ordering, which is the thing ranking needs.
+
+**What the evidence supports instead.** Keep every edge and damp the
+low-confidence contribution. A cap of five per target preserves rank correlation
+(0.951 and 0.763) while cutting mean relative error and roughly halving the
+concentration of overstatement. The exact damping function is a step 5 decision;
+this round measured it and shipped only the inputs.
+
+**Consequence.** `fan_in_high_confidence` is a ranking input, not a better
+fan-in. Presenting it as the graph's answer to "what depends on this" would
+understate every dependency the source did not spell out.
 
 ## Reproducing
 
 ```sh
-rust-analyzer scip /workspaces/tools/tagver
-cargo run --release -p beholder-oracle -- /workspaces/tools/tagver \
-  --index /workspaces/tools/tagver/index.scip
+cargo run --release -p beholder-oracle -- /workspaces/tools/tagver --generate
 ```
 
-`--json` emits the full comparison including every disagreeing pair. `--revision`
-measures a committed tree instead of the working tree.
+`--index` uses an existing index instead of generating one. `--json` emits the
+full comparison including every disagreeing pair and all fan-in statistics.
+`--revision` measures a committed tree instead of the working tree.

@@ -153,10 +153,15 @@ fn index(args: IndexArgs) -> Result<()> {
         graph.resolution.resolved, graph.resolution.occurrences
     );
     for (language, accuracy) in &graph.accuracy {
-        match (accuracy.precision, accuracy.recall) {
+        match (accuracy.precision_range, accuracy.recall_range) {
             (Some(precision), Some(recall)) => println!(
-                "{language}: {} resolver, precision {precision:.2} recall {recall:.2}",
-                accuracy.resolver
+                "{language}: {resolver} resolver, precision {:.2}-{:.2}, recall {:.2}-{:.2} across {} repositories",
+                precision.0,
+                precision.1,
+                recall.0,
+                recall.1,
+                accuracy.measurements.len(),
+                resolver = accuracy.resolver,
             ),
             _ => println!(
                 "{language}: {} resolver, accuracy not measured",

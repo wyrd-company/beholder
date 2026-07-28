@@ -34,6 +34,10 @@ pub struct SymbolRecord {
     pub fan_in: usize,
     /// Distinct symbols this one references.
     pub fan_out: usize,
+    /// Fan-in counting only edges the source states outright.
+    pub fan_in_high_confidence: usize,
+    /// Fan-out on the same basis.
+    pub fan_out_high_confidence: usize,
     /// Which intra-file cohesion component this symbol falls in.
     pub component: usize,
 }
@@ -47,9 +51,13 @@ pub struct EdgeRecord {
     pub from: String,
     pub to: String,
     pub kind: String,
+    /// Whether the source stated where this reference points.
+    pub confidence: crate::resolve::Confidence,
     pub resolver: String,
-    pub precision: Option<f32>,
-    pub recall: Option<f32>,
+    /// Observed precision range for this language across the measured corpus.
+    /// Calibration for the graph as a whole, not a probability for this edge.
+    pub precision_range: Option<(f32, f32)>,
+    pub recall_range: Option<(f32, f32)>,
 }
 
 /// One line of `files.jsonl`. Written for every file the walk visits, including
@@ -102,6 +110,18 @@ pub fn symbol_records(analysis: &Analysis) -> Vec<SymbolRecord> {
                 .degree
                 .get(&s.id)
                 .map_or(0, |d| d.fan_out),
+            fan_in_high_confidence: analysis
+                .phase2
+                .graph
+                .degree
+                .get(&s.id)
+                .map_or(0, |d| d.fan_in_high_confidence),
+            fan_out_high_confidence: analysis
+                .phase2
+                .graph
+                .degree
+                .get(&s.id)
+                .map_or(0, |d| d.fan_out_high_confidence),
             component: analysis
                 .phase2
                 .graph
@@ -136,11 +156,12 @@ pub fn edge_records(analysis: &Analysis) -> Vec<EdgeRecord> {
                 from: edge.from.clone(),
                 to: edge.to.clone(),
                 kind: edge.kind.clone(),
+                confidence: edge.confidence,
                 resolver: accuracy
                     .map(|a| a.resolver.clone())
                     .unwrap_or_else(|| crate::resolve::HEURISTIC.to_owned()),
-                precision: accuracy.and_then(|a| a.precision),
-                recall: accuracy.and_then(|a| a.recall),
+                precision_range: accuracy.and_then(|a| a.precision_range),
+                recall_range: accuracy.and_then(|a| a.recall_range),
             }
         })
         .collect();

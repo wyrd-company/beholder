@@ -19,6 +19,16 @@ pub struct Degree {
     pub fan_in: usize,
     /// Distinct symbols this one references.
     pub fan_out: usize,
+    /// Fan-in counting only edges the source actually states — an explicit
+    /// import, a path qualifier, or `Self`.
+    ///
+    /// Reported separately because the two disagree exactly where the resolver
+    /// is weakest. A bare method name that happens to be unique in a project
+    /// attracts every call that shares it, so raw fan-in accumulates on small
+    /// utility methods whose names collide with the standard library.
+    pub fan_in_high_confidence: usize,
+    /// Fan-out on the same basis.
+    pub fan_out_high_confidence: usize,
 }
 
 /// The resolved reference graph over a file set.
@@ -45,6 +55,8 @@ pub fn build(files: &[FileAnalysis], resolver: &dyn Resolver) -> Graph {
     let mut degree: BTreeMap<String, Degree> = BTreeMap::new();
     let mut out_neighbours: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     let mut in_neighbours: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut out_high: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut in_high: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
 
     for edge in &edges {
         out_neighbours
@@ -55,6 +67,17 @@ pub fn build(files: &[FileAnalysis], resolver: &dyn Resolver) -> Graph {
             .entry(edge.to.as_str())
             .or_default()
             .insert(edge.from.as_str());
+
+        if edge.confidence == crate::resolve::Confidence::High {
+            out_high
+                .entry(edge.from.as_str())
+                .or_default()
+                .insert(edge.to.as_str());
+            in_high
+                .entry(edge.to.as_str())
+                .or_default()
+                .insert(edge.from.as_str());
+        }
     }
 
     // Degree counts distinct partners, not occurrences: calling one function
@@ -64,6 +87,18 @@ pub fn build(files: &[FileAnalysis], resolver: &dyn Resolver) -> Graph {
     }
     for (id, sources) in &in_neighbours {
         degree.entry((*id).to_owned()).or_default().fan_in = sources.len();
+    }
+    for (id, targets) in &out_high {
+        degree
+            .entry((*id).to_owned())
+            .or_default()
+            .fan_out_high_confidence = targets.len();
+    }
+    for (id, sources) in &in_high {
+        degree
+            .entry((*id).to_owned())
+            .or_default()
+            .fan_in_high_confidence = sources.len();
     }
 
     let mut component = BTreeMap::new();

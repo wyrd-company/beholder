@@ -34,7 +34,7 @@ pub use symbol::Symbol;
 /// Version of the record schemas beholder writes.
 ///
 /// Stored results produced under a different schema version are never reused.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// Version of the tool that produced a result.
 pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
