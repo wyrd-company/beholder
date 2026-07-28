@@ -1,0 +1,18 @@
+[package]
+name = "beholder-cli"
+description = "Command line interface for beholder, a structural code index"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "beholder"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+beholder.workspace = true
+serde_json.workspace = true
+clap = { version = "4", features = ["derive"] }
