@@ -23,14 +23,14 @@
 //!
 //! [`FanInBasis::Damped`] is the default, and raw stays selectable for auditing
 //! and for benchmarking against the resolver measurement. Both bases agree on
-//! the top five in five of fourteen reports, and where they disagree damping is
+//! the top five in eight of fourteen reports, and where they disagree damping is
 //! right.
 //! The clearest case: a three-line predicate, `DiscoveryConfig::is_empty`,
 //! ranks second in its whole change under [`FanInBasis::Raw`] on the strength
 //! of 27 references — none of them stated by the source, all of them
 //! `Vec::is_empty` calls the resolver could not tell apart. Damping drops it
 //! out of the top five and promotes real logic instead. Across all fourteen
-//! reports, damping cuts such promotions from three to one.
+//! reports, damping cuts such promotions from two to one.
 //!
 //! The full record — every revision, what each basis surfaced, and where the
 //! corpus falls short of the Definition of Done — is `docs/gate5-evaluation.toml`.

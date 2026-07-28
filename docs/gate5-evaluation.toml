@@ -1,7 +1,12 @@
 # Gate 5 - report usefulness. Machine-readable evaluation record.
 #
-# Regenerate any row with:
-#   beholder report <revision>~1 <revision> --root <repository> --basis <basis> --json
+# Regenerate with:
+#   python3 scripts/gate5-evaluation.py
+#
+# Mechanical figures come from re-running the reports; which entries surfaced is
+# read out of beholder's own SARIF rather than recomputed here. Judgement fields
+# - pull_request, verdict, trivial_promoted_by_unstated_fan_in - are carried
+# over by revision and symbol, because no script can form a judgement.
 #
 # Every figure in [summary] is computable from the [[change]] entries below:
 # each records the top five surfaced entries per basis with the metadata the
@@ -38,9 +43,9 @@ reports = 14
 verdict = "useful; damped basis recommended and now the default"
 on_subject = 12
 thin = 2
-trivial_promoted_by_unstated_fan_in_raw = 3
+trivial_promoted_by_unstated_fan_in_raw = 2
 trivial_promoted_by_unstated_fan_in_damped = 1
-test_file_entries_in_top_five_damped = 7
+test_file_entries_in_top_five_damped = 3
 trait_method_entries_in_top_five_damped = 2
 notes = """
 Twelve of fourteen put a substantial piece of the change's subject first. The
@@ -61,6 +66,7 @@ pull_request = "PR#10"
 changed_symbols = 16
 verdict = "thin: little complexity moved"
 raw_surfaced = 1
+damped_surfaced = 1
 
 [[change.raw_top]]
 rank = 1
@@ -73,7 +79,6 @@ fan_in_stated = 0
 is_test_file = true
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 1
 
 [[change.damped_top]]
 rank = 1
@@ -93,7 +98,8 @@ revision = "328159643c23ebfbc59fd5feec1052bbcd3ef09d"
 pull_request = "PR#6"
 changed_symbols = 9
 verdict = "thin: little complexity moved"
-raw_surfaced = 2
+raw_surfaced = 1
+damped_surfaced = 1
 
 [[change.raw_top]]
 rank = 1
@@ -107,19 +113,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 2
-symbol = "TagResult::from_versions"
-path = "crates/core/src/tag.rs"
-classification = "associated_item"
-complexity_delta = -1
-fan_in = 2
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 2
-
 [[change.damped_top]]
 rank = 1
 symbol = "TagResult::build_baseline"
@@ -128,18 +121,6 @@ classification = "associated_item"
 complexity_delta = -4
 fan_in = 1
 fan_in_stated = 1
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 2
-symbol = "TagResult::from_versions"
-path = "crates/core/src/tag.rs"
-classification = "associated_item"
-complexity_delta = -1
-fan_in = 2
-fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
@@ -150,7 +131,8 @@ revision = "5b7c33e6a144e35355ee108e52b301182e659d01"
 pull_request = ""
 changed_symbols = 170
 verdict = "on subject"
-raw_surfaced = 34
+raw_surfaced = 6
+damped_surfaced = 10
 
 [[change.raw_top]]
 rank = 1
@@ -211,7 +193,6 @@ fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 34
 
 [[change.damped_top]]
 rank = 1
@@ -279,7 +260,8 @@ revision = "dcbdbb12687b5dcb89ad01daf74c53f20e1c8164"
 pull_request = ""
 changed_symbols = 49
 verdict = "on subject"
-raw_surfaced = 10
+raw_surfaced = 4
+damped_surfaced = 5
 
 [[change.raw_top]]
 rank = 1
@@ -328,19 +310,6 @@ fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "plan_versions"
-path = "crates/core/src/tag.rs"
-classification = "free_item"
-complexity_delta = 6
-fan_in = 3
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 10
 
 [[change.damped_top]]
 rank = 1
@@ -408,7 +377,8 @@ revision = "d6e78c51e0ca95057eb298266433385e299f7ed0"
 pull_request = ""
 changed_symbols = 54
 verdict = "on subject"
-raw_surfaced = 11
+raw_surfaced = 5
+damped_surfaced = 5
 
 [[change.raw_top]]
 rank = 1
@@ -469,7 +439,6 @@ fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 11
 
 [[change.damped_top]]
 rank = 1
@@ -537,7 +506,8 @@ revision = "dbbd60797d504ea17c5511b1511705a1993aa49c"
 pull_request = ""
 changed_symbols = 36
 verdict = "on subject"
-raw_surfaced = 7
+raw_surfaced = 5
+damped_surfaced = 4
 
 [[change.raw_top]]
 rank = 1
@@ -598,7 +568,6 @@ fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 8
 
 [[change.damped_top]]
 rank = 1
@@ -648,25 +617,14 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.damped_top]]
-rank = 5
-symbol = "supplied_release_digest"
-path = "crates/core/src/tag.rs"
-classification = "free_item"
-complexity_delta = 9
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
 [[change]]
 repository = "intentional"
 revision = "b669491bf91c1024fe113047060656b40a22d884"
 pull_request = ""
 changed_symbols = 33
 verdict = "on subject"
-raw_surfaced = 7
+raw_surfaced = 3
+damped_surfaced = 3
 
 [[change.raw_top]]
 rank = 1
@@ -704,31 +662,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 4
-symbol = "resolve_discovery_candidates"
-path = "crates/cli/tests/changesets_takeover.rs"
-classification = "free_item"
-complexity_delta = 6
-fan_in = 2
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "initialize"
-path = "crates/core/src/init.rs"
-classification = "free_item"
-complexity_delta = -2
-fan_in = 7
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = true
-damped_surfaced = 7
-
 [[change.damped_top]]
 rank = 1
 symbol = "apply_changesets_candidate_receipts"
@@ -762,30 +695,6 @@ complexity_delta = 7
 fan_in = 2
 fan_in_stated = 0
 is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 4
-symbol = "ordinary_plan"
-path = "crates/core/src/init.rs"
-classification = "free_item"
-complexity_delta = 8
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "resolve_discovery_candidates"
-path = "crates/cli/tests/changesets_takeover.rs"
-classification = "free_item"
-complexity_delta = 6
-fan_in = 2
-fan_in_stated = 0
-is_test_file = true
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
@@ -795,7 +704,8 @@ revision = "069a9b4a135718762999ff3f38fd3e48902ab93a"
 pull_request = ""
 changed_symbols = 42
 verdict = "on subject"
-raw_surfaced = 8
+raw_surfaced = 3
+damped_surfaced = 3
 
 [[change.raw_top]]
 rank = 1
@@ -833,31 +743,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 4
-symbol = "validate_exact_discovery_path"
-path = "crates/core/src/config.rs"
-classification = "free_item"
-complexity_delta = 4
-fan_in = 4
-fan_in_stated = 3
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "InitPlan::validate"
-path = "crates/core/src/init.rs"
-classification = "associated_item"
-complexity_delta = 18
-fan_in = 0
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 9
-
 [[change.damped_top]]
 rank = 1
 symbol = "DiscoveryCandidate::validate"
@@ -894,37 +779,14 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.damped_top]]
-rank = 4
-symbol = "InitPlan::validate"
-path = "crates/core/src/init.rs"
-classification = "associated_item"
-complexity_delta = 18
-fan_in = 0
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "Config::validate_discovery"
-path = "crates/core/src/config.rs"
-classification = "associated_item"
-complexity_delta = 8
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
 [[change]]
 repository = "tagver"
 revision = "b396282dd1f5b492df1853441296913da9d4231f"
 pull_request = ""
 changed_symbols = 56
 verdict = "on subject"
-raw_surfaced = 8
+raw_surfaced = 2
+damped_surfaced = 2
 
 [[change.raw_top]]
 rank = 1
@@ -950,43 +812,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 3
-symbol = "parse_tags"
-path = "crates/core/src/tags.rs"
-classification = "free_item"
-complexity_delta = 11
-fan_in = 1
-fan_in_stated = 1
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 4
-symbol = "calculate_version"
-path = "crates/core/src/git.rs"
-classification = "free_item"
-complexity_delta = 7
-fan_in = 2
-fan_in_stated = 1
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "synthesize_version"
-path = "crates/core/src/git.rs"
-classification = "free_item"
-complexity_delta = 3
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 8
-
 [[change.damped_top]]
 rank = 1
 symbol = "walk_to_tag"
@@ -1007,42 +832,6 @@ classification = "free_item"
 complexity_delta = 11
 fan_in = 1
 fan_in_stated = 1
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 3
-symbol = "apply_config"
-path = "crates/core/src/git.rs"
-classification = "free_item"
-complexity_delta = 9
-fan_in = 2
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 4
-symbol = "calculate_version"
-path = "crates/core/src/git.rs"
-classification = "free_item"
-complexity_delta = 7
-fan_in = 2
-fan_in_stated = 1
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "synthesize_version"
-path = "crates/core/src/git.rs"
-classification = "free_item"
-complexity_delta = 3
-fan_in = 1
-fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
@@ -1053,7 +842,8 @@ revision = "6142920054075519812f00777d8af0f4eb4f1f8b"
 pull_request = ""
 changed_symbols = 28
 verdict = "on subject"
-raw_surfaced = 8
+raw_surfaced = 2
+damped_surfaced = 2
 
 [[change.raw_top]]
 rank = 1
@@ -1079,43 +869,6 @@ is_test_file = true
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = true
 
-[[change.raw_top]]
-rank = 3
-symbol = "test_minimum_major_minor_after_tag"
-path = "crates/core/tests/log_messages.rs"
-classification = "free_item"
-complexity_delta = 3
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 4
-symbol = "test_current_tag"
-path = "crates/core/tests/build_metadata.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "test_no_commits"
-path = "crates/core/tests/build_metadata.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 8
-
 [[change.damped_top]]
 rank = 1
 symbol = "test_repo_with_history"
@@ -1139,42 +892,6 @@ fan_in_stated = 0
 is_test_file = true
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = true
-
-[[change.damped_top]]
-rank = 3
-symbol = "test_minimum_major_minor_after_tag"
-path = "crates/core/tests/log_messages.rs"
-classification = "free_item"
-complexity_delta = 3
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 4
-symbol = "test_current_tag"
-path = "crates/core/tests/build_metadata.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "test_no_commits"
-path = "crates/core/tests/build_metadata.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 0
-fan_in_stated = 0
-is_test_file = true
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
 
 [[change]]
 repository = "agent-svgtools"
@@ -1182,7 +899,8 @@ revision = "54111451308a31b2b2784f9ce7e8240036192a37"
 pull_request = ""
 changed_symbols = 52
 verdict = "on subject"
-raw_surfaced = 10
+raw_surfaced = 4
+damped_surfaced = 4
 
 [[change.raw_top]]
 rank = 1
@@ -1232,19 +950,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 5
-symbol = "is_authored_graphic"
-path = "src/commands/inspect/mod.rs"
-classification = "free_item"
-complexity_delta = 6
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 10
-
 [[change.damped_top]]
 rank = 1
 symbol = "pixel_match_masked"
@@ -1288,18 +993,6 @@ path = "src/compare/mod.rs"
 classification = "free_item"
 complexity_delta = 5
 fan_in = 2
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "is_authored_graphic"
-path = "src/commands/inspect/mod.rs"
-classification = "free_item"
-complexity_delta = 6
-fan_in = 1
 fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
@@ -1311,7 +1004,8 @@ revision = "6e8079334f7b0a0392e01f31b5d95f9e0f120ea6"
 pull_request = ""
 changed_symbols = 40
 verdict = "on subject"
-raw_surfaced = 8
+raw_surfaced = 3
+damped_surfaced = 3
 
 [[change.raw_top]]
 rank = 1
@@ -1349,31 +1043,6 @@ is_test_file = false
 is_trait_method = true
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 4
-symbol = "region_cfg"
-path = "src/commands/shared/mod.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 2
-fan_in_stated = 2
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "run"
-path = "src/commands/judge/mod.rs"
-classification = "free_item"
-complexity_delta = 5
-fan_in = 0
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 8
-
 [[change.damped_top]]
 rank = 1
 symbol = "write_artifacts"
@@ -1408,30 +1077,6 @@ fan_in = 0
 fan_in_stated = 0
 is_test_file = false
 is_trait_method = true
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 4
-symbol = "region_cfg"
-path = "src/commands/shared/mod.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 2
-fan_in_stated = 2
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "run"
-path = "src/commands/judge/mod.rs"
-classification = "free_item"
-complexity_delta = 5
-fan_in = 0
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
 [[change]]
@@ -1440,7 +1085,8 @@ revision = "642393b19f9dec508f716789e5245b837b6375cc"
 pull_request = ""
 changed_symbols = 24
 verdict = "on subject"
-raw_surfaced = 5
+raw_surfaced = 2
+damped_surfaced = 2
 
 [[change.raw_top]]
 rank = 1
@@ -1466,43 +1112,6 @@ is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
 
-[[change.raw_top]]
-rank = 3
-symbol = "regions"
-path = "src/compare/regions.rs"
-classification = "free_item"
-complexity_delta = 9
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 4
-symbol = "block_error"
-path = "src/compare/regions.rs"
-classification = "free_item"
-complexity_delta = 5
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 5
-symbol = "ssim"
-path = "src/compare/ssim.rs"
-classification = "free_item"
-complexity_delta = 3
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 5
-
 [[change.damped_top]]
 rank = 1
 symbol = "blur_separable"
@@ -1521,42 +1130,6 @@ symbol = "flood"
 path = "src/compare/regions.rs"
 classification = "free_item"
 complexity_delta = 11
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 3
-symbol = "regions"
-path = "src/compare/regions.rs"
-classification = "free_item"
-complexity_delta = 9
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 4
-symbol = "block_error"
-path = "src/compare/regions.rs"
-classification = "free_item"
-complexity_delta = 5
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.damped_top]]
-rank = 5
-symbol = "ssim"
-path = "src/compare/ssim.rs"
-classification = "free_item"
-complexity_delta = 3
 fan_in = 1
 fan_in_stated = 0
 is_test_file = false
@@ -1569,7 +1142,8 @@ revision = "3e58e328f02b99a350ad77d2b2257155aa11245f"
 pull_request = ""
 changed_symbols = 17
 verdict = "on subject"
-raw_surfaced = 4
+raw_surfaced = 2
+damped_surfaced = 3
 
 [[change.raw_top]]
 rank = 1
@@ -1594,31 +1168,6 @@ fan_in_stated = 0
 is_test_file = false
 is_trait_method = false
 trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 3
-symbol = "apply_candidate_resolutions"
-path = "crates/core/src/init.rs"
-classification = "free_item"
-complexity_delta = 4
-fan_in = 1
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-
-[[change.raw_top]]
-rank = 4
-symbol = "discover"
-path = "crates/core/src/init.rs"
-classification = "free_item"
-complexity_delta = 2
-fan_in = 3
-fan_in_stated = 0
-is_test_file = false
-is_trait_method = false
-trivial_promoted_by_unstated_fan_in = false
-damped_surfaced = 3
 
 [[change.damped_top]]
 rank = 1
