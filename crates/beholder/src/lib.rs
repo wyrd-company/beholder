@@ -19,6 +19,7 @@ pub mod jsonl;
 pub mod lang;
 pub mod phase1;
 pub mod resolve;
+pub mod risk;
 pub mod store;
 pub mod symbol;
 pub mod tier0;

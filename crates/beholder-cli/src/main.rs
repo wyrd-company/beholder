@@ -23,6 +23,8 @@ enum Command {
     Index(IndexArgs),
     /// Compare two revisions and report changed symbols.
     Delta(DeltaArgs),
+    /// Rank the symbols a change touched, most risky first.
+    Report(ReportArgs),
     /// Report on the stored index ref.
     Store(StoreArgs),
     /// Run delta across a run of revisions and count phantom changes.
@@ -62,6 +64,38 @@ struct DeltaArgs {
 }
 
 #[derive(Args)]
+struct ReportArgs {
+    before: String,
+    after: String,
+    #[arg(long, default_value = ".")]
+    root: PathBuf,
+    /// Which fan-in to weight by.
+    #[arg(long, value_enum, default_value_t = Basis::Raw)]
+    basis: Basis,
+    /// Percentile at or above which a change is surfaced.
+    #[arg(long, default_value_t = beholder::risk::DEFAULT_THRESHOLD)]
+    threshold: f64,
+    /// Emit the report structure instead of a rendering.
+    #[arg(long)]
+    json: bool,
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum Basis {
+    Raw,
+    Damped,
+}
+
+impl From<Basis> for beholder::risk::FanInBasis {
+    fn from(basis: Basis) -> Self {
+        match basis {
+            Basis::Raw => Self::Raw,
+            Basis::Damped => Self::Damped,
+        }
+    }
+}
+
+#[derive(Args)]
 struct StoreArgs {
     #[arg(long, default_value = ".")]
     root: PathBuf,
@@ -86,6 +120,7 @@ fn main() -> Result<()> {
     match Cli::parse().command {
         Command::Index(args) => index(args),
         Command::Delta(args) => run_delta(args),
+        Command::Report(args) => report(args),
         Command::Store(args) => store(args),
         Command::AuditIdentity(args) => audit(args),
     }
@@ -217,6 +252,31 @@ fn run_delta(args: DeltaArgs) -> Result<()> {
     for change in &delta.changes {
         serde_json::to_writer(&mut out, change)?;
         out.write_all(b"\n")?;
+    }
+
+    Ok(())
+}
+
+fn report(args: ReportArgs) -> Result<()> {
+    let (repo, config) = open(&args.root)?;
+
+    let before = delta::analyze_revision(&repo, &args.before, &config, None)?;
+    let after = delta::analyze_revision(&repo, &args.after, &config, None)?;
+    let changed = delta::compare(&before, &after);
+
+    let report = beholder::risk::rank(
+        &args.before,
+        &args.after,
+        &changed,
+        &after,
+        args.basis.into(),
+        args.threshold,
+    );
+
+    if args.json {
+        println!("{}", serde_json::to_string_pretty(&report)?);
+    } else {
+        print!("{}", beholder::risk::render(&report));
     }
 
     Ok(())

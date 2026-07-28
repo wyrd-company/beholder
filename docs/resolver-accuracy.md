@@ -94,14 +94,18 @@ not say whether the *number* ranking consumes is right, because errors can
 cancel or concentrate. Three bases were measured against oracle fan-in over
 every beholder symbol.
 
+Top-k overlap is a range, because fan-in is heavily tied and which symbols
+occupy a top-k list is often undetermined. The lower bound counts only symbols
+that must be in any top k; the upper bound counts every symbol that could be.
+
 | Repository | Basis | Spearman | Top-10 | Top-25 | Mean abs. error | Mean rel. error |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `tagver` | raw | **0.954** | 0.90 | 0.92 | 0.39 | 0.16 |
-| `tagver` | high confidence only | 0.548 | 0.50 | 0.48 | 1.59 | 0.74 |
-| `tagver` | high + capped low | 0.951 | 0.60 | 0.92 | 0.80 | 0.23 |
-| `intentional` | raw | 0.757 | 0.50 | 0.76 | 1.32 | 0.37 |
-| `intentional` | high confidence only | 0.405 | 0.70 | 0.44 | 2.24 | 0.88 |
-| `intentional` | high + capped low | **0.763** | 0.70 | 0.44 | **1.18** | **0.26** |
+| `tagver` | raw | **0.954** | 0.70–0.90 | 0.84–1.00 | 0.39 | 0.16 |
+| `tagver` | high confidence only | 0.548 | 0.50–0.50 | 0.40–1.00 | 1.59 | 0.74 |
+| `tagver` | high + capped low | 0.951 | 0.50–0.60 | 0.84–1.00 | 0.80 | 0.23 |
+| `intentional` | raw | 0.757 | 0.50–0.50 | 0.72–0.76 | 1.32 | 0.37 |
+| `intentional` | high confidence only | 0.405 | 0.60–0.70 | 0.40–0.44 | 2.24 | 0.88 |
+| `intentional` | high + capped low | **0.763** | 0.60–0.70 | 0.40–0.44 | **1.18** | **0.26** |
 
 "High confidence" means the source states where the reference points: an
 explicit import, a path qualifier, or `Self`. "Capped low" adds low-confidence
@@ -191,10 +195,17 @@ falls from 0.954 to 0.548 and from 0.757 to 0.405. Filtering buys precision on
 individual edges at the cost of the ordering, which is the thing ranking needs.
 
 **What the evidence supports instead.** Keep every edge and damp the
-low-confidence contribution. A cap of five per target preserves rank correlation
-(0.951 and 0.763) while cutting mean relative error and roughly halving the
-concentration of overstatement. The exact damping function is a step 5 decision;
-this round measured it and shipped only the inputs.
+low-confidence contribution. Capping at five per target preserved rank
+correlation (0.951 and 0.763) while cutting mean relative error and roughly
+halving the concentration of overstatement.
+
+The shipped damping is `high + sqrt(low)` rather than that cap. A cap makes two
+symbols either side of it indistinguishable and moves the ordering
+discontinuously as code changes; a square root keeps every low-confidence
+reference contributing while stopping a hundred of them from dominating. Read
+retroactively over fourteen merged changes it removes exactly the promotions
+this measurement predicts are wrong — see `FanInBasis` and the gate 5 judgment
+recorded on `crate::risk`.
 
 **Consequence.** `fan_in_high_confidence` is a ranking input, not a better
 fan-in. Presenting it as the graph's answer to "what depends on this" would
