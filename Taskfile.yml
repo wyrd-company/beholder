@@ -32,6 +32,21 @@ tasks:
     cmds:
       - cargo clippy --workspace --all-targets -- -D warnings
 
+  release:check:
+    desc: Everything the release does that can be proved without publishing
+    summary: |
+      Runs the version agreement check, the crates.io and npm dry runs, and the
+      launcher's own tests. Not part of ci: it needs the network, and it says
+      nothing about a working tree that is not a release.
+
+      beholder-cli cannot be dry-run until beholder exists on the index, so on a
+      first release only the library is checkable here.
+    cmds:
+      - python3 scripts/release/verify-versions.py
+      - cargo publish -p beholder --locked --dry-run
+      - npm test --prefix npm
+      - npm pack ./npm --dry-run --ignore-scripts --userconfig=/dev/null
+
   lint:action:
     desc: Lint the action definition and the shell it runs
     cmds:

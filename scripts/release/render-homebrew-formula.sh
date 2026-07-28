@@ -26,8 +26,8 @@ cat > "$output" <<FORMULA
 class Beholder < Formula
   desc "Structural code index: symbols, complexity, and change-scoped risk"
   homepage "https://github.com/$repository"
-  license "MIT"
   version "$version"
+  license "MIT"
 
   on_macos do
     on_arm do
