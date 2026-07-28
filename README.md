@@ -11,7 +11,9 @@ Beholder is a structural index of a codebase that answers two questions: what is
 
 ## Languages
 
-Rust, Go, TypeScript, C#, Python, Dart.
+Tier 1 covers Rust, Go and TypeScript. C#, Python and Dart are the next targets, and reaching them is a directory of query files and a table entry each, not core work — that claim is the point of the design and `docs/adding-a-language.md` is where it is cashed out.
+
+Everything else is tier 0, which needs no grammar and applies to every file that exists.
 
 Language support is data, not code. Each language is a set of tree-sitter queries plus a metadata table: which node kinds are symbols, which node kinds increment complexity and which nest, and how imports and module declarations are written. Adding a language is a directory of query files and a table entry. No language has a code path of its own.
 
