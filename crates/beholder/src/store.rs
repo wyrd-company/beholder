@@ -340,11 +340,12 @@ impl<'r> Store<'r> {
     /// what arrived: same source commits, same trees, new index parents. Nothing
     /// anyone else wrote is rewritten or dropped.
     fn rebuild_onto(&self, mine: Option<Oid>, theirs: Option<Oid>) -> Result<()> {
-        let theirs_chain: Vec<Oid> = self.chain(theirs)?;
+        let shared: std::collections::HashSet<Oid> =
+            self.index_ancestry(theirs)?.into_iter().collect();
         let mut local_only = Vec::new();
 
-        for id in self.chain(mine)? {
-            if theirs_chain.contains(&id) {
+        for id in self.index_ancestry(mine)? {
+            if shared.contains(&id) {
                 break;
             }
             local_only.push(id);
@@ -378,15 +379,19 @@ impl<'r> Store<'r> {
         Ok(())
     }
 
-    /// Index commit ids from a tip, newest first, following parent 1.
-    fn chain(&self, from: Option<Oid>) -> Result<Vec<Oid>> {
+    /// Every index commit reachable from a tip, newest first, following parent 1.
+    ///
+    /// Deliberately unbounded, unlike [`Store::history`]. Cache lookup may stop
+    /// early because stopping early only costs a recomputation. Reconciliation
+    /// may not: a cutoff either orphans the commits beyond it, or fails to
+    /// recognize commits both sides already share and replays them as if they
+    /// were local. Both silently corrupt the history the ref is supposed to
+    /// carry, so this walks to the root.
+    fn index_ancestry(&self, from: Option<Oid>) -> Result<Vec<Oid>> {
         let mut out = Vec::new();
         let mut current = from;
 
         while let Some(id) = current {
-            if out.len() >= DEFAULT_CACHE_DEPTH {
-                break;
-            }
             out.push(id);
             current = self.repo.find_commit(id)?.parent_id(1).ok();
         }

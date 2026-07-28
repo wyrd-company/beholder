@@ -539,17 +539,7 @@ fn a_second_pusher_rebuilds_instead_of_overwriting() {
     seed.repo.remote("origin", &origin_url).unwrap();
     let first_source = seed.commit("src/first.rs", "fn first() {}\n");
     let second_source = seed.commit("src/second.rs", "fn second() {}\n");
-    seed.repo
-        .find_remote("origin")
-        .unwrap()
-        .push(&["refs/heads/master:refs/heads/master"], None)
-        .or_else(|_| {
-            seed.repo
-                .find_remote("origin")
-                .unwrap()
-                .push(&["refs/heads/main:refs/heads/main"], None)
-        })
-        .unwrap();
+    push_default_branch(&seed.repo);
 
     let clone_of = |name: &str| {
         let dir = tempfile::tempdir().unwrap();
@@ -604,6 +594,120 @@ fn a_second_pusher_rebuilds_instead_of_overwriting() {
         .map(|e| e.source_commit)
         .collect();
     assert_eq!(sources, vec![second_source, first_source]);
+}
+
+#[test]
+fn reconciliation_walks_past_the_cache_depth() {
+    // Cache lookup is bounded at 64 index commits because stopping early only
+    // costs a recomputation. Reconciliation must not be: a cutoff either
+    // orphans the local commits beyond it, or fails to recognize the commits
+    // both sides share and replays them as duplicates. This diverges deeper
+    // than that bound in both directions at once.
+    const SHARED: usize = 8;
+    const LOCAL_ONLY: usize = 70;
+
+    let origin_dir = tempfile::tempdir().unwrap();
+    let origin_path = origin_dir.path().join("origin.git");
+    Repository::init_bare(&origin_path).unwrap();
+    let origin_url = origin_path.to_str().unwrap().to_owned();
+
+    let seed = Fixture::new();
+    seed.repo.remote("origin", &origin_url).unwrap();
+    let source = seed.commit("src/lib.rs", "fn draw() {}\n");
+    // A distinct source for A's late write. Index commits are a function of
+    // their content and parents, so two writes of the same analysis onto the
+    // same parent would converge to one commit and the divergence would be a
+    // commit shallower than intended.
+    let late_source = seed.commit("src/lib.rs", "fn draw() {}\nfn erase() {}\n");
+    push_default_branch(&seed.repo);
+
+    // A shared prefix, deep enough that a bounded walk from either tip would
+    // stop before reaching it.
+    let a_dir = tempfile::tempdir().unwrap();
+    let a = Repository::clone(&origin_url, a_dir.path().join("a")).unwrap();
+    let analysis = analyze_at(&a, source);
+
+    for _ in 0..SHARED {
+        Store::open(&a).write(source, &analysis).unwrap();
+    }
+    Store::open(&a).push("origin").unwrap();
+
+    let b_dir = tempfile::tempdir().unwrap();
+    let b = Repository::clone(&origin_url, b_dir.path().join("b")).unwrap();
+    Store::open(&b).fetch("origin").unwrap();
+
+    let shared_tip = Store::open(&b).tip().unwrap().expect("the shared prefix");
+    let shared_ids: Vec<Oid> = Store::open(&b)
+        .history(1000)
+        .unwrap()
+        .into_iter()
+        .map(|e| e.id)
+        .collect();
+    assert_eq!(shared_ids.len(), SHARED);
+
+    // B goes long without pushing.
+    for _ in 0..LOCAL_ONLY {
+        Store::open(&b).write(source, &analysis).unwrap();
+    }
+    let b_local: Vec<_> = Store::open(&b)
+        .history(1000)
+        .unwrap()
+        .into_iter()
+        .map(|e| e.id)
+        .take(LOCAL_ONLY)
+        .collect();
+
+    // A lands one more first, so B's push is rejected.
+    let a_tip = Store::open(&a)
+        .write(late_source, &analyze_at(&a, late_source))
+        .unwrap();
+    Store::open(&a).push("origin").unwrap();
+
+    Store::open(&b).push("origin").unwrap();
+
+    // Everything survives exactly once: the shared prefix, A's commit, and all
+    // seventy of B's, rebuilt on top.
+    let origin = Repository::open(&origin_path).unwrap();
+    let pushed = Store::open(&origin).history(1000).unwrap();
+
+    assert_eq!(
+        pushed.len(),
+        SHARED + 1 + LOCAL_ONLY,
+        "expected the shared prefix plus both sides, got {}",
+        pushed.len()
+    );
+
+    let ids: Vec<Oid> = pushed.iter().map(|e| e.id).collect();
+    let unique: std::collections::HashSet<Oid> = ids.iter().copied().collect();
+    assert_eq!(unique.len(), ids.len(), "history replayed a commit");
+
+    assert!(ids.contains(&a_tip), "A's index was dropped");
+    assert!(ids.contains(&shared_tip), "the shared prefix was replayed");
+    assert_eq!(
+        &ids[ids.len() - SHARED..],
+        &shared_ids[..],
+        "the shared prefix is still the same commits in the same order"
+    );
+
+    // None of B's local commits were orphaned: each was rebuilt, so none of the
+    // originals is on the ref, and the count makes up the difference.
+    for id in &b_local {
+        assert!(
+            !ids.contains(id),
+            "a local commit was pushed unreconciled instead of rebuilt"
+        );
+    }
+}
+
+/// Push whatever the default branch is called, so the fixture works regardless
+/// of the local `init.defaultBranch`.
+fn push_default_branch(repo: &Repository) {
+    let head = repo.head().unwrap();
+    let name = head.name().unwrap().to_owned();
+    repo.find_remote("origin")
+        .unwrap()
+        .push(&[format!("{name}:{name}")], None)
+        .unwrap();
 }
 
 // ---------------------------------------------------------------------------
