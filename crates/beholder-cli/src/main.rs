@@ -76,9 +76,19 @@ struct ReportArgs {
     /// Percentile at or above which a change is surfaced.
     #[arg(long, default_value_t = beholder::risk::DEFAULT_THRESHOLD)]
     threshold: f64,
-    /// Emit the report structure instead of a rendering.
-    #[arg(long)]
-    json: bool,
+    /// How to render the report.
+    #[arg(long, value_enum, default_value_t = Format::Text)]
+    format: Format,
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum Format {
+    /// For a person to read.
+    Text,
+    /// The surface-agnostic report structure.
+    Json,
+    /// SARIF 2.1.0, for inline annotations on a review surface.
+    Sarif,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -275,10 +285,13 @@ fn report(args: ReportArgs) -> Result<()> {
         args.threshold,
     );
 
-    if args.json {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-    } else {
-        print!("{}", beholder::risk::render(&report));
+    match args.format {
+        Format::Text => print!("{}", beholder::risk::render(&report)),
+        Format::Json => println!("{}", serde_json::to_string_pretty(&report)?),
+        Format::Sarif => println!(
+            "{}",
+            serde_json::to_string_pretty(&beholder::sarif::render(&report))?
+        ),
     }
 
     Ok(())

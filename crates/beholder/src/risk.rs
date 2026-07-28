@@ -151,16 +151,29 @@ pub struct Report {
 impl Report {
     /// Changes a surface should actually show.
     ///
-    /// A percentile alone cannot decide this. Percentiles are relative to the
-    /// other changes in the same diff, so in a change where nothing got more
-    /// complex every symbol still ranks somewhere — and with scores tied at
-    /// zero, everything ranks at the top. A score of zero means the change
-    /// carries no complexity movement at all, and no amount of relative
-    /// ranking makes that worth a reviewer's attention.
+    /// A percentile alone cannot decide this, for two reasons.
+    ///
+    /// A score of zero means no complexity moved, and no amount of relative
+    /// ranking makes that worth a reviewer's attention. Those never surface.
+    ///
+    /// And a percentile is relative to the other changes in the same diff, so
+    /// it cannot single anything out of a small one. Midrank puts a lone change
+    /// at the 50th percentile and the top of a pair at the 75th — under any
+    /// sane threshold, a two-function change would report nothing, which is
+    /// precisely the change a reviewer can most easily be helped with. The
+    /// highest-ranked few therefore always surface if they moved complexity at
+    /// all, and the threshold governs the tail.
     pub fn surfaced(&self) -> impl Iterator<Item = &RankedChange> {
         self.changes
             .iter()
-            .filter(|change| change.score > 0.0 && change.percentile >= self.threshold_percentile)
+            .take(ALWAYS_SURFACE)
+            .chain(
+                self.changes
+                    .iter()
+                    .skip(ALWAYS_SURFACE)
+                    .filter(|change| change.percentile >= self.threshold_percentile),
+            )
+            .filter(|change| change.score > 0.0)
     }
 
     /// Is there anything worth saying? Silence is a valid report.
@@ -171,6 +184,12 @@ impl Report {
 
 /// Default percentile at or above which a change is worth surfacing.
 pub const DEFAULT_THRESHOLD: f64 = 80.0;
+
+/// How many top-ranked changes surface regardless of percentile.
+///
+/// Small enough that a large diff is still governed by the threshold, large
+/// enough that a focused change is not silent.
+const ALWAYS_SURFACE: usize = 3;
 
 /// Rank a delta.
 ///
@@ -582,6 +601,25 @@ mod tests {
 
         assert_eq!(report.changes.len(), 1, "the edit is still reported");
         assert!(report.is_quiet(), "but it does not surface");
+    }
+
+    #[test]
+    fn a_small_change_still_surfaces_its_riskiest_symbol() {
+        // Midrank puts a lone change at the 50th percentile, so a threshold
+        // alone would silence exactly the change a reviewer is most able to act
+        // on.
+        let report = report(
+            &[("src/a.rs", "fn a() {}\n")],
+            &[(
+                "src/a.rs",
+                "fn a(x: bool) {\n    if x {\n        if x {}\n    }\n}\n",
+            )],
+            FanInBasis::Damped,
+        );
+
+        assert_eq!(report.changes.len(), 1);
+        assert!(report.changes[0].percentile < DEFAULT_THRESHOLD);
+        assert_eq!(report.surfaced().count(), 1, "but it still surfaces");
     }
 
     #[test]
