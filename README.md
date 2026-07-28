@@ -108,6 +108,49 @@ Ref updates are compare-and-swap against the tip the commit was built on. A writ
 
 Pushes are never forced, for the same reason. A force push would make the compare-and-swap meaningless the moment two machines were involved, because the loser would never learn it had lost. A rejected push is the signal to fetch the winning tip and rebuild on it. No existing result is rewritten, and no history is discarded.
 
+## Review surfaces
+
+A surface is a rendering of one report, never a second opinion about it. Ranking decides what is worth saying; a surface decides where it appears. Analysis runs once, and every rendering comes from the report it produced.
+
+```sh
+beholder report main HEAD --format json > report.json
+beholder render --from report.json --format sarif    # inline annotations
+beholder render --from report.json --format markdown # the pull request comment
+beholder gitpr                                       # the same report, locally
+```
+
+### The GitHub Action
+
+```yaml
+permissions:
+  contents: write # publishing refs/beholder/index back to the remote
+  pull-requests: write # the one sticky comment
+  security-events: write # SARIF annotations
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the merge base has to be reachable
+      - id: beholder
+        uses: wyrd-company/beholder@main
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.beholder.outputs.sarif }}
+```
+
+The action compares the merge base with the pull request head, so the report describes what the pull request did rather than what landed on the base branch since.
+
+**One comment.** The body carries a marker, and the marker is the only state the action keeps. Every push finds that comment and rewrites it, so a pull request that is pushed to ten times still has one beholder comment. The body is a pure function of the report, so a push that changes nothing structural rewrites the comment with identical text.
+
+**Silence.** When no changed symbol crosses the threshold there is nothing to say, and the action says nothing: no comment is created. A comment left by an earlier push is the one exception — it is making a claim about code that has since changed, so it is corrected in place. That is still one comment, and still not a new one.
+
+**No gating.** Nothing beholder emits is at SARIF error level and the action does not fail a build. What surfaces is a ranking decision, and what to do about it is the reviewer's.
+
+**Cold start.** The action fetches `refs/beholder/*` before it analyzes anything and publishes it afterwards, through ordinary `git fetch` and `git push`. A runner is just another clone: it reuses whatever anyone else has already indexed and contributes what it had to generate. A repository nobody has indexed yet is the ordinary first run, not an error. The push is never forced — a rejection means another writer got there first, so the action fetches the tip that beat it and appends what is still missing to that tip.
+
 ## Core features
 
 1. **Symbol-level index.** Every file, function, and type with path, kind, name, and line range. Symbol identity is stable across line shifts, so a reformat is not a change. Anonymous constructs such as closures are not symbols — nothing about them survives a later revision to match on — and their complexity belongs to the symbol that contains them. Everything else is a query over this.
