@@ -196,21 +196,8 @@ pub fn rank(
 
     assign_percentiles(&mut changes);
 
-    // Most risky first. Percentile is the only key that crosses languages.
-    //
-    // Language sorts before score deliberately. Raw scores from two languages
-    // measure different things, so allowing one to outrank the other would
-    // smuggle exactly the comparison percentiles exist to prevent. Grouping by
-    // language first means score is only ever consulted between two changes in
-    // the same language, and the id makes the rest deterministic.
-    changes.sort_by(|a, b| {
-        b.percentile
-            .partial_cmp(&a.percentile)
-            .expect("no NaN")
-            .then_with(|| a.language.cmp(&b.language))
-            .then_with(|| b.score.partial_cmp(&a.score).expect("no NaN"))
-            .then_with(|| a.id.cmp(&b.id))
-    });
+    // Riskiest first; see rank_order.
+    changes.sort_by(rank_order);
 
     Report {
         before: before_revision.to_owned(),
@@ -220,6 +207,23 @@ pub fn rank(
         threshold_percentile,
         accuracy: after.phase2.graph.accuracy.clone(),
     }
+}
+
+/// Riskiest first.
+///
+/// Percentile is the only key that crosses languages. Language sorts before
+/// score deliberately: raw scores from two languages measure different things,
+/// so letting one outrank the other would smuggle in exactly the comparison
+/// percentiles exist to prevent. Grouping by language first means score is only
+/// ever consulted between two changes in the same language, and the id makes
+/// the rest deterministic.
+pub(crate) fn rank_order(a: &RankedChange, b: &RankedChange) -> std::cmp::Ordering {
+    b.percentile
+        .partial_cmp(&a.percentile)
+        .expect("no NaN")
+        .then_with(|| a.language.cmp(&b.language))
+        .then_with(|| b.score.partial_cmp(&a.score).expect("no NaN"))
+        .then_with(|| a.id.cmp(&b.id))
 }
 
 fn score(
@@ -654,19 +658,13 @@ mod tests {
         // Percentile is the only quantity comparable across languages. Two
         // changes at equal percentile in different languages must order the
         // same way whatever their raw scores are.
+        // The production comparator, not a copy of it.
         let ranked = |score_a: f64, score_b: f64| {
             let mut changes = vec![
                 sample("rust:a.rs:function:a", "rust", 50.0, score_a),
                 sample("go:b.go:function:b", "go", 50.0, score_b),
             ];
-            changes.sort_by(|a, b| {
-                b.percentile
-                    .partial_cmp(&a.percentile)
-                    .expect("no NaN")
-                    .then_with(|| a.language.cmp(&b.language))
-                    .then_with(|| b.score.partial_cmp(&a.score).expect("no NaN"))
-                    .then_with(|| a.id.cmp(&b.id))
-            });
+            changes.sort_by(rank_order);
             changes.into_iter().map(|c| c.id).collect::<Vec<_>>()
         };
 
