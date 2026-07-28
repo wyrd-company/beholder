@@ -77,6 +77,8 @@ git push origin +refs/beholder/*:refs/beholder/*
 git fetch origin +refs/beholder/*:refs/beholder/*
 ```
 
+Those two commands are the whole transport, and beholder never replaces them. Moving the ref is git's job, over whatever protocol the repository already uses; beholder only reads and writes it locally.
+
 A fresh clone fetches the ref, resolves the source commit an index refers to, and reuses the stored phase output for every file whose content is unchanged.
 
 ### The index commit

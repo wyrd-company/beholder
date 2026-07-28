@@ -167,15 +167,6 @@ struct StoreArgs {
     /// How many index commits to list.
     #[arg(long, default_value_t = 20)]
     limit: usize,
-    /// Fetch the ref from this remote before reporting on it.
-    ///
-    /// A missing ref on the remote is not an error: a repository nobody has
-    /// indexed yet is the ordinary cold start.
-    #[arg(long, value_name = "REMOTE")]
-    fetch: Option<String>,
-    /// Publish the ref to this remote, never overwriting another writer.
-    #[arg(long, value_name = "REMOTE")]
-    push: Option<String>,
 }
 
 #[derive(Args)]
@@ -514,34 +505,7 @@ fn only_open_snapshot(root: &Path) -> Result<String> {
 
 fn store(args: StoreArgs) -> Result<()> {
     let (repo, _) = open(&args.root)?;
-    let mut store = Store::open(&repo);
-
-    if let Some(remote) = &args.fetch {
-        // A remote nobody has indexed yet matches the wildcard refspec with
-        // nothing and succeeds, which is the cold start. Anything that does
-        // fail here — an unreachable remote, refused credentials — is a fault,
-        // and reporting it as an empty index would hide it forever behind work
-        // that merely looks slow.
-        store
-            .fetch(remote)
-            .with_context(|| format!("fetching the stored index from {remote}"))?;
-
-        match store.tip()? {
-            Some(_) => println!("fetched {REFSPEC} from {remote}"),
-            None => println!("cold start: {remote} has no stored index yet"),
-        }
-    }
-
-    if let Some(remote) = &args.push {
-        store = store.with_remote(remote.clone());
-        match store.tip()? {
-            None => println!("nothing to push to {remote}: no index yet"),
-            Some(_) => {
-                store.push(remote)?;
-                println!("pushed {} to {remote}", store.refname());
-            }
-        }
-    }
+    let store = Store::open(&repo);
 
     println!("ref:     {}", store.refname());
     println!("refspec: {REFSPEC}");

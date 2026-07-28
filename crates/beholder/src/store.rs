@@ -282,6 +282,13 @@ impl<'r> Store<'r> {
     }
 
     /// Fetch the ref from a remote using the portable refspec.
+    ///
+    /// This travels over libgit2's built-in transports, which are whatever the
+    /// linked build supports — the bundled libgit2 beholder ships carries no
+    /// ssh or https transport, so this reaches local and file remotes only.
+    /// That is why nothing in beholder's own surfaces depends on it: the ref is
+    /// moved by ordinary `git fetch` and `git push`, which speak every protocol
+    /// the user's git already speaks. See `scripts/fetch-index.sh`.
     pub fn fetch(&self, remote: &str) -> Result<()> {
         self.repo
             .find_remote(remote)
