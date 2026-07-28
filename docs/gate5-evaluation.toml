@@ -58,6 +58,8 @@ corpus is small, mostly 0 to 8, so complexity delta dominates the ordering and
 the weighting only earns its keep in the tail - which is precisely where the
 resolver's collisions land, and why the basis still matters.
 """
+reports_where_bases_agree_on_top_five = 8
+damped_top_five_entries = 43
 
 [[change]]
 repository = "intentional"

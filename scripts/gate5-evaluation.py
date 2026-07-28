@@ -119,9 +119,17 @@ def emit(previous, changes) -> str:
             e["trivial_promoted_by_unstated_fan_in"]
             for c in changes for e in c[f"{basis}_top"]
         )
+    # Where the two bases surface the same top five, the choice between them
+    # does not matter; the claim that damping earns its keep rests on the rest,
+    # so the count belongs here rather than in prose no check can protect.
+    summary["reports_where_bases_agree_on_top_five"] = sum(
+        [e["symbol"] for e in c["raw_top"]] == [e["symbol"] for e in c["damped_top"]]
+        for c in changes
+    )
     summary["test_file_entries_in_top_five_damped"] = sum(
         e["is_test_file"] for c in changes for e in c["damped_top"]
     )
+    summary["damped_top_five_entries"] = sum(len(c["damped_top"]) for c in changes)
     summary["trait_method_entries_in_top_five_damped"] = sum(
         e["is_trait_method"] for c in changes for e in c["damped_top"]
     )
