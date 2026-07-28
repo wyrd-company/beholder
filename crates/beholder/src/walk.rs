@@ -49,7 +49,7 @@ pub fn walk_worktree(root: &Path, config: &Config) -> Result<Vec<SourceFile>> {
         };
         let path = to_repo_relative(relative);
 
-        if path == ".gitignore" || path.starts_with(".git/") || !config.accepts(&path) {
+        if is_infrastructure(&path) || !config.accepts(&path) {
             continue;
         }
 
@@ -126,6 +126,17 @@ pub fn read_revision(
     Ok(files)
 }
 
+/// Files that describe the repository or that beholder itself produced.
+///
+/// Indexing beholder's own output would make a second run over an unchanged
+/// working tree report new files, which is confusing and useless.
+fn is_infrastructure(path: &str) -> bool {
+    path == ".gitignore"
+        || path.starts_with(".git/")
+        || path == "symbols.jsonl"
+        || path == "files.jsonl"
+}
+
 /// Deterministic order: byte order of the repo-relative path.
 fn sort_stably(files: &mut [SourceFile]) {
     files.sort_by(|a, b| a.path.cmp(&b.path));
@@ -169,6 +180,25 @@ mod tests {
         .unwrap();
 
         let paths: Vec<_> = walk_worktree(root, &config)
+            .unwrap()
+            .into_iter()
+            .map(|f| f.path)
+            .collect();
+
+        assert_eq!(paths, vec!["src/main.rs".to_string()]);
+    }
+
+    #[test]
+    fn beholder_does_not_index_its_own_output() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        git2::Repository::init(root).unwrap();
+
+        write(root, "src/main.rs", "fn main() {}\n");
+        write(root, "symbols.jsonl", "{}\n");
+        write(root, "files.jsonl", "{}\n");
+
+        let paths: Vec<_> = walk_worktree(root, &Config::default())
             .unwrap()
             .into_iter()
             .map(|f| f.path)
