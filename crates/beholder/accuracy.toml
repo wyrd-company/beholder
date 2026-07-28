@@ -1,0 +1,7 @@
+# Measured accuracy of the heuristic resolver, per language.
+#
+# Produced by the `beholder-oracle` crate, which compares beholder's reference
+# graph against an externally generated resolved index. Methodology and the
+# error-class breakdown are in `docs/resolver-accuracy.md`.
+#
+# A language absent from this table reports no error bar rather than a guess.

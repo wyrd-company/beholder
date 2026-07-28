@@ -64,6 +64,9 @@ pub struct Phase2 {
     /// Symbol id to percentile rank of its cognitive complexity within its own
     /// language, 0.0 to 100.0. Never compared across languages.
     pub complexity_percentile: BTreeMap<String, f32>,
+    /// Resolved references, degrees, cohesion components and the error bar.
+    #[serde(default)]
+    pub graph: crate::graph::Graph,
 }
 
 /// A complete analysis of one file set.
@@ -136,7 +139,7 @@ pub fn run_with_cache(
     }
 
     analyses.sort_by(|a, b| a.path.cmp(&b.path));
-    let phase2 = phase2(&analyses);
+    let phase2 = phase2(&analyses, &crate::resolve::Heuristic);
 
     (
         Analysis {
@@ -148,8 +151,9 @@ pub fn run_with_cache(
     )
 }
 
-/// Percentile rank of every symbol's complexity within its own language.
-fn phase2(files: &[FileAnalysis]) -> Phase2 {
+/// Percentile rank of every symbol's complexity within its own language, plus
+/// the resolved reference graph.
+fn phase2(files: &[FileAnalysis], resolver: &dyn crate::resolve::Resolver) -> Phase2 {
     let mut by_language: BTreeMap<&str, Vec<u32>> = BTreeMap::new();
 
     for symbol in files.iter().flat_map(|f| f.symbols.iter()) {
@@ -174,6 +178,7 @@ fn phase2(files: &[FileAnalysis]) -> Phase2 {
 
     Phase2 {
         complexity_percentile,
+        graph: crate::graph::build(files, resolver),
     }
 }
 

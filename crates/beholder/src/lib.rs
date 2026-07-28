@@ -13,10 +13,12 @@
 pub mod analysis;
 pub mod config;
 pub mod delta;
+pub mod graph;
 pub mod hash;
 pub mod jsonl;
 pub mod lang;
 pub mod phase1;
+pub mod resolve;
 pub mod store;
 pub mod symbol;
 pub mod tier0;

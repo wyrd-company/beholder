@@ -110,6 +110,7 @@ fn is_infrastructure(path: &str) -> bool {
         || path.starts_with(".git/")
         || path == "symbols.jsonl"
         || path == "files.jsonl"
+        || path == "edges.jsonl"
 }
 
 /// Walk a working tree, honoring `.gitignore` and the configured ignores.

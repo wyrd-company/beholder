@@ -30,6 +30,26 @@ pub struct SymbolRecord {
     pub complexity_percentile: f32,
     pub tier: u8,
     pub content_fingerprint: String,
+    /// Distinct symbols that reference this one.
+    pub fan_in: usize,
+    /// Distinct symbols this one references.
+    pub fan_out: usize,
+    /// Which intra-file cohesion component this symbol falls in.
+    pub component: usize,
+}
+
+/// One line of `edges.jsonl`.
+///
+/// Every edge carries the resolver that produced it and that resolver's measured
+/// accuracy, so a consumer never has to go looking for the error bar.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EdgeRecord {
+    pub from: String,
+    pub to: String,
+    pub kind: String,
+    pub resolver: String,
+    pub precision: Option<f32>,
+    pub recall: Option<f32>,
 }
 
 /// One line of `files.jsonl`. Written for every file the walk visits, including
@@ -43,6 +63,8 @@ pub struct FileRecord {
     pub lines: usize,
     pub symbol_count: usize,
     pub content_hash: String,
+    /// Intra-file symbol references partitioned into connected components.
+    pub cohesion_components: usize,
 }
 
 /// Symbol records in output order: by path, then by position within the file.
@@ -68,6 +90,25 @@ pub fn symbol_records(analysis: &Analysis) -> Vec<SymbolRecord> {
                 .unwrap_or_default(),
             tier: s.tier,
             content_fingerprint: s.content_fingerprint.clone(),
+            fan_in: analysis
+                .phase2
+                .graph
+                .degree
+                .get(&s.id)
+                .map_or(0, |d| d.fan_in),
+            fan_out: analysis
+                .phase2
+                .graph
+                .degree
+                .get(&s.id)
+                .map_or(0, |d| d.fan_out),
+            component: analysis
+                .phase2
+                .graph
+                .component
+                .get(&s.id)
+                .copied()
+                .unwrap_or_default(),
         })
         .collect();
 
@@ -76,6 +117,39 @@ pub fn symbol_records(analysis: &Analysis) -> Vec<SymbolRecord> {
             .cmp(&b.path)
             .then(a.start_line.cmp(&b.start_line))
             .then(a.id.cmp(&b.id))
+    });
+
+    records
+}
+
+/// Edge records in output order: by source, then target, then kind.
+pub fn edge_records(analysis: &Analysis) -> Vec<EdgeRecord> {
+    let graph = &analysis.phase2.graph;
+    let language_of = |id: &str| id.split(':').next().unwrap_or_default().to_owned();
+
+    let mut records: Vec<EdgeRecord> = graph
+        .edges
+        .iter()
+        .map(|edge| {
+            let accuracy = graph.accuracy.get(&language_of(&edge.from));
+            EdgeRecord {
+                from: edge.from.clone(),
+                to: edge.to.clone(),
+                kind: edge.kind.clone(),
+                resolver: accuracy
+                    .map(|a| a.resolver.clone())
+                    .unwrap_or_else(|| crate::resolve::HEURISTIC.to_owned()),
+                precision: accuracy.and_then(|a| a.precision),
+                recall: accuracy.and_then(|a| a.recall),
+            }
+        })
+        .collect();
+
+    records.sort_by(|a, b| {
+        a.from
+            .cmp(&b.from)
+            .then(a.to.cmp(&b.to))
+            .then(a.kind.cmp(&b.kind))
     });
 
     records
@@ -94,6 +168,13 @@ pub fn file_records(analysis: &Analysis) -> Vec<FileRecord> {
             lines: f.lines,
             symbol_count: f.symbols.len(),
             content_hash: f.content_hash.clone(),
+            cohesion_components: analysis
+                .phase2
+                .graph
+                .components_per_file
+                .get(&f.path)
+                .copied()
+                .unwrap_or_default(),
         })
         .collect();
 

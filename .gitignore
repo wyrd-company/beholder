@@ -23,3 +23,4 @@ target
 # Beholder output
 /symbols.jsonl
 /files.jsonl
+/edges.jsonl

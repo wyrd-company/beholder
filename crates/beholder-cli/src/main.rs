@@ -127,6 +127,10 @@ fn index(args: IndexArgs) -> Result<()> {
         &out_dir.join("files.jsonl"),
         &jsonl::file_records(&analysis),
     )?;
+    write_jsonl(
+        &out_dir.join("edges.jsonl"),
+        &jsonl::edge_records(&analysis),
+    )?;
 
     if args.store {
         let head = repo.head()?.peel_to_commit()?.id();
@@ -135,13 +139,31 @@ fn index(args: IndexArgs) -> Result<()> {
         println!("stored {index_commit} on {DEFAULT_REF}");
     }
 
+    let graph = &analysis.phase2.graph;
     println!(
-        "{} files, {} symbols ({} reused, {} computed)",
+        "{} files, {} symbols, {} edges ({} reused, {} computed)",
         analysis.files.len(),
         analysis.symbols().count(),
+        graph.edges.len(),
         stats.reused,
         stats.computed
     );
+    println!(
+        "resolved {} of {} occurrences",
+        graph.resolution.resolved, graph.resolution.occurrences
+    );
+    for (language, accuracy) in &graph.accuracy {
+        match (accuracy.precision, accuracy.recall) {
+            (Some(precision), Some(recall)) => println!(
+                "{language}: {} resolver, precision {precision:.2} recall {recall:.2}",
+                accuracy.resolver
+            ),
+            _ => println!(
+                "{language}: {} resolver, accuracy not measured",
+                accuracy.resolver
+            ),
+        }
+    }
 
     Ok(())
 }
