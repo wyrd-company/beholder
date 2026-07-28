@@ -1,0 +1,24 @@
+[package]
+name = "beholder-oracle"
+description = "Measures beholder's heuristic reference graph against an external resolved index"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# Development instrumentation, not a product surface.
+publish = false
+
+[[bin]]
+name = "beholder-oracle"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+beholder.workspace = true
+clap = { version = "4", features = ["derive"] }
+git2.workspace = true
+scip = "0.9"
+protobuf = "3"
+serde.workspace = true
+serde_json.workspace = true

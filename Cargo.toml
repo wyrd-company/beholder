@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/beholder", "crates/beholder-cli"]
+members = ["crates/beholder", "crates/beholder-cli", "crates/beholder-oracle"]
 resolver = "2"
 
 [workspace.package]
