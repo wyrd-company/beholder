@@ -20,7 +20,8 @@
 ; is why method dispatch is the resolver's weakest case.
 ((call_expression
    function: (field_expression field: (field_identifier) @name)) @reference
- (#set! kind "method"))
+ (#set! kind "method")
+ (#set! target "scoped"))
 
 ; --- types ---
 
@@ -34,3 +35,25 @@
 
 ((scoped_identifier path: (_) @qualifier name: (identifier) @name) @reference
  (#set! kind "path"))
+
+; --- the qualifier is itself a reference ---
+;
+; `Error::io(..)` mentions `Error` as well as `io`. Recording only the member
+; loses every reference to the type that owns it, which for an error enum is
+; most of its fan-in.
+
+((scoped_identifier path: (identifier) @name) @reference
+ (#set! kind "path"))
+
+((scoped_type_identifier path: (identifier) @name) @reference
+ (#set! kind "type"))
+
+; --- the enclosing type, referred to from inside its own impl ---
+;
+; `Self` names whatever the surrounding block implements. It resolves against
+; the referring symbol's own scope rather than against any symbol table.
+
+((type_identifier) @name @reference
+ (#set! kind "self_type")
+ (#set! require.name "Self")
+ (#set! target "enclosing_scope"))

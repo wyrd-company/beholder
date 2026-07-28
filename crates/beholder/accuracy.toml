@@ -5,3 +5,9 @@
 # error-class breakdown are in `docs/resolver-accuracy.md`.
 #
 # A language absent from this table reports no error bar rather than a guess.
+
+[rust]
+precision = 0.816
+recall = 0.766
+measured_against = "rust-analyzer scip 1.97.1"
+corpus = "wyrd-company/tagver, wyrd-company/intentional"

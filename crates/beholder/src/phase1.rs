@@ -54,6 +54,11 @@ pub struct Occurrence {
     pub qualifier: Option<String>,
     /// What syntactic position it appeared in, from the query.
     pub kind: String,
+    /// What shape of symbol this position can refer to, from the query.
+    /// `scoped` means the target must be declared inside something — a method
+    /// on a type, never a free function.
+    #[serde(default)]
+    pub target: Option<String>,
     /// 1-based.
     pub line: usize,
     /// Index into this file's symbols of the symbol it appeared inside.
@@ -300,10 +305,17 @@ fn collect_occurrences(
             continue;
         };
 
+        let mut variables = HashMap::new();
+        variables.insert("name".to_owned(), text.to_owned());
+        if !requirements_met(query, m.pattern_index, &variables) {
+            continue;
+        }
+
         out.push(Occurrence {
             name: text.to_owned(),
             qualifier: qualifier.filter(|q| !q.is_empty()),
             kind: kind.to_owned(),
+            target: property(query, m.pattern_index, "target").map(str::to_owned),
             line: node.start_position().row + 1,
             within: enclosing_symbol(node.start_byte(), symbols),
         });

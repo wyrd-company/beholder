@@ -246,6 +246,11 @@ impl<'a> SymbolIndex<'a> {
         occurrence: &Occurrence,
     ) -> Result<String, Unresolved> {
         let separator = separator_for(file);
+
+        if occurrence.target.as_deref() == Some("enclosing_scope") {
+            return self.enclosing_scope(file, occurrence, separator);
+        }
+
         let mut saw_candidate = false;
 
         // Strongest signal first. Each rule either names exactly one symbol or
@@ -257,6 +262,14 @@ impl<'a> SymbolIndex<'a> {
             self.by_glob_import(file, occurrence, separator),
             self.anywhere(occurrence),
         ] {
+            // A method call cannot land on a free function however close it
+            // sits. Without this, `value.apply()` resolves to whatever `apply`
+            // happens to share the file.
+            let candidates: Vec<&Symbol> = candidates
+                .into_iter()
+                .filter(|symbol| shape_matches(occurrence, symbol, separator))
+                .collect();
+
             match candidates.len() {
                 0 => continue,
                 1 => return Ok(candidates[0].id.clone()),
@@ -269,6 +282,43 @@ impl<'a> SymbolIndex<'a> {
         } else {
             Unresolved::NoCandidate
         })
+    }
+
+    /// Resolve a name that means "whatever encloses this", such as `Self`.
+    ///
+    /// The referring symbol already carries its own scope in its qualified
+    /// path, so the answer is there rather than in any symbol table.
+    fn enclosing_scope(
+        &self,
+        file: &'a FileAnalysis,
+        occurrence: &Occurrence,
+        separator: &str,
+    ) -> Result<String, Unresolved> {
+        let Some(referrer) = occurrence.within.and_then(|i| file.symbols.get(i)) else {
+            return Err(Unresolved::NoReferrer);
+        };
+
+        let scope = referrer
+            .qualified_path
+            .strip_suffix(last_segment(&referrer.qualified_path, separator))
+            .unwrap_or_default();
+
+        // The innermost scope word that names a symbol. `<Config as Default>`
+        // answers `Config`, not `Default`, because the impl is on `Config`.
+        let words: Vec<&str> = scope
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .filter(|word| !word.is_empty())
+            .collect();
+
+        for word in words {
+            if let Some(candidates) = self.by_name.get(word) {
+                if candidates.len() == 1 {
+                    return Ok(candidates[0].id.clone());
+                }
+            }
+        }
+
+        Err(Unresolved::NoCandidate)
     }
 
     /// The name was brought into scope by an import in this file.
@@ -356,6 +406,14 @@ impl<'a> SymbolIndex<'a> {
             .get(occurrence.name.as_str())
             .cloned()
             .unwrap_or_default()
+    }
+}
+
+/// Can this occurrence position refer to a symbol of this shape?
+fn shape_matches(occurrence: &Occurrence, symbol: &Symbol, separator: &str) -> bool {
+    match occurrence.target.as_deref() {
+        Some("scoped") => symbol.qualified_path.contains(separator),
+        _ => true,
     }
 }
 
@@ -472,6 +530,32 @@ mod tests {
             "{edges:#?}"
         );
         assert!(stats.unresolved.contains_key("ambiguous"));
+    }
+
+    #[test]
+    fn a_method_call_does_not_land_on_a_free_function() {
+        // `apply` exists twice: a free function in this file and a method on a
+        // type elsewhere. Only one of them can be called with a receiver.
+        let (edges, _) = resolve(&[
+            (
+                "src/main.rs",
+                "fn apply() {}\nfn run(w: Write) {\n    w.apply();\n}\n",
+            ),
+            (
+                "src/intent.rs",
+                "pub struct Write;\nimpl Write {\n    pub fn apply(&self) {}\n}\n",
+            ),
+        ]);
+
+        let from_run = targets(&edges, "function:run");
+        assert!(
+            from_run.contains(&"rust:src/intent.rs:function:Write::apply".to_string()),
+            "{from_run:?}"
+        );
+        assert!(
+            !from_run.contains(&"rust:src/main.rs:function:apply".to_string()),
+            "a method call landed on a free function: {from_run:?}"
+        );
     }
 
     #[test]

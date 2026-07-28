@@ -55,7 +55,7 @@ A function of the complete phase 1 output for every file in scope.
 Produces:
 
 - Resolved reference edges between symbols
-- Fan-in and fan-out per symbol
+- Fan-in and fan-out per symbol, kept as separate values
 - Cohesion components per file
 - Within-language percentile ranks
 - Risk ranking
@@ -126,7 +126,7 @@ Pushes are never forced, for the same reason. A force push would make the compar
 
 8. **Review surfaces.** GitHub Action and gitpr. One sticky comment edited in place, SARIF annotations inline on the risky lines, and silence when nothing is risky.
 
-9. **Resolver validation.** Heuristic resolution is measured against an external resolved index, reported as precision and recall per language, so the graph carries a known error bar.
+9. **Resolver validation.** Heuristic resolution is measured against an external resolved index, reported as precision and recall per language, so the graph carries a known error bar. Every edge in `edges.jsonl` carries it. Method calls are the weak case — without receiver types, a name that exists once in a project attracts every call that shares it — and `docs/resolver-accuracy.md` has the measurement and the error classes.
 
 ## Not in scope
 
