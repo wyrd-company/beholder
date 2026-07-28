@@ -83,9 +83,8 @@ fn compiled(language: &LanguageDef) -> &'static Compiled {
             .map(|l| {
                 let grammar = (l.grammar)();
                 let compile = |name: &str, source: &str| {
-                    Query::new(&grammar, source).unwrap_or_else(|e| {
-                        panic!("{}/{name}.scm is not a valid query: {e}", l.id)
-                    })
+                    Query::new(&grammar, source)
+                        .unwrap_or_else(|e| panic!("{}/{name}.scm is not a valid query: {e}", l.id))
                 };
                 Compiled {
                     symbols: compile("symbols", l.symbols_query),
@@ -187,7 +186,11 @@ fn collect_scopes(query: &Query, root: Node<'_>, source: &[u8]) -> HashMap<usize
             } else {
                 variables.insert(
                     (*name).to_owned(),
-                    capture.node.utf8_text(source).unwrap_or_default().to_owned(),
+                    capture
+                        .node
+                        .utf8_text(source)
+                        .unwrap_or_default()
+                        .to_owned(),
                 );
             }
         }
@@ -223,7 +226,11 @@ fn collect_symbols(
             } else {
                 variables.insert(
                     (*name).to_owned(),
-                    capture.node.utf8_text(source).unwrap_or_default().to_owned(),
+                    capture
+                        .node
+                        .utf8_text(source)
+                        .unwrap_or_default()
+                        .to_owned(),
                 );
             }
         }
@@ -293,12 +300,7 @@ fn collect_tokens<'a>(node: Node<'_>, source: &'a [u8], out: &mut Vec<(&'a str, 
 }
 
 /// Join enclosing scope segments, outermost first, with the symbol's own name.
-fn qualify(
-    node: Node<'_>,
-    scopes: &HashMap<usize, String>,
-    name: &str,
-    separator: &str,
-) -> String {
+fn qualify(node: Node<'_>, scopes: &HashMap<usize, String>, name: &str, separator: &str) -> String {
     let mut segments = Vec::new();
     let mut current = node.parent();
 
@@ -340,7 +342,7 @@ fn complexity_by_symbol(
     while let Some(m) = matches.next() {
         for capture in m.captures {
             let id = capture.node.id();
-            match &*query.capture_names()[capture.index as usize] {
+            match query.capture_names()[capture.index as usize] {
                 "increment" => contributions.increment.insert(id),
                 "increment.flat" => contributions.flat.insert(id),
                 "nesting" => contributions.nesting.insert(id),
@@ -482,7 +484,10 @@ mod tests {
 
     #[test]
     fn density_is_reported_for_rust_files_too() {
-        let result = analyze("src/lib.rs", "fn a() {\n    let x = 1;\n    let y = 2;\n}\n");
+        let result = analyze(
+            "src/lib.rs",
+            "fn a() {\n    let x = 1;\n    let y = 2;\n}\n",
+        );
         assert_eq!(result.tier, 1);
         assert!(result.density > 0.0);
     }
@@ -539,7 +544,11 @@ impl Paint for Canvas { fn draw(&self) {} }
         );
 
         let ids: HashSet<_> = symbols.iter().map(|s| s.id.clone()).collect();
-        assert_eq!(ids.len(), symbols.len(), "identities collided: {symbols:#?}");
+        assert_eq!(
+            ids.len(),
+            symbols.len(),
+            "identities collided: {symbols:#?}"
+        );
         assert!(symbols
             .iter()
             .any(|s| s.qualified_path == "<Canvas as Paint>::draw"));
@@ -591,7 +600,8 @@ fn platform() {}
     #[test]
     fn nesting_is_weighted() {
         let flat = analyze_rust("fn f(a: bool, b: bool) {\n    if a {}\n    if b {}\n}\n");
-        let nested = analyze_rust("fn f(a: bool, b: bool) {\n    if a {\n        if b {}\n    }\n}\n");
+        let nested =
+            analyze_rust("fn f(a: bool, b: bool) {\n    if a {\n        if b {}\n    }\n}\n");
 
         assert_eq!(flat[0].cognitive_complexity, 2);
         // outer if = 1, inner if = 1 + 1 nesting
@@ -646,7 +656,10 @@ fn platform() {}
     #[test]
     fn output_is_identical_across_runs() {
         let source = include_str!("phase1.rs");
-        assert_eq!(analyze("src/phase1.rs", source), analyze("src/phase1.rs", source));
+        assert_eq!(
+            analyze("src/phase1.rs", source),
+            analyze("src/phase1.rs", source)
+        );
     }
 
     #[test]

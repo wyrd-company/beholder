@@ -70,7 +70,11 @@ pub fn walk_worktree(root: &Path, config: &Config) -> Result<Vec<SourceFile>> {
 }
 
 /// Read every blob in a git revision's tree, filtered by the same configuration.
-pub fn read_revision(repo: &git2::Repository, revision: &str, config: &Config) -> Result<Vec<SourceFile>> {
+pub fn read_revision(
+    repo: &git2::Repository,
+    revision: &str,
+    config: &Config,
+) -> Result<Vec<SourceFile>> {
     let object = repo
         .revparse_single(revision)
         .with_context(|| format!("resolving revision {revision}"))?;

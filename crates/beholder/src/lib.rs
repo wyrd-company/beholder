@@ -10,16 +10,21 @@
 //! Language support lives in [`lang`] plus the query files beside it. No
 //! language has a code path of its own.
 
+pub mod analysis;
 pub mod config;
 pub mod hash;
+pub mod jsonl;
 pub mod lang;
 pub mod phase1;
+pub mod store;
 pub mod symbol;
 pub mod tier0;
 pub mod walk;
 
+pub use analysis::Analysis;
 pub use config::Config;
 pub use phase1::FileAnalysis;
+pub use store::Store;
 pub use symbol::Symbol;
 
 /// Version of the record schemas beholder writes.
