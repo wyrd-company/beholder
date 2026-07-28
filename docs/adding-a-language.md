@@ -6,7 +6,7 @@ crate.
 
 ## What a language contributes
 
-Four files and one dependency.
+Six query files, one table entry, and a grammar dependency.
 
 | File | What it does |
 | --- | --- |
@@ -174,6 +174,12 @@ files, and the repo-relative path already separates them. TypeScript has none a
 heuristic can read. An empty `discriminators.scm` with a comment explaining why
 is the honest answer; symbols that nothing distinguishes fall back to positional
 ordinals.
+
+**A receiver's pointer form is not identity.** Go's symbols query captures the
+base type out of both `T` and `*T`, because Go forbids the two forms coexisting
+on one base type. Switching between them is a modification of one method, not a
+deletion and an addition. Any language whose receivers or self-types have
+multiple spellings needs the same deliberate choice.
 
 **Separate grammars are a table entry, not a code change.** `tree-sitter-typescript`
 ships distinct TypeScript and TSX grammars because `<T>` means different things

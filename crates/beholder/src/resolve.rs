@@ -302,6 +302,10 @@ impl<'a> SymbolIndex<'a> {
                 self.by_import(file, occurrence, separator),
                 Confidence::High,
             ),
+            (
+                self.by_namespace(file, occurrence, separator),
+                Confidence::High,
+            ),
             (self.by_qualifier(occurrence, separator), Confidence::High),
             (self.in_same_file(file, occurrence), Confidence::Low),
             (
@@ -388,11 +392,9 @@ impl<'a> SymbolIndex<'a> {
         occurrence: &Occurrence,
         separator: &str,
     ) -> Vec<&'a Symbol> {
-        let Some(import) = file
-            .imports
-            .iter()
-            .find(|i| !i.glob && i.local_name == occurrence.name)
-        else {
+        let Some(import) = file.imports.iter().find(|i| {
+            i.kind == crate::phase1::ImportKind::Binding && i.local_name == occurrence.name
+        }) else {
             return Vec::new();
         };
 
@@ -400,6 +402,31 @@ impl<'a> SymbolIndex<'a> {
             .get(&import.path.join(separator))
             .cloned()
             .unwrap_or_default()
+    }
+
+    /// The qualifier names a namespace import, so the lookup is exact.
+    fn by_namespace(
+        &self,
+        file: &'a FileAnalysis,
+        occurrence: &Occurrence,
+        separator: &str,
+    ) -> Vec<&'a Symbol> {
+        let Some(qualifier) = &occurrence.qualifier else {
+            return Vec::new();
+        };
+
+        file.imports
+            .iter()
+            .filter(|i| {
+                i.kind == crate::phase1::ImportKind::Namespace && i.local_name == *qualifier
+            })
+            .filter_map(|i| {
+                let qualified = format!("{}{separator}{}", i.path.join(separator), occurrence.name);
+                self.by_module_path.get(&qualified)
+            })
+            .flatten()
+            .copied()
+            .collect()
     }
 
     /// Something narrowed the lookup: `Type::method`, `module::thing`.
@@ -437,7 +464,11 @@ impl<'a> SymbolIndex<'a> {
             .unwrap_or_default()
     }
 
-    /// A glob import could have brought it in from one of those modules.
+    /// A wildcard import could have brought it in unqualified.
+    ///
+    /// Only a wildcard. A namespace import binds an object rather than a scope,
+    /// and a re-export sends names outward, so resolving an unqualified name
+    /// through either would be an edge the language does not permit.
     fn by_glob_import(
         &self,
         file: &'a FileAnalysis,
@@ -446,7 +477,11 @@ impl<'a> SymbolIndex<'a> {
     ) -> Vec<&'a Symbol> {
         let mut found = Vec::new();
 
-        for import in file.imports.iter().filter(|i| i.glob) {
+        for import in file
+            .imports
+            .iter()
+            .filter(|i| i.kind == crate::phase1::ImportKind::Wildcard)
+        {
             let qualified = format!(
                 "{}{separator}{}",
                 import.path.join(separator),
@@ -702,6 +737,107 @@ mod tests {
         assert!(
             from_make.contains(&"rust:src/shadow.rs:type:ledger".to_string()),
             "expected the documented mis-resolution, got {from_make:?}"
+        );
+    }
+
+    #[test]
+    fn a_typescript_namespace_import_does_not_put_names_in_scope() {
+        // `import * as helpers` binds one object. A bare `assist()` is
+        // undefined in TypeScript, so the namespace import must not be a route
+        // to it. A second `assist` elsewhere makes the last-resort unique-name
+        // rule abstain, which leaves the namespace import as the only way an
+        // edge could appear — and none does.
+        let (edges, stats) = resolve(&[
+            ("src/helpers.ts", "export function assist() {}\n"),
+            ("src/other.ts", "export function assist() {}\n"),
+            (
+                "src/caller.ts",
+                "import * as helpers from './helpers';\nexport function caller() {\n  assist();\n}\n",
+            ),
+        ]);
+
+        assert!(
+            targets(&edges, "function:caller").is_empty(),
+            "an unqualified name resolved through a namespace import: {edges:#?}"
+        );
+        assert!(stats.unresolved.contains_key("ambiguous"));
+    }
+
+    #[test]
+    fn an_unqualified_name_that_is_unique_still_resolves_by_last_resort() {
+        // Documents the residual honestly. The unique-name rule is a
+        // language-agnostic last resort at low confidence; it is not the
+        // namespace import doing the work, and disabling it for one language
+        // would be a per-language code path.
+        let (edges, _) = resolve(&[
+            ("src/helpers.ts", "export function assist() {}\n"),
+            (
+                "src/caller.ts",
+                "import * as helpers from './helpers';\nexport function caller() {\n  assist();\n}\n",
+            ),
+        ]);
+
+        let edge = edges
+            .iter()
+            .find(|e| e.from.contains("caller"))
+            .expect("the last-resort rule resolves it");
+        assert_eq!(edge.confidence, Confidence::Low);
+    }
+
+    #[test]
+    fn a_typescript_namespace_qualifier_does_resolve() {
+        let (edges, _) = resolve(&[
+            ("src/helpers.ts", "export function assist() {}\n"),
+            (
+                "src/caller.ts",
+                "import * as helpers from './helpers';\nexport function caller() {\n  helpers.assist();\n}\n",
+            ),
+        ]);
+
+        assert_eq!(
+            targets(&edges, "function:caller"),
+            vec!["typescript:src/helpers.ts:function:assist"],
+            "{edges:#?}"
+        );
+    }
+
+    #[test]
+    fn a_typescript_barrel_reexport_does_not_leak_unqualified_names() {
+        let (edges, _) = resolve(&[
+            ("src/public.ts", "export function assist() {}\n"),
+            ("src/index.ts", "export * from './public';\n"),
+            (
+                "src/caller.ts",
+                "export function caller() {\n  assist();\n}\n",
+            ),
+        ]);
+
+        // `assist` is unique project-wide, so the last-resort rule still finds
+        // it. What must not happen is the barrel being the reason.
+        let barrel_edges: Vec<_> = edges
+            .iter()
+            .filter(|e| e.from.contains("index.ts"))
+            .collect();
+        assert!(
+            barrel_edges.is_empty(),
+            "a re-export produced an edge of its own: {barrel_edges:#?}"
+        );
+    }
+
+    #[test]
+    fn a_rust_glob_import_still_puts_names_in_scope() {
+        // The distinction is per language, not a blanket refusal.
+        let (edges, _) = resolve(&[
+            ("src/helpers.rs", "pub fn assist() {}\n"),
+            (
+                "src/caller.rs",
+                "use crate::helpers::*;\nfn caller() {\n    assist();\n}\n",
+            ),
+        ]);
+
+        assert_eq!(
+            targets(&edges, "caller"),
+            vec!["rust:src/helpers.rs:function:assist"]
         );
     }
 

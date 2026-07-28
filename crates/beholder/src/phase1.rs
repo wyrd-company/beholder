@@ -72,8 +72,31 @@ pub struct Import {
     pub local_name: String,
     /// Path segments it refers to, with any project-root prefix stripped.
     pub path: Vec<String>,
-    /// True for `use a::b::*`, where `local_name` is meaningless.
-    pub glob: bool,
+    /// What the import actually does with those names.
+    #[serde(default)]
+    pub kind: ImportKind,
+}
+
+/// What an import does with the names it names.
+///
+/// The distinction is load-bearing and languages disagree. Rust's
+/// `use a::b::*` really does put `b`'s names in scope unqualified. TypeScript's
+/// `import * as ns from './b'` does not — it binds one namespace object, and
+/// `foo()` remains undefined while `ns.foo()` resolves. Collapsing the two
+/// would let the resolver invent edges the language forbids.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImportKind {
+    /// `local_name` refers to the symbol at `path`.
+    #[default]
+    Binding,
+    /// Every name under `path` is in scope unqualified.
+    Wildcard,
+    /// `local_name` is an object; `local_name.x` refers to `path::x`. Nothing
+    /// is in scope unqualified.
+    Namespace,
+    /// Names flow out of this file, not into it. Contributes no local binding.
+    ReExport,
 }
 
 /// Analyze one file.
@@ -361,7 +384,7 @@ fn collect_imports(
         }
     }
 
-    out.sort_by(|a, b| (&a.local_name, &a.path, a.glob).cmp(&(&b.local_name, &b.path, b.glob)));
+    out.sort_by(|a, b| (&a.local_name, &a.path, a.kind).cmp(&(&b.local_name, &b.path, b.kind)));
     out.dedup();
     out
 }
@@ -411,7 +434,13 @@ fn read_named_import(
         segments.remove(0);
     }
 
-    let glob = property(query, m.pattern_index, "glob") == Some("true");
+    // The query says what the import does; nothing here infers it.
+    let kind = match property(query, m.pattern_index, "import") {
+        Some("wildcard") => ImportKind::Wildcard,
+        Some("namespace") => ImportKind::Namespace,
+        Some("reexport") => ImportKind::ReExport,
+        _ => ImportKind::Binding,
+    };
 
     if names.is_empty() {
         // The module itself is the binding: `import "fmt"` binds `fmt`.
@@ -421,7 +450,7 @@ fn read_named_import(
         out.push(Import {
             local_name,
             path: segments,
-            glob,
+            kind,
         });
         return;
     }
@@ -438,7 +467,7 @@ fn read_named_import(
                 name.clone()
             },
             path,
-            glob: false,
+            kind,
         });
     }
 }
@@ -503,7 +532,7 @@ fn leaf_import(
         return (!path.is_empty()).then(|| Import {
             local_name: String::new(),
             path,
-            glob: true,
+            kind: ImportKind::Wildcard,
         });
     }
 
@@ -514,14 +543,14 @@ fn leaf_import(
         return Some(Import {
             local_name: name,
             path,
-            glob: false,
+            kind: ImportKind::Binding,
         });
     }
 
     Some(Import {
         local_name: alias.unwrap_or(last),
         path,
-        glob: false,
+        kind: ImportKind::Binding,
     })
 }
 
@@ -1274,7 +1303,7 @@ fn platform() {}
         assert_eq!(imports.len(), 1);
         assert_eq!(imports[0].local_name, "walk_to_tag");
         assert_eq!(imports[0].path, vec!["git", "walk_to_tag"]);
-        assert!(!imports[0].glob);
+        assert_eq!(imports[0].kind, ImportKind::Binding);
     }
 
     #[test]
@@ -1308,7 +1337,7 @@ fn platform() {}
     fn a_glob_import_records_its_prefix() {
         let imports = imports_of("use crate::a::b::*;\n");
         assert_eq!(imports.len(), 1);
-        assert!(imports[0].glob);
+        assert_eq!(imports[0].kind, ImportKind::Wildcard);
         assert_eq!(imports[0].path, vec!["a", "b"]);
     }
 
@@ -1425,6 +1454,26 @@ fn platform() {}
     }
 
     #[test]
+    fn go_a_pointer_receiver_is_the_same_method_as_a_value_receiver() {
+        // Go forbids both forms coexisting on one base type, so switching
+        // between them modifies a method rather than replacing it.
+        let value = analyze_go("package main\ntype A struct{}\nfunc (a A) Close() {}\n");
+        let pointer = analyze_go("package main\ntype A struct{}\nfunc (a *A) Close() {}\n");
+
+        let id = |symbols: &[Symbol]| {
+            symbols
+                .iter()
+                .find(|s| s.qualified_path.ends_with("Close"))
+                .unwrap()
+                .id
+                .clone()
+        };
+
+        assert_eq!(id(&value), id(&pointer));
+        assert!(id(&value).ends_with("A.Close"), "{}", id(&value));
+    }
+
+    #[test]
     fn go_nesting_is_weighted() {
         let flat =
             analyze_go("package main\nfunc f(a bool, b bool) {\n\tif a {\n\t}\n\tif b {\n\t}\n}\n");
@@ -1534,45 +1583,43 @@ fn platform() {}
     }
 
     #[test]
-    fn typescript_named_and_aliased_imports_bind() {
+    fn typescript_an_alias_binds_the_aliased_name_to_the_real_path() {
         let file = analyze(
             "src/app.ts",
-            "import { parse, format as fmt } from './lib/text';\nimport def from './lib/def';\n",
+            "import { parse, format as fmt } from './lib/text';\n",
         );
         let got: Vec<_> = file
             .imports
             .iter()
-            .map(|i| (i.local_name.as_str(), i.path.join("/"), i.glob))
+            .map(|i| (i.local_name.as_str(), i.path.join("/"), i.kind))
             .collect();
 
         assert!(
-            got.iter()
-                .any(|(n, p, _)| *n == "parse" && p == "lib/text/parse"),
+            got.contains(&("parse", "lib/text/parse".to_string(), ImportKind::Binding)),
             "{got:?}"
         );
-        assert!(got.iter().any(|(n, _, _)| *n == "def"), "{got:?}");
+        assert!(
+            got.contains(&("fmt", "lib/text/format".to_string(), ImportKind::Binding)),
+            "the alias must bind to what it aliases: {got:?}"
+        );
     }
 
     #[test]
-    fn typescript_namespace_and_barrel_imports_are_globs() {
-        let file = analyze(
-            "src/app.ts",
-            "import * as helpers from './helpers';\nexport * from './public';\n",
-        );
-        let globs: Vec<_> = file
-            .imports
-            .iter()
-            .filter(|i| i.glob)
-            .map(|i| i.path.join("/"))
-            .collect();
+    fn typescript_a_namespace_import_is_not_a_wildcard() {
+        let file = analyze("src/app.ts", "import * as helpers from './helpers';\n");
 
-        assert!(globs.contains(&"helpers".to_string()), "{globs:?}");
-        assert!(globs.contains(&"public".to_string()), "{globs:?}");
-        assert_eq!(
-            globs.len(),
-            2,
-            "a barrel re-export is a glob too: {globs:?}"
-        );
+        assert_eq!(file.imports.len(), 1);
+        assert_eq!(file.imports[0].kind, ImportKind::Namespace);
+        assert_eq!(file.imports[0].local_name, "helpers");
+        assert_eq!(file.imports[0].path, vec!["helpers"]);
+    }
+
+    #[test]
+    fn typescript_a_barrel_reexport_binds_nothing_locally() {
+        let file = analyze("src/index.ts", "export * from './public';\n");
+
+        assert_eq!(file.imports.len(), 1);
+        assert_eq!(file.imports[0].kind, ImportKind::ReExport);
     }
 
     #[test]

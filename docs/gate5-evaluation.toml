@@ -32,15 +32,16 @@ repositories = ["wyrd-company/intentional", "wyrd-company/tagver", "wyrd-company
 
 [summary]
 # Counted over the top five surfaced entries of all fourteen reports; every
-# figure is a count over the [[change.*_top]] entries below.
+# figure is a count over the [[change.*_top]] entries below. Field names carry
+# the basis they describe, because the two bases surface different entries.
 reports = 14
 verdict = "useful; damped basis recommended and now the default"
 on_subject = 12
 thin = 2
 trivial_promoted_by_unstated_fan_in_raw = 3
 trivial_promoted_by_unstated_fan_in_damped = 1
-test_file_entries_in_top_five = 7
-trait_method_entries_in_top_five = 2
+test_file_entries_in_top_five_damped = 7
+trait_method_entries_in_top_five_damped = 2
 notes = """
 Twelve of fourteen put a substantial piece of the change's subject first. The
 two thin reports are changes that moved almost no complexity, and the ranking

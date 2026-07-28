@@ -234,6 +234,31 @@ report either way, so a consumer can always audit the weighting.
 
 **Evidence.** `docs/gate5-evaluation.toml`.
 
+## Go and TypeScript are not oracle-measured
+
+Only Rust carries a measured error bar. The Definition of Done's oracle
+requirement is `rust-analyzer scip` against Rust repositories, and that is what
+was run; no equivalent index was generated for Go or TypeScript in this work.
+
+So `accuracy.toml` has no entry for either, and both report "accuracy not
+measured" rather than borrowing Rust's numbers. Their reference graphs are
+usable and their identity is gate-tested — zero phantoms across `lore`,
+`wyrwood`, `seek-cli` and `async-codex-mcp` — but two things about them are
+unknown:
+
+- how often their edges are right, in either direction;
+- whether the damping constant suits them. `sqrt` on the low-confidence
+  contribution was chosen against Rust's collision profile, and Go's
+  method-set ambiguity and TypeScript's structural typing may concentrate
+  error differently.
+
+**Ranking for Go and TypeScript is therefore experimental until measured.**
+`scip-go` and `scip-typescript` are the obvious oracles, and running them is the
+work that would close this. Resolution coverage is at least comparable across
+the three languages — 21% to 27% of occurrences resolved for Go, 17% to 21% for
+TypeScript, against 24% for Rust — which says the abstraction holds, not that
+the answers are right.
+
 ## Reproducing
 
 ```sh
