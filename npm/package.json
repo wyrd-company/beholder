@@ -1,6 +1,6 @@
 {
   "name": "@wyrd-company/beholder",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Public npm launcher for beholder, a structural code index.",
   "keywords": [
     "static-analysis",
