@@ -6,19 +6,15 @@ release.
 
 ## 0.1.0
 
-First version.
+### Breaking
 
-- Symbol-level index for Rust, Go and TypeScript, expressed as tree-sitter
-  queries and a language table rather than per-language code.
-- Cognitive complexity per symbol, and tier 0 indentation density for every file
-  the walk visits.
-- A heuristic reference graph with fan-in and fan-out kept separate, measured
-  against `rust-analyzer scip` and carrying that error bar on every edge.
-- Delta mode: any two revisions in, changed symbols out, matched by an identity
-  that survives reformatting.
-- Risk ranking by complexity delta weighted by fan-in, ranked as a percentile
-  within each language and merged on percentile alone.
-- Review surfaces: a GitHub Action posting one sticky comment, SARIF for inline
-  annotations, and the same report against a local gitpr snapshot.
-- Generated results stored in the `refs/beholder/index` git ref, portable
-  through ordinary fetch and push.
+- Analyze every repository file with tier 0 indentation density, with tier 1 symbol analysis for Rust, Go, and TypeScript. Report cognitive complexity, references, cohesion, and change-scoped risk through portable Git-backed reuse and JSONL, SARIF, and gitpr output. Rust reference edges carry a measured precision and recall error bar; Go and TypeScript report accuracy as not measured.
+
+### Features
+
+- Install beholder from crates.io, npm, the Homebrew tap, or platform archives.
+- Report pull request risk through a GitHub Action with one updated comment, SARIF output, threshold-based silence, and shared index reuse across runs.
+
+### Fixes
+
+- Publish Beholder documentation on wyrd.foo with every release.
