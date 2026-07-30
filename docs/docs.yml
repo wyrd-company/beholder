@@ -1,0 +1,17 @@
+name: beholder
+tagline: See structural risk and dependency relationships in code.
+blurb: >-
+  A Rust library and CLI that indexes symbols, complexity, references, and
+  cohesion, then compares revisions to rank the structural risk in a change.
+category: Code Quality
+language: Rust
+status: preview
+repo: https://github.com/wyrd-company/beholder
+order: 7
+install:
+  - label: Homebrew
+    command: brew install wyrd-company/tools/beholder
+  - label: Cargo
+    command: cargo install beholder-cli
+  - label: npm
+    command: npm install --global @wyrd-company/beholder

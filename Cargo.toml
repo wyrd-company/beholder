@@ -3,14 +3,14 @@ members = ["crates/beholder", "crates/beholder-cli", "crates/beholder-oracle"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/wyrd-company/beholder"
 rust-version = "1.85"
 
 [workspace.dependencies]
-beholder = { path = "crates/beholder", version = "0.1.0" }
+beholder = { path = "crates/beholder", version = "0.0.0" }
 anyhow = "1"
 git2 = "0.21"
 ignore = "0.4"
