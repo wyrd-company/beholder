@@ -17,9 +17,10 @@ git fetch origin +refs/beholder/*:refs/beholder/*
 git push origin +refs/beholder/*:refs/beholder/*
 ```
 
-Beholder does not replace those commands. Pushes are never forced: concurrent
-writers use compare-and-swap, and a rejected writer fetches the winning tip,
-rebuilds on it, and retries.
+Beholder does not replace those commands. The leading `+` lets Git update a
+non-branch ref; the Action's own index push is never forced. Concurrent writers
+use compare-and-swap, and a rejected writer fetches the winning tip, rebuilds on
+it, and retries.
 
 ## Index history
 

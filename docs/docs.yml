@@ -7,6 +7,7 @@ category: Code Quality
 language: Rust
 status: preview
 repo: https://github.com/wyrd-company/beholder
+order: 7
 install:
   - label: Homebrew
     command: brew install wyrd-company/tools/beholder
