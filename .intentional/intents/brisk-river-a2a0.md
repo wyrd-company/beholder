@@ -2,4 +2,4 @@
 beholder: major
 ---
 
-Index Rust, Go, and TypeScript symbols, references, cohesion, and change-scoped risk with portable Git-backed analysis reuse and JSONL, SARIF, and gitpr reports.
+Analyze every repository file with tier 0 indentation density, with tier 1 symbol analysis for Rust, Go, and TypeScript. Report cognitive complexity, references, cohesion, and change-scoped risk through portable Git-backed reuse and JSONL, SARIF, and gitpr output. Every reference edge carries a Rust-measured precision and recall error bar.

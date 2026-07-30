@@ -1,5 +1,5 @@
 ---
-beholder: major
+beholder: minor
 ---
 
-Install and release beholder through crates.io, npm, Homebrew, and platform archives with synchronized version checks.
+Install beholder from crates.io, npm, the Homebrew tap, or platform archives.
