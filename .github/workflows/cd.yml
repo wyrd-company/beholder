@@ -198,6 +198,19 @@ jobs:
           TAG="${GITHUB_REF##*/}"
           scripts/release/ensure-github-release.sh "$TAG" dist release-notes.md
 
+  publish-docs:
+    name: Publish docs
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+      - name: Publish docs to wyrd.foo
+        uses: wyrd-company/wyrd.foo/.github/actions/publish-docs@v1
+        with:
+          app-id: ${{ secrets.WYRD_TOOLS_DOCS_PUBLISHER_APP_ID }}
+          private-key: ${{ secrets.WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY }}
+
   publish-crates:
     name: Publish crates.io packages
     needs: release
