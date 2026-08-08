@@ -7,9 +7,10 @@
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-use crate::model::{CodeGraph, Edge};
+use crate::model::{CodeGraph, Edge, EvidencePolicy, UncertaintyCounts};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Direction {
     Dependencies,
     Dependants,
@@ -19,6 +20,18 @@ pub enum Direction {
 pub struct DependencyPath {
     pub nodes: Vec<String>,
     pub edges: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct QueryReport {
+    pub schema_version: u32,
+    pub snapshot_id: String,
+    pub evidence_policy: EvidencePolicy,
+    pub uncertainty: UncertaintyCounts,
+    pub start: String,
+    pub direction: Direction,
+    pub transitive: bool,
+    pub paths: Vec<DependencyPath>,
 }
 
 pub struct GraphQuery<'a> {
@@ -94,6 +107,29 @@ impl<'a> GraphQuery<'a> {
         Some(paths.into_values().collect())
     }
 
+    pub fn report(
+        &self,
+        start: &str,
+        direction: Direction,
+        transitive: bool,
+    ) -> Option<QueryReport> {
+        let paths = if transitive {
+            self.reachable(start, direction)
+        } else {
+            self.direct(start, direction)
+        }?;
+        Some(QueryReport {
+            schema_version: self.graph.schema_version,
+            snapshot_id: self.graph.build.id.clone(),
+            evidence_policy: EvidencePolicy::all_stored(self.graph),
+            uncertainty: UncertaintyCounts::from(self.graph),
+            start: start.to_owned(),
+            direction,
+            transitive,
+            paths,
+        })
+    }
+
     fn steps(&self, node: &str, direction: Direction) -> Vec<(&'a str, &'a Edge)> {
         let edges = match direction {
             Direction::Dependencies => self.outgoing.get(node),
@@ -165,5 +201,18 @@ mod tests {
             query.direct("birch", Direction::Dependencies),
             Some(Vec::new())
         );
+    }
+
+    #[test]
+    fn query_report_names_snapshot_policy_and_uncertainty() {
+        let graph = graph(&[("amber", "birch")]);
+        let report = GraphQuery::new(&graph)
+            .report("amber", Direction::Dependencies, false)
+            .unwrap();
+
+        assert_eq!(report.snapshot_id, graph.build.id);
+        assert_eq!(report.evidence_policy.name, "all_stored_edges");
+        assert_eq!(report.uncertainty.resolved, 1);
+        assert_eq!(report.paths.len(), 1);
     }
 }

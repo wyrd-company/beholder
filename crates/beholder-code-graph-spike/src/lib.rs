@@ -51,6 +51,7 @@ pub(crate) mod test_support {
                     location: None,
                     source: Some((*from).to_owned()),
                     raw_target: (*to).to_owned(),
+                    kind: EdgeKind::Reference,
                     outcome: Resolution::Resolved {
                         node: (*to).to_owned(),
                     },

@@ -46,6 +46,24 @@ impl CodeGraph {
         if self.build.id != capsule_id(&self.build, &self.producer, &self.scope.requested_roots) {
             return Err(IntegrityError::BuildIdentityMismatch);
         }
+        validate_knowledge("build.repository", &self.build.repository)?;
+        validate_knowledge("build.revision", &self.build.revision)?;
+        validate_knowledge("build.dirty", &self.build.dirty)?;
+        validate_knowledge("build.source_digest", &self.build.source_digest)?;
+        validate_knowledge(
+            "build.configuration_digest",
+            &self.build.configuration_digest,
+        )?;
+        validate_knowledge("build.units", &self.build.units)?;
+        validate_knowledge("producer.version", &self.producer.version)?;
+        validate_knowledge("producer.invocation", &self.producer.invocation)?;
+        if let Some(units) = &self.build.units.value {
+            for unit in units {
+                validate_knowledge("build.units[].target", &unit.target)?;
+                validate_knowledge("build.units[].features", &unit.features)?;
+            }
+        }
+        validate_scope(&self.scope)?;
         for node in &self.nodes {
             if node
                 .enclosing
@@ -59,10 +77,12 @@ impl CodeGraph {
         }
 
         let mut evidence = BTreeSet::new();
+        let mut evidence_facts = BTreeMap::new();
         for fact in &self.references {
             if !evidence.insert(fact.id.as_str()) {
                 return Err(IntegrityError::DuplicateReference(fact.id.clone()));
             }
+            evidence_facts.insert(fact.id.as_str(), fact);
         }
         for fact in &self.references {
             if fact
@@ -117,8 +137,20 @@ impl CodeGraph {
                 return Err(IntegrityError::MissingEvidence(edge.id.clone()));
             }
             for evidence_id in &edge.evidence {
-                if !evidence.contains(evidence_id.as_str()) {
+                let Some(fact) = evidence_facts.get(evidence_id.as_str()) else {
                     return Err(IntegrityError::DanglingEvidence(evidence_id.clone()));
+                };
+                let target = match &fact.outcome {
+                    Resolution::Resolved { node } | Resolution::External { node } => node,
+                    Resolution::Ambiguous { .. } | Resolution::Unknown { .. } => {
+                        return Err(IntegrityError::UnsupportedEvidence(evidence_id.clone()));
+                    }
+                };
+                if fact.source.as_ref() != Some(&edge.from)
+                    || target != &edge.to
+                    || fact.kind != edge.kind
+                {
+                    return Err(IntegrityError::UnsupportedEvidence(evidence_id.clone()));
                 }
             }
         }
@@ -217,6 +249,51 @@ impl<T> Knowledge<T> {
             value: None,
         }
     }
+
+    fn is_valid(&self) -> bool {
+        matches!(
+            (&self.state, &self.value),
+            (KnowledgeState::Observed | KnowledgeState::Declared, Some(_))
+                | (KnowledgeState::Unknown, None)
+        )
+    }
+}
+
+fn validate_knowledge<T>(name: &str, knowledge: &Knowledge<T>) -> Result<(), IntegrityError> {
+    knowledge
+        .is_valid()
+        .then_some(())
+        .ok_or_else(|| IntegrityError::ContradictoryKnowledge(name.to_owned()))
+}
+
+fn validate_scope(scope: &AnalyzedScope) -> Result<(), IntegrityError> {
+    let mut dispositions = BTreeMap::<String, &'static str>::new();
+    let mut record = |path: &str, disposition| {
+        if let Some(previous) = dispositions.insert(path.to_owned(), disposition) {
+            return Err(IntegrityError::ContradictoryScope {
+                path: path.to_owned(),
+                first: previous,
+                second: disposition,
+            });
+        }
+        Ok(())
+    };
+    for path in &scope.included_documents {
+        record(path, "included")?;
+    }
+    for path in scope.excluded_documents.keys() {
+        record(path, "excluded")?;
+    }
+    for path in &scope.missing_documents {
+        record(path, "missing")?;
+    }
+    for path in &scope.generated_documents {
+        record(path, "generated")?;
+    }
+    for path in &scope.external_documents {
+        record(path, "external")?;
+    }
+    Ok(())
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -312,6 +389,7 @@ pub struct ReferenceFact {
     pub location: Option<Location>,
     pub source: Option<String>,
     pub raw_target: String,
+    pub kind: EdgeKind,
     pub outcome: Resolution,
     pub provenance: Provenance,
 }
@@ -323,6 +401,51 @@ pub enum Resolution {
     Ambiguous { candidates: Vec<String> },
     External { node: String },
     Unknown { reason: UnknownReason },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EvidencePolicy {
+    pub name: String,
+    pub providers: BTreeSet<String>,
+    pub edge_kinds: BTreeSet<EdgeKind>,
+}
+
+impl EvidencePolicy {
+    /// The prototype policy accepts every validated stored edge.
+    pub fn all_stored(graph: &CodeGraph) -> Self {
+        Self {
+            name: "all_stored_edges".to_owned(),
+            providers: graph
+                .edges
+                .iter()
+                .map(|edge| edge.provenance.provider.clone())
+                .collect(),
+            edge_kinds: graph.edges.iter().map(|edge| edge.kind.clone()).collect(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UncertaintyCounts {
+    pub resolved: usize,
+    pub ambiguous: usize,
+    pub external: usize,
+    pub unknown: usize,
+}
+
+impl From<&CodeGraph> for UncertaintyCounts {
+    fn from(graph: &CodeGraph) -> Self {
+        let mut counts = Self::default();
+        for fact in &graph.references {
+            match fact.outcome {
+                Resolution::Resolved { .. } => counts.resolved += 1,
+                Resolution::Ambiguous { .. } => counts.ambiguous += 1,
+                Resolution::External { .. } => counts.external += 1,
+                Resolution::Unknown { .. } => counts.unknown += 1,
+            }
+        }
+        counts
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -344,6 +467,16 @@ pub enum UnknownReasonKind {
 pub struct Location {
     pub path: String,
     pub range: SourceRange,
+    pub encoding: PositionEncoding,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PositionEncoding {
+    Utf8CodeUnit,
+    Utf16CodeUnit,
+    Utf32CodeUnit,
+    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -416,9 +549,16 @@ pub enum IntegrityError {
     DuplicateReference(String),
     DanglingNode(String),
     DanglingEvidence(String),
+    UnsupportedEvidence(String),
     MissingEvidence(String),
     EmptyCandidateSet(String),
     ResolutionScopeMismatch(String),
+    ContradictoryKnowledge(String),
+    ContradictoryScope {
+        path: String,
+        first: &'static str,
+        second: &'static str,
+    },
 }
 
 impl std::fmt::Display for IntegrityError {
@@ -435,6 +575,9 @@ impl std::fmt::Display for IntegrityError {
             Self::DanglingEvidence(evidence) => {
                 write!(formatter, "edge names missing evidence {evidence}")
             }
+            Self::UnsupportedEvidence(evidence) => {
+                write!(formatter, "fact does not support edge {evidence}")
+            }
             Self::MissingEvidence(edge) => write!(formatter, "edge has no evidence {edge}"),
             Self::EmptyCandidateSet(reference) => {
                 write!(
@@ -448,8 +591,79 @@ impl std::fmt::Display for IntegrityError {
                     "reference outcome contradicts node scope {reference}"
                 )
             }
+            Self::ContradictoryKnowledge(field) => {
+                write!(formatter, "knowledge state contradicts value for {field}")
+            }
+            Self::ContradictoryScope {
+                path,
+                first,
+                second,
+            } => write!(
+                formatter,
+                "document {path} has conflicting scope dispositions {first} and {second}"
+            ),
         }
     }
 }
 
 impl std::error::Error for IntegrityError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::graph;
+
+    #[test]
+    fn integrity_rejects_knowledge_state_value_contradictions() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.build.revision = Knowledge {
+            state: KnowledgeState::Unknown,
+            value: Some("revision".to_owned()),
+        };
+        graph.build.id = capsule_id(&graph.build, &graph.producer, &graph.scope.requested_roots);
+
+        assert_eq!(
+            graph.validate(),
+            Err(IntegrityError::ContradictoryKnowledge(
+                "build.revision".to_owned()
+            ))
+        );
+
+        graph.build.revision = Knowledge {
+            state: KnowledgeState::Observed,
+            value: None,
+        };
+        graph.build.id = capsule_id(&graph.build, &graph.producer, &graph.scope.requested_roots);
+        assert_eq!(
+            graph.validate(),
+            Err(IntegrityError::ContradictoryKnowledge(
+                "build.revision".to_owned()
+            ))
+        );
+    }
+
+    #[test]
+    fn integrity_rejects_conflicting_document_dispositions() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.scope.included_documents.push("sample.txt".to_owned());
+        graph.scope.missing_documents.push("sample.txt".to_owned());
+
+        assert!(matches!(
+            graph.validate(),
+            Err(IntegrityError::ContradictoryScope { ref path, .. }) if path == "sample.txt"
+        ));
+    }
+
+    #[test]
+    fn integrity_rejects_evidence_that_does_not_support_an_edge() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.references[0].source = Some("birch".to_owned());
+
+        assert_eq!(
+            graph.validate(),
+            Err(IntegrityError::UnsupportedEvidence(
+                "reference-0".to_owned()
+            ))
+        );
+    }
+}

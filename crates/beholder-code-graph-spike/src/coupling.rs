@@ -9,11 +9,17 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use serde::{Deserialize, Serialize};
 
-use crate::model::CodeGraph;
+use crate::model::{CodeGraph, EvidencePolicy, UncertaintyCounts};
 use crate::query::{DependencyPath, Direction, GraphQuery};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CouplingReport {
+    pub schema_version: u32,
+    pub snapshot_id: String,
+    pub evidence_policy: EvidencePolicy,
+    pub uncertainty: UncertaintyCounts,
+    pub node_set: Vec<String>,
+    pub edge_set: Vec<String>,
     pub degree: BTreeMap<String, Degree>,
     pub cycles: Vec<Region>,
     pub weak_regions: Vec<Region>,
@@ -88,6 +94,12 @@ pub fn analyze(graph: &CodeGraph) -> CouplingReport {
         .collect();
 
     CouplingReport {
+        schema_version: graph.schema_version,
+        snapshot_id: graph.build.id.clone(),
+        evidence_policy: EvidencePolicy::all_stored(graph),
+        uncertainty: UncertaintyCounts::from(graph),
+        node_set: graph.nodes.iter().map(|node| node.id.clone()).collect(),
+        edge_set: graph.edges.iter().map(|edge| edge.id.clone()).collect(),
         degree: degree
             .into_iter()
             .map(|(node, mut degree)| {
@@ -358,6 +370,10 @@ mod tests {
         let graph = graph(&[("amber", "birch"), ("birch", "cedar")]);
         let report = analyze(&graph);
 
+        assert_eq!(report.snapshot_id, graph.build.id);
+        assert_eq!(report.evidence_policy.name, "all_stored_edges");
+        assert_eq!(report.node_set, ["amber", "birch", "cedar"]);
+        assert_eq!(report.edge_set, ["edge-0", "edge-1"]);
         assert_eq!(report.degree["amber"].outgoing_reach.len(), 2);
         assert_eq!(report.degree["cedar"].incoming_reach.len(), 2);
         assert_eq!(

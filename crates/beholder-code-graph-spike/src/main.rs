@@ -125,13 +125,10 @@ fn main() -> Result<()> {
             let graph = read_graph(&graph)?;
             graph.validate()?;
             let query = GraphQuery::new(&graph);
-            let paths = if transitive {
-                query.reachable(&node, direction.into())
-            } else {
-                query.direct(&node, direction.into())
-            }
-            .with_context(|| format!("unknown graph node {node}"))?;
-            println!("{}", serde_json::to_string_pretty(&paths)?);
+            let report = query
+                .report(&node, direction.into(), transitive)
+                .with_context(|| format!("unknown graph node {node}"))?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
         }
         Command::Coupling { graph } => {
             let graph = read_graph(&graph)?;

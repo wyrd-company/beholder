@@ -9,14 +9,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use protobuf::{Enum, Message};
-use scip::types::{Document, Index, Occurrence, Severity, SymbolInformation, SymbolRole};
+use scip::types::{
+    Document, Index, Occurrence, PositionEncoding as ScipPositionEncoding, Severity,
+    SymbolInformation, SymbolRole,
+};
 use sha2::{Digest, Sha256};
 
 use crate::model::{
     capsule_id, AnalyzedScope, BuildIdentity, CodeGraph, Diagnostic, DiagnosticSeverity, Edge,
-    EdgeKind, Knowledge, Location, Node, NodeKind, NodeScope, Producer, Provenance, ReferenceFact,
-    Resolution, SourceRange, UnknownReason, UnknownReasonKind, Validation, ValidationStatus,
-    SCHEMA_VERSION,
+    EdgeKind, Knowledge, Location, Node, NodeKind, NodeScope, PositionEncoding, Producer,
+    Provenance, ReferenceFact, Resolution, SourceRange, UnknownReason, UnknownReasonKind,
+    Validation, ValidationStatus, SCHEMA_VERSION,
 };
 use crate::provider::Provider;
 
@@ -185,6 +188,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                     location: occurrence_range(occurrence).map(|range| Location {
                         path: document.relative_path.clone(),
                         range,
+                        encoding: position_encoding(document),
                     }),
                     provenance: provenance("diagnostic"),
                 });
@@ -205,6 +209,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                     location: Location {
                         path: document.relative_path.clone(),
                         range,
+                        encoding: position_encoding(document),
                     },
                     body: enclosing_range(occurrence),
                 });
@@ -367,7 +372,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                 } else {
                     if let Some(from) = &source {
                         edge_evidence
-                            .entry((from.clone(), target.clone(), edge_kind))
+                            .entry((from.clone(), target.clone(), edge_kind.clone()))
                             .or_default()
                             .insert(fact_id.clone());
                     }
@@ -385,8 +390,10 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
             } else {
                 Resolution::Unknown {
                     reason: UnknownReason {
-                        kind: UnknownReasonKind::AbsentFromScope,
-                        details: format!("target is absent from analyzed scope: {raw_target}"),
+                        kind: UnknownReasonKind::ProviderOmission,
+                        details: format!(
+                            "SCIP index has no matching symbol information: {raw_target}"
+                        ),
                     },
                 }
             };
@@ -395,6 +402,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                 location: Some(location),
                 source,
                 raw_target,
+                kind: edge_kind,
                 outcome,
                 provenance: provenance("occurrence"),
             });
@@ -535,6 +543,7 @@ fn grouped_references(
             .entry(Location {
                 path: document.relative_path.clone(),
                 range,
+                encoding: position_encoding(document),
             })
             .or_insert_with(BTreeSet::new)
             .insert(TargetUse {
@@ -624,6 +633,7 @@ fn add_relationship_edges(
                     location: None,
                     source: Some(from.clone()),
                     raw_target: relationship.symbol.clone(),
+                    kind: kind.clone(),
                     outcome,
                     provenance: provenance("symbol_relationship"),
                 });
@@ -657,6 +667,21 @@ fn targets_are_external(targets: &[String], path: &str, external: &BTreeSet<Symb
     targets
         .iter()
         .all(|target| external.contains(&SymbolKey::new(path, target)))
+}
+
+fn position_encoding(document: &Document) -> PositionEncoding {
+    match document.position_encoding.enum_value().ok() {
+        Some(ScipPositionEncoding::UTF8CodeUnitOffsetFromLineStart) => {
+            PositionEncoding::Utf8CodeUnit
+        }
+        Some(ScipPositionEncoding::UTF16CodeUnitOffsetFromLineStart) => {
+            PositionEncoding::Utf16CodeUnit
+        }
+        Some(ScipPositionEncoding::UTF32CodeUnitOffsetFromLineStart) => {
+            PositionEncoding::Utf32CodeUnit
+        }
+        _ => PositionEncoding::Unknown,
+    }
 }
 
 fn occurrence_range(occurrence: &Occurrence) -> Option<SourceRange> {
@@ -1126,10 +1151,40 @@ mod tests {
         assert!(graph.references.iter().any(|fact| matches!(
             fact.outcome,
             Resolution::Unknown { ref reason }
-                if reason.kind == UnknownReasonKind::AbsentFromScope
+                if reason.kind == UnknownReasonKind::ProviderOmission
                     && reason.details.contains("absent")
         )));
         assert_eq!(graph.edges.len(), 1, "external facts remain graph edges");
+    }
+
+    #[test]
+    fn source_locations_retain_document_position_encoding() {
+        let mut source = document(
+            "sample.rs",
+            vec![
+                definition("sample pkg 1 amber().", [0, 3, 8], [0, 0, 2, 0]),
+                reference("sample pkg 1 amber().", [1, 4, 9], 0),
+            ],
+            vec![information(
+                "sample pkg 1 amber().",
+                "amber",
+                Kind::Function,
+            )],
+        );
+        source.position_encoding = ScipPositionEncoding::UTF16CodeUnitOffsetFromLineStart.into();
+        let bytes = index(vec![source], vec![]).write_to_bytes().unwrap();
+
+        let graph = provider(&bytes).produce(&bytes).unwrap();
+
+        assert!(graph.nodes.iter().all(|node| node
+            .definitions
+            .iter()
+            .all(|location| location.encoding == PositionEncoding::Utf16CodeUnit)));
+        assert!(graph
+            .references
+            .iter()
+            .filter_map(|fact| fact.location.as_ref())
+            .all(|location| location.encoding == PositionEncoding::Utf16CodeUnit));
     }
 
     #[test]
