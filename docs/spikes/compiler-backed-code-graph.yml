@@ -1,7 +1,9 @@
 $schema: https://refinery.systems/ontology/spike
 title: Compiler-backed code graph providers and model
 
-relationships: {}
+relationships:
+  references:
+    - scip-tree-sitter-spike
 
 objective:
   - >-
@@ -235,3 +237,108 @@ completion-evidence:
     The conclusion recommends a provider architecture, code graph boundary,
     licensing posture, and disposition for Beholder's existing SCIP and
     tree-sitter components.
+
+findings:
+  provider-architecture:
+    rating: GREEN
+    notes: >-
+      A build-aware subprocess or native provider can emit an immutable evidence
+      snapshot behind one language-neutral contract. Build capture, semantic
+      extraction, transport adaptation, graph projection, and derived analysis
+      remain separate responsibilities.
+  neutral-model:
+    rating: GREEN
+    notes: >-
+      The model represented compiler-backed output from Rust, Go, TypeScript,
+      Python, Dart, and C#. Snapshot-local identity, document instances, typed
+      outcomes, explicit scope, provenance, diagnostics, and validation were
+      necessary to prevent unsafe joins and false completeness.
+  scip-adapter:
+    rating: YELLOW
+    notes: >-
+      SCIP is a useful transport and symbol grammar. It does not carry complete
+      build identity, compilation units, analyzed-scope accounting, or native
+      ambiguity. All six pinned compiler-backed indexes failed upstream lint,
+      and provider behavior differed materially by language.
+  real-build-prototype:
+    verdict: confirmed-working
+    notes: >-
+      The rust-analyzer vertical slice imported a real configured Cargo build
+      and served direct, reverse, and transitive paths plus reproducible
+      coupling analysis without compiler types in the consumer.
+    measurements:
+      documents: 20
+      nodes: 638
+      edges: 992
+      reference-facts: 3271
+      resolved: 1495
+      ambiguous: 22
+      unknown: 1754
+      cycles: 1
+      weak-regions: 76
+      bridge-positions: 99
+  six-language-challenge:
+    verdict: model-held-with-provider-limits
+    notes: >-
+      Every target index could be projected after repeated documents, unsafe
+      external paths, and absent language metadata became explicit evidence.
+      C# resolved target occurrences but emitted no enclosing ranges, so its
+      SCIP projection had no source-to-target dependency edges.
+    measurements:
+      rust-reference-facts: 3271
+      go-reference-facts: 264733
+      typescript-reference-facts: 433828
+      python-reference-facts: 225425
+      dart-reference-facts: 51901
+      csharp-reference-facts: 2381
+  coupling-analysis:
+    rating: GREEN
+    notes: >-
+      Direct degree, transitive reach, cycles, weak regions, and bridge
+      positions reproduce from stored nodes and evidence-backed edges. No
+      provider state or combined risk classification is required.
+  inspectable-json-storage:
+    rating: RED
+    notes: >-
+      Pretty JSON expanded the Rust and Go SCIP inputs by 9.5 and 8.9 times.
+      It is useful spike evidence but not a production storage design.
+  reuse-posture:
+    rating: YELLOW
+    notes: >-
+      SCIP schema and Rust bindings are suitable implementation inputs, and
+      compiler indexers should remain subprocesses. CodeQL engine terms,
+      scip-go's file-level Go notice, bsp4j and Eclipse CDT lineage, and
+      scip-dart's unlocked dependencies constrain broader reuse.
+
+conclusion: >-
+  Use a build-capsule provider architecture that preserves native evidence and
+  projects it into the versioned neutral graph. Keep SCIP as one augmented
+  transport adapter and tree-sitter as an independent syntax inventory and
+  fallback witness; neither is the foundational graph. Land the proven Rust
+  vertical slice first, then use Go to harden build variants and portability.
+  Do not trust coupling answers until the provider reports independent source
+  inventory, dispositions, diagnostics, uncertainty, and validation for the
+  configured build.
+
+next-steps:
+  - >-
+    Promote the build capsule, evidence snapshot, provider trait, typed unknown
+    reasons, and integrity rules into a versioned non-spike schema crate.
+  - >-
+    Implement the Rust build-capsule runner around rust-analyzer with Cargo
+    target, feature, build-script, procedural-macro, inventory, and diagnostic
+    capture.
+  - >-
+    Implement the Go provider as the first portability test, including module,
+    workspace, build-tag, package-variant, generated-source, and external-cache
+    accounting.
+  - >-
+    Design compact snapshot storage and versioned derived-report caching; keep
+    inspectable JSON only as an export and test fixture.
+  - >-
+    Define provider conformance fixtures for repeated documents, external paths,
+    ambiguity, missing source context, target collisions, and incomplete
+    dependency information across all six languages.
+  - >-
+    Audit locked scip-dart dependencies and required notice bundles before any
+    provider binary redistribution.
