@@ -572,7 +572,7 @@ fn add_relationship_edges(
     facts: &mut Vec<ReferenceFact>,
     edges: &mut BTreeMap<(String, String, EdgeKind), BTreeSet<String>>,
 ) {
-    for information in symbols {
+    for (information_index, information) in symbols.iter().enumerate() {
         let owner = SymbolKey::new(path, &information.symbol);
         let Some(from) = nodes.get(&owner) else {
             continue;
@@ -587,7 +587,7 @@ fn add_relationship_edges(
                     "relationship:{}",
                     digest(
                         format!(
-                            "{}\0{}\0{}\0{relationship_index}\0{kind:?}",
+                            "{}\0{}\0{}\0{information_index}\0{relationship_index}\0{kind:?}",
                             information.symbol, relationship.symbol, path,
                         )
                         .as_bytes()
@@ -1006,6 +1006,40 @@ mod tests {
 
         assert_eq!(graph.edges.len(), 1);
         assert_eq!(graph.edges[0].evidence.len(), 2);
+    }
+
+    #[test]
+    fn duplicate_symbol_relationships_retain_distinct_evidence_ids() {
+        let source = "sample pkg 1 amber().";
+        let target = "sample pkg 1 birch().";
+        let mut source_information = information(source, "amber", Kind::Function);
+        source_information.relationships.push(Relationship {
+            symbol: target.to_owned(),
+            is_reference: true,
+            ..Relationship::default()
+        });
+        let bytes = index(
+            vec![document(
+                "sample.rs",
+                vec![
+                    definition(source, [0, 3, 8], [0, 0, 1, 0]),
+                    definition(target, [2, 3, 8], [2, 0, 3, 0]),
+                ],
+                vec![
+                    source_information.clone(),
+                    source_information,
+                    information(target, "birch", Kind::Function),
+                ],
+            )],
+            vec![],
+        )
+        .write_to_bytes()
+        .unwrap();
+
+        let graph = provider(&bytes).produce(&bytes).unwrap();
+        assert_eq!(graph.edges.len(), 1);
+        assert_eq!(graph.edges[0].evidence.len(), 2);
+        assert_ne!(graph.edges[0].evidence[0], graph.edges[0].evidence[1]);
     }
 
     #[test]
