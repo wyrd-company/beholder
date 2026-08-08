@@ -201,6 +201,6 @@ before its coupling answers are trusted.
 The source-to-oracle comparison method and syntax completeness census are
 defined by the related SCIP and tree-sitter findings. The
 [validation evidence](validation-evidence.md) records regeneration inputs and
-the mutation evidence limit. The reference landscape, contract, and reuse
-assessment contain the primary sources and dependency details behind these
-conclusions.
+the Dart lock gap and mutation evidence limit. The reference landscape,
+contract, and reuse assessment contain the primary sources and dependency
+details behind these conclusions.

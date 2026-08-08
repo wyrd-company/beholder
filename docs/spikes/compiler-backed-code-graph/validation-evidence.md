@@ -24,16 +24,19 @@ The harness writes `oracle.scip`, `spike.scip`, `manifest.json`, and
 `/workspaces/references/scip-references/fixture-repos/`.
 
 The scratch manifests were not retained. This table preserves their commit
-identity fields so the pinned bytes can be regenerated from clean checkouts.
+identity fields. Five inputs can be regenerated from clean checkouts. Dart is
+hash-verifiable only: neither the provider nor corpus has a dependency lock,
+and the harness runs `dart pub get`, so the same bytes cannot be recreated
+deterministically.
 
-| Target | Corpus commit | Oracle source commit |
-| --- | --- | --- |
-| Rust | `45fb5465b421a7b72b654cc3d30a3dce9a54eea3` | `478b8936bb221e84718ba2aa90906c3b32dfd3c8` |
-| Go | `ab70f80a630cf36c931ad174d51396e07e0103a0` | `18c307a4ccef5654c866addb42a5e1f579dc4684` |
-| TypeScript | `b0836571a7dfb0c25e648764e47d97636b419fe8` | `891eb4293709a6a587bf4468dfa1b45a85182fd9` |
-| Python | `8a1820f1c38401fa02c8996a7a30e864561b80d3` | `8b60bbce1f2a4c7a517776cb395bbafb2e731e4f` |
-| Dart | `7161db1bb0be31f8b9bd4f68f575b80680988936` | `22a5bdb3c1cf6215117d2f406ae4cf0da685571e` |
-| C# | `2f4fc124dc42cd4f118c223015d5e716c0f08542` | `47884461a79839fb74c99e6a0a7978cd7eb62476` |
+| Target | Corpus commit | Oracle source commit | Reproduction |
+| --- | --- | --- | --- |
+| Rust | `45fb5465b421a7b72b654cc3d30a3dce9a54eea3` | `478b8936bb221e84718ba2aa90906c3b32dfd3c8` | Pinned |
+| Go | `ab70f80a630cf36c931ad174d51396e07e0103a0` | `18c307a4ccef5654c866addb42a5e1f579dc4684` | Pinned |
+| TypeScript | `b0836571a7dfb0c25e648764e47d97636b419fe8` | `891eb4293709a6a587bf4468dfa1b45a85182fd9` | Pinned |
+| Python | `8a1820f1c38401fa02c8996a7a30e864561b80d3` | `8b60bbce1f2a4c7a517776cb395bbafb2e731e4f` | Pinned |
+| Dart | `7161db1bb0be31f8b9bd4f68f575b80680988936` | `22a5bdb3c1cf6215117d2f406ae4cf0da685571e` | Non-deterministic without resolved locks |
+| C# | `2f4fc124dc42cd4f118c223015d5e716c0f08542` | `47884461a79839fb74c99e6a0a7978cd7eb62476` | Pinned |
 
 The validator source is pinned at
 `f7c0b174aea88b51dbeef1b583844577efb989e0`. The related findings record the
