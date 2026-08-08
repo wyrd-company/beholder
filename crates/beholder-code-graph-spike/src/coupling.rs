@@ -91,8 +91,12 @@ pub fn analyze(graph: &CodeGraph) -> CouplingReport {
         degree: degree
             .into_iter()
             .map(|(node, mut degree)| {
-                degree.incoming_reach = query.reachable(&node, Direction::Dependants);
-                degree.outgoing_reach = query.reachable(&node, Direction::Dependencies);
+                degree.incoming_reach = query
+                    .reachable(&node, Direction::Dependants)
+                    .expect("coupling node comes from validated graph");
+                degree.outgoing_reach = query
+                    .reachable(&node, Direction::Dependencies)
+                    .expect("coupling node comes from validated graph");
                 (node, degree)
             })
             .collect(),

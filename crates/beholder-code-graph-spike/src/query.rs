@@ -23,6 +23,7 @@ pub struct DependencyPath {
 
 pub struct GraphQuery<'a> {
     graph: &'a CodeGraph,
+    nodes: BTreeSet<&'a str>,
     outgoing: BTreeMap<&'a str, Vec<&'a Edge>>,
     incoming: BTreeMap<&'a str, Vec<&'a Edge>>,
 }
@@ -47,23 +48,29 @@ impl<'a> GraphQuery<'a> {
         }
         Self {
             graph,
+            nodes: graph.nodes.iter().map(|node| node.id.as_str()).collect(),
             outgoing,
             incoming,
         }
     }
 
-    pub fn direct(&self, node: &str, direction: Direction) -> Vec<DependencyPath> {
-        self.steps(node, direction)
-            .into_iter()
-            .map(|(next, edge)| DependencyPath {
-                nodes: vec![node.to_owned(), next.to_owned()],
-                edges: vec![edge.id.clone()],
-            })
-            .collect()
+    pub fn direct(&self, node: &str, direction: Direction) -> Option<Vec<DependencyPath>> {
+        self.nodes.contains(node).then(|| {
+            self.steps(node, direction)
+                .into_iter()
+                .map(|(next, edge)| DependencyPath {
+                    nodes: vec![node.to_owned(), next.to_owned()],
+                    edges: vec![edge.id.clone()],
+                })
+                .collect()
+        })
     }
 
     /// One deterministic shortest evidence path for every reachable node.
-    pub fn reachable(&self, start: &str, direction: Direction) -> Vec<DependencyPath> {
+    pub fn reachable(&self, start: &str, direction: Direction) -> Option<Vec<DependencyPath>> {
+        if !self.nodes.contains(start) {
+            return None;
+        }
         let mut queue = VecDeque::from([start.to_owned()]);
         let mut visited = BTreeSet::from([start.to_owned()]);
         let mut paths = BTreeMap::<String, DependencyPath>::new();
@@ -84,7 +91,7 @@ impl<'a> GraphQuery<'a> {
             }
         }
 
-        paths.into_values().collect()
+        Some(paths.into_values().collect())
     }
 
     fn steps(&self, node: &str, direction: Direction) -> Vec<(&'a str, &'a Edge)> {
@@ -120,11 +127,11 @@ mod tests {
         let query = GraphQuery::new(&graph);
 
         assert_eq!(
-            query.direct("amber", Direction::Dependencies)[0].nodes,
+            query.direct("amber", Direction::Dependencies).unwrap()[0].nodes,
             ["amber", "birch"]
         );
         assert_eq!(
-            query.direct("amber", Direction::Dependants)[0].nodes,
+            query.direct("amber", Direction::Dependants).unwrap()[0].nodes,
             ["amber", "cedar"]
         );
     }
@@ -138,12 +145,25 @@ mod tests {
             ("cedar", "elm"),
         ]);
         let query = GraphQuery::new(&graph);
-        let paths = query.reachable("amber", Direction::Dependencies);
+        let paths = query.reachable("amber", Direction::Dependencies).unwrap();
         let elm = paths
             .iter()
             .find(|path| path.nodes.last().map(String::as_str) == Some("elm"))
             .unwrap();
 
         assert_eq!(elm.nodes, ["amber", "birch", "elm"]);
+    }
+
+    #[test]
+    fn an_unknown_node_is_not_reported_as_an_empty_dependency_set() {
+        let graph = graph(&[("amber", "birch")]);
+        let query = GraphQuery::new(&graph);
+
+        assert_eq!(query.direct("missing", Direction::Dependencies), None);
+        assert_eq!(query.reachable("missing", Direction::Dependencies), None);
+        assert_eq!(
+            query.direct("birch", Direction::Dependencies),
+            Some(Vec::new())
+        );
     }
 }

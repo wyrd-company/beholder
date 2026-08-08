@@ -129,7 +129,8 @@ fn main() -> Result<()> {
                 query.reachable(&node, direction.into())
             } else {
                 query.direct(&node, direction.into())
-            };
+            }
+            .with_context(|| format!("unknown graph node {node}"))?;
             println!("{}", serde_json::to_string_pretty(&paths)?);
         }
         Command::Coupling { graph } => {
