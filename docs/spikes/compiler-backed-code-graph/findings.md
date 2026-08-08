@@ -106,8 +106,9 @@ requested roots changes the capsule. The adapter rejects an input digest
 mismatch. Graph validation rejects dangling nodes, dangling or empty evidence,
 empty ambiguity, outcome-to-scope contradictions, duplicate evidence
 identifiers, evidence that does not support its edge, contradictory knowledge
-or scope states, and capsule identity tampering. Source locations retain each
-provider document's UTF-8, UTF-16, UTF-32, or unknown position encoding.
+or scope states, edge-eligible evidence with no projected edge, and capsule
+identity tampering. Source locations retain each provider document's UTF-8,
+UTF-16, UTF-32, or unknown position encoding.
 
 SCIP repeated some TypeScript paths for several configured projects without a
 compilation-unit identifier. The adapter retains distinct evidence records but
@@ -142,12 +143,16 @@ compact reachability representation.
 
 ## Validation
 
-The prototype has 37 focused unit and integrity tests. Seventeen deliberate
+The prototype has 40 focused unit and integrity tests. Seventeen exploratory
 mutations were each killed by their named assertion. The killed guards covered
 provider digest binding, local identity, imports, ambiguity, external paths,
 capsule derivation and validation, query direction, shortest paths, cycles,
 weak regions, bridges, diagnostic retention, repeated evidence, external alias
 classification, and mandatory edge evidence.
+
+The mutation patches and failing logs were not retained. This observation is
+not independently reproducible and is not completion proof. The committed
+regression suite and repository gate are the durable validation evidence.
 
 The Rust snapshot was 3.49 MB from a 369 KB SCIP input. The Go snapshot was
 287.60 MB from a 32.24 MB SCIP input. Pretty JSON expansion was 9.5 times and
@@ -195,6 +200,7 @@ before its coupling answers are trusted.
 
 The source-to-oracle comparison method and syntax completeness census are
 defined by the related SCIP and tree-sitter findings. The
-[validation evidence](validation-evidence.md) records regeneration and mutation
-steps. The reference landscape, contract, and reuse assessment contain the
-primary sources and dependency details behind these conclusions.
+[validation evidence](validation-evidence.md) records regeneration inputs and
+the mutation evidence limit. The reference landscape, contract, and reuse
+assessment contain the primary sources and dependency details behind these
+conclusions.

@@ -55,6 +55,13 @@ non-secret value as build configuration.
 The provider output digest binds the capsule to the exact semantic evidence the
 adapter reads. An adapter refuses a digest mismatch.
 
+The build capsule identifier and snapshot identifier are distinct. The
+snapshot identifier hashes the complete neutral projection, including producer
+and adapter identity, nodes, facts, edges, diagnostics, and validation records.
+Reports name the snapshot identifier. Two adapter projections of one provider
+input therefore cannot share report-cache identity unless their stored content
+is byte-identical.
+
 ## Knowledge and provenance
 
 Every field that can be incomplete carries one of three knowledge states:
@@ -135,9 +142,10 @@ Edge kinds are `reference`, `import`, `implementation`, `type-definition`,
 `definition-alias`, and `provider-specific`. A provider-specific edge includes
 the provider's stable kind name.
 
-Repeated occurrences between the same source, target, and kind form one edge.
-The edge retains every supporting evidence location. Every edge endpoint names
-a stored node.
+Repeated occurrences between the same source, target, and kind form exactly one
+edge. The edge retains every supporting evidence location. Every edge-eligible
+fact appears in exactly one matching edge. Every edge endpoint names a stored
+node.
 
 ## Provider boundary
 
