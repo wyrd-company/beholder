@@ -67,7 +67,7 @@ Every node, relationship, unresolved reference, diagnostic, and validation
 record names its provider evidence. Projection never upgrades declared or
 unknown evidence into observed evidence.
 
-Evidence from compiler-backed providers, Symbolic Code Indexing Protocol
+Evidence from compiler-backed providers, SCIP Code Intelligence Protocol
 (SCIP) indexes, tree-sitter extraction, and future runtime sources can coexist.
 Each evidence item retains its producer and method. Consumers select an
 explicit evidence policy when several sources describe the same fact.
@@ -119,7 +119,8 @@ locations are valid and do not imply ambiguity.
 ## Reference facts and edges
 
 A reference fact records the source location, optional enclosing source symbol,
-raw provider target, provenance, and outcome:
+raw provider target, edge kind, provenance, and outcome. Each source location
+names its UTF-8, UTF-16, UTF-32, or unknown column encoding:
 
 - `resolved`: exactly one target is established;
 - `ambiguous`: a bounded candidate set is established;
@@ -176,6 +177,10 @@ ordering makes repeated queries byte-identical for one snapshot and policy.
 
 Queries accept an evidence policy. The result names the policy and build
 capsule. Unknown and ambiguous reference counts accompany exact paths.
+
+The spike implements one explicit policy, `all_stored_edges`, and includes it
+in every report. Selecting among configured policies remains a production
+schema and application programming interface requirement.
 
 ## Coupling analysis
 

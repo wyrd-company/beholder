@@ -5,6 +5,7 @@ relationships:
     - compiler-backed-code-graph-contract
     - compiler-backed-code-graph-reference-landscape
     - compiler-backed-code-graph-reuse-and-licensing
+    - compiler-backed-code-graph-validation-evidence
     - scip-tree-sitter-spike
 ---
 
@@ -14,7 +15,7 @@ relationships:
 
 A build-aware provider boundary and language-neutral evidence graph are viable.
 Providers must retain their compiler-native build model and uncertainty before
-projecting facts into the shared graph. Symbolic Code Indexing Protocol (SCIP)
+projecting facts into the shared graph. SCIP Code Intelligence Protocol (SCIP)
 is a useful transport adapter. It is not a sufficient build capsule, coverage
 model, or universal coupling graph.
 
@@ -63,6 +64,12 @@ The counts are evidence about each provider and fixture. They are not comparable
 language quality scores. The fixtures differ greatly in size, dependency
 closure, configuration, and generated code.
 
+The 638-node vertical slice used a fresh index of `tagver` revision
+`45fb5465b421a7b72b654cc3d30a3dce9a54eea3`. The
+604-node Rust matrix row used the pinned six-language oracle. Their exact
+revision, input digests, sizes, and reproduction commands are recorded in the
+[validation evidence](validation-evidence.md).
+
 All six source indexes failed upstream `scip lint`. The observed issue-line
 counts were Rust 1,754, Go 51,964, TypeScript 302,319, Python 79,321, Dart
 1,055, and C# 1,264. Common causes were missing external `SymbolInformation`,
@@ -98,7 +105,9 @@ Changing repository, revision, configuration, provider input, producer, or
 requested roots changes the capsule. The adapter rejects an input digest
 mismatch. Graph validation rejects dangling nodes, dangling or empty evidence,
 empty ambiguity, outcome-to-scope contradictions, duplicate evidence
-identifiers, and capsule identity tampering.
+identifiers, evidence that does not support its edge, contradictory knowledge
+or scope states, and capsule identity tampering. Source locations retain each
+provider document's UTF-8, UTF-16, UTF-32, or unknown position encoding.
 
 SCIP repeated some TypeScript paths for several configured projects without a
 compilation-unit identifier. The adapter retains distinct evidence records but
@@ -111,7 +120,11 @@ workspace union only.
 
 Direct dependency and dependant queries return edge-bearing paths. Transitive
 queries use deterministic breadth-first search and return one shortest evidence
-path per reachable node. Coupling output includes:
+path per reachable node. Query and coupling reports name the snapshot, the
+`all_stored_edges` evidence policy, uncertainty counts, and the stored node and
+edge sets required by the report. Arbitrary policy selection remains a
+production requirement; the spike implements only the named all-stored policy.
+Coupling output includes:
 
 - distinct incoming and outgoing neighbours plus their evidence edges;
 - transitive reach as inspectable paths;
@@ -129,7 +142,7 @@ compact reachability representation.
 
 ## Validation
 
-The prototype has 32 focused unit and integrity tests. Sixteen deliberate
+The prototype has 37 focused unit and integrity tests. Seventeen deliberate
 mutations were each killed by their named assertion. The killed guards covered
 provider digest binding, local identity, imports, ambiguity, external paths,
 capsule derivation and validation, query direction, shortest paths, cycles,
@@ -181,6 +194,7 @@ before its coupling answers are trusted.
 | C# | `7cfa3ca0fb9a1f2a15c8f3fa6a91a1d587701e5b474de01f5908954d0f2dcd99` | 363,448 |
 
 The source-to-oracle comparison method and syntax completeness census are
-defined by the related SCIP and tree-sitter findings. The reference landscape,
-contract, and reuse assessment contain the primary sources and dependency
-details behind these conclusions.
+defined by the related SCIP and tree-sitter findings. The
+[validation evidence](validation-evidence.md) records regeneration and mutation
+steps. The reference landscape, contract, and reuse assessment contain the
+primary sources and dependency details behind these conclusions.

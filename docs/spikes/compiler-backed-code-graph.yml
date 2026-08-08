@@ -156,6 +156,7 @@ environment:
     - /workspaces/tools/beholder/docs/overview.md
     - /workspaces/tools/beholder/docs/resolver-accuracy.md
     - /workspaces/references/scip-spike
+    - docs/spikes/compiler-backed-code-graph/validation-evidence.md
     - /workspaces/context/refinery-ontology/realization/design/spike.yml
     - >-
       Official documentation, source repositories, specifications, and
