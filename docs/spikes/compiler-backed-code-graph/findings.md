@@ -83,11 +83,11 @@ from upstream transport lint.
 
 ## Model result
 
-The shared model held across the six outputs after four provider assumptions
-became explicit:
+The shared model remained viable across the six outputs after four provider
+assumptions became explicit:
 
-- document-local keys include document identity and repeated provider documents
-  retain distinct evidence identifiers;
+- document-local keys include relative document identity and repeated provider
+  documents retain distinct evidence identifiers;
 - paths outside repository root become opaque external dispositions rather
   than machine-local graph locations;
 - absent language metadata becomes `unknown`; and
@@ -99,6 +99,13 @@ requested roots changes the capsule. The adapter rejects an input digest
 mismatch. Graph validation rejects dangling nodes, dangling or empty evidence,
 empty ambiguity, outcome-to-scope contradictions, duplicate evidence
 identifiers, and capsule identity tampering.
+
+SCIP repeated some TypeScript paths for several configured projects without a
+compilation-unit identifier. The adapter retains distinct evidence records but
+projects same-path local symbols together. The production schema must link each
+definition, reference, and local symbol to a compilation unit before it can
+compare configuration variants. Until then, repeated-path evidence supports a
+workspace union only.
 
 ## Query and coupling result
 
@@ -114,7 +121,11 @@ path per reachable node. Coupling output includes:
   and incident evidence.
 
 These values are projections. The provider snapshot remains the evidence source.
-No combined risk score is part of the graph contract.
+No combined risk score is part of the graph contract. The proof ran full
+coupling analysis on the 638-node Rust graph. Its per-node transitive paths are
+an all-pairs expansion and were not run on the 47,473-node Go or 132,129-node
+TypeScript graphs. Production analysis must query reach on demand or store a
+compact reachability representation.
 
 ## Validation
 

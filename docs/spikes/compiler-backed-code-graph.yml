@@ -247,12 +247,14 @@ findings:
       extraction, transport adaptation, graph projection, and derived analysis
       remain separate responsibilities.
   neutral-model:
-    rating: GREEN
+    rating: YELLOW
     notes: >-
       The model represented compiler-backed output from Rust, Go, TypeScript,
-      Python, Dart, and C#. Snapshot-local identity, document instances, typed
-      outcomes, explicit scope, provenance, diagnostics, and validation were
-      necessary to prevent unsafe joins and false completeness.
+      Python, Dart, and C#. Snapshot-local identity, document evidence instances,
+      typed outcomes, explicit scope, provenance, diagnostics, and validation were
+      necessary to prevent unsafe joins and false completeness. The production
+      schema must link local symbols and evidence to compilation units before
+      repeated paths from configured project variants can remain distinct.
   scip-adapter:
     rating: YELLOW
     notes: >-
@@ -292,11 +294,13 @@ findings:
       dart-reference-facts: 51901
       csharp-reference-facts: 2381
   coupling-analysis:
-    rating: GREEN
+    rating: YELLOW
     notes: >-
       Direct degree, transitive reach, cycles, weak regions, and bridge
       positions reproduce from stored nodes and evidence-backed edges. No
-      provider state or combined risk classification is required.
+      provider state or combined risk classification is required. The full
+      report was proved on 638 nodes; its all-pairs transitive-path expansion
+      needs an on-demand or compact design before large providers use it.
   inspectable-json-storage:
     rating: RED
     notes: >-
@@ -337,8 +341,8 @@ next-steps:
     inspectable JSON only as an export and test fixture.
   - >-
     Define provider conformance fixtures for repeated documents, external paths,
-    ambiguity, missing source context, target collisions, and incomplete
-    dependency information across all six languages.
+    compilation-unit variants, ambiguity, missing source context, target
+    collisions, and incomplete dependency information across all six languages.
   - >-
     Audit locked scip-dart dependencies and required notice bundles before any
     provider binary redistribution.
