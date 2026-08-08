@@ -296,7 +296,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
 
     let mut facts = Vec::new();
     let mut edge_evidence = BTreeMap::<(String, String, EdgeKind), BTreeSet<String>>::new();
-    for document in &index.documents {
+    for (document_index, document) in index.documents.iter().enumerate() {
         if !is_safe_path(&document.relative_path) {
             continue;
         }
@@ -324,7 +324,13 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
             let raw_target = raw_targets.join(" | ");
             let fact_id = format!(
                 "reference:{}",
-                digest(format!("{}\0{:?}\0{raw_target}", location.path, location.range).as_bytes())
+                digest(
+                    format!(
+                        "{document_index}\0{}\0{:?}\0{raw_target}",
+                        location.path, location.range
+                    )
+                    .as_bytes()
+                )
             );
             let outcome = if let Some(error) = resolution_error {
                 diagnostics.push(Diagnostic {
@@ -383,11 +389,12 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
         }
     }
 
-    for document in &index.documents {
+    for (document_index, document) in index.documents.iter().enumerate() {
         if !is_safe_path(&document.relative_path) {
             continue;
         }
         add_relationship_edges(
+            document_index,
             &document.relative_path,
             &document.symbols,
             &node_map,
@@ -397,6 +404,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
         );
     }
     add_relationship_edges(
+        usize::MAX,
         "",
         &index.external_symbols,
         &node_map,
@@ -565,6 +573,7 @@ fn resolve_key(
 }
 
 fn add_relationship_edges(
+    document_index: usize,
     path: &str,
     symbols: &[SymbolInformation],
     nodes: &BTreeMap<SymbolKey, String>,
@@ -587,7 +596,7 @@ fn add_relationship_edges(
                     "relationship:{}",
                     digest(
                         format!(
-                            "{}\0{}\0{}\0{information_index}\0{relationship_index}\0{kind:?}",
+                            "{document_index}\0{}\0{}\0{}\0{information_index}\0{relationship_index}\0{kind:?}",
                             information.symbol, relationship.symbol, path,
                         )
                         .as_bytes()
@@ -1035,6 +1044,32 @@ mod tests {
         )
         .write_to_bytes()
         .unwrap();
+
+        let graph = provider(&bytes).produce(&bytes).unwrap();
+        assert_eq!(graph.edges.len(), 1);
+        assert_eq!(graph.edges[0].evidence.len(), 2);
+        assert_ne!(graph.edges[0].evidence[0], graph.edges[0].evidence[1]);
+    }
+
+    #[test]
+    fn duplicate_document_records_retain_distinct_evidence_ids() {
+        let source = "sample pkg 1 amber().";
+        let target = "sample pkg 1 birch().";
+        let document = document(
+            "sample.rs",
+            vec![
+                definition(source, [0, 3, 8], [0, 0, 2, 0]),
+                definition(target, [3, 3, 8], [3, 0, 4, 0]),
+                reference(target, [1, 3, 8], 0),
+            ],
+            vec![
+                information(source, "amber", Kind::Function),
+                information(target, "birch", Kind::Function),
+            ],
+        );
+        let bytes = index(vec![document.clone(), document], vec![])
+            .write_to_bytes()
+            .unwrap();
 
         let graph = provider(&bytes).produce(&bytes).unwrap();
         assert_eq!(graph.edges.len(), 1);
