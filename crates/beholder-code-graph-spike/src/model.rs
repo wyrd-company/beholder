@@ -26,6 +26,12 @@ pub struct CodeGraph {
 }
 
 impl CodeGraph {
+    /// Identify this exact neutral projection, including adapter and evidence content.
+    pub fn snapshot_id(&self) -> String {
+        let bytes = serde_json::to_vec(self).expect("validated graph records always serialize");
+        format!("{:x}", Sha256::digest(bytes))
+    }
+
     pub fn validate(&self) -> Result<(), IntegrityError> {
         if self.schema_version != SCHEMA_VERSION {
             return Err(IntegrityError::UnsupportedSchema(self.schema_version));
@@ -123,9 +129,14 @@ impl CodeGraph {
         }
 
         let mut edge_ids = BTreeSet::new();
+        let mut edge_shapes = BTreeSet::new();
+        let mut projected_evidence = BTreeMap::new();
         for edge in &self.edges {
             if !edge_ids.insert(edge.id.as_str()) {
                 return Err(IntegrityError::DuplicateEdge);
+            }
+            if !edge_shapes.insert((&edge.from, &edge.to, &edge.kind)) {
+                return Err(IntegrityError::DuplicateProjection(edge.id.clone()));
             }
             if !nodes.contains(edge.from.as_str()) {
                 return Err(IntegrityError::DanglingNode(edge.from.clone()));
@@ -152,6 +163,18 @@ impl CodeGraph {
                 {
                     return Err(IntegrityError::UnsupportedEvidence(evidence_id.clone()));
                 }
+                *projected_evidence.entry(evidence_id.as_str()).or_insert(0) += 1;
+            }
+        }
+        for fact in &self.references {
+            if fact.source.is_some()
+                && matches!(
+                    fact.outcome,
+                    Resolution::Resolved { .. } | Resolution::External { .. }
+                )
+                && projected_evidence.get(fact.id.as_str()) != Some(&1)
+            {
+                return Err(IntegrityError::MissingProjection(fact.id.clone()));
             }
         }
         for node in &self.nodes {
@@ -177,7 +200,7 @@ pub struct BuildIdentity {
     pub units: Knowledge<Vec<CompilationUnit>>,
 }
 
-/// Compute the snapshot identity from normalized, machine-independent capsule fields.
+/// Compute the build capsule identity from normalized, machine-independent fields.
 pub fn capsule_id(
     build: &BuildIdentity,
     producer: &Producer,
@@ -546,10 +569,12 @@ pub enum IntegrityError {
     BuildIdentityMismatch,
     DuplicateNode,
     DuplicateEdge,
+    DuplicateProjection(String),
     DuplicateReference(String),
     DanglingNode(String),
     DanglingEvidence(String),
     UnsupportedEvidence(String),
+    MissingProjection(String),
     MissingEvidence(String),
     EmptyCandidateSet(String),
     ResolutionScopeMismatch(String),
@@ -568,6 +593,9 @@ impl std::fmt::Display for IntegrityError {
             Self::BuildIdentityMismatch => formatter.write_str("build capsule identity mismatch"),
             Self::DuplicateNode => formatter.write_str("duplicate node id"),
             Self::DuplicateEdge => formatter.write_str("duplicate edge id"),
+            Self::DuplicateProjection(edge) => {
+                write!(formatter, "duplicate logical edge projection {edge}")
+            }
             Self::DuplicateReference(reference) => {
                 write!(formatter, "duplicate reference id {reference}")
             }
@@ -577,6 +605,9 @@ impl std::fmt::Display for IntegrityError {
             }
             Self::UnsupportedEvidence(evidence) => {
                 write!(formatter, "fact does not support edge {evidence}")
+            }
+            Self::MissingProjection(evidence) => {
+                write!(formatter, "edge-eligible fact has no edge {evidence}")
             }
             Self::MissingEvidence(edge) => write!(formatter, "edge has no evidence {edge}"),
             Self::EmptyCandidateSet(reference) => {
@@ -663,6 +694,42 @@ mod tests {
             graph.validate(),
             Err(IntegrityError::UnsupportedEvidence(
                 "reference-0".to_owned()
+            ))
+        );
+    }
+
+    #[test]
+    fn integrity_rejects_an_edge_eligible_fact_without_an_edge() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.edges.clear();
+
+        assert_eq!(
+            graph.validate(),
+            Err(IntegrityError::MissingProjection("reference-0".to_owned()))
+        );
+    }
+
+    #[test]
+    fn snapshot_identity_binds_the_projected_graph_content() {
+        let graph = graph(&[("amber", "birch")]);
+        let first = graph.snapshot_id();
+        let mut changed = graph.clone();
+        changed.nodes[0].display_name = "changed".to_owned();
+
+        assert_ne!(first, changed.snapshot_id());
+    }
+
+    #[test]
+    fn integrity_rejects_duplicate_logical_edge_projections() {
+        let mut graph = graph(&[("amber", "birch")]);
+        let mut duplicate = graph.edges[0].clone();
+        duplicate.id = "duplicate-edge".to_owned();
+        graph.edges.push(duplicate);
+
+        assert_eq!(
+            graph.validate(),
+            Err(IntegrityError::DuplicateProjection(
+                "duplicate-edge".to_owned()
             ))
         );
     }

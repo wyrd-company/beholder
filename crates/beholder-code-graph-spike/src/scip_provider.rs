@@ -24,6 +24,7 @@ use crate::model::{
 use crate::provider::Provider;
 
 const PROVIDER: &str = "scip";
+const SCIP_TRANSPORT_VERSION: &str = "0.9.0";
 
 #[derive(Clone, Debug)]
 pub struct ScipProvider {
@@ -470,7 +471,7 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
     graph.validations.push(Validation {
         name: "graph_integrity".to_owned(),
         status: ValidationStatus::Passed,
-        details: "every edge names stored nodes and evidence".to_owned(),
+        details: "every edge-eligible fact has exactly one evidence-backed projection".to_owned(),
         provenance: provenance("adapter_validation"),
     });
     Ok(graph)
@@ -492,13 +493,20 @@ fn producer(index: &Index) -> Producer {
             .filter(|item| !item.arguments.is_empty())
             .map(|item| Knowledge::observed(item.arguments.clone()))
             .unwrap_or_else(Knowledge::unknown),
-        input_format: "scip".to_owned(),
+        input_format: format!(
+            "scip@{SCIP_TRANSPORT_VERSION};beholder-adapter@{}",
+            env!("CARGO_PKG_VERSION")
+        ),
     }
 }
 
 fn is_safe_path(path: &str) -> bool {
+    let bytes = path.as_bytes();
+    let has_windows_drive_root =
+        bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && bytes[2] == b'/';
     !path.is_empty()
         && !path.starts_with('/')
+        && !has_windows_drive_root
         && !path.contains('\\')
         && !path
             .split('/')
@@ -1221,22 +1229,24 @@ mod tests {
 
     #[test]
     fn document_path_outside_root_is_opaque_external_scope() {
-        let bytes = index(
-            vec![document(
-                "../outside.rs",
-                vec![definition("local 0", [0, 0, 1], [0, 0, 0, 1])],
+        for unsafe_path in ["../outside.rs", "C:/Users/example/outside.rs"] {
+            let bytes = index(
+                vec![document(
+                    unsafe_path,
+                    vec![definition("local 0", [0, 0, 1], [0, 0, 0, 1])],
+                    vec![],
+                )],
                 vec![],
-            )],
-            vec![],
-        )
-        .write_to_bytes()
-        .unwrap();
+            )
+            .write_to_bytes()
+            .unwrap();
 
-        let graph = provider(&bytes).produce(&bytes).unwrap();
-        assert!(graph.nodes.is_empty());
-        assert_eq!(graph.scope.external_documents.len(), 1);
-        assert!(graph.scope.external_documents[0].starts_with("external:"));
-        assert!(!graph.scope.external_documents[0].contains("outside"));
+            let graph = provider(&bytes).produce(&bytes).unwrap();
+            assert!(graph.nodes.is_empty());
+            assert_eq!(graph.scope.external_documents.len(), 1);
+            assert!(graph.scope.external_documents[0].starts_with("external:"));
+            assert!(!graph.scope.external_documents[0].contains("outside"));
+        }
     }
 
     #[test]

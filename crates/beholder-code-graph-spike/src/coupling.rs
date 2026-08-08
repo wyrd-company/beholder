@@ -95,7 +95,7 @@ pub fn analyze(graph: &CodeGraph) -> CouplingReport {
 
     CouplingReport {
         schema_version: graph.schema_version,
-        snapshot_id: graph.build.id.clone(),
+        snapshot_id: graph.snapshot_id(),
         evidence_policy: EvidencePolicy::all_stored(graph),
         uncertainty: UncertaintyCounts::from(graph),
         node_set: graph.nodes.iter().map(|node| node.id.clone()).collect(),
@@ -370,7 +370,7 @@ mod tests {
         let graph = graph(&[("amber", "birch"), ("birch", "cedar")]);
         let report = analyze(&graph);
 
-        assert_eq!(report.snapshot_id, graph.build.id);
+        assert_eq!(report.snapshot_id, graph.snapshot_id());
         assert_eq!(report.evidence_policy.name, "all_stored_edges");
         assert_eq!(report.node_set, ["amber", "birch", "cedar"]);
         assert_eq!(report.edge_set, ["edge-0", "edge-1"]);

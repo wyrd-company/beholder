@@ -120,7 +120,7 @@ impl<'a> GraphQuery<'a> {
         }?;
         Some(QueryReport {
             schema_version: self.graph.schema_version,
-            snapshot_id: self.graph.build.id.clone(),
+            snapshot_id: self.graph.snapshot_id(),
             evidence_policy: EvidencePolicy::all_stored(self.graph),
             uncertainty: UncertaintyCounts::from(self.graph),
             start: start.to_owned(),
@@ -210,7 +210,7 @@ mod tests {
             .report("amber", Direction::Dependencies, false)
             .unwrap();
 
-        assert_eq!(report.snapshot_id, graph.build.id);
+        assert_eq!(report.snapshot_id, graph.snapshot_id());
         assert_eq!(report.evidence_policy.name, "all_stored_edges");
         assert_eq!(report.uncertainty.resolved, 1);
         assert_eq!(report.paths.len(), 1);
