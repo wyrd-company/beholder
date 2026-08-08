@@ -98,6 +98,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "beholder-code-graph-spike"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "protobuf",
+ "scip",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "beholder-oracle"
 version = "0.1.0"
 dependencies = [

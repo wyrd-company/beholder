@@ -1,0 +1,26 @@
+# ---
+# relationships:
+#   implements: compiler-backed-code-graph
+# ---
+
+[package]
+name = "beholder-code-graph-spike"
+description = "Experimental compiler-backed code graph provider and consumer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+clap = { version = "4", features = ["derive"] }
+protobuf = "3"
+scip = "0.9"
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

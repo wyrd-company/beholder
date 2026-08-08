@@ -1,5 +1,15 @@
+# ---
+# relationships:
+#   implements: compiler-backed-code-graph
+# ---
+
 [workspace]
-members = ["crates/beholder", "crates/beholder-cli", "crates/beholder-oracle"]
+members = [
+    "crates/beholder",
+    "crates/beholder-cli",
+    "crates/beholder-code-graph-spike",
+    "crates/beholder-oracle",
+]
 resolver = "2"
 
 [workspace.package]
