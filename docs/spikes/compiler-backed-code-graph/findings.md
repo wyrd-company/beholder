@@ -129,7 +129,7 @@ compact reachability representation.
 
 ## Validation
 
-The prototype has 31 focused unit and integrity tests. Sixteen deliberate
+The prototype has 32 focused unit and integrity tests. Sixteen deliberate
 mutations were each killed by their named assertion. The killed guards covered
 provider digest binding, local identity, imports, ambiguity, external paths,
 capsule derivation and validation, query direction, shortest paths, cycles,
