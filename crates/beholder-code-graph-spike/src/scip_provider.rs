@@ -15,7 +15,8 @@ use sha2::{Digest, Sha256};
 use crate::model::{
     capsule_id, AnalyzedScope, BuildIdentity, CodeGraph, Diagnostic, DiagnosticSeverity, Edge,
     EdgeKind, Knowledge, Location, Node, NodeKind, NodeScope, Producer, Provenance, ReferenceFact,
-    Resolution, SourceRange, Validation, ValidationStatus, SCHEMA_VERSION,
+    Resolution, SourceRange, UnknownReason, UnknownReasonKind, Validation, ValidationStatus,
+    SCHEMA_VERSION,
 };
 use crate::provider::Provider;
 
@@ -343,7 +344,10 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                     provenance: provenance("adapter_diagnostic"),
                 });
                 Resolution::Unknown {
-                    reason: "definition relationship cycle".to_owned(),
+                    reason: UnknownReason {
+                        kind: UnknownReasonKind::DefinitionCycle,
+                        details: "definition relationship cycle".to_owned(),
+                    },
                 }
             } else if candidates.len() > 1 {
                 Resolution::Ambiguous {
@@ -373,11 +377,17 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
                 }
             } else if targets_are_external(&raw_targets, &document.relative_path, &external) {
                 Resolution::Unknown {
-                    reason: "external target has no symbol information".to_owned(),
+                    reason: UnknownReason {
+                        kind: UnknownReasonKind::ExternalWithoutInformation,
+                        details: "external target has no symbol information".to_owned(),
+                    },
                 }
             } else {
                 Resolution::Unknown {
-                    reason: format!("target is absent from analyzed scope: {raw_target}"),
+                    reason: UnknownReason {
+                        kind: UnknownReasonKind::AbsentFromScope,
+                        details: format!("target is absent from analyzed scope: {raw_target}"),
+                    },
                 }
             };
             facts.push(ReferenceFact {
@@ -1115,7 +1125,9 @@ mod tests {
             .any(|fact| matches!(fact.outcome, Resolution::External { .. })));
         assert!(graph.references.iter().any(|fact| matches!(
             fact.outcome,
-            Resolution::Unknown { ref reason } if reason.contains("absent")
+            Resolution::Unknown { ref reason }
+                if reason.kind == UnknownReasonKind::AbsentFromScope
+                    && reason.details.contains("absent")
         )));
         assert_eq!(graph.edges.len(), 1, "external facts remain graph edges");
     }

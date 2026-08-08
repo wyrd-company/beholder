@@ -35,6 +35,11 @@ impl CodeGraph {
             .iter()
             .map(|node| node.id.as_str())
             .collect::<BTreeSet<_>>();
+        let node_scopes = self
+            .nodes
+            .iter()
+            .map(|node| (node.id.as_str(), node.scope))
+            .collect::<BTreeMap<_, _>>();
         if nodes.len() != self.nodes.len() {
             return Err(IntegrityError::DuplicateNode);
         }
@@ -70,10 +75,24 @@ impl CodeGraph {
                 ));
             }
             let targets = match &fact.outcome {
-                Resolution::Resolved { node } | Resolution::External { node } => {
+                Resolution::Resolved { node } => {
+                    if node_scopes.get(node.as_str()) == Some(&NodeScope::External) {
+                        return Err(IntegrityError::ResolutionScopeMismatch(fact.id.clone()));
+                    }
                     std::slice::from_ref(node)
                 }
-                Resolution::Ambiguous { candidates } => candidates.as_slice(),
+                Resolution::External { node } => {
+                    if node_scopes.get(node.as_str()) != Some(&NodeScope::External) {
+                        return Err(IntegrityError::ResolutionScopeMismatch(fact.id.clone()));
+                    }
+                    std::slice::from_ref(node)
+                }
+                Resolution::Ambiguous { candidates } => {
+                    if candidates.is_empty() {
+                        return Err(IntegrityError::EmptyCandidateSet(fact.id.clone()));
+                    }
+                    candidates.as_slice()
+                }
                 Resolution::Unknown { .. } => &[],
             };
             for target in targets {
@@ -303,7 +322,22 @@ pub enum Resolution {
     Resolved { node: String },
     Ambiguous { candidates: Vec<String> },
     External { node: String },
-    Unknown { reason: String },
+    Unknown { reason: UnknownReason },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnknownReason {
+    pub kind: UnknownReasonKind,
+    pub details: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UnknownReasonKind {
+    AbsentFromScope,
+    ExternalWithoutInformation,
+    DefinitionCycle,
+    ProviderOmission,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -383,6 +417,8 @@ pub enum IntegrityError {
     DanglingNode(String),
     DanglingEvidence(String),
     MissingEvidence(String),
+    EmptyCandidateSet(String),
+    ResolutionScopeMismatch(String),
 }
 
 impl std::fmt::Display for IntegrityError {
@@ -400,6 +436,18 @@ impl std::fmt::Display for IntegrityError {
                 write!(formatter, "edge names missing evidence {evidence}")
             }
             Self::MissingEvidence(edge) => write!(formatter, "edge has no evidence {edge}"),
+            Self::EmptyCandidateSet(reference) => {
+                write!(
+                    formatter,
+                    "ambiguous reference has no candidates {reference}"
+                )
+            }
+            Self::ResolutionScopeMismatch(reference) => {
+                write!(
+                    formatter,
+                    "reference outcome contradicts node scope {reference}"
+                )
+            }
         }
     }
 }

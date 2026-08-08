@@ -161,6 +161,30 @@ mod tests {
     }
 
     #[test]
+    fn graph_integrity_rejects_empty_ambiguity() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.references[0].outcome = Resolution::Ambiguous {
+            candidates: Vec::new(),
+        };
+        assert!(matches!(
+            graph.validate(),
+            Err(crate::model::IntegrityError::EmptyCandidateSet(_))
+        ));
+    }
+
+    #[test]
+    fn graph_integrity_checks_external_outcome_against_node_scope() {
+        let mut graph = graph(&[("amber", "birch")]);
+        graph.references[0].outcome = Resolution::External {
+            node: "birch".to_owned(),
+        };
+        assert!(matches!(
+            graph.validate(),
+            Err(crate::model::IntegrityError::ResolutionScopeMismatch(_))
+        ));
+    }
+
+    #[test]
     fn provider_specific_edge_kind_keeps_its_stable_name() {
         let kind = EdgeKind::ProviderSpecific {
             kind: "sample.stable-kind".to_owned(),
