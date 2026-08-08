@@ -1,0 +1,237 @@
+$schema: https://refinery.systems/ontology/spike
+title: Compiler-backed code graph providers and model
+
+relationships: {}
+
+objective:
+  - >-
+    Which existing systems, research, and commercial tools have solved useful
+    parts of build capture, semantic extraction, code graph modeling, or
+    coupling analysis?
+  - >-
+    Which provider patterns can obtain compiler-resolved symbols and
+    relationships from a configured build without binding Beholder to one
+    language or compiler architecture?
+  - >-
+    What language-neutral code graph model preserves the detail needed to
+    answer direct dependency, transitive dependency, and coupling questions at
+    type, function, method, and member boundaries?
+  - >-
+    What coverage, provenance, and uncertainty must accompany the graph so
+    that every answer states which build and which known evidence support it?
+  - >-
+    Which concepts, interfaces, schemas, tests, or implementations are
+    suitable for reuse after their licenses and transitive dependencies are
+    examined?
+  - >-
+    Can a working provider and consumer prove the proposed boundary against a
+    real build and expose Beholder analysis without compiler-specific
+    knowledge?
+
+background:
+  current-design: >-
+    Beholder is a structural index of a codebase. It discovers named code
+    symbols, measures cognitive complexity, resolves reference relationships,
+    and derives fan-in, fan-out, cohesion, and change-oriented analysis. Its
+    built-in resolver uses tree-sitter syntax, imports, qualifiers, and naming
+    heuristics. It can also compare its relationships with externally resolved
+    indexes. The current graph records useful evidence, but it lacks the type
+    information needed to resolve many method calls and other language
+    semantics reliably.
+  problems:
+    - >-
+      A syntax-only resolver cannot reliably determine receiver types,
+      overloads, trait or interface dispatch, generated symbols, conditional
+      compilation, or whether an imported name belongs to the workspace.
+    - >-
+      A compiler-backed tool can still describe only the files and
+      configuration it analyzed. Existing semantic indexes also differ in
+      document coverage, relationship detail, validation, and treatment of
+      generated or external code.
+    - >-
+      The possible solution space extends beyond build plugins and language
+      servers. Compiler services, build tracing, bytecode analysis, security
+      databases, code property graphs, architecture tools, research systems,
+      and proprietary products each address different parts of the problem.
+    - >-
+      Some useful references are closed source or use licenses that may
+      constrain reuse. Architectural learning, behavioral comparison, schema
+      reuse, and code reuse require different evidence and different license
+      treatment.
+    - >-
+      A graph designed around one compiler can hide language-specific
+      assumptions inside its supposedly shared symbol identity, edge kinds,
+      build model, or completeness claims.
+
+scope:
+  target-languages:
+    - Rust
+    - Go
+    - TypeScript
+    - Python
+    - Dart
+    - C#
+  target-expectation: >-
+    All six languages are first-class targets for the code graph model and
+    provider architecture. The spike selects one end-to-end provider based on
+    the strength of evidence it can produce, then challenges the shared model
+    against representative semantic output from every target language. Its
+    conclusion identifies a viable acquisition path and explicit limits for
+    each language.
+  language-context:
+    rust: >-
+      Rust analysis must account for Cargo workspaces and targets, features and
+      conditional compilation, macro expansion, traits, generics, and method
+      dispatch.
+    go: >-
+      Go analysis must account for modules and workspaces, build constraints,
+      package variants, interfaces, method sets, embedding, and generated code.
+    typescript: >-
+      TypeScript analysis must account for tsconfig projects and references,
+      monorepo package resolution, declaration merging, overloads, structural
+      typing, generated declarations, and type-only relationships.
+    python: >-
+      Python analysis must account for interpreter environments, import and
+      package resolution, type annotations and stubs, and behavior that static
+      type checkers cannot resolve because it is determined at runtime.
+    dart: >-
+      Dart analysis must account for pub workspaces, Dart and Flutter build
+      contexts, conditional imports, libraries and parts, extensions, generics,
+      and generated code.
+    csharp: >-
+      C# analysis must account for .NET and MSBuild project graphs, target
+      frameworks, project and assembly references, source generators, partial
+      declarations, overloads, generics, interfaces, and virtual dispatch.
+
+ideas:
+  - >-
+    Separate the problem into build capture, semantic extraction, graph
+    representation, and analysis. Evaluate references against the part they
+    solve instead of requiring one project to solve all four.
+  - >-
+    Survey compiler and intermediate-representation tooling, build and
+    incremental-computation systems, language servers and IDE indexes,
+    semantic index formats, static and security analysis systems, architecture
+    and coupling tools, bytecode analyzers, graph query systems, academic work,
+    and documented commercial behavior.
+  - >-
+    Classify each reference as conceptual, behavioral, or
+    implementation-level. Concepts can inform the design; behavior can supply
+    comparison cases; schemas, tests, libraries, or code become implementation
+    inputs only after license review.
+  - >-
+    Treat compiler plugins, build tasks, build interception, compilation
+    databases, build servers, semantic workspaces, compiler output readers, and
+    standalone analyzers as provider candidates behind one contract.
+  - >-
+    Model every compilation input as code. Project purpose is not part of the
+    foundational graph; the configured build determines which code appears.
+  - >-
+    Keep observed facts separate from derived analysis. Providers emit
+    definitions, relationships, locations, build identity, diagnostics, and
+    unresolved cases. Beholder derives dependency and coupling measurements
+    from those records.
+  - >-
+    Select the first end-to-end provider after the reference review. Exercise
+    the shared model against representative semantic output from every target
+    language before accepting any compiler-specific concept as foundational.
+  - >-
+    Retain SCIP and tree-sitter only when the evidence shows that they remain
+    useful providers, fallbacks, validation sources, or syntax inputs.
+
+environment:
+  location: /workspaces/worktrees/beholder/compiler-backed-code-graph
+  tools:
+    - Beholder Rust workspace and command-line interface
+    - Git
+    - Task
+    - Compiler and build toolchains selected by the reference review
+    - >-
+      Upstream validation and license inspection commands supplied by each
+      candidate project
+  resources:
+    - /workspaces/tools/beholder
+    - /workspaces/tools/beholder/docs/overview.md
+    - /workspaces/tools/beholder/docs/resolver-accuracy.md
+    - /workspaces/references/scip-spike
+    - /workspaces/context/refinery-ontology/realization/design/spike.yml
+    - >-
+      Official documentation, source repositories, specifications, and
+      published papers for candidate references
+
+protocol:
+  reference-landscape: >-
+    Build a reference matrix organized by problem solved rather than product
+    category. For each candidate, record its inputs, build integration,
+    semantic engine, graph or data model, supported queries, incremental model,
+    completeness claims, treatment of ambiguity, implementation language,
+    extension points, maintenance status, and known production use. Include
+    open, proprietary, and academic systems when their behavior or design adds
+    evidence.
+  reference-use: >-
+    Label every influence as conceptual, behavioral, or implementation-level.
+    Record the exact source for each adopted term or mechanism. Do not copy
+    source code, schemas, generated files, or tests from closed or unapproved
+    implementations.
+  licensing: >-
+    Record the declared license, relevant file-level exceptions, transitive
+    runtime and build dependencies, generated-code terms, and distribution
+    implications for every implementation candidate. Treat the record as
+    engineering evidence rather than a legal conclusion. Escalate unclear or
+    incompatible terms before implementation reuse.
+  model: >-
+    Define a versioned provider output that identifies the configured build,
+    compilation units, source locations, semantic symbols, and typed directed
+    relationships. Every record identifies its producer and evidence. The
+    output distinguishes resolved, ambiguous, external, and unknown cases and
+    states the provider's analyzed scope. Derived measurements are not stored
+    as compiler facts.
+  prototype: >-
+    Run one selected provider against a real configured build and translate its
+    semantic output into the candidate model. Consume that output through a
+    Beholder-facing library or command without compiler-specific types. Use the
+    resulting graph to list what a selected symbol directly relies on, what
+    directly relies on it, and the reachable dependants in each direction.
+  coupling-analysis: >-
+    Calculate distinct incoming and outgoing neighbours, transitive reach,
+    dependency cycles, connected regions, and bridge position from the emitted
+    graph. Preserve the underlying nodes and edges for every reported value so
+    a consumer can explain the result. Do not combine these measurements into
+    a risk classification.
+  comparison: >-
+    Use controlled fixtures with known relationships and at least one real
+    repository. Compare provider output with compiler-native navigation or
+    analysis operations where available. Record disagreements as evidence
+    about scope, configuration, identity, or extraction rather than assuming
+    either side is authoritative.
+
+completion-evidence:
+  - >-
+    A reference matrix covers the wider solution landscape and distinguishes
+    conceptual learning, behavioral comparison, and implementation reuse.
+  - >-
+    Every implementation candidate has a recorded license and dependency
+    assessment proportionate to how it may be used.
+  - >-
+    A candidate graph model represents one real compiler-backed build without
+    embedding that compiler's native types in the consumer interface.
+  - >-
+    The model is challenged with representative semantic output from Rust, Go,
+    TypeScript, Python, Dart, and C#, and any language-shaped assumptions are
+    recorded.
+  - >-
+    The conclusion identifies a viable semantic acquisition path, build
+    context, coverage boundary, and known limits for each target language.
+  - >-
+    Direct and transitive dependency queries return inspectable paths for
+    selected symbols.
+  - >-
+    Coupling measurements can be reproduced from stored nodes and edges without
+    hidden provider state.
+  - >-
+    The graph records build identity, analyzed scope, provenance, ambiguity,
+    unknowns, and validation results.
+  - >-
+    The conclusion recommends a provider architecture, code graph boundary,
+    licensing posture, and disposition for Beholder's existing SCIP and
+    tree-sitter components.
