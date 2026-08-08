@@ -153,7 +153,9 @@ fn import(index: Index, provider: &ScipProvider) -> Result<CodeGraph, ScipProvid
             ));
             continue;
         }
-        scope.languages.insert(document.language.clone());
+        scope
+            .languages
+            .insert(normalize_language(&document.language));
         scope
             .included_documents
             .push(document.relative_path.clone());
@@ -739,7 +741,7 @@ fn language_for(key: &SymbolKey, documents: &[Document]) -> String {
         SymbolKey::Local { path, .. } => documents
             .iter()
             .find(|document| document.relative_path == *path)
-            .map(|document| document.language.clone())
+            .map(|document| normalize_language(&document.language))
             .unwrap_or_else(|| "unknown".to_owned()),
         SymbolKey::Global(_) => documents
             .iter()
@@ -749,8 +751,16 @@ fn language_for(key: &SymbolKey, documents: &[Document]) -> String {
                     .iter()
                     .any(|information| information.symbol == key.display())
             })
-            .map(|document| document.language.clone())
+            .map(|document| normalize_language(&document.language))
             .unwrap_or_else(|| "unknown".to_owned()),
+    }
+}
+
+fn normalize_language(language: &str) -> String {
+    if language.is_empty() {
+        "unknown".to_owned()
+    } else {
+        language.to_ascii_lowercase()
     }
 }
 
@@ -1172,6 +1182,24 @@ mod tests {
             graph.build.units.value.as_ref().unwrap()[0].features.state,
             KnowledgeState::Unknown
         );
+    }
+
+    #[test]
+    fn absent_provider_language_is_explicitly_unknown() {
+        let mut source = document(
+            "sample.py",
+            vec![definition("local 0", [0, 0, 1], [0, 0, 0, 1])],
+            vec![information("local 0", "sample", Kind::Variable)],
+        );
+        source.language.clear();
+        let bytes = index(vec![source], vec![]).write_to_bytes().unwrap();
+
+        let graph = provider(&bytes).produce(&bytes).unwrap();
+        assert_eq!(
+            graph.scope.languages,
+            BTreeSet::from(["unknown".to_owned()])
+        );
+        assert_eq!(graph.nodes[0].language, "unknown");
     }
 
     fn provider(bytes: &[u8]) -> ScipProvider {

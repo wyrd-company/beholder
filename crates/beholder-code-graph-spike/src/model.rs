@@ -53,13 +53,11 @@ impl CodeGraph {
             }
         }
 
-        let evidence = self
-            .references
-            .iter()
-            .map(|fact| fact.id.as_str())
-            .collect::<BTreeSet<_>>();
-        if evidence.len() != self.references.len() {
-            return Err(IntegrityError::DuplicateReference);
+        let mut evidence = BTreeSet::new();
+        for fact in &self.references {
+            if !evidence.insert(fact.id.as_str()) {
+                return Err(IntegrityError::DuplicateReference(fact.id.clone()));
+            }
         }
         for fact in &self.references {
             if fact
@@ -381,7 +379,7 @@ pub enum IntegrityError {
     BuildIdentityMismatch,
     DuplicateNode,
     DuplicateEdge,
-    DuplicateReference,
+    DuplicateReference(String),
     DanglingNode(String),
     DanglingEvidence(String),
     MissingEvidence(String),
@@ -394,7 +392,9 @@ impl std::fmt::Display for IntegrityError {
             Self::BuildIdentityMismatch => formatter.write_str("build capsule identity mismatch"),
             Self::DuplicateNode => formatter.write_str("duplicate node id"),
             Self::DuplicateEdge => formatter.write_str("duplicate edge id"),
-            Self::DuplicateReference => formatter.write_str("duplicate reference id"),
+            Self::DuplicateReference(reference) => {
+                write!(formatter, "duplicate reference id {reference}")
+            }
             Self::DanglingNode(node) => write!(formatter, "edge names missing node {node}"),
             Self::DanglingEvidence(evidence) => {
                 write!(formatter, "edge names missing evidence {evidence}")
