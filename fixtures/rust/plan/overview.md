@@ -9,9 +9,13 @@ relationships:
 
 ## Selected toolchain
 
-- `rustc` 1.97.1 (Homebrew build, commit 8bab26f4f, 2026-07-14), LLVM 22.
-- `cargo` 1.97.1 (Homebrew build).
-- Stable channel. No nightly channel is installed or provisioned.
+- `rustc`/`cargo` 1.97.1 (stable channel, commit 8bab26f4f, 2026-07-14), LLVM 22.
+- The selected version is installed at that same commit both as the Homebrew PATH
+  build and as the `rustup` toolchain `stable-x86_64-unknown-linux-gnu` (the
+  active default under `RUSTUP_HOME=/usr/local/rustup`). The rustup stable
+  toolchain additionally carries the cross targets, so it backs any
+  cross-compilation context; both builds are the identical compiler.
+- No nightly channel is installed or provisioned.
 - `rustfmt` 1.9.0 and Clippy 0.1.97 are installed and back the `lint` task.
 - A C toolchain (`cc`/`gcc` 15.2.0, target `x86_64-linux-gnu`) is available for
   native-build and foreign-interface coverage.
@@ -47,7 +51,15 @@ supported by the selected installation and build offline:
 - `cfg`-selected source and dependency edges for non-host operating systems and
   architectures. These branches are valid but inactive on the host; only the
   host edge is compiled, so no non-host standard library is required.
-- `#![no_std]` and `alloc` compilation for the host target.
+- Cross-compilation to `aarch64-unknown-linux-gnu`, a second full-`std` Linux
+  target installed in the rustup stable toolchain, where a project needs a real
+  second architecture rather than a host-inactive `cfg` branch.
+- Cross-compilation to `wasm32-unknown-unknown`, an OS-less target installed in
+  the rustup stable toolchain. It is the freestanding, `no_std`-capable context
+  for entry-symbol, panic-handler, and global-allocator runtime hooks, and the
+  target for a Wasm bridge generator.
+- `#![no_std]` and `alloc` compilation for the host and `wasm32-unknown-unknown`
+  targets.
 - Rust-defined C-ABI symbols linked across local crate boundaries, `x86_64`
   inline and global assembly, and `x86_64` target-feature and runtime-detection
   paths.
@@ -62,15 +74,15 @@ These are not installed and are treated as scope exceptions where a conditional
 item depends on them:
 
 - The nightly channel and any nightly-gated feature.
-- Any `rustup` target other than the host (for example `wasm32`, other operating
-  systems, or bare-metal architectures). The active toolchain is a Homebrew
-  install whose `rustup` settings directory is read-only, so additional targets
-  and channels cannot be provisioned.
-- Freestanding or bare-metal runtime targets that would require a non-host target.
+- Any target beyond the three installed in the rustup stable toolchain
+  (`x86_64-unknown-linux-gnu`, `aarch64-unknown-linux-gnu`, and
+  `wasm32-unknown-unknown`) — for example Windows, other architectures, other
+  Wasm ABIs, or bare-metal embedded targets. Their standard-library or core
+  components are not installed and cannot be provisioned.
 
 ## Projects
 
-Sixteen projects cover the corpus. Each occupies one exclusive directory under
+Seventeen projects cover the corpus. Each occupies one exclusive directory under
 `fixtures/rust/projects/` and is independently implementable.
 
 | Slug | Directory | Purpose | Difficulty |
@@ -91,6 +103,7 @@ Sixteen projects cover the corpus. Each occupies one exclusive directory under
 | `serde-and-error-derives` | `fixtures/rust/projects/serde-and-error-derives/` | Serialization-style derives and error derives with their conversion flow. | routine |
 | `async-runtime-and-registration` | `fixtures/rust/projects/async-runtime-and-registration/` | Runtime and observability attribute macros and link-time registration. | complex |
 | `api-facades-and-lazy-globals` | `fixtures/rust/projects/api-facades-and-lazy-globals/` | API facades, sealed and extension traits, lazy globals, and common API naming conventions. | routine |
+| `wasm-bindgen-bridge` | `fixtures/rust/projects/wasm-bindgen-bridge/` | A target-gated Wasm bridge generator producing foreign-facing glue, exports, and links distinct from Rust `pub` and plain C exports. | complex |
 
 ## Primary assignments
 
@@ -182,6 +195,10 @@ RS-CAN-ECO-003, RS-CAN-ECO-007.
 
 RS-CAN-ECO-005, RS-CAN-ECO-006, RS-CAN-ECO-010.
 
+### `wasm-bindgen-bridge`
+
+RS-CAN-ECO-008.
+
 ## Exceptions
 
 The following canonical identifiers receive no primary project. Each belongs to
@@ -204,9 +221,6 @@ one allowed exception category.
   frontier. Its distinctive coverage is nightly-only, and no nightly channel is
   installed. Its stable approximations create no coverage beyond RS-CAN-TRAIT-002,
   RS-CAN-TRAIT-003, and RS-CAN-TRAIT-004.
-- **RS-CAN-ECO-008** — Cross-language and Wasm bridge generators. The item permits
-  documented exclusion. It requires a `wasm32` or other non-host target, which is
-  not installed.
 
 ### Research gaps
 
@@ -219,9 +233,12 @@ one allowed exception category.
 These items keep a primary project for their confirmed valid core. The listed
 variant is excluded for the stated category and is not separately assigned.
 
-- **RS-CAN-PROJ-017** — the freestanding or bare-metal binary variant requires a
-  non-host target (unavailable conditional context). The `no_std` library,
-  `alloc` variant, and `std`/`core` path identity are in scope on the host.
+- **RS-CAN-TEST-003** — the `compile_fail` documentation-test variant is
+  invalid-only: it is intentionally non-compiling synthetic Rust, so a passing
+  harness does not make it valid corpus source. It is documented as a
+  counterexample rather than planned. The runnable, no-run, ignored,
+  should-panic (runtime panic in valid source), hidden-line, edition-tagged, and
+  README-inclusion variants remain in scope under `tests-and-documentation`.
 - **RS-CAN-ATTR-003** — the literal `cfg(true)`/`cfg(false)` predicate variant is
   an unresolved research gap. The target, custom, and checked-cfg core is in
   scope.
@@ -248,7 +265,7 @@ and needs no separate accounting.
 ## Independence audit
 
 - Each project occupies one exclusive directory under `fixtures/rust/projects/`;
-  the sixteen slugs in the project table are distinct.
+  the seventeen slugs in the project table are distinct.
 - No project depends on another top-level fixture project. Every crate a project
   needs is either its own local crate or a vendored third-party crate named in
   its brief.
@@ -257,8 +274,8 @@ and needs no separate accounting.
   local git sources; it does not reach across project directories.
 - Third-party crates appear only in `build-scripts-and-codegen` (`cc`),
   `serde-and-error-derives` (`serde`, `thiserror`),
-  `async-runtime-and-registration` (`tokio`, `tracing`, `inventory`), and
-  `api-facades-and-lazy-globals` (one lazy-global crate). Each brief requires
-  pinning, vendoring, provenance, and licensing, and no vendored crate is shared
-  between projects.
+  `async-runtime-and-registration` (`tokio`, `tracing`, `inventory`),
+  `api-facades-and-lazy-globals` (one lazy-global crate), and
+  `wasm-bindgen-bridge` (`wasm-bindgen`). Each brief requires pinning, vendoring,
+  provenance, and licensing, and no vendored crate is shared between projects.
 - No brief edits shared corpus files, the checklist, or another project.

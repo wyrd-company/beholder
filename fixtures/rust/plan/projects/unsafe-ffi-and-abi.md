@@ -40,9 +40,10 @@ complex
 - **RS-CAN-FFI-005** — target-gated `x86_64` inline `asm!` with operands and `sym`,
   `global_asm!`, an intrinsic behind runtime detection, and a `target_feature`
   function.
-- **RS-CAN-PROJ-017** — a `no_std` library, an `alloc`-using variant, and identical
-  core types through `std` and `core` paths (excluding the freestanding
-  bare-metal binary variant).
+- **RS-CAN-PROJ-017** — a `no_std` library, an `alloc`-using variant, identical
+  core types through `std` and `core` paths, and the target-gated freestanding
+  runtime hooks (entry symbol, panic handler, and global allocator) on
+  `wasm32-unknown-unknown`.
 
 Named counterexamples (a missing unsafe marker, an invalid transmute size
 mismatch, a mismatched foreign declaration, a duplicate symbol, an unsupported ABI
@@ -58,6 +59,8 @@ are documented rather than executed.
 - `x86_64` inline and global assembly and target-feature and runtime-detection
   paths.
 - `#![no_std]` and `alloc` compilation on the host target.
+- `wasm32-unknown-unknown` for the freestanding `no_std` runtime-hook variant of
+  RS-CAN-PROJ-017 (entry symbol, panic handler, global allocator).
 - Rust-defined C-ABI symbols linked across local crate boundaries for foreign
   declaration, ABI, and linking coverage.
 
@@ -78,5 +81,6 @@ None.
 ## Required interfaces
 
 Provide `Taskfile.yml` with `build`, `lint`, and `test` as defined in the ground
-rules, where `build` exercises the `no_std`, assembly, and abort-profile contexts,
-and `coverage.md` mapping each assigned identifier to its stable source location.
+rules, where `build` exercises the host `no_std`, assembly, and abort-profile
+contexts and the `wasm32-unknown-unknown` freestanding build, and `coverage.md`
+mapping each assigned identifier to its stable source location.

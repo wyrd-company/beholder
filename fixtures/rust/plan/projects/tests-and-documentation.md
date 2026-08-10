@@ -27,10 +27,14 @@ complex
   edition-tagged documentation tests and crate-level documentation inclusion.
 
 Named counterexamples (a private item rejected from an integration test, a
-compile-fail documentation block, an accidental helper target, a panic-abort
+`compile_fail` documentation block, an accidental helper target, a panic-abort
 harness conflict) are preserved as documentation beside their valid
-demonstrations. Failure-expecting rustdoc annotations remain valid corpus content
-because the enclosing crate compiles and `test` passes.
+demonstrations. The `compile_fail` documentation-test variant is intentionally
+non-compiling synthetic Rust; it is an invalid-only variant kept as a
+counterexample, not planned corpus source, and a passing harness does not make it
+valid. Only valid-source documentation tests are planned: the runnable, no-run,
+ignored, should-panic (a runtime panic in otherwise valid source), hidden-line,
+and edition-tagged blocks and the README inclusion.
 
 ## Declared build contexts
 
