@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build ./...
+      - (cd fuzz-legacy && go build ./...)
+      - (cd vetfixtures && go build ./...)
+
+  lint:
+    cmds:
+      - find . -type f -name '*.go' ! -path '*/testdata/*' ! -path './vetfixtures/buildtag.go' -exec gofmt -l {} + | (! grep -q .)
+      - go vet ./...
+      - (cd fuzz-legacy && go vet ./...)
+      - (cd vetfixtures && go vet -buildtag=false ./...)
+
+  test:
+    cmds:
+      - go test ./...
+      - (cd fuzz-legacy && go test ./...)
+      - (cd vetfixtures && go test -vet=printf,structtag,copylocks,lostcancel,loopclosure,tests ./...)

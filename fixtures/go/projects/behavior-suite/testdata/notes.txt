@@ -1,0 +1,1 @@
+seasonal notes are read relative to the parcel package
