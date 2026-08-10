@@ -1,0 +1,35 @@
+## workspace
+# example.invalid/graph-root v1.0.0 => ./deps/graph-root
+## explicit; go 1.20
+example.invalid/graph-root
+# example.invalid/graphdep v1.2.0 => ./deps/graphdep-high
+## explicit; go 1.20
+example.invalid/graphdep
+# example.invalid/nested v0.1.0 => ./nested-module
+## explicit; go 1.24
+# example.invalid/replacement-consumer v1.0.0 => ./deps/replacement-consumer
+## explicit; go 1.20
+example.invalid/replacement-consumer
+# example.invalid/replacement-target v1.0.0 => ./deps/replacement-local
+## explicit; go 1.20
+example.invalid/replacement-target/target
+# example.invalid/retracted v1.1.0 => ./deps/retracted
+## explicit; go 1.20
+example.invalid/retracted/notice
+# example.invalid/semver v1.4.0 => ./deps/semver-v1
+## explicit; go 1.20
+example.invalid/semver/label
+# example.invalid/semver/v2 v2.3.0 => ./deps/semver-v2
+## explicit; go 1.20
+example.invalid/semver/v2/label
+# example.invalid/testonly v1.0.0 => ./deps/testonly
+## explicit; go 1.20
+example.invalid/testonly/testsupport
+# example.invalid/toolkit v0.1.0 => ./deps/toolkit
+## explicit; go 1.24
+example.invalid/toolkit/cmd/forge
+# example.invalid/workspace/alpha v0.1.0 => ./workspace/alpha
+## explicit; go 1.24
+# example.invalid/workspace/beta v0.1.0 => ./workspace/beta-workspace
+## explicit; go 1.24
+# example.invalid/graphdep => ./deps/graphdep-high

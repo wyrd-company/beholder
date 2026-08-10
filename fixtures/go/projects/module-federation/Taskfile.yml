@@ -1,0 +1,39 @@
+version: '3'
+
+env:
+  GOPROXY: off
+  GOSUMDB: off
+  GOTOOLCHAIN: local
+
+tasks:
+  build:
+    cmds:
+      - go build ./...
+      - GOWORK=off go build -mod=mod ./...
+      - go build -mod=vendor ./...
+      - GOBIN=/tmp/module-federation-tool go tool forge
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && go build ./...); done
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && GOWORK=off go build -mod=mod ./...); done
+      - for dir in mvs-probe deps/graph-root deps/graphdep-high deps/graphdep-low deps/testonly deps/semver-v1 deps/semver-v2 deps/replacement-consumer deps/replacement-local deps/replacement-upstream deps/retracted workspace/beta-local workspace/beta-workspace; do (cd "$dir" && GOWORK=off go build -mod=mod ./...); done
+      - (cd deps/legacy-module && GOWORK=off go build -mod=readonly ./...)
+      - (cd deps/toolkit && GOWORK=off go build -mod=mod -o /tmp/module-federation-forge ./cmd/forge)
+
+  lint:
+    cmds:
+      - test -z "$(find . -type f -name '*.go' -not -path './vendor/*' -exec gofmt -l {} +)"
+      - go vet ./...
+      - GOWORK=off go vet -mod=mod ./...
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && go vet ./...); done
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && GOWORK=off go vet -mod=mod ./...); done
+      - for dir in mvs-probe deps/graph-root deps/graphdep-high deps/graphdep-low deps/testonly deps/semver-v1 deps/semver-v2 deps/replacement-consumer deps/replacement-local deps/replacement-upstream deps/retracted deps/toolkit workspace/beta-local workspace/beta-workspace; do (cd "$dir" && GOWORK=off go vet -mod=mod ./...); done
+      - (cd deps/legacy-module && GOWORK=off go vet -mod=readonly ./...)
+
+  test:
+    cmds:
+      - go test ./...
+      - GOWORK=off go test -mod=mod ./...
+      - go test -mod=vendor ./...
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && go test ./...); done
+      - for dir in workspace/alpha workspace/beta nested-module; do (cd "$dir" && GOWORK=off go test -mod=mod ./...); done
+      - for dir in mvs-probe deps/graph-root deps/graphdep-high deps/graphdep-low deps/testonly deps/semver-v1 deps/semver-v2 deps/replacement-consumer deps/replacement-local deps/replacement-upstream deps/retracted deps/toolkit workspace/beta-local workspace/beta-workspace; do (cd "$dir" && GOWORK=off go test -mod=mod ./...); done
+      - (cd deps/legacy-module && GOWORK=off go test -mod=readonly ./...)

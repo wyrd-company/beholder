@@ -1,0 +1,10 @@
+go 1.24
+
+use (
+	.
+	./nested-module
+	./workspace/alpha
+	./workspace/beta
+)
+
+replace example.invalid/workspace/beta v0.1.0 => ./workspace/beta-workspace
