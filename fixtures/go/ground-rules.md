@@ -60,7 +60,8 @@ Each top-level project:
 - Is independently implementable and reviewable.
 - Contains every local module it needs.
 - Has no dependency on another top-level fixture project.
-- Owns `Taskfile.yml` and `coverage.md` as its only required common files.
+- Contains `Taskfile.yml` and `coverage.md`; all other files follow the
+  project's natural structure.
 
 Checklist features may appear in several projects. The reviewed plan assigns one
 project as primary owner for each in-scope item.
