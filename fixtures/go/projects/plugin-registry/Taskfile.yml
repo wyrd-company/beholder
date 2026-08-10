@@ -1,0 +1,26 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build ./...
+      - go build -tags tagprovider ./...
+      - |
+        output_dir="$(mktemp -d)"
+        trap 'rm -rf "$output_dir"' EXIT
+        CGO_ENABLED=1 go build -buildmode=plugin -o "$output_dir/seasonal.so" ./plugins/seasonal
+
+  lint:
+    cmds:
+      - files="$(find . -name '*.go' -type f -print)"; test -z "$(gofmt -l $files)"
+      - go vet ./...
+      - go vet -tags tagprovider ./...
+
+  test:
+    cmds:
+      - go test ./...
+
+  generate:
+    cmds:
+      - go run ./internal/schemagen -schema schema/forecast.json -out internal/schema/generated.go
+      - gofmt -w internal/schema/generated.go
