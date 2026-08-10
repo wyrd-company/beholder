@@ -74,14 +74,23 @@ func FinalizerObservation() <-chan struct{} {
 	return marker.done
 }
 
-func evaluationMarker(value int) int {
-	return value
-}
-
-// IndependentArguments evaluates independent arguments and returns a value
-// that does not depend on their relative evaluation order.
-func IndependentArguments() int {
-	return evaluationMarker(1) + evaluationMarker(2)
+// IndependentEvaluationBoundary evaluates two independent package values in
+// separate goroutines and joins them before combining the results. Neither
+// initialization order nor goroutine completion order affects the sum.
+func IndependentEvaluationBoundary() int {
+	values := [2]string{}
+	var completed sync.WaitGroup
+	completed.Add(2)
+	go func() {
+		defer completed.Done()
+		values[0] = firstIndependentValue
+	}()
+	go func() {
+		defer completed.Done()
+		values[1] = secondIndependentValue
+	}()
+	completed.Wait()
+	return len(values[0]) + len(values[1])
 }
 
 // EscapingBuffer returns a pointer to a local allocation, making its lifetime
@@ -160,6 +169,6 @@ func OptimizationObservationFor(values map[string]int) OptimizationObservation {
 		MapOrder:       MapIterationOrder(values),
 		SelectBranch:   ReadySelectChoice(),
 		ScheduleOrder:  SchedulingOrder(),
-		IndependentSum: IndependentArguments(),
+		IndependentSum: IndependentEvaluationBoundary(),
 	}
 }

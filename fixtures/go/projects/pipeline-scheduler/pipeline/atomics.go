@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"reflect"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 )
@@ -18,6 +19,42 @@ func (c *TypedCounter) TypedOperations() (loaded int64, swapped bool) {
 	swapped = c.value.CompareAndSwap(6, 9)
 	loaded = c.value.Load()
 	return loaded, swapped
+}
+
+// AtomicPair contrasts atomic individual fields with a higher-level invariant:
+// two atomic stores are not one atomic multi-value update. The mutex methods
+// provide the near-neighbor that keeps the pair equal as one operation.
+type AtomicPair struct {
+	first  atomic.Int64
+	second atomic.Int64
+	mu     sync.Mutex
+}
+
+func (p *AtomicPair) AtomicSet(first, second int64) {
+	p.first.Store(first)
+	p.second.Store(second)
+}
+
+func (p *AtomicPair) AtomicSnapshot() (first, second int64) {
+	return p.first.Load(), p.second.Load()
+}
+
+func (p *AtomicPair) PairInvariantHolds() bool {
+	first, second := p.AtomicSnapshot()
+	return first == second
+}
+
+func (p *AtomicPair) LockedSet(first, second int64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.first.Store(first)
+	p.second.Store(second)
+}
+
+func (p *AtomicPair) LockedSnapshot() (first, second int64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.first.Load(), p.second.Load()
 }
 
 // LegacyAligned puts the 64-bit word first in an allocated struct. On 32-bit
