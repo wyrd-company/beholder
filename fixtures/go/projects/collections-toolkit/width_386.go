@@ -9,6 +9,8 @@ import (
 
 const nativeBoundary = uint32(1 << 31)
 
+const architectureBoundary = uint(1 << 31)
+
 // NativeWidths describes the target-sized aliases on 32-bit builds.
 func NativeWidths() (int, uint, uintptr, int, int) {
 	var signed int = 1

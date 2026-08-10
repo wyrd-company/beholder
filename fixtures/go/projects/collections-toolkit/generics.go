@@ -31,6 +31,22 @@ type AnyValue interface {
 	any
 }
 
+type TextLike interface {
+	~string
+}
+
+// EmptyIntersection is a valid constraint with no member type: NumberLike and
+// TextLike have disjoint underlying types. It is never used as an ordinary
+// value, as constraint-only interfaces cannot be values.
+type EmptyIntersection interface {
+	NumberLike
+	TextLike
+}
+
+func EmptyIntersectionValue[T EmptyIntersection](value T) {
+	_ = value
+}
+
 func AddNumbers[T NumberLike](left, right T) T {
 	return left + right
 }
@@ -88,9 +104,13 @@ func (box GenericBox[T]) Get() T {
 	return box.Value
 }
 
-// GenericBoxAlias is an alias of an instantiated generic target. It does not
-// declare fresh methods; Get remains owned by GenericBox.
+// GenericBoxAlias is a generic alias. It does not declare fresh methods; Get
+// remains owned by GenericBox.
 type GenericBoxAlias[T any] = GenericBox[T]
+
+// Instantiated aliases preserve the method set of a concrete generic target.
+type IntBoxAlias = GenericBox[int]
+type IntEnvelopeAlias = catalog.Envelope[int]
 
 // ExternalEnvelopeAlias crosses a package boundary while preserving identity.
 type ExternalEnvelopeAlias[T any] = catalog.Envelope[T]
@@ -98,7 +118,9 @@ type ExternalEnvelopeAlias[T any] = catalog.Envelope[T]
 func GenericAliases(value string) (string, string) {
 	local := GenericBoxAlias[string]{Value: value}
 	external := ExternalEnvelopeAlias[string]{Value: value, Label: "label"}
-	return local.Get(), external.String()
+	instantiated := IntBoxAlias{Value: len(value)}
+	instantiatedExternal := IntEnvelopeAlias{Value: len(value), Label: "number"}
+	return local.Get() + strconv.Itoa(instantiated.Get()), external.String() + instantiatedExternal.String()
 }
 
 type ByteString interface {
@@ -133,7 +155,23 @@ type ChannelLike[T any] interface {
 	~chan T
 }
 
+type SendChannelLike[T any] interface {
+	~chan<- T
+}
+
+type ReceiveChannelLike[T any] interface {
+	~<-chan T
+}
+
 func ReceiveValue[T any, C ChannelLike[T]](channel C) T {
+	return <-channel
+}
+
+func SendThrough[T any, C SendChannelLike[T]](channel C, value T) {
+	channel <- value
+}
+
+func ReceiveThrough[T any, C ReceiveChannelLike[T]](channel C) T {
 	return <-channel
 }
 
@@ -151,9 +189,43 @@ func GenericInstantiationExamples() (int, string, int, int) {
 
 func InferenceContexts() (int, int, string) {
 	argument := Identity(7)
-	var assigned int = Identity(8)
+	var identity func(int) int = Identity
+	var result func() string = Zero
+	assigned := identity(8)
 	resultLeft, resultRight := PairValues("north", argument)
-	return argument, assigned, resultLeft + strconv.Itoa(resultRight)
+	return argument, assigned, resultLeft + result() + strconv.Itoa(resultRight)
+}
+
+func ResultContextInference() func(int) int {
+	return Identity
+}
+
+type MethodCarrier[T any] struct{}
+
+func NewMethodCarrier[T any](value T) MethodCarrier[T] {
+	_ = value
+	return MethodCarrier[T]{}
+}
+
+func (carrier MethodCarrier[T]) Keep(value T) T {
+	return value
+}
+
+func (carrier MethodCarrier[T]) Apply(function func(T) T, value T) T {
+	return function(value)
+}
+
+func MethodInference() int {
+	carrier := NewMethodCarrier(3)
+	return carrier.Apply(Identity, carrier.Keep(4))
+}
+
+func ZipValues[A, B any](left []A, right []B) (A, B) {
+	return left[0], right[0]
+}
+
+func UnificationInference() (int, string) {
+	return ZipValues([]int{3}, []string{"north"})
 }
 
 // TypeParameterAssignments shows underlying type, conversion, and type
@@ -164,12 +236,30 @@ type LocalWords []string
 type LocalMap map[string]int
 type LocalPointer *int
 type LocalChannel chan int
+type LocalName string
+
+func (name LocalName) Name() string {
+	return string(name)
+}
+
+type LocalInterface interface {
+	Name() string
+}
 
 func TypeParameterAssignments(value LocalInt, words LocalWords, channel LocalChannel) (int, string, int) {
 	var plain int = int(value)
+	namedMap := LocalMap{"north": plain}
+	unnamedMap := map[string]int(namedMap)
+	pointer := new(int)
+	*pointer = plain
+	namedPointer := LocalPointer(pointer)
+	unnamedPointer := (*int)(namedPointer)
+	name := LocalName("north")
+	var namedInterface LocalInterface = name
+	var unnamedInterface interface{ Name() string } = namedInterface
 	converted := string(CommonSlice([]byte("north")))
-	channel <- plain
-	return plain, converted, len(words)
+	channel <- *unnamedPointer
+	return unnamedMap["north"] + len(namedInterface.Name()) - len(unnamedInterface.Name()), converted, len(words)
 }
 
 func CatalogConstraints(value int) int {

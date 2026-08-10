@@ -43,15 +43,6 @@ func LinkGeneric[T any](value T) *GenericNode[T] {
 	return &GenericNode[T]{Value: value}
 }
 
-// MutualLeft and MutualRight split a legal mutual recursion across declarations.
-type MutualLeft struct {
-	Right *MutualRight
-}
-
-type MutualRight struct {
-	Left *MutualLeft
-}
-
 func RecursiveFunction(node *LinkedNode) int {
 	if node == nil {
 		return 0

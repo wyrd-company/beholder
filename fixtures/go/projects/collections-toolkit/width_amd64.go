@@ -9,6 +9,8 @@ import (
 
 const nativeBoundary = uint64(1 << 63)
 
+const architectureBoundary = uint(1 << 63)
+
 // NativeWidths describes the target-sized aliases on 64-bit builds.
 func NativeWidths() (int, uint, uintptr, int, int) {
 	var signed int = 1

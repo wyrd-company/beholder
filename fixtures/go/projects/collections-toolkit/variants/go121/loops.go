@@ -32,9 +32,19 @@ func Carry[T any](value T) T {
 	return value
 }
 
+func Zero[T any]() T {
+	var zero T
+	return zero
+}
+
+func ReturnCarry() func(int) int {
+	return Carry
+}
+
 // VersionedInference records inference available under the go 1.21 module gate.
 func VersionedInference() (int, string) {
-	assigned := Carry(3)
+	assigned := ReturnCarry()
+	var result func() string = Zero
 	text := Carry("north")
-	return assigned, text
+	return assigned(3), result() + text
 }

@@ -26,14 +26,22 @@ func TwoValueIterator(yield func(string, int) bool) {
 	}
 }
 
-// Collect uses range over an iterator function with two yielded values.
+// Collect uses range over zero-, one-, and two-value iterator functions.
 func Collect() []string {
 	var result []string
+	for range ZeroValueIterator {
+		result = append(result, "zero")
+	}
+	for value := range OneValueIterator {
+		result = append(result, string(rune('0'+value)))
+	}
+outer:
 	for item, index := range TwoValueIterator {
 		result = append(result, item)
 		if index == 0 {
 			continue
 		}
+		break outer
 	}
 	return result
 }

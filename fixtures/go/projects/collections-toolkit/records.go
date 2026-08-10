@@ -56,6 +56,19 @@ type DeepRecord struct {
 	catalog.Base
 }
 
+type EqualDepthLeft struct {
+	catalog.Base
+}
+
+type EqualDepthRight struct {
+	catalog.Base
+}
+
+type EqualDepthRecord struct {
+	EqualDepthLeft
+	EqualDepthRight
+}
+
 func EmbeddedSelectors() (string, string, string) {
 	record := NestedRecord{
 		Base:       catalog.Base{Name: "shallow"},
@@ -63,6 +76,16 @@ func EmbeddedSelectors() (string, string, string) {
 		Detail:     &catalog.Detail{Count: 3},
 	}
 	return record.Name, record.DeepRecord.Base.Name, record.Detail.Describe()
+}
+
+// EqualDepthSelectors keeps the ambiguous promoted selector out of source
+// while retaining both valid explicit paths around the equal-depth collision.
+func EqualDepthSelectors() (string, string) {
+	record := EqualDepthRecord{
+		EqualDepthLeft:  EqualDepthLeft{Base: catalog.Base{Name: "left"}},
+		EqualDepthRight: EqualDepthRight{Base: catalog.Base{Name: "right"}},
+	}
+	return record.EqualDepthLeft.Name, record.EqualDepthRight.Name
 }
 
 // PointerRecord embeds a pointer field and exposes promoted pointer methods.
@@ -84,6 +107,8 @@ func SliceOperations() (bool, bool, int, int, []int, [2]int, *[2]int) {
 	shared[0] = 9
 	reused := append(shared, 7)
 	reallocated := append([]int{1, 2}, 3, 4, 5)
+	overlapping := []int{1, 2, 3, 4}
+	copy(overlapping[1:], overlapping[:3])
 	var copied = make([]int, len(values))
 	copy(copied, values)
 	clear(copied)
@@ -136,6 +161,14 @@ func ChannelDirections() (chan<- int, <-chan int) {
 	return sendOnly, receiveOnly
 }
 
+func ChannelCallDirections() int {
+	bidirectional := make(chan int)
+	var sendOnly chan<- int = bidirectional
+	var receiveOnly <-chan int = bidirectional
+	go SendThrough(sendOnly, 1)
+	return ReceiveThrough(receiveOnly)
+}
+
 // Counter owns a pointer receiver and is used to show automatic address-taking.
 type Counter int
 
@@ -149,6 +182,11 @@ func AddressableMethodCall() int {
 	var counter Counter
 	counter.Increment()
 	return int(counter)
+}
+
+func PointerMethodDereference() string {
+	record := &MethodValueRecord{Name: "north"}
+	return record.Label()
 }
 
 // StringSliceAndArrayConversions records copy-producing conversions without
@@ -166,6 +204,13 @@ func StringSliceAndArrayConversions() (string, []byte, []rune, [2]byte, *[2]byte
 // a deliberate code-point conversion from a suspicious string(int) operation.
 func IntegerTextConversion(value int32) string {
 	return string(rune(value))
+}
+
+func SliceToArrayLengthPanic() func() [3]int {
+	values := []int{1, 2}
+	return func() [3]int {
+		return [3]int(values)
+	}
 }
 
 func StringImmutability(text string) []byte {

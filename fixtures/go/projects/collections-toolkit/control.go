@@ -100,8 +100,10 @@ func InitScopeShadowing(input int) int {
 	}
 	switch value := value; {
 	case value > 0:
+		value := value + 1
 		value--
 	default:
+		value := value - 1
 		value++
 	}
 	return value
@@ -116,6 +118,9 @@ outer:
 		for column := 0; column < limit; column++ {
 			if column == 0 {
 				continue
+			}
+			if row == 0 && column == 1 {
+				continue outer
 			}
 			if row+column > limit {
 				break outer
@@ -150,6 +155,8 @@ func (counter *deferredCounter) Add(value int) {
 
 func DeferredMethodsAndClosures() int {
 	counter := &deferredCounter{}
+	channel := make(chan int)
+	defer close(channel)
 	defer counter.Add(2)
 	defer func(value int) { counter.value += value }(3)
 	return counter.value

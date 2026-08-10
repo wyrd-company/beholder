@@ -77,6 +77,8 @@ func MultipleAssignments(channel <-chan string, value any) (int, string, bool, b
 	received, open := <-channel
 	asserted, assertionOK := value.(string)
 	first, lookup = lookup, first
+	leftValue, rightValue := first, lookup
+	first, first = leftValue, rightValue
 	_, text = first, "updated"
 	return first + lookup, text + received + asserted, present && open, assertionOK
 }
@@ -142,9 +144,10 @@ func ClosureFactory(value int) func() int {
 
 func AddressClosure(value int) func() int {
 	captured := value
+	address := &captured
 	return func() int {
-		captured++
-		return captured
+		*address = *address + 1
+		return *address
 	}
 }
 

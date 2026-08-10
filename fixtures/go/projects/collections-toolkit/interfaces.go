@@ -40,12 +40,18 @@ func InterfaceDispatch() (string, string) {
 
 // TypedNil inspects nil interface, typed nil dynamic values, assertion, and
 // reflection before calling a nil-safe receiver method.
-func TypedNil() (bool, bool, bool, string) {
+func TypedNil() (bool, bool, bool, bool, string) {
+	var nilInterface Namer
 	var pointer *pointerName
 	var dynamic Namer = pointer
 	_, asserted := dynamic.(*pointerName)
 	reflectedNil := reflect.ValueOf(dynamic).IsNil()
-	return dynamic == nil, asserted, reflectedNil, dynamic.Name()
+	return nilInterface == nil, dynamic == nil, asserted, reflectedNil, dynamic.Name()
+}
+
+func InterfaceMethodValue(value Namer) string {
+	method := value.Name
+	return method()
 }
 
 // NamedAndLabelled embeds an interface and adds a second method.

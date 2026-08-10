@@ -60,6 +60,19 @@ type NamedCount int
 
 type CountAlias = NamedCount
 
+// MethodBearingCount is the target whose method set is preserved by its alias.
+type MethodBearingCount int
+
+func (count MethodBearingCount) Label() string {
+	return strconv.Itoa(int(count))
+}
+
+// RebasedCount is a new definition over MethodBearingCount and therefore does
+// not inherit Label. RebasedCountAlias preserves the target identity and method.
+type RebasedCount MethodBearingCount
+
+type RebasedCountAlias = MethodBearingCount
+
 func (count NamedCount) String() string {
 	return strconv.Itoa(int(count))
 }
@@ -76,4 +89,11 @@ func ReflectionIdentity() (string, string) {
 	defined := reflect.TypeOf(NamedCount(0))
 	aliased := reflect.TypeOf(CountAlias(0))
 	return defined.String(), aliased.String()
+}
+
+func MethodBearingDefinitionAndAlias() (string, string, string) {
+	base := MethodBearingCount(7)
+	defined := RebasedCount(base)
+	aliased := RebasedCountAlias(base)
+	return base.Label(), strconv.Itoa(int(defined)), aliased.Label()
 }
