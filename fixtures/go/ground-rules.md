@@ -153,8 +153,12 @@ Each project brief records:
 - Planned tests, or `none`, with coverage created by each planned test.
 - Difficulty as `routine` or `complex` for the entire project.
 
-The plan stops at project boundaries. It does not prescribe source files,
-declarations, example code, case tables, validation internals, or graph output.
+The plan stops at project boundaries. It identifies coverage ownership and project
+constraints without designing source. Beyond required `Taskfile.yml` and
+`coverage.md`, it does not name fixture source files, fixture-owned packages or
+declarations, domain examples, cases, subcases, call sequences, code, pseudocode,
+validation internals, or implementation steps. The implementor owns those
+choices.
 
 The plan receives one cold review from a fresh Codex `gpt-5.6-sol` agent at medium
 reasoning effort and one repair pass. Continued rejection stops planning for
@@ -238,12 +242,16 @@ The plan reviewer may block acceptance only when:
 - A declared build context is unavailable or contradicts another plan statement.
 - A project depends on another top-level project or lacks an exclusive directory.
 - Assigned features cannot plausibly coexist in a coherent, idiomatic project.
+- A brief prescribes source design or implementation beyond permitted project
+  purpose, assignments, contexts, dependencies, generation needs, and planned
+  tests.
 - A planned test does not create named checklist coverage.
 - Dependency or generated-source handling conflicts with this contract.
 
-The plan reviewer does not prescribe file layout, declarations, source examples,
-domain behavior, validators, evidence systems, graph output, rubric assertions,
-project count, equal work sizes, or preferred themes.
+The plan reviewer enforces absence of source design without proposing replacement
+design or judging choices reserved for implementor. Domain behavior, validators,
+evidence systems, graph output, rubric assertions, project count, equal work
+sizes, and preferred themes remain outside review scope.
 
 ## Branches and review surfaces
 

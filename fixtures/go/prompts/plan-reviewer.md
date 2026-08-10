@@ -60,6 +60,9 @@ Reject only when:
 - A project depends on another top-level project.
 - Two projects claim same exclusive directory or a brief permits shared edits.
 - Assigned features cannot plausibly coexist in coherent, idiomatic project.
+- A brief prescribes fixture source files beyond required interfaces,
+  fixture-owned package or declaration names, code, pseudocode, domain examples,
+  cases, subcases, call sequences, validator internals, or implementation steps.
 - A planned test does not create named assigned checklist coverage.
 - Third-party dependency plan conflicts with pinning, vendoring, provenance, or
   licensing rules.
@@ -67,10 +70,11 @@ Reject only when:
 
 ## Out of scope
 
+Enforce absence of source design under blocking scope. Do not propose replacement
+source design or judge implementation choices reserved for implementor.
+
 Do not create blocking findings about:
 
-- Source file layout beyond required `Taskfile.yml` and `coverage.md`.
-- Exact declarations, examples, or implementation choices.
 - Domain behavior or application correctness.
 - Project count, equal project sizes, theme preference, or checklist overlap.
 - Compiler diagnostics, invalid-source examples, or parser recovery.

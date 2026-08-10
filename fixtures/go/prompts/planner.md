@@ -56,6 +56,28 @@ Declare each locally available build context needed to represent a valid
 conditional item under selected compiler. Do not add historical toolchains or
 contexts that require external services.
 
+## Planning boundary
+
+Plan states what each project covers and constraints it operates within. It never
+designs source that creates coverage.
+
+Beyond assigned project directory, required `Taskfile.yml`, and required
+`coverage.md`, do not include:
+
+- Fixture source file or nested directory names.
+- Fixture-owned package, module, type, function, method, field, variable,
+  constant, label, or test names.
+- Declarations, signatures, code snippets, or pseudocode.
+- Domain entities, example scenarios, or expected application behavior.
+- Implementation cases, subcases, call sequences, or step-by-step instructions.
+- Validator internals or commands beyond required Task interface and declared
+  build contexts.
+
+Project briefs name canonical items and valid variants as coverage assignments.
+They do not translate those assignments into source designs. Implementor owns
+every source choice not fixed by ground rules. A third-party module named under
+dependency needs is not a fixture-owned source-design choice.
+
 ## Project design
 
 Choose number, purpose, and theme of projects from natural Go boundaries. Do not
@@ -103,9 +125,8 @@ Each standalone brief contains only implementation context for one project:
 - Planned tests and coverage created by their source, or `none`.
 - Required `Taskfile.yml` and `coverage.md` interfaces from ground rules.
 
-Do not prescribe source file names, declarations, example code, case tables,
-validator internals, logs, manifests, hashes, mutations, expected failures, graph
-output, or rubric assertions. The implementor owns source design.
+Do not add logs, manifests, hashes, mutations, expected failures, graph output,
+or rubric assertions.
 
 ## Validation
 
