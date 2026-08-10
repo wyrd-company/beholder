@@ -43,24 +43,3 @@ func IntegerRangeForms() (int, uint, int, int) {
 	}
 	return signed + typedSigned, unsigned, zero + assigned, negative
 }
-
-func Carry[T any](value T) T {
-	return value
-}
-
-func Zero[T any]() T {
-	var zero T
-	return zero
-}
-
-func ReturnCarry() func(int) int {
-	return Carry
-}
-
-// VersionedInference records inference under the go 1.22 module gate.
-func VersionedInference() (int, string) {
-	assigned := ReturnCarry()
-	var result func() string = Zero
-	text := Carry("south")
-	return assigned(4), result() + text
-}
