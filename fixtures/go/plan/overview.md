@@ -84,7 +84,7 @@ other projects; natural overlap is not accounted here.
 | `platform-bridge` | GO-CAN-BLD-001, GO-CAN-BLD-002, GO-CAN-BLD-003, GO-CAN-BLD-004, GO-CAN-BLD-005, GO-CAN-BLD-006, GO-CAN-BLD-007, GO-CAN-BLD-008, GO-CAN-BLD-009, GO-CAN-BLD-010, GO-CAN-BLD-011, GO-CAN-CGO-001, GO-CAN-CGO-002, GO-CAN-CGO-003, GO-CAN-CGO-004, GO-CAN-ASM-001, GO-CAN-DIR-001, GO-CAN-DIR-002, GO-CAN-DIR-003, GO-CAN-DIR-004, GO-CAN-DYN-006 |
 | `module-federation` | GO-CAN-MOD-001, GO-CAN-MOD-002, GO-CAN-MOD-003, GO-CAN-MOD-004, GO-CAN-MOD-005, GO-CAN-MOD-006, GO-CAN-MOD-007, GO-CAN-MOD-008, GO-CAN-MOD-009, GO-CAN-MOD-010, GO-CAN-MOD-012, GO-CAN-MOD-013, GO-CAN-ECO-001, GO-CAN-ECO-002 |
 | `codegen-assets` | GO-CAN-SRC-010, GO-CAN-GENR-001, GO-CAN-GENR-002, GO-CAN-GENR-003 |
-| `behavior-suite` | GO-CAN-TST-001, GO-CAN-TST-002, GO-CAN-TST-003, GO-CAN-TST-004, GO-CAN-TST-005, GO-CAN-TST-006, GO-CAN-MOD-011 |
+| `behavior-suite` | GO-CAN-TST-001, GO-CAN-TST-002, GO-CAN-TST-003, GO-CAN-TST-004, GO-CAN-TST-005, GO-CAN-TST-006, GO-CAN-TST-007, GO-CAN-MOD-011 |
 
 ## Exceptions
 
@@ -94,7 +94,6 @@ category: invalid-only, unsupported conditional context, or research gap.
 | Canonical identifier | Category | Reason |
 | --- | --- | --- |
 | GO-CAN-MOD-014 | Research gap | Go 1.25 `ignore` directive is singly sourced and marked unresolved; the plan does not resolve research gaps. |
-| GO-CAN-TST-007 | Invalid-only | Its coverage requires source that triggers analyzer diagnostics; the required `lint` gate runs `go vet` on fixture-owned packages and must pass, so vet-triggering source cannot be committed and only quiet near-neighbors — which do not create the coverage — would remain. |
 | GO-CAN-DIA-001 | Invalid-only | Lexical/parse failure with partial syntax is realized only through compiler rejection and parser recovery, which are not fixture content. |
 | GO-CAN-DIA-002 | Invalid-only | Name and declaration failures are realized only through compiler rejection; valid near-neighbors are owned by the positive declaration and import items. |
 | GO-CAN-DIA-003 | Invalid-only | The type-error taxonomy is realized only through compiler rejection; each legal near-neighbor is owned by its positive type, method, interface, or generic item. |

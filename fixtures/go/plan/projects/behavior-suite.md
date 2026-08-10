@@ -13,8 +13,9 @@ relationships:
 A small, generic library whose fixture value lies in its test, example, and fuzz
 source and its `testdata`. It is the primary owner of test-package structure, test
 binary synthesis and discovery, subtests and parallelism, executable examples,
-fuzz targets and seed corpora, package-relative `testdata`, and package-graph
-validity across build and test configurations.
+fuzz targets and seed corpora, package-relative `testdata`, vet analysis during
+test and standalone analysis, and package-graph validity across build and test
+configurations.
 
 ## Exclusive directory
 
@@ -46,6 +47,13 @@ complex
 - **GO-CAN-TST-006** — `testdata` and package-relative data: non-Go and
   intentionally invalid Go files read from `testdata`, proving recursive package
   walks ignore the directory while runtime tests access it.
+- **GO-CAN-TST-007** — vet during test and standalone analysis: legal, compiling
+  source that triggers representative `printf`, `structtag`, `copylocks`,
+  `buildtag`, `lost-cancel`, `tests`, and version-sensitive `loopclosure`
+  analyzer checks, with quiet near-neighbors. Distinct valid variants: the curated
+  `go test` vet subset versus standalone analyzer output. The source is legal and
+  compiles; its analyzer findings are surfaced through standalone analysis, so the
+  required `build`, `lint`, and `test` gates stay green.
 - **GO-CAN-MOD-011** — import cycles and package-graph validity: valid recursive
   calls and types, and an external test package that avoids importing itself
   through the package-under-test variant, including a would-be cycle present only
@@ -59,6 +67,10 @@ complex
   GO-CAN-TST-005 seed corpus.
 - A module `go` directive below go1.18 for the GO-CAN-TST-005 toolchain-versus-
   language-version independence demonstration, built under the installed command.
+- A language version below go1.22, selected by a per-file or per-module `go`
+  directive, for the version-sensitive `loopclosure` check of GO-CAN-TST-007.
+- The installed `go vet` for GO-CAN-TST-007 standalone analyzer output and the
+  curated `go test` vet subset.
 
 ## Dependency needs
 
@@ -86,6 +98,11 @@ source creates:
 - Test source reading `testdata` creates GO-CAN-TST-006 coverage.
 - An external test package that breaks a would-be test-configuration cycle creates
   the valid part of GO-CAN-MOD-011 coverage.
+
+GO-CAN-TST-007 coverage is created by legal analyzer-target source and its quiet
+near-neighbors, surfaced through standalone `go vet` analysis and the curated
+`go test` vet subset rather than by executed tests; it therefore adds no passing
+test to the required `test` gate.
 
 These tests exist to create checklist coverage, not to prove the represented
 library's domain correctness.
