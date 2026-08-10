@@ -66,8 +66,11 @@ are not fixture content.
 
 - Default `net10.0`.
 - Earlier and `preview` `LangVersion` selections for CS-CAN-099.
-- A second target framework for the multi-targeting inner and outer builds of
-  CS-CAN-101, provided by a vendored reference pack (see dependency needs).
+- `netstandard2.1` as the second target framework for the multi-targeting inner
+  and outer builds of CS-CAN-101, alongside the default `net10.0`. It is not among
+  the installed packs and is made available by the vendored reference pack named
+  in dependency needs. Offline restore of a `netstandard2.1` compilation requires
+  only that one pack.
 - Conditional configuration, platform, and custom-property contexts for
   CS-CAN-100.
 
@@ -79,9 +82,10 @@ are not fixture content.
   distribution
   are exercised without any third-party download. Not third-party; no external
   provenance required.
-- **One additional target-framework reference pack** for CS-CAN-101, vendored so
-  the second target framework compiles offline. Its purpose is to make one
-  additional target framework locally available; the implementor pins the pack
+- **`NETStandard.Library.Ref` version 2.1.0** (MIT-licensed, reference-only
+  targeting pack) for CS-CAN-101, vendored so the `netstandard2.1` inner build
+  compiles offline. It is the only package a `netstandard2.1` compilation requests
+  that is absent from the installed SDK packs. The implementor pins this exact
   version, records its source and license and notice files, and preserves the
   NuGet and MSBuild metadata needed for offline restore and build.
 

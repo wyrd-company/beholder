@@ -44,14 +44,24 @@ valid fixture source.
 
 ## Dependency needs
 
-**One test framework** and its runner are vendored for CS-CAN-117, because
+**The xUnit test framework and its runner** are vendored for CS-CAN-117, because
 framework-mediated discovery and invocation cannot be represented by local code
-alone. The implementor names the framework, pins its package versions, records
-their source and license and notice files, and preserves the NuGet and MSBuild
-metadata needed for offline restore, build, and `test`. The non-C# CLI producer
-of CS-CAN-116 is project-local source in a supported companion language and needs
-no
-third-party dependency.
+alone. The named packages are:
+
+- **`xunit`** — the test framework whose attributes and fixtures carry the item's
+  ordinary, data-driven, member-data-by-`nameof`, and lifecycle obligations.
+- **`xunit.runner.visualstudio`** — the VSTest adapter that discovers and invokes
+  the tests.
+- **`Microsoft.NET.Test.Sdk`** — the test host that `dotnet test` and the `test`
+  task drive.
+
+The stable xUnit v2 line is selected deliberately; xUnit v3 and
+Microsoft.Testing.Platform are unresolved in CS-GAP-010 and are not used. The
+implementor pins each package to a single stable version, records their source and
+license and notice files, and preserves the NuGet and MSBuild metadata needed for
+offline restore, build, and `test`. The non-C# CLI producer of CS-CAN-116 is
+project-local source in a supported companion language and needs no third-party
+dependency.
 
 ## Generated-source needs
 

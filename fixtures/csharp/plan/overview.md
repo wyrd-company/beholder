@@ -26,19 +26,22 @@ processes, Windows- or macOS-only frameworks, or external services.
 
 The default build context is `net10.0` on CoreCLR 10.0.10, `ubuntu.26.04-x64`,
 SDK-default language version, safe (non-unsafe) compilation. Each context below
-is locally available and confirmed to build offline with no package source. A
-project declares only the contexts its assignments require.
+is either installed with the SDK and confirmed to build offline with no package
+source, or made locally available by a named vendored dependency recorded in the
+owning project's brief. A project declares only the contexts its assignments
+require.
 
 | Context | Availability | Owning projects |
 | --- | --- | --- |
-| `net10.0` default | Installed SDK/ref/runtime packs | all |
-| Earlier `LangVersion` selections | Single Roslyn, no extra packs | source-and-binding, packages-and-build |
-| Unsafe compilation (`AllowUnsafeBlocks`) | Roslyn intrinsic | unsafe-and-lowlevel |
+| `net10.0` default | Installed SDK/ref/runtime packs; offline-confirmed | all |
+| Earlier `LangVersion` selections | Single Roslyn, no extra packs; offline-confirmed | source-and-binding, packages-and-build |
+| Unsafe compilation (`AllowUnsafeBlocks`) | Roslyn intrinsic; offline-confirmed | unsafe-and-lowlevel |
 | Native C companion library (`clang`/`gcc`) | `clang` and `gcc` present | unsafe-and-lowlevel |
-| ASP.NET Core shared framework (Web SDK / `FrameworkReference`) | `Microsoft.AspNetCore.App.Ref` 10.0.10 installed | framework-and-builtin-generators |
+| ASP.NET Core shared framework (Web SDK / `FrameworkReference`) | `Microsoft.AspNetCore.App.Ref` 10.0.10 installed; offline-confirmed | framework-and-builtin-generators |
 | Trimming, single-file, Native Ahead-of-Time (AOT) publish | `Microsoft.NET.ILLink.Tasks` and `Microsoft.DotNet.ILCompiler` 10.0.10 in the SDK offline source; `clang` present for AOT link | deployment-and-platform |
-| Second target framework for multi-targeting | Requires a vendored reference pack (see packages-and-build dependency need) | packages-and-build |
-| Non-C# CLI producer (Visual Basic and F#) | Both compile offline on `net10.0` | interop-languages-and-testing |
+| `netstandard2.1` second target framework for multi-targeting | Not in the installed packs; made available by the vendored `NETStandard.Library.Ref` 2.1.0 reference pack (packages-and-build dependency need) | packages-and-build |
+| `netstandard2.0` Roslyn component compilation | Not in the installed packs; made available by the vendored `NETStandard.Library` 2.0.3 pack plus the Roslyn API packages (roslyn-components dependency need); the resulting components load in the SDK's Roslyn 5.0 host | roslyn-components |
+| Non-C# CLI producer (Visual Basic and F#) | Both bundled with the SDK; compile offline on `net10.0` | interop-languages-and-testing |
 
 ## Projects
 
@@ -152,8 +155,12 @@ planned.
   friend, forwarding, versioned-producer, or cross-language arrangements internal
   to that project.
 - Third-party dependency needs are internal to their owning project and vendored:
-  `roslyn-components` vendors the Roslyn API packages; `packages-and-build`
-  vendors locally authored packages and a second-target-framework reference pack;
-  `interop-languages-and-testing` vendors one test framework. No vendored
-  dependency crosses a project boundary.
+  `roslyn-components` vendors `NETStandard.Library` 2.0.3 and the Roslyn API
+  packages (`Microsoft.CodeAnalysis.CSharp` 4.14.0 with its transitive
+  `Microsoft.CodeAnalysis.Common`, and `Microsoft.CodeAnalysis.Analyzers` 3.11.0);
+  `packages-and-build` vendors locally authored packages and the
+  `NETStandard.Library.Ref` 2.1.0 reference pack for the `netstandard2.1` inner
+  build; `interop-languages-and-testing` vendors the xUnit test framework
+  (`xunit`), its runner (`xunit.runner.visualstudio`), and the test host
+  (`Microsoft.NET.Test.Sdk`). No vendored dependency crosses a project boundary.
 - No project's required `build`, `lint`, or `test` restores from the network.

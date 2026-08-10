@@ -42,21 +42,32 @@ diagnostic states, not valid fixture source.
 ## Declared build contexts
 
 - Default `net10.0` for the consumer project.
-- The generator and analyzer assemblies target the framework required to load in
-  the SDK 10.0.110 Roslyn host; the implementor selects that framework and, if its
-  reference pack is not among the installed packs, vendors it under the dependency
-  need below.
+- `netstandard2.0` for the generator, analyzer, and suppressor assemblies. This
+  is the standard Roslyn component target framework and it loads in the SDK
+  10.0.110
+  Roslyn host: that host is `csc` 5.0 running on CoreCLR 10.0.10, and a component
+  compiled against Roslyn API 4.14.0 targeting `netstandard2.0` is at or below the
+  host's Roslyn version and within a framework the host implements, so it loads.
+  `netstandard2.0` is not among the installed packs and is made available by a
+  vendored pack named in dependency needs.
 
 ## Dependency needs
 
-**Roslyn compiler API packages** (`Microsoft.CodeAnalysis.CSharp` and its
-`Microsoft.CodeAnalysis.Common` dependency, and the analyzer and generator SDK
-support they require) are not among the offline packs and are vendored. Their
-purpose is to compile the generator, analyzer, and suppressor assemblies. The
-implementor pins the package versions, records their source and license and notice
-files, and preserves the NuGet and MSBuild metadata needed for offline restore and
-build. If the chosen component target framework's reference pack is likewise
-absent offline, it is vendored on the same terms.
+The following are not among the installed SDK packs and are vendored to compile
+the generator, analyzer, and suppressor assemblies:
+
+- **`Microsoft.CodeAnalysis.CSharp` version 4.14.0** (MIT-licensed Roslyn API),
+  with its transitive **`Microsoft.CodeAnalysis.Common` 4.14.0**. Version 4.14.0
+  is the current stable Roslyn API release and is at or below the host's `csc` 5.0,
+  so components built against it load in the SDK 10.0.110 compiler.
+- **`Microsoft.CodeAnalysis.Analyzers` version 3.11.0** (MIT-licensed), the
+  analyzer and generator authoring support these APIs require.
+- **`NETStandard.Library` version 2.0.3** (MIT-licensed), the `netstandard2.0`
+  reference assemblies the component target framework requests offline.
+
+The implementor pins these exact versions, records their source and license and
+notice files, and preserves the NuGet and MSBuild metadata needed for offline
+restore and build.
 
 ## Generated-source needs
 
