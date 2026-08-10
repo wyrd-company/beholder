@@ -1,0 +1,41 @@
+# ---
+# relationships:
+#   implements: ground-rules
+# ---
+
+version: '3'
+
+tasks:
+  build:
+    desc: Build all projects
+    cmds:
+      - task --dir projects/package-structure build
+      - task --dir projects/collections-toolkit build
+      - task --dir projects/pipeline-scheduler build
+      - task --dir projects/plugin-registry build
+      - task --dir projects/platform-bridge build
+      - task --dir projects/module-federation build
+      - task --dir projects/codegen-assets build
+      - task --dir projects/behavior-suite build
+  lint:
+    desc: Lint all projects
+    cmds:
+      - task --dir projects/package-structure lint
+      - task --dir projects/collections-toolkit lint
+      - task --dir projects/pipeline-scheduler lint
+      - task --dir projects/plugin-registry lint
+      - task --dir projects/platform-bridge lint
+      - task --dir projects/module-federation lint
+      - task --dir projects/codegen-assets lint
+      - task --dir projects/behavior-suite lint
+  test:
+    desc: Test all projects
+    cmds:
+      - task --dir projects/package-structure test
+      - task --dir projects/collections-toolkit test
+      - task --dir projects/pipeline-scheduler test
+      - task --dir projects/plugin-registry test
+      - task --dir projects/platform-bridge test
+      - task --dir projects/module-federation test
+      - task --dir projects/codegen-assets test
+      - task --dir projects/behavior-suite test
