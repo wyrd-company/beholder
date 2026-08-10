@@ -28,7 +28,9 @@ program, and how one source participates in more than one program.
 
 Only valid-source obligations are corpus content. Where a canonical item names
 failure, missing-input, cycle, stale-state, or diagnostic variants, those are
-excluded per ground rules.
+excluded per ground rules, including the TS-CAN-005 error-removal rebuild-scope
+variant, which requires a preceding compiler error rather than controlled valid
+source.
 
 - TS-CAN-002 — roots selected by `files`, `include`, command-line arguments, and
   defaults; an `exclude`d file re-entering through an import or reference;
@@ -41,9 +43,10 @@ excluded per ground rules.
   `files: []`; a reference and build-order edge; public declaration consumption
   across the boundary; hidden implementation symbols; declaration-map and source
   redirection; `disableSourceOfProjectReferenceRedirect`.
-- TS-CAN-005 — an implementation-only edit, a public declaration edit, and error
-  removal observed through `incremental`/`.tsbuildinfo` and `tsc -b` with
-  different rebuild scopes; `assumeChangesOnlyAffectDirectDependencies`.
+- TS-CAN-005 — an implementation-only edit and a public declaration edit observed
+  through `incremental`/`.tsbuildinfo` and `tsc -b` with different rebuild
+  scopes; `assumeChangesOnlyAffectDirectDependencies`. The error-removal state is
+  excluded as invalid source.
 - TS-CAN-011 — a path alias with ordered fallback targets; a `rootDirs` virtual
   merge across authored and generated roots; a platform suffix selecting
   different files for one specifier; wildcard specificity; a relative cross-root

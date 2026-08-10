@@ -31,8 +31,8 @@ rules.
 
 - TS-CAN-040 — one spelling with compatible type, value, and namespace
   declarations referenced in annotations, `typeof`, `new`, and qualified access;
-  a class or enum as type and value; an interface as type only; namespace value
-  and type facets; an import alias carrying multiple meanings.
+  a class and an enum as type-and-value declarations; an interface as type only;
+  namespace value and type facets; an import alias carrying multiple meanings.
 - TS-CAN-041 — `var`, `let`, `const`, function, class, parameter, catch, block,
   and destructuring bindings with shadowing, closure capture, aliases, defaults,
   nested rest, and parameter patterns; legal `var` redeclaration; switch shared

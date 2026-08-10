@@ -28,9 +28,10 @@ quality.
 
 Only valid-source obligations are corpus content. Misordered or misplaced
 conditions, deep-import rejection, inaccessible internal targets, untyped imports,
-missing peers, hidden transitive packages, load-time mismatches, stale generators,
-and declaration contradictions that surface an error are excluded per ground
-rules.
+missing peers, hidden transitive packages, entry-point mismatches that fail
+resolution before runtime, stale generators, and declaration contradictions that
+surface an error are excluded per ground rules. An entry-point mismatch that
+type-checks but would only fail at load is valid source and is assigned below.
 
 - TS-CAN-014 — consuming `.d.ts` independently from runtime code; emitting
   `.d.ts` and `.d.ts.map`; inferred public types; a private or unnameable leaked
@@ -55,7 +56,12 @@ rules.
   store-link variant and the Yarn node-modules and Plug'n'Play variant are
   excepted (pnpm, Yarn, and corepack are not installed).
 - TS-CAN-038 — import and require consumers for a dual package; public subpaths;
-  matching declaration flavors; a types-only export; a bundler condition.
+  matching declaration flavors; a types-only export; a bundler condition; and an
+  intentional mismatch in declared format, exported name, extension, or condition
+  that type-checks against the declarations while disagreeing with the runtime
+  entry, expressed as valid source and package metadata. The runtime load failure
+  is not exercised as a test; the coverage is the compiler-valid disagreement
+  between the typed surface and the runtime entry.
 - TS-CAN-039 — condition- or suffix-selected browser, server, and native
   sources; a generated typed package or module; rolled-up declarations whose
   public entity layout differs from source; development and production, browser

@@ -24,16 +24,18 @@ JavaScript.
 
 ## Assigned coverage
 
-Only valid-source obligations are corpus content. Unsupported or ignored JSDoc
-tags and declaration-portability failures are excluded per ground rules.
+Only valid-source obligations are corpus content. Declaration-portability
+failures are excluded per ground rules. Unsupported or ignored JSDoc tags remain
+valid input and are assigned below.
 
 - TS-CAN-013 — checked and unchecked `.js` and `.jsx` files imported by
   TypeScript and vice versa; `@typedef`, `@callback`, `@template`, `@overload`,
   `@satisfies`, `@import`, casts, prototype members, expando properties, and
   CommonJS assignment exports (`module.exports`, `exports.x`, `require`);
-  constructor-function prototypes; `allowJs`, `checkJs`, `@ts-check`,
-  `@ts-nocheck`, and `maxNodeModuleJsDepth`; and declaration emit from
-  JavaScript.
+  constructor-function prototypes; an unsupported or ignored JSDoc tag, which
+  remains valid JavaScript and TypeScript input; `allowJs`, `checkJs`,
+  `@ts-check`, `@ts-nocheck`, and `maxNodeModuleJsDepth`; and declaration emit
+  from JavaScript.
 
 ## Declared compilation contexts
 

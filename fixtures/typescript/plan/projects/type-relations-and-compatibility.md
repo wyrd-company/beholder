@@ -25,8 +25,8 @@ readonly views; and callable compatibility and parameter variance.
 ## Assigned coverage
 
 Only valid-source obligations are corpus content. Excess-property typos,
-weak-type errors, default-branch masking, and JSON-omission failures are excluded
-per ground rules.
+weak-type errors, default-branch masking, a write rejection through a readonly
+view, and JSON-omission failures are excluded per ground rules.
 
 - TS-CAN-058 — primitives and literals contrasted with `object`, `{}`, `unknown`,
   `any`, `never`, and `void` through assignments, calls, property operations,
@@ -51,7 +51,7 @@ per ground rules.
   readonly property, index, array, and tuple forms; mapped modifier add and
   remove; a shallow const assertion; nested mutation; runtime mutation through
   another alias; a getter-only property; readonly-array variance; `Object.freeze`
-  typing; write rejection through a readonly view.
+  typing.
 - TS-CAN-067 — callbacks with broader and narrower parameters, different counts,
   optional and rest parameters, discarded return values, generic callbacks, and
   method versus function-property declarations under strict and permissive

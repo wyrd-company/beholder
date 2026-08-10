@@ -30,23 +30,33 @@ older-compiler failure variant is excluded per ground rules.
 
 - TS-CAN-001 — exact compiler version, bundled `lib.*.d.ts` set, effective
   configuration, root program, and host treated as program identity, with at
-  least one unchanged source case run across a documented version boundary that
-  changes an inferred type, resolution result, or emit; workspace compiler versus
-  a second bundled compiler; a dependency minimum compiler version; and changed
-  iterator or library declarations across the boundary.
+  least one unchanged source case run across the documented `typescript` 5.4.5
+  to 5.9.3 version boundary that changes an inferred type or emit while remaining
+  valid under both releases; the workspace compiler (5.9.3) versus the earlier
+  bundled compiler (5.4.5); a dependency minimum compiler version; and changed
+  library declarations across the boundary.
+
+The boundary is the TypeScript 5.5 inferred-type-predicate inference change
+(checklist version-transition audit, 5.5 row): the same valid source emits a
+different inferred declaration under 5.4.5 than under 5.9.3, verified locally by
+declaration emit under both vendored compilers. The implementor selects the
+specific construct within that documented boundary; the plan names the boundary,
+not the source.
 
 ## Declared compilation contexts
 
-- Default context using the pinned corpus compiler.
-- A second context using one earlier pinned `typescript` release within the
-  4.7–5.8 transition range, vendored offline alongside the default compiler.
+- Default context using the pinned corpus compiler, `typescript` 5.9.3.
+- A second context using the earlier pinned `typescript` 5.4.5 release, vendored
+  offline alongside the default compiler. Both releases are locally installable
+  (registry-verified) and the boundary is empirically observable between them.
 
 ## Dependency needs
 
-Yes. One additional pinned `typescript` compiler release (earlier than the corpus
-default) is vendored with its pinned version, source location, license and notice
-files, and package metadata for offline resolution. The corpus-default compiler
-remains the toolchain rather than a project dependency.
+Yes. The exact earlier release `typescript` 5.4.5 is vendored with its pinned
+version, source location, license and notice files, and package metadata for
+offline resolution, alongside the corpus-default `typescript` 5.9.3. The
+corpus-default compiler remains the toolchain rather than a project dependency;
+`build`, `lint`, and `test` perform no downloads.
 
 ## Generated-source needs
 

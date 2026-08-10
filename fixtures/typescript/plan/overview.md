@@ -32,14 +32,20 @@ with strict checking.
 The following additional contexts are locally available and declared by projects
 that require them. No context requires an external service.
 
-- Earlier pinned `typescript` release for a version-boundary comparison
-  (vendored alongside the default compiler).
+- The earlier pinned release `typescript` 5.4.5 for the version-boundary
+  comparison in `compiler-version-boundary`, vendored alongside the default
+  5.9.3 compiler. The TypeScript 5.5 inferred-type-predicate change makes the
+  boundary observable on source valid under both releases, verified locally by
+  declaration emit.
 - Contrasting effective-option sets under the pinned compiler (target and
   library selection, strictness family, independent safety flags, check/emit
   decoupling, isolated processing).
 - Module and resolution modes: `classic`/`node10`, `node16`/`nodenext`,
   `bundler`, CommonJS, preserved ECMAScript modules, and conditional legacy
   `outFile` concatenation.
+- `module: esnext` or `module: preserve` for deferred import evaluation
+  (`import defer`); these are the only modes that accept the syntax on
+  `typescript` 5.9.3, verified locally.
 - Per-file module formats across the TypeScript and JavaScript extension family.
 - Host runtimes for runtime-native execution: Node.js type stripping and Bun.
 - Non-`tsc` transform paths: the Bun transpiler and the pinned compiler API
@@ -269,6 +275,14 @@ count: 90 of 92 canonical identifiers. Exceptions: 2 (TS-CAN-088, TS-CAN-092).
   stale editor state, inferred editor project). The corpus validates through
   batch `tsc`, not a `tsserver` language-service host. The item stays in scope
   through its batch multi-program identity obligation.
+- TS-CAN-012 case-insensitive-filesystem variants (case-only import differences
+  that resolve, case-only rename unification, and
+  `forceConsistentCasingInFileNames` consistency enforcement that depends on
+  case-insensitive resolution). The corpus default host is case-sensitive 64-bit
+  x86 Linux, and no case-insensitive filesystem or compiler host is locally
+  available without privileged setup that required validation tasks cannot
+  perform. The item stays in scope through its symlink and real-path identity
+  obligations.
 
 ### Research gaps not planned
 

@@ -41,18 +41,34 @@ kept.
   resolving to `.ts`; forced formats; nearest-package `type` lookup;
   `.mjs`/`.mts` and `.cjs`/`.cts`; `allowImportingTsExtensions` in a permitted
   no-emit mode; `rewriteRelativeImportExtensions`.
-- TS-CAN-012 — case-only import differences that resolve on a case-insensitive
-  filesystem; a case-only rename; a workspace or package symlink; duplicate
-  logical access paths that unify or split declaration identity;
-  `forceConsistentCasingInFileNames`; `preserveSymlinks`; two versions of a
-  nominally sensitive type; path spellings resolving to one physical file.
+- TS-CAN-012 — a workspace or package symlink; duplicate logical access paths
+  that unify through one real path or split into distinct declaration identities;
+  `preserveSymlinks`; two versions of a nominally sensitive type; and path
+  spellings resolving to one physical file through symlinks. The
+  case-insensitive-filesystem variants (case-only import differences that
+  resolve, case-only rename unification, and `forceConsistentCasingInFileNames`
+  consistency enforcement that depends on case-insensitive resolution) are
+  excepted; see below.
 
 ## Declared compilation contexts
 
 - Multiple module and resolution modes as listed for TS-CAN-009, including a
   `bundler` context.
 - Per-file module-format contexts across the extension family.
-- A file-identity context exercising casing and committed symlink layout.
+- A file-identity context exercising a committed symlink and real-path layout on
+  the default case-sensitive 64-bit x86 Linux host.
+
+## Variant exceptions
+
+- The case-insensitive-filesystem variants of TS-CAN-012 (case-only import
+  differences that resolve, case-only rename unification, and
+  `forceConsistentCasingInFileNames` consistency enforcement that depends on
+  case-insensitive resolution) are unsupported conditional contexts. The corpus
+  default host is case-sensitive 64-bit x86 Linux, and no case-insensitive
+  filesystem or compiler host is locally available without privileged setup that
+  `build`, `lint`, and `test` cannot perform. TS-CAN-012 stays in scope through
+  its symlink and real-path identity obligations, which the default host
+  represents.
 
 ## Dependency needs
 

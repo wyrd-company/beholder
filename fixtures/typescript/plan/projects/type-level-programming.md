@@ -27,8 +27,8 @@ value-derived chains.
 
 Only valid-source obligations are corpus content. Excessive-instantiation and
 depth diagnostics, remapped-key collisions, forbidden immediate cycles,
-invalid non-key indexing, alias-reopening errors, and missing-lib-utility
-failures are excluded per ground rules.
+invalid non-key indexing, alias-reopening errors, an interface extending a union,
+and missing-lib-utility failures are excluded per ground rules.
 
 - TS-CAN-070 — distributive and bracket-suppressed conditional types;
   constrained and nested `infer`; a `never` input; overload return extraction; a
@@ -55,8 +55,8 @@ failures are excluded per ground rules.
 - TS-CAN-075 — equivalent object shapes as an interface and an alias; reopening
   only the interface; an alias for primitive, union, tuple, and conditional
   forms; interface extension versus alias intersection versus class
-  implementation; an interface extending a union; generic recursion; module
-  augmentation; declaration-emit alias preservation.
+  implementation; generic recursion; module augmentation; declaration-emit alias
+  preservation.
 - TS-CAN-080 — property-transform, union-filter, function-reflection, `this`,
   string, and `Awaited` utilities applied to unions, overloads, optional
   properties, `any`, and `never`; a small value or schema API whose exported type
