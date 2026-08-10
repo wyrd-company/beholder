@@ -1,7 +1,12 @@
 package probe
 
-import "example.invalid/graph-root"
+import (
+	"example.invalid/graph-root"
+	graphrootlow "example.invalid/graph-root-low"
+)
 
-// SelectedVersion makes the lower direct requirement and higher transitive
-// requirement observable from a small independent module.
-func SelectedVersion() string { return graphroot.Version() }
+// SelectedVersions exposes graphdep through roots that require different
+// versions. Minimal version selection resolves both imports to the higher one.
+func SelectedVersions() (string, string) {
+	return graphroot.Version(), graphrootlow.Version()
+}
