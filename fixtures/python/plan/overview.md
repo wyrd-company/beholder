@@ -21,13 +21,17 @@ The corpus targets the only interpreter installed in the local toolchain:
   not installed and is a vendored dependency where a project needs an isolated
   build.
 
-CPython 3.14.6 is ahead of the checklist's Python 3.13 baseline. All language
-features introduced from 3.8 through 3.13 are present on this interpreter and are
-demonstrated as valid source under it. Behavior that depends on running an
-earlier interpreter, an absent interpreter build, an alternative implementation,
-or another operating system is an unavailable conditional context, recorded in
-the exceptions. Python 3.14-only behavior that the checklist marks as a research
-gap is excluded and is not resolved by this plan.
+CPython 3.14.6 is ahead of the checklist's Python 3.13 baseline. Language
+features introduced from 3.8 through 3.13 are available on this interpreter and
+are demonstrated as valid source under it. Behavior whose default semantics
+changed at 3.14 is not reproducible here: annotation evaluation is deferred
+(PEP 649), so the 3.13 eager, definition-time annotation regime cannot be
+created and is an unavailable historical-interpreter variant. Behavior that
+depends on running an earlier interpreter, an absent interpreter build, an
+alternative implementation, or another operating system is likewise an
+unavailable conditional context, recorded in the exceptions. Python 3.14-only
+behavior that the checklist marks as a research gap is excluded and is not
+resolved by this plan.
 
 ## Build contexts
 
@@ -38,7 +42,7 @@ project declares only the additional contexts its assigned coverage requires.
 | --- | --- | --- |
 | Default runtime | CPython 3.14.6, x86-64 Linux, standard GIL build | Installed |
 | Native / C extension | GCC 15.2 + CPython headers; `ctypes`; stable ABI | Installed |
-| Packaging | `pip` + `wheel` + `venv`, offline, vendored PyPA backend | Installed |
+| Packaging | `pip` + `wheel` + `venv`; offline isolated build from a vendored backend wheelhouse | Installed |
 | Child process / interpreter flags | `sys.executable` with varied flags and env | Installed |
 | Multiprocessing start methods | `spawn`, `fork`, `forkserver` on Linux | Installed |
 | Isolated diagnostics process | audit, unraisable, thread, and warning hooks | Installed |
@@ -84,17 +88,17 @@ inclusive and contiguous within a checklist section.
 | `async-task-toolkit` | `PY-CAN-CALL-001` – `PY-CAN-CALL-015` |
 | `record-modeling-kit` | `PY-CAN-OBJ-001` – `PY-CAN-OBJ-020` |
 | `measurement-types` | `PY-CAN-PROT-001` – `PY-CAN-PROT-013` |
-| `typed-toolkit` | `PY-CAN-TYPE-001` – `PY-CAN-TYPE-022` |
+| `typed-toolkit` | `PY-CAN-TYPE-001` – `PY-CAN-TYPE-014`; `PY-CAN-TYPE-016`; `PY-CAN-TYPE-018` – `PY-CAN-TYPE-022` |
 | `job-runner` | `PY-CAN-FLOW-001` – `PY-CAN-FLOW-013` |
 | `markup-report-toolkit` | `PY-CAN-SRC-001` – `PY-CAN-SRC-014` |
 | `dispatch-framework` | `PY-CAN-DYN-001` – `PY-CAN-DYN-004`, `PY-CAN-DYN-007` – `PY-CAN-DYN-013` |
-| `distributable-suite` | `PY-CAN-PKG-001` – `PY-CAN-PKG-022`; `PY-CAN-DYN-005`; `PY-CAN-DYN-006`; `PY-CAN-INT-004`; `PY-CAN-INT-005` |
+| `distributable-suite` | `PY-CAN-PKG-001` – `PY-CAN-PKG-021`; `PY-CAN-DYN-005`; `PY-CAN-DYN-006`; `PY-CAN-INT-004`; `PY-CAN-INT-005` |
 | `native-extension-kit` | `PY-CAN-NATIVE-001` – `PY-CAN-NATIVE-007`; `PY-CAN-NATIVE-010` |
 | `portability-layer` | `PY-CAN-PLAT-001` – `PY-CAN-PLAT-010` |
-| `diagnostics-toolkit` | `PY-CAN-DIAG-002` – `PY-CAN-DIAG-009`; `PY-CAN-DIAG-013` – `PY-CAN-DIAG-022` |
+| `diagnostics-toolkit` | `PY-CAN-DIAG-002` – `PY-CAN-DIAG-007`; `PY-CAN-DIAG-009`; `PY-CAN-DIAG-013` – `PY-CAN-DIAG-022` |
 | `feature-integration-suite` | `PY-CAN-INT-001`; `PY-CAN-INT-002`; `PY-CAN-INT-003`; `PY-CAN-INT-006`; `PY-CAN-INT-007`; `PY-CAN-INT-008` |
 
-This assigns 206 of the 216 canonical identifiers. The remaining 10 identifiers
+This assigns 202 of the 216 canonical identifiers. The remaining 14 identifiers
 are exceptions below.
 
 ## Exceptions
@@ -114,6 +118,10 @@ invalid-only item or variant, unavailable conditional context, or research gap.
 | `PY-CAN-NATIVE-009` | unavailable conditional context | No application freezer is installed. |
 | `PY-CAN-NATIVE-011` | unavailable conditional context | No alternative Python implementation is installed. |
 | `PY-CAN-NATIVE-012` | unavailable conditional context | The high-level subinterpreter API is unstable on this interpreter and overlaps research gap `PY-GAP-003`. |
+| `PY-CAN-TYPE-015` | unavailable conditional context | Its checker-specific error codes, no-check directive, and reachability settings require a fixed checker context; no type checker is installed. |
+| `PY-CAN-TYPE-017` | unavailable conditional context | It requires a selected checker and version and per-tool configuration schema; no type checker is installed. |
+| `PY-CAN-DIAG-008` | unavailable conditional context | It requires a selected parser, linter, or formatter and version; none is installed. |
+| `PY-CAN-PKG-022` | unavailable conditional context | It requires configuring test, typing, and lint tools against their per-tool schemas; none of those tools is installed. |
 
 ### Excluded variants within in-scope items
 
@@ -123,6 +131,11 @@ conditional contexts or invalid source and are not planned.
 - Historical-interpreter runs and pre-version parse-failure variants across all
   version-gated items (for example `PY-CAN-SRC-005`, `PY-CAN-SRC-009`,
   `PY-CAN-TYPE-004`): only CPython 3.14.6 is provisioned.
+- The eager, definition-time annotation regime of `PY-CAN-TYPE-001`: the default
+  regime on CPython 3.14.6 is deferred (PEP 649), so the 3.13 eager regime needs
+  an earlier interpreter and is unavailable. The future-stringized regime stays
+  in scope; the deferred regime's PEP 649 and PEP 749 detail stays research gap
+  `PY-GAP-001`.
 - Free-threaded and JIT run variants (for example `PY-CAN-FLOW-009`,
   `PY-CAN-NATIVE-004`, `PY-CAN-PKG-010`, `PY-CAN-PLAT-010`): the installed build
   is standard and GIL-enabled; introspective items record the build's actual

@@ -34,7 +34,7 @@ inside this one project directory; none depends on another top-level project.
 | Identifier | Valid-variant scope |
 | --- | --- |
 | `PY-CAN-PKG-001` | All named variants. |
-| `PY-CAN-PKG-002` | Isolated build with a vendored constrained backend; offline. |
+| `PY-CAN-PKG-002` | PEP 517 isolated build whose constrained backend is absent from the caller environment and supplied offline from a vendored wheelhouse; isolation stays enabled. |
 | `PY-CAN-PKG-003` | All named variants, including one backend-derived dynamic field. |
 | `PY-CAN-PKG-004` | Source distribution and wheel with build-only and generated installed files. |
 | `PY-CAN-PKG-005` | All named variants; flat and `src` layouts. |
@@ -54,7 +54,6 @@ inside this one project directory; none depends on another top-level project.
 | `PY-CAN-PKG-019` | An offline local candidate set with one satisfiable branch and one true conflict. |
 | `PY-CAN-PKG-020` | Two distributions connected by a path or workspace dependency, resolved offline. |
 | `PY-CAN-PKG-021` | An inline-script metadata block run offline through the installed runner. |
-| `PY-CAN-PKG-022` | Tool configuration in `pyproject.toml` that changes at least one source-root, target, or inclusion setting. |
 | `PY-CAN-DYN-005` | Declared, discovered, and loaded entry points in a private group after a local install. |
 | `PY-CAN-DYN-006` | A declared script target and its generated wrapper after a local install. |
 | `PY-CAN-INT-004` | A namespace package split across two local distributions with resources and entry points. |
@@ -63,19 +62,26 @@ inside this one project directory; none depends on another top-level project.
 ## Declared build contexts
 
 - Default runtime.
-- Packaging: `pip`, `wheel`, and `venv` with a vendored PyPA build backend and
-  build isolation disabled, plus the installed `uv` runner for inline-script
+- Packaging: `pip`, `wheel`, and `venv` with the vendored, pinned build backend
+  supplied through a local wheelhouse so PEP 517 build isolation stays enabled
+  and downloads nothing, plus the installed `uv` runner for inline-script
   metadata and offline resolution. All installs and builds are offline.
 - Native / C extension: for the native wheel tags of `PY-CAN-PKG-010`.
 - Child process / interpreter flags: for launcher and environment cases.
 
 ## Dependency needs
 
-One PyPA build backend distribution (for example a standards-based backend such
-as setuptools or hatchling), acquired once by the implementor, then pinned,
-vendored with source location, and shipped with its license and notice files and
-the wheel or metadata artifacts needed for offline isolated builds. `pip`,
-`wheel`, `venv`, and `uv` are installed system tools and are not vendored.
+The `setuptools` distribution, pinned to `setuptools==84.0.0` (the version the
+local index currently resolves for CPython 3.14). The implementor acquires it
+once from PyPI (the network exception), then vendors it with its source location
+and its MIT license and notice files, together with the pure-Python wheel and any
+build requirements the backend declares through the PEP 517
+`get_requires_for_build_*` hooks, placed in a local wheelhouse so the isolated
+build resolves them with `--no-index`. `pip`, `wheel`, `venv`, and `uv` are
+installed system tools and are not vendored. Local feasibility is confirmed as
+far as this plan permits: `setuptools==84.0.0` resolves for this interpreter from
+the index (metadata only), and `pip` supports offline isolated builds through
+`--no-index --find-links`.
 
 ## Generated-source needs
 
@@ -92,6 +98,10 @@ None.
 - Free-threaded wheel tags and Windows and macOS platform tags of
   `PY-CAN-PKG-010`, and interpreter-boundary runs of `PY-CAN-PKG-009`: the local
   toolchain is a single standard CPython build on Linux.
+- `PY-CAN-PKG-022` is not assigned to this project: configuring test, typing, and
+  lint tools against their per-tool schemas needs those tools, none of which is
+  installed, so the context is an unavailable conditional context (see the
+  overview exceptions).
 
 ## Required interfaces
 

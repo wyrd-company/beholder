@@ -28,9 +28,10 @@ dangling-attribute contrasts.
 
 Primary owner of the diagnostics items below. Represent all valid variants named
 by each checklist row. Runtime-negative cases run valid source that raises at
-runtime; static-negative cases are valid runtime source without executing a
-checker. `pytest` items and the compilation-failure item are excluded in the
-overview.
+runtime; static-negative cases of a required row are valid runtime source without
+executing a checker. The `pytest` items, the compilation-failure item, and the
+parser/linter/formatter tool-configuration item (`PY-CAN-DIAG-008`) are excluded
+in the overview as unavailable conditional contexts.
 
 | Identifier | Valid-variant scope |
 | --- | --- |
@@ -40,7 +41,6 @@ overview.
 | `PY-CAN-DIAG-005` | All named valid variants. |
 | `PY-CAN-DIAG-006` | Isolated-process destructor and thread-failure hooks. |
 | `PY-CAN-DIAG-007` | Runtime-negative cases run; checker-negative cases are source only. |
-| `PY-CAN-DIAG-008` | Versioned syntax, per-file exception, and generated or vendor exclusion as configuration artifacts. |
 | `PY-CAN-DIAG-009` | All named discovery variants, created by test source. |
 | `PY-CAN-DIAG-013` | All named mock patch-lookup variants, created by test source. |
 | `PY-CAN-DIAG-014` | Docstring and text examples, created by test source. |
@@ -62,8 +62,7 @@ overview.
 
 ## Dependency needs
 
-None. Type checkers, linters, and formatters are named only within configuration
-artifacts and are not executed.
+None.
 
 ## Generated-source needs
 
@@ -79,6 +78,9 @@ None.
 
 - Coverage-tool arc variants of `PY-CAN-DIAG-015`: no coverage tool is
   installed; stdlib tracing and monitoring carry the item.
+- `PY-CAN-DIAG-008` is not assigned to this project: it needs a selected parser,
+  linter, or formatter and version, none of which is installed, so the context
+  is an unavailable conditional context (see the overview exceptions).
 
 ## Required interfaces
 
