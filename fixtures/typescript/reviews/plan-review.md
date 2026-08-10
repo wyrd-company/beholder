@@ -1,119 +1,105 @@
-VERDICT: REJECT
+VERDICT: ACCEPT
 
 # TypeScript fixture plan review
 
-## Blocking findings
+## Verification result
 
-### TS-PLAN-001 — P1: Compiler-version context is not pinned
+The one permitted repair pass addresses all seven round-one findings. No direct
+repair regression or blocking finding remains at reviewed head
+`3d23d693134b538160184a343db43a6af46089bc`.
 
-`fixtures/typescript/plan/projects/compiler-version-boundary.md:38-48` declares
-only “one earlier” release somewhere in the TypeScript 4.7–5.8 range. The exact
-release and therefore the exact version boundary remain undecided. This conflicts
-with `reports/typescript/synthesis/checklist.md:21-27`, which makes exact compiler
-identity and an explicit transition case part of TS-CAN-001, and with
-`fixtures/typescript/ground-rules.md:22-35`, which requires declared compilation
-contexts to identify the pinned compiler version. Select the exact earlier
-release and state the exact two-release context so feasibility and variant
-coverage can be reviewed.
+## Prior findings disposition
 
-### TS-PLAN-002 — P1: Deferred-import context defers feasibility to implementation
+### TS-PLAN-001 — Addressed
 
-`fixtures/typescript/plan/projects/module-graph-edges.md:56-70` assigns
-TS-CAN-033 but declares only an unspecified TypeScript 5.9 module mode “that
-supports” the syntax and directs the implementor to confirm it. The reviewed plan
-must establish a valid, available compilation context before implementation. The
-supported-module condition is at
-`reports/typescript/synthesis/checklist.md:279-285`. Ground rules require the
-overview and brief to declare contexts at
-`fixtures/typescript/ground-rules.md:168-185`. Name a verified supported mode, or
-record the item/variant under an allowed research-gap or unavailable-context
-exception.
+`fixtures/typescript/plan/projects/compiler-version-boundary.md:31-59` pins the
+two compiler contexts to TypeScript 5.4.5 and 5.9.3 and names the TypeScript 5.5
+inferred-type-predicate boundary. Local offline compiler verification emitted
+`(x: unknown) => boolean` under 5.4.5 and `(x: unknown) => x is string` under
+5.9.3 from the same valid source, with zero diagnostics in both contexts.
 
-### TS-PLAN-003 — P1: Case-insensitive coverage has no declared available context
+### TS-PLAN-002 — Addressed
 
-`fixtures/typescript/plan/projects/module-resolution-and-formats.md:44-55` claims
-the case-insensitive-filesystem variant of TS-CAN-012, but its only file-identity
-context is an unspecified casing and committed-symlink layout. The corpus default
-is 64-bit x86 Linux (`fixtures/typescript/plan/overview.md:26-30`), and the plan
-does not declare an available case-insensitive filesystem or compiler-host
-context. This leaves the conditional filesystem variant in
-`reports/typescript/synthesis/checklist.md:109-115` neither feasible nor excepted.
-Declare an actually available context or list the variant as an unsupported
-conditional context.
+`fixtures/typescript/plan/projects/module-graph-edges.md:59-76` declares
+`module: esnext` or `module: preserve` for `import defer`. Local TypeScript 5.9.3
+verification accepted both and produced TS18060 under NodeNext and CommonJS.
 
-### TS-PLAN-004 — P1: Invalid-source variants remain assigned
+### TS-PLAN-003 — Addressed
 
-The following assignments contradict their own valid-source exclusions and
-`fixtures/typescript/ground-rules.md:47-56`:
+`fixtures/typescript/plan/projects/module-resolution-and-formats.md:44-71`
+removes case-insensitive filesystem coverage from the declared Linux context and
+records it as an unsupported conditional-context exception. TS-CAN-012 retains
+valid symlink and real-path identity coverage.
 
-- `fixtures/typescript/plan/projects/program-solution-workspace.md:29-46` excludes
-  error variants, then assigns the TS-CAN-005 error-removal state. That state
-  requires a preceding compiler error rather than controlled valid source.
-- `fixtures/typescript/plan/projects/type-level-programming.md:28-31` excludes
-  invalid forms, but `fixtures/typescript/plan/projects/type-level-programming.md:55-59`
-  assigns an interface extending a union, which the checklist identifies as the
-  failure variant at `reports/typescript/synthesis/checklist.md:621-627`.
-- `fixtures/typescript/plan/projects/type-relations-and-compatibility.md:50-54`
-  assigns a write rejection through a readonly view, which is a compiler-error
-  case rather than valid-source coverage (`reports/typescript/synthesis/checklist.md:541-547`).
+### TS-PLAN-004 — Addressed
 
-Remove invalid-source coverage from the briefs. Retain only valid structural or
-type-changing residue.
+Invalid-source variants are removed and explicitly excluded:
 
-### TS-PLAN-005 — P1: TS-CAN-038 omits its valid mismatch obligation
+- TS-CAN-005 error removal at
+  `fixtures/typescript/plan/projects/program-solution-workspace.md:29-49`.
+- TS-CAN-075 interface extension of a union at
+  `fixtures/typescript/plan/projects/type-level-programming.md:28-59`.
+- TS-CAN-065 readonly write rejection at
+  `fixtures/typescript/plan/projects/type-relations-and-compatibility.md:27-54`.
 
-`fixtures/typescript/plan/projects/package-publishing-ecosystem.md:29-33`
-excludes load-time mismatches. Its TS-CAN-038 assignment at lines 57-58 has no
-runtime/type entry-point mismatch. The checklist obligation at
-`reports/typescript/synthesis/checklist.md:321-327` requires an intentional
-mismatch that can still be valid TypeScript source and package metadata. Runtime
-failure does not make the source compiler-invalid. Assign this distinct valid
-variant without turning it into an application behavior test.
+### TS-PLAN-005 — Addressed
 
-### TS-PLAN-006 — P1: Valid JSDoc variant is incorrectly excluded
+`fixtures/typescript/plan/projects/package-publishing-ecosystem.md:29-64`
+assigns the compiler-valid TS-CAN-038 runtime/type entry-point mismatch through
+source and package metadata. It does not plan a runtime behavior test.
 
-`fixtures/typescript/plan/projects/checked-javascript-inputs.md:25-36` excludes
-unsupported or ignored JSDoc tags as though they were invalid source. They are a
-named valid TS-CAN-013 variant at
-`reports/typescript/synthesis/checklist.md:117-123`; an ignored tag remains valid
-JavaScript/TypeScript input. Assign the variant, or provide an allowed exception.
+### TS-PLAN-006 — Addressed
 
-### TS-PLAN-007 — P1: Distinct valid module variants are missing
+`fixtures/typescript/plan/projects/checked-javascript-inputs.md:27-38` assigns an
+unsupported or ignored JSDoc tag as valid input and no longer excludes it.
 
-The module-edge brief does not complete the required valid-variant accounting:
+### TS-PLAN-007 — Addressed
 
-- `fixtures/typescript/plan/projects/module-graph-edges.md:33-37` assigns an
-  anonymous default class **or** function. TS-CAN-018 requires both distinct
-  declaration forms at `reports/typescript/synthesis/checklist.md:159-165`.
-- `fixtures/typescript/plan/projects/module-graph-edges.md:41-43` omits the valid
-  cyclic-barrel, identical-origin-through-two-stars, CommonJS-source, and
-  default-not-forwarded-by-star variants named for TS-CAN-020 at
-  `reports/typescript/synthesis/checklist.md:175-181`.
-
-Complete the brief's distinct valid variants and re-run the same audit across all
-assigned canonical items.
+`fixtures/typescript/plan/projects/module-graph-edges.md:33-46` assigns both
+anonymous default declaration forms and the missing valid TS-CAN-020 barrel and
+star variants. The corpus-wide valid-variant re-audit also distinguishes class
+and enum type/value forms at
+`fixtures/typescript/plan/projects/declarations-scope-merging.md:32-35`.
 
 ## Validation
 
-- Identifier accounting: 92 canonical identifiers appear exactly once in the
-  overview. The 90 in-scope identifiers appear exactly once across project
-  briefs; TS-CAN-088 and TS-CAN-092 are the two item exceptions.
-- Independence: 19 exclusive project directories are declared. No brief depends
-  on another top-level fixture project.
+- Identifier accounting: all 92 canonical identifiers appear exactly once in the
+  overview. All 90 in-scope identifiers appear exactly once across briefs.
+  TS-CAN-088 and TS-CAN-092 remain the two item exceptions.
+- Variant accounting: all seven repaired assignments match their checklist rows;
+  overview and briefs agree on the four unsupported conditional-context
+  exceptions.
+- Independence: 19 exclusive project directories remain. No brief depends on
+  another top-level fixture project or permits shared edits.
+- Source boundary: repair remains at project boundaries and adds no fixture
+  source design, declarations, examples, cases, call sequences, or implementation
+  steps.
 - Tests: all 19 briefs plan `none` and state that test source creates no assigned
   coverage.
-- Dependency and generated-source policy: reviewed plans keep named generation
-  inside project boundaries and keep required validation tasks non-mutating.
-- Toolchain observations: declared Node.js `v26.5.1` and npm `11.17.0` are locally
-  available through the Homebrew installation; Bun `1.3.14` is locally
-  available; TypeScript `5.9.3` runs from the local npm cache in offline mode.
-- Markdown: `rumdl check` passed for the 22 review-readable TypeScript ground-rule,
-  reviewer-prompt, overview, and project-brief files.
+- Dependencies and generation: pinning, vendoring, provenance, licensing, and
+  offline requirements remain explicit. Generated outputs stay project-local;
+  required validation tasks do not regenerate or mutate tracked source.
+- Toolchain: local Node.js `v26.5.1`, npm `11.17.0`, Bun `1.3.14`, TypeScript
+  5.4.5, and TypeScript 5.9.3 contexts were verified.
+- Markdown: `rumdl check` passes for the 22 review-readable policy and plan files.
+
+## Merge gates
+
+- No blocking findings: true.
+- Base head unchanged:
+  `47cedef3a87e71399318e31cd91a8a9dce690749`.
+- Recorded surface head equals task branch head:
+  `3d23d693134b538160184a343db43a6af46089bc`.
+- No task must merge ahead: true from task dependencies, blocked state, and
+  coordination record.
+- Snapshot `01KZPXQBFQKTHY16PM4PVV36B2` fast-forward merged into
+  `incubator/per-language-fixtures` at `3d23d69` immediately after gate
+  verification.
 
 ## Severity counts
 
 - P0: 0
-- P1: 7
+- P1: 0
 - P2: 0
 - P3: 0
 - Q: 0
