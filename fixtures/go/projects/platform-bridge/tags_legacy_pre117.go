@@ -1,4 +1,3 @@
-//go:build fixture_legacy
 // +build fixture_legacy
 
 package bridge
