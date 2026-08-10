@@ -130,7 +130,7 @@ index links to project coverage files without duplicating their mappings.
 
 ## Planning
 
-Fable at high reasoning effort creates the plan. The planner receives only this
+Opus at high reasoning effort creates the plan. The planner receives only this
 file and the canonical Go checklist. It may inspect the installed Go toolchain
 with local shell and read tools. It does not browse, perform external research,
 read research inputs, inspect unrelated repositories, or inspect prior fixture
