@@ -54,9 +54,15 @@ func Inspect() Report {
 	malformed := reflect.StructTag(`json:"label"` + " broken")
 	_, malformedFound := malformed.Lookup("json")
 
-	other := reflect.TypeOf(struct {
+	withLabelTag := reflect.TypeOf(struct {
 		Origin `json:",inline" yaml:",inline" xml:",inline" db:",inline"`
 		Label  string `json:"label,omitempty" yaml:"title,omitempty" xml:"label,attr" db:"other"`
+		Omit   string `json:"-" yaml:"-" xml:"-" db:"-"`
+		hidden string
+	}{})
+	withoutLabelTag := reflect.TypeOf(struct {
+		Origin `json:",inline" yaml:",inline" xml:",inline" db:",inline"`
+		Label  string `json:"label,omitempty" yaml:"title,omitempty" xml:"label,attr" db:"label"`
 		Omit   string `json:"-" yaml:"-" xml:"-" db:"-"`
 		hidden string
 	}{})
@@ -70,6 +76,6 @@ func Inspect() Report {
 		ConflictFound:         !conflictFound,
 		HiddenFieldUnexported: hidden.PkgPath != "",
 		MalformedLookup:       malformedFound,
-		TagsChangeIdentity:    typeOfTagged != other,
+		TagsChangeIdentity:    withLabelTag != withoutLabelTag,
 	}
 }
