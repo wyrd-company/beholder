@@ -1,53 +1,51 @@
-VERDICT: REJECT
+VERDICT: ACCEPT
 
-# Rust fixture plan review
+# Rust fixture plan verification review
 
-## Blocking findings
+## Prior findings disposition
 
-### RUST-PLAN-001 — P1 — Installed target is classified as unavailable
+### RUST-PLAN-001 — Addressed
 
-- **Plan anchors:** `fixtures/rust/plan/overview.md:61-68` and
-  `fixtures/rust/plan/overview.md:207-209`.
-- **Checklist anchor:** `reports/rust/synthesis/checklist.md:1144-1150`.
-- **Violated ground rule:** `fixtures/rust/ground-rules.md:22-35` requires build
-  contexts and exceptions to reflect the selected installed toolchain.
-- **Finding:** The plan says every non-host `rustup` target is uninstalled and
-  excludes RS-CAN-ECO-008 on that basis. Local inspection finds a stable Rust
-  1.97.1 rustup toolchain at the same compiler commit as the selected Homebrew
-  build, with `wasm32-unknown-unknown` and `aarch64-unknown-linux-gnu` installed.
-  The current unavailable-context accounting is therefore false. Reconcile the
-  selected toolchain, declared context matrix, and RS-CAN-ECO-008 disposition
-  with the installed state.
+- **Plan anchors:** `fixtures/rust/plan/overview.md:12-18`,
+  `fixtures/rust/plan/overview.md:54-62`, and
+  `fixtures/rust/plan/overview.md:198-200`.
+- The plan now records the installed rustup stable 1.97.1 toolchain and its
+  `aarch64-unknown-linux-gnu` and `wasm32-unknown-unknown` targets. The false
+  unavailable-target claim is removed.
+- RS-CAN-ECO-008 now has one primary owner. The
+  `wasm-bindgen-bridge` brief declares the installed Wasm context, an independent
+  directory, the dependency purpose, pinning, vendoring, provenance, licensing,
+  notices, offline metadata, and non-tracked macro output at
+  `fixtures/rust/plan/projects/wasm-bindgen-bridge.md:1-57`.
+- The direct RS-CAN-PROJ-017 accounting change declares its freestanding runtime
+  context at `fixtures/rust/plan/projects/unsafe-ffi-and-abi.md:43-46` and
+  `fixtures/rust/plan/projects/unsafe-ffi-and-abi.md:54-65`.
 
-### RUST-PLAN-002 — P1 — Compile-fail doctest is planned as fixture content
+### RUST-PLAN-002 — Addressed
 
-- **Plan anchor:**
-  `fixtures/rust/plan/projects/tests-and-documentation.md:29-33`.
-- **Checklist anchor:** `reports/rust/synthesis/checklist.md:1078-1084`.
-- **Violated ground rule:** `fixtures/rust/ground-rules.md:41-50` requires all
-  corpus source to be valid and keeps expected-failure programs and
-  intentionally invalid examples out of fixture content.
-- **Finding:** The brief says a compile-fail documentation block and
-  failure-expecting rustdoc annotations remain corpus content when the enclosing
-  crate and test command pass. A `compile_fail` doctest is intentionally invalid
-  synthetic Rust source, so harness success does not make it valid fixture
-  source. Keep this invalid-only variant as documentation or exception rather
-  than planned test source.
-
-## Accounting and policy checks
-
-- Canonical accounting: 141 identifiers; 136 unique primary assignments; five
-  allowed whole-item exceptions; no duplicate or missing primary assignment
-  outside those exceptions.
-- Overview assignments and project-brief assignments match exactly.
-- Sixteen exclusive project directories are distinct, and no brief depends on
-  another top-level fixture project.
-- Planned tests other than RUST-PLAN-002 name checklist coverage created by test
+- **Plan anchors:**
+  `fixtures/rust/plan/projects/tests-and-documentation.md:26-37` and
+  `fixtures/rust/plan/overview.md:231-241`.
+- The `compile_fail` doctest is now an invalid-only variant documented as a
+  counterexample, not planned corpus source. Planned documentation tests are
+  limited to valid source, including `should_panic` source whose failure is at
+  runtime rather than compilation.
+- The planned-test section continues to name RS-CAN-TEST-001, RS-CAN-TEST-002,
+  and the valid-source portion of RS-CAN-TEST-003 as coverage created by test
   source.
-- Third-party dependencies name their coverage purpose and require pinning,
-  vendoring, provenance, licensing, notices, and offline metadata.
-- Generated-source handling keeps tracked source unchanged during required
-  validation tasks.
+
+## Verification checks
+
+- Canonical accounting: 141 identifiers; 137 unique primary assignments; four
+  allowed whole-item exceptions; no duplicates or uncovered identifiers outside
+  those exceptions.
+- Overview and project-brief assignments match exactly.
+- Seventeen exclusive project directories are distinct. No repair introduces a
+  dependency on another top-level fixture project.
+- Third-party and generated-source policy remains preserved by the repair.
+- Markdown lint passes on all 21 authored planning artifacts. The verdict-first
+  review report passes with MD041 disabled only for its required first-line
+  format.
 
 ## Installed-toolchain observations
 
@@ -56,3 +54,11 @@ VERDICT: REJECT
 - rustup stable toolchain: `rustc` 1.97.1 commit `8bab26f4f`, with host,
   `aarch64-unknown-linux-gnu`, and `wasm32-unknown-unknown` targets installed.
 - No nightly toolchain is installed.
+
+## Review surface
+
+- Snapshot: `01KZPZA1RYKM`.
+- Base: `58353f3b4b2ab9d0f1cee2aae69e4cb45785a253`.
+- Reviewed head: `61e0b6a8b29092911788b93b6b517bcce1e364cd`.
+- Verification scope: RUST-PLAN-001, RUST-PLAN-002, and direct repair
+  regressions only.
