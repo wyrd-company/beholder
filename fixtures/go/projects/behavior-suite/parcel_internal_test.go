@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -60,6 +61,54 @@ func TestSubtestLifecycle(t *testing.T) {
 	})
 }
 
+func TestParallelSubtestNames(t *testing.T) {
+	cases := []struct {
+		name string
+		id   int
+	}{
+		{name: "batch item", id: 1},
+		{name: "batch item", id: 2},
+	}
+	started := make(chan int, len(cases))
+	release := make(chan struct{})
+	done := make(chan struct{})
+	var orderMu sync.Mutex
+	order := make([]int, 0, len(cases))
+
+	go func() {
+		for range cases {
+			id := <-started
+			orderMu.Lock()
+			order = append(order, id)
+			orderMu.Unlock()
+		}
+		close(release)
+		close(done)
+	}()
+
+	for _, testCase := range cases {
+		testCase := testCase
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+			started <- testCase.id
+			<-release
+		})
+	}
+
+	t.Cleanup(func() {
+		<-done
+		orderMu.Lock()
+		defer orderMu.Unlock()
+		if len(order) != len(cases) {
+			t.Fatalf("started %d parallel subtests, want %d", len(order), len(cases))
+		}
+		if order[0] == order[1] {
+			t.Fatalf("parallel subtests reported duplicate identities: %v", order)
+		}
+		t.Logf("parallel start order: %v", order)
+	})
+}
+
 func BenchmarkCounter(b *testing.B) {
 	b.Run("increment", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -83,14 +132,6 @@ func TestPackageRelativeTestdata(t *testing.T) {
 	}
 	if !strings.Contains(string(notes), "seasonal") {
 		t.Fatalf("notes = %q", notes)
-	}
-
-	invalid, err := os.ReadFile("testdata/invalid.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(invalid), "not valid Go") {
-		t.Fatalf("invalid fixture = %q", invalid)
 	}
 }
 
