@@ -1,0 +1,7 @@
+{
+  "kinds": [
+    {"name": "Widget", "code": 1},
+    {"name": "Gadget", "code": 2},
+    {"name": "Doohickey", "code": 3}
+  ]
+}

@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Compile all fixture-owned packages in every declared build context
+    cmds:
+      - go build ./...
+      - go build -tags=taggedbuild ./...
+
+  lint:
+    desc: Check gofmt formatting and run go vet
+    cmds:
+      - test -z "$(gofmt -l .)"
+      - go vet ./...
+      - go vet -tags=taggedbuild ./...
+
+  test:
+    desc: Run Go tests (succeeds with no test files)
+    cmds:
+      - go test ./...
+
+  generate:
+    desc: Regenerate generated source from schemas
+    cmds:
+      - go run ./cmd/geninventory -input schema/inventory.json -output generated/inventory_gen.go
+      - go run ./cmd/geninfo -input schema/info.json -output generated/info_gen.go
+      - go fmt ./...
