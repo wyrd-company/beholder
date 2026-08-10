@@ -71,17 +71,31 @@ inside this one project directory; none depends on another top-level project.
 
 ## Dependency needs
 
-The `setuptools` distribution, pinned to `setuptools==84.0.0` (the version the
-local index currently resolves for CPython 3.14). The implementor acquires it
-once from PyPI (the network exception), then vendors it with its source location
-and its MIT license and notice files, together with the pure-Python wheel and any
-build requirements the backend declares through the PEP 517
-`get_requires_for_build_*` hooks, placed in a local wheelhouse so the isolated
-build resolves them with `--no-index`. `pip`, `wheel`, `venv`, and `uv` are
-installed system tools and are not vendored. Local feasibility is confirmed as
-far as this plan permits: `setuptools==84.0.0` resolves for this interpreter from
-the index (metadata only), and `pip` supports offline isolated builds through
-`--no-index --find-links`.
+The `setuptools` distribution, pinned to `setuptools==84.0.0`, is the only
+third-party build dependency. The implementor acquires it once from PyPI (the
+network exception) and vendors it with its source location, its MIT license and
+notice files, and its single pure-Python wheel, placed in a local wheelhouse so
+the isolated build resolves it with `--no-index`. The vendored wheel is pinned by
+its published SHA-256
+`51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670`, and the
+source distribution by SHA-256
+`f4695c21257f0d9b537ec2692c941d02ee143b7cc1276941349a546573b2ef73`
+(PyPI release <https://pypi.org/project/setuptools/84.0.0/>).
+
+This fixture declares no setup requirements. In upstream `setuptools.build_meta`
+v84.0.0, the wheel and sdist build-requirement hooks initialize their requirement
+list empty and add only requirements raised from project-declared setup
+requirements, and the editable hook delegates to the wheel hook
+(`setuptools/build_meta.py` lines 265-310 and 435-438). Because this fixture
+declares no setup requirements, every PEP 517 `get_requires_for_build_wheel`,
+`get_requires_for_build_sdist`, and `get_requires_for_build_editable` hook
+returns an empty list. No unnamed, hook-returned build dependency is acquired or
+authorized; `setuptools==84.0.0` remains the sole third-party build dependency.
+
+`pip`, `wheel`, `venv`, and `uv` are installed system tools and are not vendored.
+Local feasibility is confirmed as far as this plan permits: `setuptools==84.0.0`
+resolves for this interpreter from the index (metadata only), and `pip` supports
+offline isolated builds through `--no-index --find-links`.
 
 ## Generated-source needs
 
