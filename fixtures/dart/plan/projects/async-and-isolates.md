@@ -30,7 +30,8 @@ complex
   and `finally` handling; iterable versus stream behavior.
 - **DART-CAN-ASYNC-003** — Stream consumption and subscription modes: `await
   for`, a single-subscription stream, a broadcast stream, a controller,
-  transformations, and an error event; two broadcast listeners; cancellation;
+  transformations, and an error event; two broadcast listeners; a second
+  listener on a single-subscription stream failing at runtime; cancellation;
   pause and resume.
 - **DART-CAN-ASYNC-004** — Event queues, unawaited futures, and zones:
   microtask and event ordering only where documented, `unawaited`, a guarded
@@ -38,14 +39,16 @@ complex
   bound to zones.
 - **DART-CAN-ISO-001** — Isolate spawning and messages: `Isolate.run`,
   `Isolate.spawn`, ports, a top-level or static entry point, and result, error,
-  and exit handling on native targets; pause, resume, and kill; no shared
-  mutable state.
+  and exit handling on native targets; native `spawnUri`; pause, resume, and
+  kill; no shared mutable state.
 - **DART-CAN-ISO-002** — Sendability and transferable data: sending primitives,
   collections, ports, and `TransferableTypedData` where supported; immutable
-  sharing; an unsendable value.
+  sharing; an unsendable value; cyclic sendable data where supported;
+  `TransferableTypedData` reuse failure.
 
-The web isolate and `spawnUri` web variants of DART-CAN-ISO-001 are excluded as
-an unavailable context; isolates are covered on native targets. Documented
+The web target for isolates — web `Isolate.spawn`, web `spawnUri`, and web
+isolate messaging — is excluded as an unavailable context; native isolate
+spawning, including native `spawnUri`, is covered. Documented
 microtask, timer, and host-interleaving corners are recorded as observations,
 not asserted, per the checklist's implementation-defined notes.
 
@@ -72,4 +75,5 @@ None. All coverage is created by library and executable source.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles the
 declared entry points under `native-aot`. `lint` runs `dart format` and `dart
-analyze`. `test` runs `dart test` and succeeds with no test files.
+analyze`. `test` succeeds with no test files and needs no test-framework
+dependency.

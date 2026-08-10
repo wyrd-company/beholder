@@ -264,4 +264,6 @@ by the DART-CAN-BUILD-006 negative constraint.
   and uses no third-party package. Its native toolchain use is confined to the
   implementor's setup and is not invoked by required validation tasks.
 - Every project's required `build`, `lint`, and `test` tasks run offline against
-  committed resolution and download nothing.
+  committed resolution and download nothing. Only `packages-and-workspace` plans
+  test source and vendors a test framework; the other eleven projects' `test`
+  task succeeds with no test files and needs no test-framework dependency.

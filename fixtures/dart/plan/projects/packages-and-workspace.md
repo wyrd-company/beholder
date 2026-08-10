@@ -30,7 +30,7 @@ complex
 - **DART-CAN-PKG-002** — Package layout and roots: public `lib/`, implementation
   `lib/src/`, multiple `bin/` entry points, `test/`, `example/`, and `tool/` as
   applicable; a public façade re-export; an `executables:` mapping; different
-  reachability per root.
+  reachability per root; asset or data lookup across package roots.
 - **DART-CAN-PKG-003** — Dependency source kinds: hosted and path dependencies;
   a dev-dependency used from `test`; path identity.
 - **DART-CAN-PKG-004** — Version solving, lockfile, and package configuration: a

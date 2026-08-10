@@ -78,4 +78,4 @@ Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules, plus a
 `generate` task as described above. `build` resolves offline, analyzes all
 fixture-owned libraries including the committed generated output, and compiles
 the declared entry point. `lint` runs `dart format` and `dart analyze`. `test`
-runs `dart test` and succeeds with no test files.
+succeeds with no test files and needs no test-framework dependency.

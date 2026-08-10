@@ -113,12 +113,16 @@ Every project defines these Task tasks:
 - `lint` checks `dart format` formatting and runs `dart analyze` on
   fixture-owned source under the project's analyzer configuration. Vendored
   source is excluded.
-- `test` runs `dart test` so included test source compiles and executes. It
-  succeeds when a project has no test files.
+- `test` runs the project's planned tests so included test source compiles and
+  executes, and succeeds when a project has no test files. A project that plans
+  test source depends on and vendors a pinned test framework; a project with no
+  planned test source needs no such dependency, and its `test` task succeeds
+  without invoking one.
 
-All defined tasks pass. They are thin wrappers around ordinary Dart commands.
-They do not download packages, mutate tracked source, write validation logs,
-evidence records, manifests, hashes, or audit output.
+All defined tasks pass. Except for a no-test `test` task, which succeeds on its
+own, they are thin wrappers around ordinary Dart commands. They do not download
+packages, mutate tracked source, write validation logs, evidence records,
+manifests, hashes, or audit output.
 
 A project whose coverage requires generator invocation also defines `generate`.
 `generate` is the only task permitted to write generated source, and no other

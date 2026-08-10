@@ -35,7 +35,8 @@ complex
   a prefix.
 - **DART-CAN-LIB-004** — `show` and `hide` combinators: filtering imports and
   exports; filtering to resolve a collision; chained and repeated combinators; a
-  re-export diamond that is not ambiguous.
+  re-export diamond that is not ambiguous; a hidden extension no longer
+  participating in extension resolution.
 - **DART-CAN-LIB-005** — Exports and façade libraries: re-exporting selected
   public declarations while importing implementation-only dependencies; a chain,
   a diamond, and a legal export cycle; a public `lib/src` separation as a
@@ -46,13 +47,15 @@ complex
 - **DART-CAN-LIB-007** — Underscore privacy: private top-level names, members,
   constructors, types, and extensions; same-text private names in two libraries;
   parts sharing access; two classes in one library accessing each other's
-  private members.
+  private members; a foreign subclass's same-text private member is unrelated
+  to the original library's member.
 - **DART-CAN-LIB-008** — Conditional imports and exports: default, native, and
   web branches selected by `dart.library.*` conditions behind one common API;
-  the analyzer default-branch behavior.
+  first-matching conditional-import selection; the analyzer default-branch
+  behavior.
 - **DART-CAN-LIB-009** — Deferred imports: `deferred as`, awaiting
-  `loadLibrary()`, and access through the prefix; the VM trivial load and the
-  web code-splitting load unit.
+  `loadLibrary()`, and access through the prefix; repeated `loadLibrary()` on a
+  deferred import; the VM trivial load and the web code-splitting load unit.
 - **DART-CAN-LIB-010** — Lexical scope, shadowing, and legal cycles:
   block/local/member/library lookup; `this` disambiguation; interpolation
   references; mutually importing libraries.
@@ -87,4 +90,4 @@ None. All coverage is created by library source.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles the web
 entry point under `js`. `lint` runs `dart format` and `dart analyze`. `test`
-runs `dart test` and succeeds with no test files.
+succeeds with no test files and needs no test-framework dependency.

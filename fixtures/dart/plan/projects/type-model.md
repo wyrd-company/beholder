@@ -25,28 +25,35 @@ complex
 
 - **DART-CAN-TYPE-001** — Classes, abstract declarations, and implicit
   interfaces: `extends`, `implements`, inherited concrete members, abstract
-  members, overrides, and `super`; fields as getter/setter contracts.
+  members, overrides, and `super`; fields as getter/setter contracts;
+  implementing a concrete class as an interface without inheriting its
+  implementation.
 - **DART-CAN-TYPE-002** — Class modifiers and capability restrictions: `base`,
   `interface`, `final`, `sealed`, abstract combinations, `mixin class`, and
   `base mixin` across a library boundary; sealed exhaustiveness.
 - **DART-CAN-TYPE-003** — Mixins and mixin applications: `mixin`, `on`
   constraints, multiple ordered applications, `super` calls, and a named mixin
-  application.
+  application; later-mixin precedence; the same mixin over different bases
+  having different `super` targets.
 - **DART-CAN-TYPE-004** — Simple and enhanced enums: values with fields,
   methods, const constructor arguments, an interface, a mixin, and synthesized
   members; a generic enhanced enum.
 - **DART-CAN-TYPE-005** — Extension methods: named, unnamed, private, generic,
   bounded, nullable-target, getter, operator, static, and explicit extension
-  forms; prefixed explicit application; extension tear-off.
+  forms; prefixed explicit application; extension tear-off; instance-member
+  precedence; most-specific extension selection; a `dynamic` bypass; a nullable
+  receiver including `null`.
 - **DART-CAN-TYPE-006** — Extension types: representation, constructors,
   members, operators, static members, generics, and `implements`; static
-  distinction and runtime erasure; `@redeclare`.
+  distinction and runtime erasure; `@redeclare`; nullable representation; casts;
+  contrast with class wrappers or extension methods.
 - **DART-CAN-TYPE-007** — Type aliases: legacy function typedef, modern function
   alias, generalized class and type alias, generic bounds, a record alias, and
   constructor access through an alias.
 - **DART-CAN-TYPE-008** — Records: positional, named, singleton positional,
   nested, const, generic, return, destructuring, and cross-library record
-  shapes; structural subtyping; synthetic getters.
+  shapes; structural subtyping; synthetic getters; record equality; named-field
+  order versus names.
 - **DART-CAN-TYPE-009** — Special types: `Object?`, `Object`, `dynamic`, `void`,
   `Never`, `Null`, and `FutureOr<T>` in assignments, calls, returns, promotion,
   and reachability.
@@ -56,7 +63,8 @@ complex
 - **DART-CAN-TYPE-011** — Fields and accessors: instance, static, and top-level
   fields; `final`, `late`, `late final`, static `const`, and abstract fields;
   explicit getters and setters; a getter and setter inherited from different
-  supertypes.
+  supertypes; implementing a field with computed accessors; overriding one
+  accessor half; a final collection remaining mutable.
 - **DART-CAN-TYPE-012** — Operators, indexers, and callable objects:
   representative unary and binary operators, `[]`, `[]=`, `==`/`hashCode`, and
   `call`; a callable object assigned to a function type; `>>>`.
@@ -74,7 +82,8 @@ complex
 - **DART-CAN-GEN-004** — Override checking and `covariant`: valid return
   covariance, parameter compatibility, optional and named additions, and a
   deliberately narrowed parameter with `covariant`; a call through a supertype
-  causing a runtime check; generic substitution.
+  causing a runtime check; generic substitution; setter or field covariance;
+  covariance across multiple interfaces.
 
 The JavaScript-interop variant of DART-CAN-TYPE-006 is owned by
 `platforms-and-interop`; here extension types are covered by static distinction
@@ -104,4 +113,5 @@ None. All coverage is created by library source.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles the
 declared entry point under `native-aot`. `lint` runs `dart format` and `dart
-analyze`. `test` runs `dart test` and succeeds with no test files.
+analyze`. `test` succeeds with no test files and needs no test-framework
+dependency.

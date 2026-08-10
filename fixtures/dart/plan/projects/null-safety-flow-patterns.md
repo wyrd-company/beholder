@@ -28,13 +28,18 @@ complex
   bounds; nullability override compatibility.
 - **DART-CAN-NULL-002** — Flow promotion: promotion through tests, null checks,
   assignments, returns, throws, patterns, and branches; eligible private final
-  field promotion; a pre-field-promotion language version.
+  field promotion; a pre-field-promotion language version; promotion defeated by
+  mutation, capture, a loop, a conflicting getter, a non-final field,
+  `noSuchMethod`, or a public property.
 - **DART-CAN-NULL-003** — Definite assignment and `late`: path-complete
   assignment without `late`, lazy `late` initialization, and `late final`;
-  top-level, local, static, and instance cases; constructor paths.
+  top-level, local, static, and instance cases; constructor paths; a runtime
+  read before `late` initialization; a second write to `late final`; initializer
+  recursion or an exception.
 - **DART-CAN-NULL-004** — Null-aware selection and fallback: `?.`, null-aware
   indexing, `??`, `??=`, postfix `!`, and whole-chain short-circuiting; side
-  effects skipped on null; a successful `!`.
+  effects skipped on null; a successful `!`; a runtime failure from postfix `!`;
+  property getter and setter interaction; the cascade boundary.
 - **DART-CAN-FLOW-001** — Statements, loops, labels, and reachability: loop
   forms, nested labels, `break`, `continue`, `return`, `throw`, and a `Never`
   call; a continue-to-switch label.
@@ -87,5 +92,5 @@ None. All coverage is created by library source.
 
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline and analyzes all fixture-owned libraries. `lint` runs `dart
-format` and `dart analyze`. `test` runs `dart test` and succeeds with no test
-files.
+format` and `dart analyze`. `test` succeeds with no test files and needs no
+test-framework dependency.

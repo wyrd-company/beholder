@@ -43,7 +43,8 @@ complex
   conversion; extension-type erasure.
 - **DART-CAN-PLAT-007** — Native FFI: at least one symbol bound through `@Native`
   or lookup, native and Dart signatures, and a struct or union, with the native
-  library documented; a leaf call; a finalizer or allocator.
+  library documented; a leaf call; a finalizer or allocator; a native callback
+  and its callback-thread relationship.
 - **DART-CAN-PLAT-008** — Process, filesystem, and environment: paths, file I/O,
   process invocation and exit, environment variables, and asynchronous I/O on
   native targets.
@@ -93,4 +94,5 @@ target-specific source sets.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles the declared
 entry points under `native-aot`, `js`, and `wasm`. `lint` runs `dart format` and
-`dart analyze`. `test` runs `dart test` and succeeds with no test files.
+`dart analyze`. `test` succeeds with no test files and needs no test-framework
+dependency.

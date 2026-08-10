@@ -41,7 +41,8 @@ complex
   a first null-aware section that short-circuits later sections; nested cascades.
 - **DART-CAN-OBJ-006** — Implicit operator lowering: `a[i] += value`, property
   `??=`, and increment and decrement on user-defined members; the `[]`,
-  operator, and `[]=` sequence; a getter then a conditional setter.
+  operator, and `[]=` sequence; a getter then a conditional setter; specified
+  single evaluation of a side-effecting receiver and index.
 - **DART-CAN-CONST-001** — Constant-expression subset: const variables,
   primitive operations, strings, symbols, type, function, and constructor
   literals, collections, records, annotations, and const constructors with
@@ -82,4 +83,5 @@ None. All coverage is created by library source.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles the
 declared entry point under `native-aot`. `lint` runs `dart format` and `dart
-analyze`. `test` runs `dart test` and succeeds with no test files.
+analyze`. `test` succeeds with no test files and needs no test-framework
+dependency.

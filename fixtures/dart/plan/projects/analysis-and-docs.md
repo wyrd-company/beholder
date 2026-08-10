@@ -79,4 +79,4 @@ None. All coverage is created by library source and analyzer configuration.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline and analyzes all fixture-owned libraries. `lint` runs `dart
 format` and `dart analyze` under the project's analyzer configuration. `test`
-runs `dart test` and succeeds with no test files.
+succeeds with no test files and needs no test-framework dependency.

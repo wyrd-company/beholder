@@ -67,4 +67,5 @@ None. All coverage is created by library and executable source.
 Provide `Taskfile.yml` and `coverage.md` as defined in the ground rules. `build`
 resolves offline, analyzes all fixture-owned libraries, and compiles each
 declared entry point for `native-aot` and `js`. `lint` runs `dart format` and
-`dart analyze`. `test` runs `dart test` and succeeds with no test files.
+`dart analyze`. `test` succeeds with no test files and needs no test-framework
+dependency.
