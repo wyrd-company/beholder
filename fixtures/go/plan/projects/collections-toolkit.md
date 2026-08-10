@@ -86,8 +86,8 @@ complex
   constraints, unions, `~` terms, `comparable`, and `any`, including the go1.20
   `comparable` satisfaction change.
 - **GO-CAN-GEN-003** — type inference through argument, assignment-context,
-  result-context, method, and unification-driven inference, with the go1.21 and
-  go1.22 inference boundaries.
+  result-context, method, and unification-driven inference, with the go1.21
+  inference boundary.
 - **GO-CAN-GEN-004** — operations on type parameters valid for every member of a
   type set: comparison, indexing, slicing, ranging, channel operations,
   conversion, and method calls.
