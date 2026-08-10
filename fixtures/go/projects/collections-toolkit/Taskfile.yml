@@ -1,0 +1,17 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build ./...
+      - GOARCH=386 go build ./...
+      - for dir in variants/go120 variants/go121 variants/go122 variants/go123 variants/go124; do (cd "$dir" && go build ./... && GOARCH=386 go build ./...); done
+  lint:
+    cmds:
+      - test -z "$(find . -name '*.go' -print0 | xargs -0 gofmt -l)"
+      - go vet ./...
+      - for dir in variants/go120 variants/go121 variants/go122 variants/go123 variants/go124; do (cd "$dir" && go vet ./...); done
+  test:
+    cmds:
+      - go test ./...
+      - for dir in variants/go120 variants/go121 variants/go122 variants/go123 variants/go124; do (cd "$dir" && go test ./...); done
