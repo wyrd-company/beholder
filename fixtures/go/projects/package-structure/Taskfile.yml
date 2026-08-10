@@ -1,0 +1,23 @@
+# ---
+# relationships:
+#   references:
+#     - coverage
+# ---
+version: '3'
+
+tasks:
+  build:
+    desc: Build every fixture-owned package.
+    cmds:
+      - go build ./...
+
+  lint:
+    desc: Check formatting and vet every fixture-owned package.
+    cmds:
+      - test -z "$(gofmt -l .)"
+      - go vet ./...
+
+  test:
+    desc: Compile and run the fixture package tests.
+    cmds:
+      - go test ./...
