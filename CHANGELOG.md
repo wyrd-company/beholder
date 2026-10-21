@@ -4,6 +4,12 @@ Every released version has a section here, and the release workflow reads the
 section matching the tag as that release's notes. A tag with no section does not
 release.
 
+## 0.1.1
+
+### Fixes
+
+- Publish documentation independently of releases, validate changes across supported platforms, and keep manual release builds separate from GitHub, Cargo, npm and Homebrew publication.
+
 ## 0.1.0
 
 ### Breaking
