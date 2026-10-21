@@ -303,7 +303,7 @@ fn for_each_blob(
             return git2::TreeWalkResult::Ok;
         }
 
-        let Ok(name) = entry.name() else {
+        let Some(name) = entry.name() else {
             return git2::TreeWalkResult::Ok;
         };
         let path = format!("{dir}{name}");
