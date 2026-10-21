@@ -303,7 +303,7 @@ fn for_each_blob(
             return git2::TreeWalkResult::Ok;
         }
 
-        let Ok(name) = entry.name() else {
+        let Some(name) = entry.name() else {
             return git2::TreeWalkResult::Ok;
         };
         let path = format!("{dir}{name}");
@@ -538,6 +538,7 @@ mod tests {
         assert_eq!(worktree, revision);
     }
 
+    #[cfg(unix)]
     #[test]
     fn neither_walker_treats_a_symlink_as_source() {
         // Git stores a symlink as a blob whose content is the target path. Read
