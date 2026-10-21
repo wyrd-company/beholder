@@ -104,10 +104,19 @@ class WorkflowBoundaryTests(unittest.TestCase):
                                  "github.event_name == 'push' && github.ref_type == 'tag'")
         for name in channels:
             self.assertEqual(jobs[name]["needs"], "release")
-        self.assertEqual(jobs["release"]["needs"], "build")
+        self.assertEqual(set(jobs["release"]["needs"]), {"build", "verify-arm64-archive"})
+        self.assertEqual(jobs["verify-arm64-archive"]["needs"], "build")
+        self.assertEqual(jobs["verify-arm64-archive"]["runs-on"], "ubuntu-24.04-arm")
+        archive_steps = jobs["verify-arm64-archive"]["steps"]
+        self.assertTrue(any(step.get("with", {}).get("name") == "beholder-linux-arm64"
+                            for step in archive_steps))
+        self.assertTrue(any("./beholder-linux-arm64/beholder --version" in step.get("run", "")
+                            for step in archive_steps))
         self.assertTrue(any("ensure-github-release.sh" in step.get("run", "")
                             for step in jobs["release"]["steps"]))
-        self.assertEqual(jobs["build"]["needs"], "credential-preflight")
+        self.assertEqual(jobs["build"]["needs"], "validate")
+        self.assertEqual(jobs["validate"]["needs"], "credential-preflight")
+        self.assertEqual(jobs["validate"]["uses"], "./.github/workflows/ci.yml")
         self.assertTrue(any(step.get("run", "").strip() == "scripts/release/validate-event.sh"
                             for step in jobs["build"]["steps"]))
 
@@ -126,12 +135,15 @@ class WorkflowBoundaryTests(unittest.TestCase):
         docs = workflow("publish-docs.yml")
         self.assertEqual(docs["on"]["push"], {"branches": ["main"], "paths": ["docs/**"]})
         self.assertIn("workflow_dispatch", docs["on"])
+        self.assertEqual(docs["concurrency"],
+                         {"group": "publish-docs", "cancel-in-progress": False})
         self.assertNotIn("needs", docs["jobs"]["publish"])
         self.assertNotIn("publish-docs", workflow("cd.yml")["jobs"])
 
     def test_hosted_ci_runs_full_gate_and_supported_platform_tests(self):
         ci = workflow("ci.yml")
         self.assertIn("pull_request", ci["on"])
+        self.assertIn("workflow_call", ci["on"])
         self.assertEqual(ci["on"]["push"]["branches"], ["main"])
         self.assertIn("task ci", [s.get("run") for s in ci["jobs"]["ci"]["steps"]])
         platforms = ci["jobs"]["platforms"]

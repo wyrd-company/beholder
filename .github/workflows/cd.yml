@@ -43,9 +43,13 @@ jobs:
           done
           echo "Required release credentials are configured."
 
+  validate:
+    needs: credential-preflight
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build (${{ matrix.artifact_name }})
-    needs: credential-preflight
+    needs: validate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -151,10 +155,28 @@ jobs:
           overwrite: true
           retention-days: 90
 
+  verify-arm64-archive:
+    name: Exercise the Linux arm64 release archive
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: beholder-linux-arm64
+          path: dist
+      - name: Run the archived binary on arm64
+        shell: bash
+        run: |
+          VERSION="$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')"
+          tar -xzf dist/beholder-linux-arm64.tar.gz
+          ./beholder-linux-arm64/beholder --version | grep -F -- "$VERSION"
+          ./beholder-linux-arm64/beholder report --help | grep -F -- '--threshold'
+
   release:
     if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish GitHub Release assets
-    needs: build
+    needs: [ build, verify-arm64-archive ]
     runs-on: ubuntu-latest
     permissions:
       contents: write

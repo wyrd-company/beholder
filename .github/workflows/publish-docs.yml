@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
