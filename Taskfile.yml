@@ -10,12 +10,12 @@ tasks:
   build:
     desc: Build the workspace
     cmds:
-      - cargo build --workspace --all-targets
+      - cargo build --workspace --all-targets --locked
 
   test:
     desc: Run every test
     cmds:
-      - cargo test --workspace
+      - cargo test --workspace --locked
 
   test:action:
     desc: Exercise the shell the GitHub Action runs
@@ -30,7 +30,7 @@ tasks:
   lint:
     desc: Run clippy with warnings denied
     cmds:
-      - cargo clippy --workspace --all-targets -- -D warnings
+      - cargo clippy --workspace --all-targets --locked -- -D warnings
 
   release:check:
     desc: Everything the release does that can be proved without publishing
@@ -47,11 +47,16 @@ tasks:
       - npm test --prefix npm
       - npm pack ./npm --dry-run --ignore-scripts --userconfig=/dev/null
 
+  test:release:
+    desc: Exercise release event guards and workflow publication boundaries
+    cmds:
+      - python3 scripts/tests/release-workflow.test.py
+
   lint:action:
     desc: Lint the action definition and the shell it runs
     cmds:
       - actionlint
-      - shellcheck scripts/*.sh scripts/tests/*.sh
+      - shellcheck scripts/*.sh scripts/tests/*.sh scripts/release/*.sh
 
   fmt:
     desc: Format the workspace
@@ -70,6 +75,7 @@ tasks:
       - task: build
       - task: test
       - task: test:action
+      - task: test:release
       - task: lint
       - task: lint:action
 

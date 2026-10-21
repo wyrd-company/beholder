@@ -1,0 +1,43 @@
+# ---
+# relationships:
+#   implements: publishing
+# ---
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
+        with:
+          tool: task,actionlint,shellcheck,yq
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: task ci
+      - run: npm test --prefix npm
+  platforms:
+    name: Rust 1.85 (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@cfcaf53ba4c621917ec7f78a66bff7a8848ddad4 # 1.85.0
+        with:
+          toolchain: 1.85.0
+          components: rustfmt
+      - run: cargo test --workspace --locked

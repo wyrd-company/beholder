@@ -20,12 +20,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # Current versions come from tags, which a shallow clone does not have.
           fetch-depth: 0
 
-      - uses: wyrd-company/intentional@0.1.6
+      - uses: wyrd-company/intentional@25b97b64a994f6e3fb88d0e136ecb9f2589c384f # 0.1.6
         with:
           command: check
           intentional-version: 0.1.6

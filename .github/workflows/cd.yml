@@ -1,8 +1,7 @@
 name: Release
 
-# A tag is the only trigger, and the tag is the version. Nothing here decides
-# what to release; it publishes what the tag already names, and refuses if the
-# manifests disagree with it.
+# Version-tag pushes publish. Manual dispatch builds and validates without
+# publishing. Intentional owns version selection and tags.
 
 on:
   push:
@@ -13,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -20,12 +23,16 @@ jobs:
   credential-preflight:
     name: Verify publication credentials are configured
     runs-on: ubuntu-latest
-    env:
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      FORMULAE_PUBLISH_KEY: ${{ secrets.FORMULAE_PUBLISH_KEY }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
+      - name: Build-only run
+        if: github.event_name != 'push'
+        run: echo "Build-only run; publication credentials are not required."
       - name: Require every publication credential
+        if: github.event_name == 'push'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          FORMULAE_PUBLISH_KEY: ${{ secrets.FORMULAE_PUBLISH_KEY }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
         run: |
           for VARIABLE in CARGO_REGISTRY_TOKEN FORMULAE_PUBLISH_KEY NPM_TOKEN; do
@@ -66,41 +73,32 @@ jobs:
             archive_ext: zip
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
-      - name: Guard tag, Cargo, and npm version agreement
+      - name: Validate build or release identity
+        id: identity
         shell: bash
         run: |
-          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
-            echo "Release workflow must run against a SemVer tag." >&2
-            exit 1
-          fi
-          TAG="${GITHUB_REF##*/}"
-          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must be plain Semantic Versioning." >&2
-            exit 1
-          fi
-          python3 scripts/release/verify-versions.py --expected "$TAG"
-          scripts/release/extract-release-notes.sh \
-            "$TAG" CHANGELOG.md "$RUNNER_TEMP/release-notes-preflight.md"
+          scripts/release/validate-event.sh
 
       - name: Install cross
         if: >-
           matrix.target == 'x86_64-unknown-linux-gnu' ||
           matrix.target == 'aarch64-unknown-linux-gnu'
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
         with:
           tool: cross@0.2.5
 
       - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@1.85.0
+        uses: dtolnay/rust-toolchain@cfcaf53ba4c621917ec7f78a66bff7a8848ddad4 # 1.85.0
         with:
+          toolchain: 1.85.0
           targets: ${{ matrix.target }}
 
       - name: Cache Cargo inputs and build output
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/.cargo/registry
@@ -127,8 +125,8 @@ jobs:
         env:
           BIN: ${{ matrix.bin_path }}
         run: |
-          TAG="${GITHUB_REF##*/}"
-          "$BIN" --version | grep -F "$TAG"
+          VERSION="${{ steps.identity.outputs.version }}"
+          "$BIN" --version | grep -F "$VERSION"
           "$BIN" --help | grep -F "structural code index"
 
       - name: Assemble deterministic release archive
@@ -145,7 +143,7 @@ jobs:
             --output "$ARTIFACT.$EXT"
 
       - name: Upload release archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
@@ -154,6 +152,7 @@ jobs:
           retention-days: 90
 
   release:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish GitHub Release assets
     needs: build
     runs-on: ubuntu-latest
@@ -161,12 +160,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
       - name: Download release archives
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: "beholder-*"
           path: dist
@@ -198,20 +197,8 @@ jobs:
           TAG="${GITHUB_REF##*/}"
           scripts/release/ensure-github-release.sh "$TAG" dist release-notes.md
 
-  publish-docs:
-    name: Publish docs
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout tagged source
-        uses: actions/checkout@v4
-      - name: Publish docs to wyrd.foo
-        uses: wyrd-company/wyrd.foo/.github/actions/publish-docs@v1
-        with:
-          app-id: ${{ secrets.WYRD_TOOLS_DOCS_PUBLISHER_APP_ID }}
-          private-key: ${{ secrets.WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY }}
-
   publish-crates:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish crates.io packages
     needs: release
     runs-on: ubuntu-latest
@@ -219,11 +206,13 @@ jobs:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@1.85.0
+        uses: dtolnay/rust-toolchain@cfcaf53ba4c621917ec7f78a66bff7a8848ddad4 # 1.85.0
+        with:
+          toolchain: 1.85.0
       - name: Publish or verify matching crates
         shell: bash
         run: |
@@ -235,6 +224,7 @@ jobs:
           scripts/release/ensure-crate.sh beholder-cli "$TAG"
 
   publish-npm:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish npm launcher
     needs: release
     runs-on: ubuntu-latest
@@ -243,11 +233,11 @@ jobs:
       id-token: write
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: Set up Node.js for npmjs
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
@@ -269,12 +259,13 @@ jobs:
           scripts/release/ensure-npm.sh npm "$TAG"
 
   publish-homebrew-tap:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish Homebrew formula
     needs: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Download published release archives
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -294,7 +285,7 @@ jobs:
           cd dist
           sha256sum --check SHA256SUMS
       - name: Checkout tap repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: wyrd-company/homebrew-tools
           path: homebrew-tools
@@ -338,7 +329,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
       - name: Install the released CLI from crates.io
         shell: bash
         run: |
@@ -360,7 +353,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-14, windows-latest]
     steps:
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
@@ -402,7 +395,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: Update the major tag for stable releases
