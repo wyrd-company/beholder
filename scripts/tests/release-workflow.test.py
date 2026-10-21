@@ -97,7 +97,8 @@ class WorkflowBoundaryTests(unittest.TestCase):
     def test_every_publication_job_requires_a_tag_push_and_github_release(self):
         jobs = workflow("cd.yml")["jobs"]
         channels = {"publish-crates", "publish-npm", "publish-homebrew-tap"}
-        for name in channels | {"release"}:
+        for name in channels | {"release", "verify-cargo-client", "verify-npm-clients",
+                                "verify-homebrew-clients", "update-major-tag"}:
             with self.subTest(job=name):
                 self.assertEqual(jobs[name]["if"],
                                  "github.event_name == 'push' && github.ref_type == 'tag'")
@@ -135,8 +136,9 @@ class WorkflowBoundaryTests(unittest.TestCase):
         self.assertIn("task ci", [s.get("run") for s in ci["jobs"]["ci"]["steps"]])
         platforms = ci["jobs"]["platforms"]
         self.assertEqual(set(platforms["strategy"]["matrix"]["os"]),
-                         {"ubuntu-latest", "macos-latest", "windows-latest"})
+                         {"ubuntu-latest", "ubuntu-24.04-arm", "macos-latest", "windows-latest"})
         self.assertIn("cargo test --workspace --locked", [s.get("run") for s in platforms["steps"]])
+        self.assertIn("npm test --prefix npm", [s.get("run") for s in platforms["steps"]])
 
     def test_external_actions_are_commit_pinned(self):
         files = [*ROOT.glob(".github/workflows/*.yml"), ROOT / "action.yml"]

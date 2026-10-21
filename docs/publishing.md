@@ -7,8 +7,9 @@ relationships:
 
 # Publishing
 
-Pull requests run `task ci`, npm launcher tests, Intentional checks and Beholder
-reports. Linux, macOS and Windows also test the locked workspace with Rust 1.85.
+Pull requests run `task ci`, Intentional checks and Beholder reports. Linux
+x86_64 and arm64, macOS and Windows test the locked workspace with Rust 1.85
+and run the npm launcher tests. Formatting and Clippy use the stable Rust toolchain.
 
 The Release workflow accepts manual dispatch for a build-only run. It checks
 manifest version agreement, builds the four supported archive targets and
@@ -37,6 +38,7 @@ Publication requires the configured `CARGO_REGISTRY_TOKEN`,
 The GitHub Release job uses the workflow token.
 
 Documentation publishes independently when `docs/**` changes on `main`, or by
-manual dispatch of Publish docs. It uses
+manual dispatch of Publish docs. Manual dispatch publishes documentation from
+the selected ref. It uses
 `WYRD_TOOLS_DOCS_PUBLISHER_APP_ID` and
 `WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY`. A package release is not required.
