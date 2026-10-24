@@ -1,5 +1,5 @@
 ---
-docs: true
+product: beholder
 title: GitHub Action
 order: 4
 ---

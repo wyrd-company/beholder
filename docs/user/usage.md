@@ -1,5 +1,5 @@
 ---
-docs: true
+product: beholder
 title: Command usage
 order: 3
 ---

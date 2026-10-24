@@ -1,5 +1,5 @@
 ---
-docs: true
+product: beholder
 title: Overview
 order: 1
 ---
