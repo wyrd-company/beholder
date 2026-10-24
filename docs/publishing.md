@@ -42,6 +42,9 @@ Publication requires the configured `CARGO_REGISTRY_TOKEN`,
 `FORMULAE_PUBLISH_KEY` and `NPM_TOKEN` secrets. Values remain in GitHub Actions.
 The GitHub Release job uses the workflow token.
 
+Public documentation lives in `docs/user/`: its `docs.yml` and its pages are
+what wyrd.foo publishes. Every other folder under `docs/` is private.
+
 Documentation publishes independently when `docs/**` changes on `main`, or by
 manual dispatch of Publish docs. Manual dispatch publishes documentation from
 the selected ref. Documentation publication runs in sequence across refs. It uses

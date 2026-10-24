@@ -1,0 +1,59 @@
+schemaVersion: 1
+assets:
+  - assets/report.png
+products:
+  beholder:
+    name: beholder
+    version: 0.1.1
+    docs-version: 0.1.0
+    tagline: See structural risk and dependency relationships in code.
+    blurb: >-
+      A Rust library and CLI that indexes symbols, complexity, references, and
+      cohesion, then compares revisions to rank the structural risk in a change.
+    status: preview
+    category: Code Intelligence
+    order: 7
+    # DRAFT highlights, pending the approved text from the highlights task.
+    highlights:
+      - >-
+        Indexes symbols, nesting-weighted complexity, references and cohesion
+        from the working tree.
+      - >-
+        Compares two revisions by stable symbol identity and ranks the riskiest
+        changed symbols first.
+      - >-
+        Renders one analysis as text, JSON, SARIF annotations or a pull request
+        comment.
+      - >-
+        Stores analysis in a custom Git ref, so results travel with the
+        repository and need no service.
+      - >-
+        Runs as a GitHub Action that annotates a pull request and keeps one
+        sticky comment.
+    media:
+      - src: assets/report.png
+        caption: A ranked report of the riskiest symbols between two revisions.
+        alt: >-
+          Terminal output of beholder report listing changed symbols by risk
+          percentile.
+    kinds:
+      - kind: cli
+        install:
+          - method: homebrew
+            os:
+              - macos
+              - linux
+            default: true
+            command: brew install wyrd-company/tools/beholder
+          - method: cargo
+            os:
+              - macos
+              - linux
+              - windows
+            command: cargo install beholder-cli
+          - method: npm
+            os:
+              - macos
+              - linux
+              - windows
+            command: npm install --global @wyrd-company/beholder

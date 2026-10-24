@@ -1,5 +1,5 @@
 ---
-docs: true
+product: beholder
 title: Stored results
 order: 5
 ---
