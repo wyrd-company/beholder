@@ -1,6 +1,10 @@
 schemaVersion: 1
 assets:
   - assets/report.png
+  - assets/brand/mark-light.svg
+  - assets/brand/mark-dark.svg
+  - assets/brand/favicon.svg
+  - assets/brand/social-image.png
 products:
   beholder:
     name: beholder
@@ -13,6 +17,10 @@ products:
     status: preview
     category: Code Intelligence
     order: 7
+    logo: assets/brand/mark-light.svg
+    logo-dark: assets/brand/mark-dark.svg
+    favicon: assets/brand/favicon.svg
+    social-image: assets/brand/social-image.png
     # DRAFT highlights, pending the approved text from the highlights task.
     highlights:
       - >-

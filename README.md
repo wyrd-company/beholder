@@ -1,4 +1,9 @@
-# beholder
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/user/assets/brand/logo-dark.svg">
+    <img alt="beholder" src="docs/user/assets/brand/logo-light.svg" height="96">
+  </picture>
+</h1>
 
 Beholder is a structural index of a codebase that answers two questions: what is risky, and what depends on what. Metrics are a view over the index, not the point of it.
 

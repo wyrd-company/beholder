@@ -58,6 +58,15 @@ tasks:
       - actionlint
       - shellcheck scripts/*.sh scripts/tests/*.sh scripts/release/*.sh
 
+  brand:
+    desc: Regenerate the logo, favicon and social preview in docs/user/assets/brand
+    summary: |
+      scripts/brand.py is the single source of the mark geometry. The PNG and
+      ICO files are rasterized from its SVG output with headless Chromium.
+    cmds:
+      - python3 scripts/brand.py
+      - bash scripts/brand-png.sh
+
   fmt:
     desc: Format the workspace
     cmds:
