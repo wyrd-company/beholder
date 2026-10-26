@@ -46,8 +46,9 @@ Public documentation lives in `docs/user/`: its `docs.yml` and its pages are
 what wyrd.foo publishes. Every other folder under `docs/` is private.
 
 Documentation publishes to wyrd.foo through the wyrd.foo reusable workflow,
-`publish-docs.yml@v2`, called by the Publish docs workflow. A plain push to
-`main` does not publish. Publish docs runs when:
+`publish-docs.yml` at its `2.0.0` release (pinned by commit), called by the
+Publish docs workflow. A plain push to `main` does not publish. Publish docs
+runs when:
 
 - the Release workflow succeeds for a pushed version tag, so the GitHub
   Release the publisher reads exists;

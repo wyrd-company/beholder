@@ -142,7 +142,7 @@ class WorkflowBoundaryTests(unittest.TestCase):
         job = docs["jobs"]["publish"]
         self.assertRegex(
             job["uses"],
-            r"^wyrd-company/wyrd\.foo/\.github/workflows/publish-docs\.yml@(v2|[0-9a-f]{40})$")
+            r"^wyrd-company/wyrd\.foo/\.github/workflows/publish-docs\.yml@[0-9a-f]{40}$")
         self.assertIn("github.event.workflow_run.conclusion == 'success'", job["if"])
         self.assertIn("github.event.workflow_run.event == 'push'", job["if"])
         self.assertEqual(
