@@ -45,8 +45,20 @@ The GitHub Release job uses the workflow token.
 Public documentation lives in `docs/user/`: its `docs.yml` and its pages are
 what wyrd.foo publishes. Every other folder under `docs/` is private.
 
-Documentation publishes independently when `docs/**` changes on `main`, or by
-manual dispatch of Publish docs. Manual dispatch publishes documentation from
-the selected ref. Documentation publication runs in sequence across refs. It uses
+Documentation publishes to wyrd.foo through the wyrd.foo reusable workflow,
+`publish-docs.yml@v2`, called by the Publish docs workflow. A plain push to
+`main` does not publish. Publish docs runs when:
+
+- the Release workflow succeeds for a pushed version tag, so the GitHub
+  Release the publisher reads exists;
+- a `beholder-docs@*` tag is pushed;
+- it is dispatched by hand with a `ref` (a tag or a commit).
+
+Every run publishes all of the repository's products from the files at the
+ref. A docs-only change releases through the `beholder-docs` unit: record an
+intent for it, apply, and push the `beholder-docs@*` tag. A docs tag pushed in
+the same push as a version tag can run before the GitHub Release exists and
+fail; the run for the version tag, after the Release workflow, then publishes.
+Runs for the repository execute in sequence. They use
 `WYRD_TOOLS_DOCS_PUBLISHER_APP_ID` and
-`WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY`. A package release is not required.
+`WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY`.
