@@ -131,13 +131,23 @@ class WorkflowBoundaryTests(unittest.TestCase):
         self.assertEqual(workflow("cd.yml")["concurrency"],
                          {"group": "release-${{ github.ref }}", "cancel-in-progress": False})
 
-    def test_docs_publish_from_main_without_release_dependency(self):
+    def test_docs_publish_on_release_tags_without_publishing_from_main(self):
         docs = workflow("publish-docs.yml")
-        self.assertEqual(docs["on"]["push"], {"branches": ["main"], "paths": ["docs/**"]})
-        self.assertIn("workflow_dispatch", docs["on"])
-        self.assertEqual(docs["concurrency"],
-                         {"group": "publish-docs", "cancel-in-progress": False})
-        self.assertNotIn("needs", docs["jobs"]["publish"])
+        on = docs["on"]
+        self.assertNotIn("branches", on.get("push", {}))
+        self.assertEqual(on["push"], {"tags": ["beholder-docs@*"]})
+        self.assertEqual(on["workflow_run"], {"workflows": ["Release"], "types": ["completed"]})
+        self.assertIn("workflow_dispatch", on)
+        self.assertEqual(workflow("cd.yml")["name"], "Release")
+        job = docs["jobs"]["publish"]
+        self.assertRegex(
+            job["uses"],
+            r"^wyrd-company/wyrd\.foo/\.github/workflows/publish-docs\.yml@(v2|[0-9a-f]{40})$")
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", job["if"])
+        self.assertIn("github.event.workflow_run.event == 'push'", job["if"])
+        self.assertEqual(
+            sorted(job["secrets"]),
+            ["WYRD_TOOLS_DOCS_PUBLISHER_APP_ID", "WYRD_TOOLS_DOCS_PUBLISHER_PRIVATE_KEY"])
         self.assertNotIn("publish-docs", workflow("cd.yml")["jobs"])
 
     def test_hosted_ci_runs_full_gate_and_supported_platform_tests(self):
