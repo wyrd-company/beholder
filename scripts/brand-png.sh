@@ -5,7 +5,13 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 dir="$root/docs/user/assets/brand"
-chrome="${CHROME:-$(ls -d "$HOME"/.cache/ms-playwright/chromium-*/chrome-linux64/chrome 2>/dev/null | tail -1)}"
+chrome="${CHROME:-}"
+if [[ -z "$chrome" ]]; then
+  shopt -s nullglob
+  candidates=("$HOME"/.cache/ms-playwright/chromium-*/chrome-linux64/chrome)
+  shopt -u nullglob
+  if ((${#candidates[@]})); then chrome="${candidates[-1]}"; fi
+fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
