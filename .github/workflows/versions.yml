@@ -25,7 +25,7 @@ jobs:
           # Current versions come from tags, which a shallow clone does not have.
           fetch-depth: 0
 
-      - uses: wyrd-company/intentional@25b97b64a994f6e3fb88d0e136ecb9f2589c384f # 0.1.6
+      - uses: wyrd-company/intentional@3c84bb6f4464287b60783e02bb35ea16b14ebbad # 0.4.0
         with:
           command: check
-          intentional-version: 0.1.6
+          intentional-version: 0.4.0
