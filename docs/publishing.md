@@ -8,10 +8,11 @@ relationships:
 # Publishing
 
 Pull requests run `task ci`, Intentional checks and Beholder reports. Linux
-x86_64 and arm64, macOS and Windows test the locked workspace with Rust 1.85
+x86_64 and arm64, macOS and Windows test the locked workspace with Rust 1.90
 and run the npm launcher tests. Formatting and Clippy use the stable Rust toolchain.
 Local minimum-version checks must select Cargo, rustc and rustdoc from the same
-Rust 1.85 toolchain; selecting Cargo alone does not select its compiler.
+Rust 1.90 toolchain; selecting Cargo alone does not select its compiler.
+Release builds and crate publication use Rust 1.99.1.
 
 The Release workflow accepts manual dispatch for a build-only run. It runs the
 CI workflow against the selected commit, then checks

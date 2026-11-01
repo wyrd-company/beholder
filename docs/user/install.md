@@ -15,6 +15,8 @@ brew install wyrd-company/tools/beholder
 
 ## Cargo
 
+Building from source with Cargo requires Rust 1.90 or later.
+
 ```bash
 cargo install beholder-cli
 ```
