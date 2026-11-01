@@ -41,7 +41,6 @@ units:
     package-version: 0.1.0
     target-name: tally
     edition: '2021'
-    crate-name: tally
     platform: target
     features: []
 entities:
@@ -93,4 +92,5 @@ relations: []
 public-api:
   - {distribution: tally, entity: tally.Counter, paths: ['tally::Counter'], access: all}
   - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
+  - {distribution: tally, entity: tally.crate, paths: [tally], access: all}
 extensions: {}

@@ -65,14 +65,13 @@ $defs:
 
   unit:
     $ref: 'https://wyrd.foo/beholder/schemas/semantic-oracle/1#/$defs/unit'
-    required: [package, package-version, target-name, edition, crate-name, platform, features]
+    required: [package, package-version, target-name, edition, platform, features]
     properties:
       kind: {$ref: '#/$defs/unit-kind'}
       package: {$ref: '#/$defs/text-attribute'}
       package-version: {$ref: '#/$defs/text-attribute'}
       target-name: {$ref: '#/$defs/text-attribute'}
       edition: {$ref: '#/$defs/text-attribute'}
-      crate-name: {$ref: '#/$defs/text-attribute'}
       platform:
         anyOf:
           - enum: &platform [target, host]

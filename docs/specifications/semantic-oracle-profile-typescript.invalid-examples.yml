@@ -68,9 +68,9 @@ cases:
     keyword: required
     member: anchor
   - name: static-on-a-type
-    reason: '`static` is a language kind of members, not of types.'
+    reason: '`static-method` is a language kind of members, not of types.'
     base: semantic-oracle-profile-typescript.example.yml
-    patch: [{op: replace, path: /entities/12/language-kind, value: static}]
+    patch: [{op: replace, path: /entities/12/language-kind, value: static-method}]
     fails-at: /entities/12/language-kind
     keyword: anyOf
   - name: unknown-declared-visibility

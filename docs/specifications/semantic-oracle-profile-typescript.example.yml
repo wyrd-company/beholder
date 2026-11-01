@@ -235,7 +235,7 @@ entities:
       external: subtypes
   - id: shapes.Base.count
     kind: field
-    language-kind: static
+    language-kind: static-field
     name: count
     path: '"src/shapes.ts"#Base.count'
     unit: shapes-ts
@@ -635,13 +635,20 @@ public-api:
     paths: ['import:@acme/geometry#Circle', 'require:@acme/geometry#Circle']
     access: all
   - distribution: geometry
-    entity: shapes.Base.scale
-    paths: ['import:@acme/geometry#Base.scale']
-    access: subtypes
-    contexts: [esm]
+    entity: shapes.Circle.area
+    paths: ['import:@acme/geometry#Circle.area', 'require:@acme/geometry#Circle.area']
+    access: all
+  - distribution: geometry
+    entity: shapes.Circle.diameter
+    paths: ['import:@acme/geometry#Circle.diameter', 'require:@acme/geometry#Circle.diameter']
+    access: all
+  - distribution: geometry
+    entity: shapes.Circle.radius
+    paths: ['import:@acme/geometry#Circle.radius', 'require:@acme/geometry#Circle.radius']
+    access: all
   - distribution: geometry
     entity: shapes.makeShape
-    paths: ['import:@acme/geometry#default']
+    paths: ['import:@acme/geometry#default', 'require:@acme/geometry#default']
     access: all
     contexts: [esm]
 
@@ -653,6 +660,9 @@ extensions:
     - {unit: shapes-ts, format: cjs, contexts: [cjs]}
   typescript:type-only:
     - reference: index.type-shape
+  typescript:entry:
+    - {distribution: geometry, mode: import, subpath: ., module: index}
+    - {distribution: geometry, mode: require, subpath: ., module: index}
   typescript:augments:
     - entity: augment.Array.sum
       target: ext.lib.es5.Array

@@ -22,11 +22,13 @@ use std::{
 
 use serde_json::{json, Value};
 
+mod public_api;
+
 use crate::{
     dataset_validator,
     locator::{Locator, LocatorError, Position, SourceText},
     project::{sha256_hex, ProjectFiles, DATASET_FILE},
-    rules::{Names, ProfileRules},
+    rules::{ExportsVisibility, Names, ProfileRules},
     Profile, MODEL_VERSION,
 };
 
@@ -438,6 +440,7 @@ impl<'a> Checker<'a> {
         self.check_references();
         self.check_relations();
         self.check_public_api();
+        self.check_public_api_recomputed();
         self.check_extensions();
         self.check_unused_externals();
     }
@@ -1150,7 +1153,16 @@ impl<'a> Checker<'a> {
                         "an entity defined in a generated document has `origin: generated`".into(),
                     );
                 }
-                self.check_locator(site_at, site, &contexts);
+                // A site may hold in fewer contexts than its entity: a
+                // document compiled only in some contexts.
+                let site_contexts = self.fact_contexts(
+                    &format!("{at}/definitions/{k}"),
+                    definition,
+                    contexts.clone(),
+                    &contexts,
+                    "the entity",
+                );
+                self.check_locator(site_at, site, &site_contexts);
             }
             if let Some(anchor) = entity.get("anchor") {
                 self.check_locator(format!("{at}/anchor"), anchor, &contexts);
@@ -1408,6 +1420,7 @@ impl<'a> Checker<'a> {
                 self.check_locator(format!("{at}/at"), site, &contexts);
                 self.site_owners.clear();
             }
+            self.check_exports_visibility(&at, relation);
             let key = [
                 text(relation, "kind").unwrap_or_default(),
                 from,
@@ -1423,6 +1436,34 @@ impl<'a> Checker<'a> {
                 );
             }
             earlier.push(contexts);
+        }
+    }
+
+    /// The `visibility` member of an `exports` relation, by the profile.
+    fn check_exports_visibility(&mut self, at: &str, relation: &'a Value) {
+        if text(relation, "kind") != Some("exports") {
+            return;
+        }
+        let rule = self.rules.exports_visibility;
+        let rule_name = self.profile_rule("exports-visibility");
+        match (rule, text(relation, "visibility")) {
+            (ExportsVisibility::Absent, Some(_)) => self.error(
+                &rule_name,
+                format!("{at}/visibility"),
+                "the profile gives export bindings no visibility".into(),
+            ),
+            (ExportsVisibility::Absent, None) => {}
+            (_, None) => self.error(
+                &rule_name,
+                at.to_owned(),
+                "an `exports` relation of this profile has `visibility`".into(),
+            ),
+            (_, Some(value)) if !rule.admits(value) => self.error(
+                &rule_name,
+                format!("{at}/visibility"),
+                format!("`{value}` is not an export binding visibility of the profile"),
+            ),
+            _ => {}
         }
     }
 

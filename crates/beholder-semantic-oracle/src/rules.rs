@@ -37,6 +37,45 @@ pub struct Extension {
     pub key: &'static [&'static str],
 }
 
+/// What the `visibility` member of an `exports` relation holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExportsVisibility {
+    /// The profile gives export bindings no visibility; the member is absent.
+    Absent,
+    /// Required: a Rust `use` item's visibility.
+    Rust,
+    /// Required: `re-export` or `import`, by the library interface rules.
+    Python,
+}
+
+impl ExportsVisibility {
+    /// Whether `value` is a visibility value of this rule.
+    pub fn admits(self, value: &str) -> bool {
+        match self {
+            Self::Absent => false,
+            Self::Rust => {
+                matches!(value, "pub" | "pub(crate)" | "pub(self)" | "pub(super)")
+                    || value
+                        .strip_prefix("pub(in ")
+                        .and_then(|rest| rest.strip_suffix(')'))
+                        .is_some_and(|path| !path.is_empty())
+            }
+            Self::Python => matches!(value, "re-export" | "import"),
+        }
+    }
+}
+
+/// The profile's public API rule, which the validator recomputes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PublicApiRule {
+    CSharp,
+    Dart,
+    Go,
+    Python,
+    Rust,
+    TypeScript,
+}
+
 /// One profile's rules.
 #[derive(Debug, Clone, Copy)]
 pub struct ProfileRules {
@@ -64,6 +103,10 @@ pub struct ProfileRules {
     /// File name patterns the profile classifies as configuration. `*`
     /// matches any run of characters within the file name.
     pub configuration: &'static [&'static str],
+    /// The `visibility` member of `exports` relations.
+    pub exports_visibility: ExportsVisibility,
+    /// The public API membership rule.
+    pub public_api: PublicApiRule,
 }
 
 use Names::*;
@@ -105,6 +148,8 @@ const RUST: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: false,
     configuration: &["Cargo.toml", "rust-toolchain.toml", ".cargo/config.toml"],
+    exports_visibility: ExportsVisibility::Rust,
+    public_api: PublicApiRule::Rust,
 };
 
 const CSHARP: ProfileRules = ProfileRules {
@@ -148,6 +193,8 @@ const CSHARP: ProfileRules = ProfileRules {
         ".editorconfig",
         "NuGet.config",
     ],
+    exports_visibility: ExportsVisibility::Absent,
+    public_api: PublicApiRule::CSharp,
 };
 
 const DART: ProfileRules = ProfileRules {
@@ -183,6 +230,8 @@ const DART: ProfileRules = ProfileRules {
         "build.yaml",
         "pubspec_overrides.yaml",
     ],
+    exports_visibility: ExportsVisibility::Absent,
+    public_api: PublicApiRule::Dart,
 };
 
 const GO: ProfileRules = ProfileRules {
@@ -226,6 +275,8 @@ const GO: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: false,
     configuration: &["go.mod", "go.work", "go.sum"],
+    exports_visibility: ExportsVisibility::Absent,
+    public_api: PublicApiRule::Go,
 };
 
 const PYTHON: ProfileRules = ProfileRules {
@@ -256,6 +307,8 @@ const PYTHON: ProfileRules = ProfileRules {
     source_configuration: &["setup.py"],
     augmentation: false,
     configuration: &["pyproject.toml", "setup.cfg", "*.pth", "py.typed"],
+    exports_visibility: ExportsVisibility::Python,
+    public_api: PublicApiRule::Python,
 };
 
 const TYPESCRIPT: ProfileRules = ProfileRules {
@@ -275,6 +328,11 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
             key: &["reference"],
         },
         Extension {
+            kind: "typescript:entry",
+            members: &[("distribution", Distribution), ("module", Entity)],
+            key: &["distribution", "mode", "subpath"],
+        },
+        Extension {
             kind: "typescript:augments",
             members: &[
                 ("entity", Entity),
@@ -290,6 +348,8 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: true,
     configuration: &["package.json", "tsconfig*.json", "jsconfig*.json"],
+    exports_visibility: ExportsVisibility::Absent,
+    public_api: PublicApiRule::TypeScript,
 };
 
 /// The rules of every profile of model version 1.
