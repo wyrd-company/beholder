@@ -37,7 +37,8 @@ tasks:
       the commit this repository pins. It needs read access to that
       repository.
     cmds:
-      - git -c submodule.fixtures.update=checkout submodule update --init --depth 1 fixtures
+      - git submodule sync -- fixtures
+      - git -c submodule.fixtures.update=checkout submodule update --init --depth 1 -- fixtures
 
   semantic-oracle:locate:
     desc: Print the locator of a span of source text in a semantic-oracle project
