@@ -115,7 +115,7 @@ git -C "$work/second" add assets/data.txt
 git -C "$work/second" commit -q -m 'add data'
 printf 'two\n' >> "$work/second/assets/data.txt"
 git -C "$work/second" commit -qam 'update data'
-( cd "$work/second" && "$beholder" index --store --use-store --out-dir "$work/output" >/dev/null ) 2> "$work/reuse"
+( cd "$work/second" && "$beholder" index --store --use-store --out-dir "$work/output" ) > "$work/reuse" 2>&1
 grep -Eq '[1-9][0-9]* reused' "$work/reuse" || fail "unchanged files should reuse earlier index results"
 run_publish "$work/second" | grep -q 'published' || fail "the second machine should publish"
 second_head="$(git -C "$work/second" rev-parse HEAD)"
