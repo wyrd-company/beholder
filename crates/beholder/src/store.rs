@@ -702,7 +702,7 @@ impl<'r> Store<'r> {
         &self,
         expected_tip: Option<Oid>,
         new_tip: Oid,
-    ) -> std::result::Result<(), gix::reference::edit::Error> {
+    ) -> std::result::Result<(), gix::Error> {
         let message = format!("beholder index {new_tip}");
 
         let expected = match expected_tip {
@@ -838,17 +838,13 @@ impl Phase1Cache for StoredPhase1Cache<'_> {
 /// moved, the ref appeared when it was supposed to be absent, or it vanished
 /// when it was supposed to be present. Anything else is a real failure and must
 /// not be retried.
-fn is_conflict(err: &gix::reference::edit::Error) -> bool {
-    use gix::refs::file::transaction::prepare::Error as Prepare;
+fn is_conflict(err: &gix::Error) -> bool {
+    use gix::refs::file::transaction::prepare::{MustNotExist, ReferenceOutOfDate};
 
-    matches!(
-        err,
-        gix::reference::edit::Error::FileTransactionPrepare(
-            Prepare::ReferenceOutOfDate { .. }
-                | Prepare::MustNotExist { .. }
-                | Prepare::MustExist { .. }
-        )
-    )
+    err.downcast_any_ref::<ReferenceOutOfDate>().is_some()
+        || err.downcast_any_ref::<MustNotExist>().is_some()
+        // A ref that was required to exist and is gone.
+        || err.is_not_found()
 }
 
 /// Set a ref, subject to what its previous value is required to be.
@@ -858,7 +854,10 @@ fn write_ref(
     expected: PreviousValue,
     new_tip: Oid,
     message: &str,
-) -> std::result::Result<(), gix::reference::edit::Error> {
+) -> std::result::Result<(), gix::Error> {
+    let name = refname
+        .try_into()
+        .map_err(|err: gix::refs::name::Error| gix::Error::from_error(err))?;
     repo.edit_reference(RefEdit {
         change: Change::Update {
             log: LogChange {
@@ -869,7 +868,7 @@ fn write_ref(
             expected,
             new: gix::refs::Target::Object(new_tip),
         },
-        name: refname.try_into()?,
+        name,
         deref: false,
     })
     .map(|_| ())
