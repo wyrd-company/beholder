@@ -132,7 +132,7 @@ beholder gitpr                                       # the same report, locally
 
 ```yaml
 permissions:
-  contents: write # publishing refs/beholder/index back to the remote
+  contents: read # fetch source and stored results
   pull-requests: write # the one sticky comment
   security-events: write # SARIF annotations
 
@@ -158,7 +158,7 @@ The action compares the merge base with the pull request head, so the report des
 
 **No gating.** Nothing beholder emits is at SARIF error level and the action does not fail a build. What surfaces is a ranking decision, and what to do about it is the reviewer's.
 
-**Cold start.** The action fetches `refs/beholder/*` before it analyzes anything and publishes it afterwards, through ordinary `git fetch` and `git push`. A runner is just another clone: it reuses whatever anyone else has already indexed and contributes what it had to generate. A repository nobody has indexed yet is the ordinary first run, not an error. The push is never forced — a rejection means another writer got there first, so the action fetches the tip that beat it and appends what is still missing to that tip.
+**Cold start.** The action fetches `refs/beholder/*` before it analyzes anything and publishes it only when `publish-index: true`, through ordinary `git fetch` and `git push`. A runner is just another clone: it reuses whatever anyone else has already indexed and can publish what it had to generate. A repository nobody has indexed yet is the ordinary first run, not an error. The push is never forced — a rejection means another writer got there first, so the action fetches the tip that beat it and appends what is still missing to that tip.
 
 ## Core features
 
@@ -188,3 +188,7 @@ The action compares the merge base with the pull request head, so the report des
 - **No gating.** Beholder reports. Anyone who wants a build gate can build one on the JSONL and own that decision.
 - **No index service.** Generated results live in a git ref and travel through ordinary fetch and push. Nothing in beholder requires a server, a database, or a hosted artifact store.
 - **No intent analysis.** Comparing a change against the description its author wrote is a separate, non-deterministic consumer of beholder's output, not part of this binary.
+
+Publication defaults off. Use `mode: index` after successful main CI to update
+the checked-out commit without base/head or a report. See the PR and main
+workflow examples and permissions in [GitHub Action](docs/user/github-action.md).

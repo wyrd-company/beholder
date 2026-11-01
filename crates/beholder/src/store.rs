@@ -346,7 +346,7 @@ impl<'r> Store<'r> {
     /// only here is still in the object database, so it is rebuilt on top of
     /// what arrived: same source commits, same trees, new index parents. Nothing
     /// anyone else wrote is rewritten or dropped.
-    fn rebuild_onto(&self, mine: Option<Oid>, theirs: Option<Oid>) -> Result<()> {
+    pub fn rebuild_onto(&self, mine: Option<Oid>, theirs: Option<Oid>) -> Result<()> {
         let shared: std::collections::HashSet<Oid> =
             self.index_ancestry(theirs)?.into_iter().collect();
         let mut local_only = Vec::new();
