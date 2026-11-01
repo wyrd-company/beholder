@@ -1,0 +1,23 @@
+[package]
+name = "beholder-semantic-oracle-cli"
+description = "Authoring and validation commands for semantic-oracle datasets"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# Depends on beholder-semantic-oracle, which is not published.
+publish = false
+
+[[bin]]
+name = "semantic-oracle"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+beholder-semantic-oracle = { path = "../beholder-semantic-oracle" }
+clap = { version = "4", features = ["derive"] }
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

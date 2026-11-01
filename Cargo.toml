@@ -4,6 +4,7 @@ members = [
     "crates/beholder-cli",
     "crates/beholder-oracle",
     "crates/beholder-semantic-oracle",
+    "crates/beholder-semantic-oracle-cli",
 ]
 resolver = "2"
 

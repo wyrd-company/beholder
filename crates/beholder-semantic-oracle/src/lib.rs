@@ -9,8 +9,19 @@
 //! `docs/specifications`. This crate embeds them, states the versions they
 //! implement, and builds Draft 2020-12 validators from them.
 //!
-//! Schema validation is structural. Id resolution, id uniqueness, context
-//! partitions, locator checks and the profile audit are not schema checks.
+//! Schema validation is structural. [`validate`] adds the checks the schema
+//! cannot make: id resolution and uniqueness, the document inventory and
+//! digests, locators, context partitions and membership, dispositions,
+//! extension facts and public API consistency. [`audit`] adds the
+//! mechanical part of the profile audit. [`locator`] captures locators from
+//! source text, and [`project`] reads a project's tracked files.
+
+pub mod locator;
+pub mod project;
+pub mod rules;
+mod validate;
+
+pub use validate::{audit, validate, Finding, Report, Severity};
 
 use anyhow::{anyhow, Context, Result};
 use jsonschema::{Draft, Registry, Validator};

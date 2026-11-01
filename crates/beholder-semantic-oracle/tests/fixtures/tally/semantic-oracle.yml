@@ -1,0 +1,96 @@
+model: semantic-oracle/1
+profile: rust/1
+project: {language: rust, name: tally}
+authoring:
+  notes: A minimal dataset for the validator tests.
+  tools: [{name: rustc, version: 1.97.1}]
+documents:
+  - path: Cargo.toml
+    sha256: 269b54d91bb6555245e61f0c87ae65e9608f635d7c82459a52716e8ffbeade5a
+    disposition: configuration
+  - path: README.md
+    sha256: b793cdeed1d3e1c70fa6be975a8608953d28e244114e2ccc2f84468c1420f652
+    disposition: out-of-profile
+    reason: documentation
+  - path: src/lib.rs
+    sha256: 75a046b5aeec0df83b632e0e68a1ba4ed2fc774a36a8f52a6123d9d663fbf703
+    disposition: indexed
+    origin: source
+    members: [{unit: tally-lib}]
+contexts:
+  - id: default
+    parameters:
+      mode: build
+      selection: [lib]
+      manifest: Cargo.toml
+      packages: workspace
+      target: x86_64-unknown-linux-gnu
+      cfg: []
+      features: []
+      profile: dev
+    command: cargo build --offline
+distributions:
+  - {id: tally, kind: crate, name: tally, version: 0.1.0}
+units:
+  - id: tally-lib
+    kind: lib
+    name: tally
+    distribution: tally
+    root: tally.crate
+    package: tally
+    package-version: 0.1.0
+    target-name: tally
+    edition: '2021'
+    crate-name: tally
+    platform: target
+    features: []
+entities:
+  - id: tally.crate
+    kind: module
+    language-kind: crate
+    name: tally
+    path: tally
+    unit: tally-lib
+    origin: source
+    definitions: []
+    declared-visibility: {value: pub, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: tally.Counter
+    kind: type
+    language-kind: struct
+    name: Counter
+    path: tally::Counter
+    unit: tally-lib
+    parent: tally.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [1, 12], end: [1, 19], text: Counter}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: tally.make
+    kind: callable
+    language-kind: fn
+    name: make
+    path: tally::make
+    unit: tally-lib
+    parent: tally.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [3, 8], end: [3, 12], text: make}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+externals: []
+references:
+  - at: {path: src/lib.rs, start: [3, 18], end: [3, 25], text: Counter}
+    from: tally.make
+    target: tally.Counter
+    role: type
+  - at: {path: src/lib.rs, start: [4, 5], end: [4, 12], text: Counter}
+    from: tally.make
+    target: tally.Counter
+    role: construct
+relations: []
+public-api:
+  - {distribution: tally, entity: tally.Counter, paths: ['tally::Counter'], access: all}
+  - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
+extensions: {}
