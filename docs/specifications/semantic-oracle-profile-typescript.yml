@@ -190,16 +190,20 @@ description: |
      `resolvePackageJsonExports` true, its default for those modes), each
      subpath, after pattern expansion and after removing subpaths whose
      target is `null`, selects an entry for mode `import` and mode
-     `require`. The entry is the target of the first key, in object order,
-     whose condition is enabled. The enabled conditions are those the
-     TypeScript Modules Reference lists for the context's
+     `require`. The entry is found by TypeScript's type-first exports
+     resolution: keys are visited in object order; an enabled key's target
+     is resolved, recursively for nested condition objects, and succeeds
+     only when TypeScript's extension substitution finds a TypeScript or
+     declaration file for it; when it does not, resolution continues with
+     the next enabled key; a `null` target ends resolution with no entry.
+     The enabled conditions are those the TypeScript Modules Reference lists for the context's
      `moduleResolution`, plus `customConditions` and `default`: `types`,
      `node`, and `import` or `require` by mode for `node16` and `nodenext`;
      `types`, and `import` or `require` by mode for `bundler`. A
      `types@<range>` condition is enabled when the context's compiler
      version is in the range. Nested condition objects are resolved the same
-     way. The selected file's declaration file, by TypeScript's declaration
-     lookup, is the entry module.
+     way. The file that the first successful key yields is the entry
+     module.
   2. Otherwise, including `moduleResolution` `node10` and `classic` and
      `resolvePackageJsonExports` false, `types`, `typings` or `main`, with
      `typesVersions` applied for the context's compiler version, selects the
