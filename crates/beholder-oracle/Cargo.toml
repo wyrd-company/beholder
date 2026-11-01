@@ -17,7 +17,7 @@ path = "src/main.rs"
 anyhow.workspace = true
 beholder.workspace = true
 clap = { version = "4", features = ["derive"] }
-git2.workspace = true
+gix.workspace = true
 scip = "0.10"
 protobuf = "3"
 serde.workspace = true

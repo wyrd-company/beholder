@@ -46,10 +46,12 @@
 //! analysis configuration, language table and path rules — and, per file, only
 //! when the content hash still matches.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use anyhow::{bail, Context, Result};
-use git2::{Oid, Repository, Signature, Time};
+use gix::refs::transaction::{Change, LogChange, PreviousValue, RefEdit, RefLog};
+use gix::ObjectId as Oid;
+use gix::Repository;
 use serde::{Deserialize, Serialize};
 
 use crate::analysis::{is_repo_relative, Analysis, Fingerprint, Phase1Cache, Phase2};
@@ -144,9 +146,12 @@ impl std::fmt::Display for Invalid {
 impl Meta {
     /// Check every rule that must hold before a stored result may be reused.
     pub fn validate(&self, source_commit: Oid, expected: &Fingerprint) -> Result<(), Invalid> {
-        if self.source_commit != source_commit.to_string() {
+        // Compared as the stored text, so only the exact lowercase hex git
+        // writes is accepted.
+        let expected_commit = source_commit.to_string();
+        if self.source_commit != expected_commit {
             return Err(Invalid::SourceCommit {
-                expected: source_commit.to_string(),
+                expected: expected_commit,
                 found: self.source_commit.clone(),
             });
         }
@@ -231,6 +236,20 @@ pub fn validate_payload(
     Ok(())
 }
 
+/// Where a fetch or a rebuild left the local ref.
+///
+/// `rebuilt` is how many local index commits the remote tip did not have. They
+/// are on top of it now, and a push of `tip` is a fast-forward.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Reconciled {
+    /// The remote's tip, or `None` when the remote has no index yet.
+    pub remote: Option<Oid>,
+    /// The local tip afterwards.
+    pub tip: Option<Oid>,
+    /// Local index commits rebuilt on top of `remote`.
+    pub rebuilt: usize,
+}
+
 /// One entry in the index history.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexCommit {
@@ -274,116 +293,162 @@ impl<'r> Store<'r> {
 
     /// Current tip of the index ref, if the ref exists.
     pub fn tip(&self) -> Result<Option<Oid>> {
-        match self.repo.find_reference(&self.refname) {
-            Ok(reference) => Ok(reference.target()),
-            Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(None),
-            Err(e) => Err(e).context("reading the beholder ref"),
+        let Some(reference) = self
+            .repo
+            .try_find_reference(self.refname.as_str())
+            .context("reading the beholder ref")?
+        else {
+            return Ok(None);
+        };
+
+        Ok(reference.target().try_id().map(gix::oid::to_owned))
+    }
+
+    /// Fetch the remote's index and keep every local index commit on top of it.
+    ///
+    /// Only this ref is asked for, with no local destination, so the fetch
+    /// itself moves no local ref and brings down no branches. The local ref then
+    /// moves once, through [`Store::rebuild_onto`]: index commits the remote
+    /// does not have are rebuilt on its tip, so a fetch never drops work that
+    /// was only written here.
+    ///
+    /// The transport is gix's own. It reads the repository's git configuration,
+    /// but not URL-scoped `http.<url>.*` keys, so a credential stored as
+    /// `http.<url>.extraHeader` (the way `actions/checkout` stores its token) is
+    /// not sent. The action therefore fetches with git and hands the tip to
+    /// [`Store::rebuild_onto`]; this method is for every other caller.
+    pub fn fetch(&self, remote: &str) -> Result<Reconciled> {
+        match self.fetch_remote_tip(remote)? {
+            Some(theirs) => self.rebuild_onto(theirs),
+            None => Ok(Reconciled {
+                remote: None,
+                tip: self.tip()?,
+                rebuilt: 0,
+            }),
         }
     }
 
-    /// Fetch the ref from a remote using the portable refspec.
-    ///
-    /// This travels over libgit2's built-in transports, which are whatever the
-    /// linked build supports — the bundled libgit2 beholder ships carries no
-    /// ssh or https transport, so this reaches local and file remotes only.
-    /// That is why nothing in beholder's own surfaces depends on it: the ref is
-    /// moved by ordinary `git fetch` and `git push`, which speak every protocol
-    /// the user's git already speaks. See `scripts/fetch-index.sh`.
-    pub fn fetch(&self, remote: &str) -> Result<()> {
-        self.repo
-            .find_remote(remote)
+    /// The remote's tip of this ref, with its objects now in the local
+    /// database, or `None` when the remote has no index yet.
+    fn fetch_remote_tip(&self, remote: &str) -> Result<Option<Oid>> {
+        transport::ensure_tls_provider();
+
+        // A source without a destination: the objects arrive and no local ref
+        // moves, so the only ref update is the compare-and-swap that follows.
+        // The remote's configured refspecs are replaced, not added to, and tags
+        // are not followed, so asking for the index does not also bring down
+        // every branch and every tag its source commits carry.
+        let refspec = self.refname.as_str();
+        let mut handle = self
+            .repo
+            .find_fetch_remote(Some(remote.into()))
             .with_context(|| format!("finding remote {remote}"))?
-            .fetch(&[REFSPEC], None, None)
-            .with_context(|| format!("fetching {REFSPEC} from {remote}"))
+            .with_fetch_tags(gix::remote::fetch::Tags::None);
+        handle
+            .replace_refspecs(Some(refspec), gix::remote::Direction::Fetch)
+            .with_context(|| format!("applying refspec {refspec}"))?;
+
+        let prepared = handle
+            .connect(gix::remote::Direction::Fetch)
+            .with_context(|| format!("connecting to {remote}"))?
+            .prepare_fetch(gix::progress::Discard, Default::default())
+            .with_context(|| format!("listing the refs on {remote}"))?;
+
+        let Some(theirs) = prepared
+            .ref_map()
+            .mappings
+            .iter()
+            .filter(|mapping| mapping.remote.as_name() == Some(refspec.into()))
+            .find_map(|mapping| mapping.remote.as_id())
+            .map(gix::oid::to_owned)
+        else {
+            return Ok(None);
+        };
+
+        prepared
+            .receive(gix::progress::Discard, &Default::default())
+            .with_context(|| format!("fetching {refspec} from {remote}"))?;
+
+        Ok(Some(theirs))
     }
 
-    /// Push the ref to a remote, never overwriting another writer's index.
+    /// Rebuild the local index commits that `theirs` does not have onto it.
     ///
-    /// The push is not forced, which is the whole point: a force push would make
-    /// the compare-and-swap on ref updates meaningless the moment two machines
-    /// are involved, because the loser would never learn it had lost. On
-    /// rejection this fetches the tip that beat it, rebuilds its own index
-    /// commits on top of that tip, and tries again.
+    /// `theirs` is an index tip whose objects are already in this repository,
+    /// usually one just fetched from a remote that refused a push. Whatever is
+    /// only here is rebuilt on top of it: same source commits, same trees, new
+    /// index parents. Nothing in `theirs` is rewritten or dropped. When there is
+    /// nothing local, the ref moves to `theirs`; when the local tip already
+    /// contains `theirs`, every rebuilt commit is the commit it replaces and the
+    /// ref does not move.
     ///
-    /// The wildcard [`REFSPEC`] is what `git push` on the command line takes;
-    /// libgit2 does not expand wildcards on push, so this names the ref
-    /// concretely. Both land the same objects under the same name.
-    pub fn push(&self, remote: &str) -> Result<()> {
+    /// The ref moves by compare-and-swap against the tip this started from, so
+    /// a local writer that lands in between is rebuilt as well, not lost.
+    pub fn rebuild_onto(&self, theirs: Oid) -> Result<Reconciled> {
+        // Parent 1 of an index commit is the previous index; parent 1 of an
+        // ordinary merge is not. Walking a source commit as if it were an index
+        // would graft unrelated history onto the ref.
+        let commit = self
+            .repo
+            .find_commit(theirs)
+            .with_context(|| format!("{theirs} is not a commit in this repository"))?;
+        let tree = commit.tree().context("reading an index tree")?;
+        read_json::<Meta>(&tree, META_PATH)?
+            .with_context(|| format!("{theirs} is not an index commit: it has no {META_PATH}"))?;
+
+        let shared: HashSet<Oid> = self.index_ancestry(Some(theirs))?.into_iter().collect();
+
         for _ in 0..self.attempts {
-            match self.push_once(remote) {
-                Ok(()) => return Ok(()),
-                Err(err) if is_conflict(&err) => {
-                    let mine = self.tip()?;
-                    self.fetch(remote)?;
-                    let theirs = self.tip()?;
-                    self.rebuild_onto(mine, theirs)?;
+            let mine = self.tip()?;
+            let mut local_only = Vec::new();
+
+            for id in self.index_ancestry(mine)? {
+                if shared.contains(&id) {
+                    break;
                 }
+                local_only.push(id);
+            }
+
+            let rebuilt = local_only.len();
+            let mut base = theirs;
+
+            // Oldest first, so the rebuilt chain keeps its original write order.
+            for id in local_only.into_iter().rev() {
+                let commit = self.repo.find_commit(id)?;
+                let source = parent(self.repo, id, 0)?
+                    .with_context(|| format!("index commit {id} has no source parent"))?;
+                let tree = commit
+                    .tree_id()
+                    .with_context(|| format!("index commit {id} has no tree"))?
+                    .detach();
+                base = self.build_commit(source, tree, Some(base))?;
+            }
+
+            let reconciled = Reconciled {
+                remote: Some(theirs),
+                tip: Some(base),
+                rebuilt,
+            };
+
+            if mine == Some(base) {
+                return Ok(reconciled);
+            }
+
+            match self.update_ref(mine, base) {
+                Ok(()) => return Ok(reconciled),
+                Err(err) if is_conflict(&err) => continue,
                 Err(err) => {
                     return Err(anyhow::Error::new(err)
-                        .context(format!("pushing {} to {remote}", self.refname)))
+                        .context(format!("moving {} onto {theirs}", self.refname)))
                 }
             }
         }
 
         bail!(
-            "gave up pushing {} to {remote} after {} attempts against concurrent writers",
+            "gave up rebuilding {} onto {theirs} after {} attempts against concurrent writers",
             self.refname,
             self.attempts
         )
-    }
-
-    fn push_once(&self, remote: &str) -> std::result::Result<(), git2::Error> {
-        // No leading '+': a rejection here is the signal to go and look.
-        let refspec = format!("{0}:{0}", self.refname);
-        self.repo
-            .find_remote(remote)?
-            .push(&[refspec.as_str()], None)
-    }
-
-    /// Re-parent index commits that only exist locally onto a new base.
-    ///
-    /// A fetch of the ref replaces the local tip with the remote's. Whatever was
-    /// only here is still in the object database, so it is rebuilt on top of
-    /// what arrived: same source commits, same trees, new index parents. Nothing
-    /// anyone else wrote is rewritten or dropped.
-    fn rebuild_onto(&self, mine: Option<Oid>, theirs: Option<Oid>) -> Result<()> {
-        let shared: std::collections::HashSet<Oid> =
-            self.index_ancestry(theirs)?.into_iter().collect();
-        let mut local_only = Vec::new();
-
-        for id in self.index_ancestry(mine)? {
-            if shared.contains(&id) {
-                break;
-            }
-            local_only.push(id);
-        }
-
-        if local_only.is_empty() {
-            return Ok(());
-        }
-
-        let mut base = theirs;
-
-        // Oldest first, so the rebuilt chain keeps its original write order.
-        for id in local_only.into_iter().rev() {
-            let commit = self.repo.find_commit(id)?;
-            let source = commit
-                .parent_id(0)
-                .with_context(|| format!("index commit {id} has no source parent"))?;
-            base = Some(self.build_commit(source, commit.tree_id(), base)?);
-        }
-
-        let new_tip = base.expect("a rebuilt chain has a tip");
-        self.repo
-            .reference(
-                &self.refname,
-                new_tip,
-                true,
-                &format!("beholder index rebuilt onto {theirs:?}"),
-            )
-            .context("moving the local beholder ref onto the fetched tip")?;
-
-        Ok(())
     }
 
     /// Every index commit reachable from a tip, newest first, following parent 1.
@@ -400,7 +465,7 @@ impl<'r> Store<'r> {
 
         while let Some(id) = current {
             out.push(id);
-            current = self.repo.find_commit(id)?.parent_id(1).ok();
+            current = parent(self.repo, id, 1)?;
         }
 
         Ok(out)
@@ -421,11 +486,10 @@ impl<'r> Store<'r> {
                 .find_commit(id)
                 .context("reading an index commit")?;
             let tree = commit.tree().context("reading an index tree")?;
-            let meta = read_json::<Meta>(self.repo, &tree, META_PATH)?
+            let meta = read_json::<Meta>(&tree, META_PATH)?
                 .with_context(|| format!("index commit {id} has no {META_PATH}"))?;
 
-            let source_commit = commit
-                .parent_id(0)
+            let source_commit = parent(self.repo, id, 0)?
                 .with_context(|| format!("index commit {id} has no source parent"))?;
 
             out.push(IndexCommit {
@@ -434,7 +498,7 @@ impl<'r> Store<'r> {
                 meta,
             });
 
-            current = commit.parent_id(1).ok();
+            current = parent(self.repo, id, 1)?;
         }
 
         Ok(out)
@@ -494,7 +558,12 @@ impl<'r> Store<'r> {
                 .repo
                 .find_commit(entry.id)
                 .context("reading an index commit")?;
-            trees.push(commit.tree_id());
+            trees.push(
+                commit
+                    .tree_id()
+                    .context("reading an index tree id")?
+                    .detach(),
+            );
         }
 
         Ok(StoredPhase1Cache {
@@ -508,38 +577,37 @@ impl<'r> Store<'r> {
         let commit = self.repo.find_commit(index_commit)?;
         let tree = commit.tree()?;
 
-        let meta = read_json::<Meta>(self.repo, &tree, META_PATH)?
+        let meta = read_json::<Meta>(&tree, META_PATH)?
             .with_context(|| format!("index commit {index_commit} has no {META_PATH}"))?;
-        let phase2 = read_json::<Phase2>(self.repo, &tree, PHASE2_PATH)?.unwrap_or_default();
+        let phase2 = read_json::<Phase2>(&tree, PHASE2_PATH)?.unwrap_or_default();
 
         let mut files = Vec::new();
-        if let Ok(entry) = tree.get_path(std::path::Path::new(PHASE1_DIR)) {
-            let subtree = self.repo.find_tree(entry.id())?;
-            let mut error = None;
+        if let Some(entry) = tree
+            .lookup_entry_by_path(std::path::Path::new(PHASE1_DIR))
+            .context("looking for stored phase 1 results")?
+        {
+            let subtree = self
+                .repo
+                .find_tree(entry.object_id())
+                .context("reading the phase 1 subtree")?;
 
-            subtree.walk(git2::TreeWalkMode::PreOrder, |_, entry| {
-                if entry.kind() != Some(git2::ObjectType::Blob) {
-                    return git2::TreeWalkResult::Ok;
+            for entry in subtree
+                .traverse()
+                .breadthfirst
+                .files()
+                .context("walking stored phase 1 results")?
+            {
+                if entry.mode.is_tree() {
+                    continue;
                 }
-                match self
+                let blob = self
                     .repo
-                    .find_blob(entry.id())
-                    .map_err(anyhow::Error::new)
-                    .and_then(|b| Ok(serde_json::from_slice::<FileAnalysis>(b.content())?))
-                {
-                    Ok(analysis) => {
-                        files.push(analysis);
-                        git2::TreeWalkResult::Ok
-                    }
-                    Err(e) => {
-                        error = Some(e);
-                        git2::TreeWalkResult::Abort
-                    }
-                }
-            })?;
-
-            if let Some(e) = error {
-                return Err(e).context("reading stored phase 1 results");
+                    .find_object(entry.oid)
+                    .context("reading a stored phase 1 result")?;
+                files.push(
+                    serde_json::from_slice::<FileAnalysis>(&blob.data)
+                        .context("parsing a stored phase 1 result")?,
+                );
             }
         }
 
@@ -601,21 +669,17 @@ impl<'r> Store<'r> {
         &self,
         expected_tip: Option<Oid>,
         new_tip: Oid,
-    ) -> std::result::Result<(), git2::Error> {
+    ) -> std::result::Result<(), gix::reference::edit::Error> {
         let message = format!("beholder index {new_tip}");
 
-        match expected_tip {
+        let expected = match expected_tip {
             // Compare-and-swap against the tip this commit was built on.
-            Some(expected) => self
-                .repo
-                .reference_matching(&self.refname, new_tip, true, expected, &message)
-                .map(|_| ()),
+            Some(expected) => PreviousValue::MustExistAndMatch(gix::refs::Target::Object(expected)),
             // Create only. Fails if another writer created the ref first.
-            None => self
-                .repo
-                .reference(&self.refname, new_tip, false, &message)
-                .map(|_| ()),
-        }
+            None => PreviousValue::MustNotExist,
+        };
+
+        write_ref(self.repo, &self.refname, expected, new_tip, &message)
     }
 
     fn build_commit(
@@ -624,35 +688,49 @@ impl<'r> Store<'r> {
         tree_id: Oid,
         previous_index: Option<Oid>,
     ) -> Result<Oid> {
-        let tree = self.repo.find_tree(tree_id)?;
-        let source = self
-            .repo
+        self.repo
             .find_commit(source_commit)
             .with_context(|| format!("source commit {source_commit} is not in this repository"))?;
 
         // Parent 0 is the source. Parent 1, when it exists, is the previous
         // index. The first index for a repository has only parent 0.
-        let mut parents = vec![source];
+        let mut parents = vec![source_commit];
         if let Some(previous) = previous_index {
-            parents.push(self.repo.find_commit(previous)?);
+            self.repo
+                .find_commit(previous)
+                .with_context(|| format!("previous index {previous} is not in this repository"))?;
+            parents.push(previous);
         }
-
-        let parent_refs: Vec<&git2::Commit<'_>> = parents.iter().collect();
 
         // A fixed signature keeps an index commit a function of its content and
         // its parents. Two machines analyzing the same source produce the same
         // index commit id.
-        let signature = Signature::new("beholder", "beholder@wyrd.invalid", &Time::new(0, 0))
-            .context("building the index signature")?;
+        let signature = gix::actor::Signature {
+            name: "beholder".into(),
+            email: "beholder@wyrd.invalid".into(),
+            time: gix::date::Time::new(0, 0),
+        };
 
-        Ok(self.repo.commit(
-            None,
-            &signature,
-            &signature,
-            &format!("beholder index for {source_commit}\n"),
-            &tree,
-            &parent_refs,
-        )?)
+        // The commit is assembled field by field rather than through a builder.
+        // Its byte layout is the identity of every index commit ever written, so
+        // an index written before this migration and one written after have to
+        // serialize the same: no encoding header, no extra headers, the message
+        // exactly as given.
+        let commit = gix::objs::Commit {
+            tree: tree_id,
+            parents: parents.into_iter().collect(),
+            author: signature.clone(),
+            committer: signature,
+            encoding: None,
+            message: format!("beholder index for {source_commit}\n").into(),
+            extra_headers: Vec::new(),
+        };
+
+        Ok(self
+            .repo
+            .write_object(&commit)
+            .context("writing the index commit")?
+            .detach())
     }
 
     fn build_tree(&self, source_commit: Oid, analysis: &Analysis) -> Result<Oid> {
@@ -681,7 +759,7 @@ impl<'r> Store<'r> {
     fn blob_json<T: Serialize>(&self, value: &T) -> Result<Oid> {
         let mut bytes = serde_json::to_vec_pretty(value)?;
         bytes.push(b'\n');
-        Ok(self.repo.blob(&bytes)?)
+        Ok(self.repo.write_blob(&bytes)?.detach())
     }
 }
 
@@ -703,7 +781,7 @@ impl Phase1Cache for StoredPhase1Cache<'_> {
             let Ok(tree) = self.repo.find_tree(*tree_id) else {
                 continue;
             };
-            let Ok(Some(stored)) = read_json::<FileAnalysis>(self.repo, &tree, &stored_path) else {
+            let Ok(Some(stored)) = read_json::<FileAnalysis>(&tree, &stored_path) else {
                 continue;
             };
             // Phase 1 is a pure function of content, so a stored result is only
@@ -721,50 +799,142 @@ impl Phase1Cache for StoredPhase1Cache<'_> {
 // git plumbing
 // ---------------------------------------------------------------------------
 
-fn is_conflict(err: &git2::Error) -> bool {
+/// Did another writer get there first?
+///
+/// The three shapes are the same three the compare-and-swap can lose to: the ref
+/// moved, the ref appeared when it was supposed to be absent, or it vanished
+/// when it was supposed to be present. Anything else is a real failure and must
+/// not be retried.
+fn is_conflict(err: &gix::reference::edit::Error) -> bool {
+    use gix::refs::file::transaction::prepare::Error as Prepare;
+
     matches!(
-        err.code(),
-        git2::ErrorCode::Modified | git2::ErrorCode::Exists | git2::ErrorCode::NotFastForward
+        err,
+        gix::reference::edit::Error::FileTransactionPrepare(
+            Prepare::ReferenceOutOfDate { .. }
+                | Prepare::MustNotExist { .. }
+                | Prepare::MustExist { .. }
+        )
     )
 }
 
-fn read_json<T: for<'de> Deserialize<'de>>(
+/// Set a ref, subject to what its previous value is required to be.
+fn write_ref(
     repo: &Repository,
-    tree: &git2::Tree<'_>,
-    path: &str,
-) -> Result<Option<T>> {
-    let Ok(entry) = tree.get_path(std::path::Path::new(path)) else {
+    refname: &str,
+    expected: PreviousValue,
+    new_tip: Oid,
+    message: &str,
+) -> std::result::Result<(), gix::reference::edit::Error> {
+    repo.edit_reference(RefEdit {
+        change: Change::Update {
+            log: LogChange {
+                mode: RefLog::AndReference,
+                force_create_reflog: false,
+                message: message.into(),
+            },
+            expected,
+            new: gix::refs::Target::Object(new_tip),
+        },
+        name: refname.try_into()?,
+        deref: false,
+    })
+    .map(|_| ())
+}
+
+/// Parent `n` of a commit, if it has one.
+fn parent(repo: &Repository, commit: Oid, n: usize) -> Result<Option<Oid>> {
+    Ok(repo
+        .find_commit(commit)
+        .with_context(|| format!("reading commit {commit}"))?
+        .parent_ids()
+        .nth(n)
+        .map(gix::Id::detach))
+}
+
+fn read_json<T: for<'de> Deserialize<'de>>(tree: &gix::Tree<'_>, path: &str) -> Result<Option<T>> {
+    let Some(entry) = tree
+        .lookup_entry_by_path(std::path::Path::new(path))
+        .with_context(|| format!("looking for stored {path}"))?
+    else {
         return Ok(None);
     };
-    let blob = repo.find_blob(entry.id())?;
+    let blob = entry
+        .object()
+        .with_context(|| format!("reading stored {path}"))?;
     Ok(Some(
-        serde_json::from_slice(blob.content()).with_context(|| format!("parsing stored {path}"))?,
+        serde_json::from_slice(&blob.data).with_context(|| format!("parsing stored {path}"))?,
     ))
 }
 
 /// Build a git tree from a flat map of slash-separated paths to blob ids.
+///
+/// Entries are sorted the way git sorts them — by name, with a directory
+/// compared as if its name ended in `/` — because that ordering is part of the
+/// tree's bytes and therefore part of every index commit id.
 fn build_tree(repo: &Repository, entries: &BTreeMap<String, Oid>, prefix: &str) -> Result<Oid> {
-    let mut builder = repo.treebuilder(None)?;
+    use gix::objs::tree::{Entry, EntryKind};
+
+    let mut written: Vec<Entry> = Vec::new();
     let mut subdirectories: BTreeMap<String, BTreeMap<String, Oid>> = BTreeMap::new();
 
     for (path, oid) in entries {
         match path.split_once('/') {
-            None => builder.insert(path.as_str(), *oid, git2::FileMode::Blob.into())?,
+            None => written.push(Entry {
+                mode: EntryKind::Blob.into(),
+                filename: path.as_str().into(),
+                oid: *oid,
+            }),
             Some((head, rest)) => {
                 subdirectories
                     .entry(head.to_owned())
                     .or_default()
                     .insert(rest.to_owned(), *oid);
-                continue;
             }
-        };
+        }
     }
 
     for (name, children) in &subdirectories {
         let child_prefix = format!("{prefix}{name}/");
         let subtree = build_tree(repo, children, &child_prefix)?;
-        builder.insert(name.as_str(), subtree, git2::FileMode::Tree.into())?;
+        written.push(Entry {
+            mode: EntryKind::Tree.into(),
+            filename: name.as_str().into(),
+            oid: subtree,
+        });
     }
 
-    Ok(builder.write()?)
+    written.sort();
+
+    Ok(repo
+        .write_object(&gix::objs::Tree { entries: written })
+        .with_context(|| format!("writing the tree at {prefix:?}"))?
+        .detach())
 }
+
+// ---------------------------------------------------------------------------
+// transports
+// ---------------------------------------------------------------------------
+
+/// How the ref reaches a remote.
+///
+/// Beholder fetches with gix, over ssh, https and local paths. It does not push:
+/// gix has no send-pack, and beholder starts no git process, so pushing is the
+/// caller's ordinary `git push` without `+`. What makes the shared ref safe — the
+/// compare-and-swap and [`Store::rebuild_onto`] — stays in [`Store`].
+mod transport {
+    /// Install the TLS backend gix's https transport needs.
+    ///
+    /// The `reqwest/rustls-no-provider` feature deliberately leaves the crypto
+    /// provider unset so the choice is not made for us; see the `gix` entry in
+    /// the workspace manifest for why the choice matters. Installing it can only
+    /// fail because it already happened, which is not an error.
+    pub fn ensure_tls_provider() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            let _ = rustls::crypto::ring::default_provider().install_default();
+        });
+    }
+}
+
+pub use transport::ensure_tls_provider;

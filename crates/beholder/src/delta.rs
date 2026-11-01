@@ -11,7 +11,7 @@
 
 use std::collections::HashMap;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::analysis::{self, Analysis, Fingerprint};
@@ -256,7 +256,7 @@ impl std::fmt::Display for Origin {
 
 /// Analyze one revision of a repository, reusing stored results where valid.
 pub fn analyze_revision(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     revision: &str,
     config: &Config,
     store: Option<&crate::Store<'_>>,
@@ -266,20 +266,16 @@ pub fn analyze_revision(
 
 /// Analyze one revision, saying where the result came from.
 pub fn analyze_revision_with_origin(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     revision: &str,
     config: &Config,
     store: Option<&crate::Store<'_>>,
 ) -> Result<(Analysis, Origin)> {
     let fingerprint = Fingerprint::new(config);
-    let commit = repo
-        .revparse_single(revision)
-        .with_context(|| format!("resolving {revision}"))?
-        .peel_to_commit()
-        .with_context(|| format!("{revision} is not a commit"))?;
+    let commit = crate::walk::revision_commit(repo, revision)?;
 
     if let Some(store) = store {
-        if let Some(stored) = store.find(commit.id(), &fingerprint, config)? {
+        if let Some(stored) = store.find(commit.id().detach(), &fingerprint, config)? {
             return Ok((stored, Origin::Stored));
         }
     }
@@ -301,7 +297,7 @@ pub fn analyze_revision_with_origin(
 
 /// Compare two revisions, appending newly generated results to the index.
 pub fn compare_revisions(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     before: &str,
     after: &str,
     config: &Config,
@@ -324,7 +320,7 @@ pub struct Comparison {
 
 /// Compare two revisions, keeping both analyses.
 pub fn compare_revisions_detailed(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     before: &str,
     after: &str,
     config: &Config,
@@ -336,12 +332,12 @@ pub fn compare_revisions_detailed(
 
     if let Some(store) = store {
         for (revision, analysis) in [(before, &before_analysis), (after, &after_analysis)] {
-            let commit = repo.revparse_single(revision)?.peel_to_commit()?;
+            let commit = crate::walk::revision_commit(repo, revision)?;
             if store
-                .find(commit.id(), &Fingerprint::new(config), config)?
+                .find(commit.id().detach(), &Fingerprint::new(config), config)?
                 .is_none()
             {
-                store.write(commit.id(), analysis)?;
+                store.write(commit.id().detach(), analysis)?;
             }
         }
     }
@@ -408,7 +404,7 @@ impl IdentityAudit {
 ///
 /// `revisions` is oldest first. Each adjacent pair is compared.
 pub fn audit_identity(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     revisions: &[String],
     config: &Config,
 ) -> Result<IdentityAudit> {

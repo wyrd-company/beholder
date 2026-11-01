@@ -78,7 +78,7 @@ fn main() -> Result<()> {
         // Analyzed from the same checkout the index was built from.
         (Some(_), true) | (None, _) => beholder::walk::walk_worktree(&source_root, &config)?,
         (Some(revision), false) => {
-            let repo = git2::Repository::discover(&cli.repository)?;
+            let repo = gix::discover(&cli.repository)?;
             beholder::walk::read_revision(&repo, revision, &config)?
         }
     };
@@ -515,21 +515,15 @@ impl Drop for Checkout {
 
 impl Provenance {
     fn read(repository: &Path, revision: Option<&str>) -> Result<Self> {
-        let Ok(repo) = git2::Repository::discover(repository) else {
+        let Ok(repo) = gix::discover(repository) else {
             return Ok(Self::default());
         };
 
-        let head = repo
-            .head()
-            .ok()
-            .and_then(|h| h.target())
-            .map(|id| id.to_string());
-        let mut options = git2::StatusOptions::new();
-        options.include_untracked(false);
-        let dirty = repo
-            .statuses(Some(&mut options))
-            .map(|statuses| !statuses.is_empty())
-            .unwrap_or(false);
+        let head = repo.head_id().ok().map(|id| id.detach().to_string());
+        // Untracked files are not a divergence: the measurement is against what
+        // git is tracking, and `is_dirty` ignores them for the same reason
+        // git2's `include_untracked(false)` did.
+        let dirty = repo.is_dirty().unwrap_or(false);
 
         Ok(Self {
             revision: revision.map(str::to_owned),
