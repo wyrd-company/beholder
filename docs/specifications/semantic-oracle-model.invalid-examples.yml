@@ -1,0 +1,562 @@
+# ---
+# relationships:
+#   references: semantic-oracle-model
+# ---
+#
+# Datasets that the model schema rejects for one named reason each.
+#
+# Each case applies `patch`, a JSON Patch (RFC 6902), to the valid example
+# `base`. The result fails, every error lies at or under `fails-at`, and one
+# error comes from the schema keyword `keyword` (`falseSchema` for a member
+# that a `false` schema forbids).
+#
+# A dangling id reference, a duplicate id, context lists that do not
+# partition an entity's contexts, and a locator that does not match its
+# document are structurally valid and pass the schema. The dataset validator
+# rejects them; no case here covers them.
+cases:
+  # ------------------------------------------------------------- versions
+  - name: wrong-model-version
+    reason: '`model` names a model version this schema does not implement.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /model, value: semantic-oracle/2}]
+    fails-at: /model
+    keyword: const
+  - name: unknown-profile
+    reason: '`profile` names a profile that model version 1 does not define.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /profile, value: kotlin/1}]
+    fails-at: /profile
+    keyword: enum
+  - name: unsupported-profile-version
+    reason: '`profile` names a version of a defined language that model version 1 does not define.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /profile, value: rust/2}]
+    fails-at: /profile
+    keyword: enum
+  - name: profile-language-mismatch
+    reason: '`project.language` differs from the profile language.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /project/language, value: go}]
+    fails-at: /project/language
+    keyword: const
+
+  # ------------------------------------------------------- dataset members
+  - name: missing-top-level-member
+    reason: Every top-level member is required, even when its list is empty.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /relations}]
+    fails-at: ''
+    keyword: required
+  - name: unknown-top-level-member
+    reason: The dataset defines no top-level member `notes`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /notes, value: free text}]
+    fails-at: ''
+    keyword: additionalProperties
+  - name: authoring-tool-without-version
+    reason: An authoring tool entry names its version.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /authoring/tools/0/version}]
+    fails-at: /authoring/tools/0
+    keyword: required
+
+  # -------------------------------------------------------------------- ids
+  - name: id-with-space
+    reason: An id contains a space, which the id grammar excludes.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/id, value: geometry shapes}]
+    fails-at: /entities/1/id
+    keyword: pattern
+  - name: id-too-long
+    reason: An id is longer than 200 characters.
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: replace
+        path: /entities/1/id
+        value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    fails-at: /entities/1/id
+    keyword: pattern
+  - name: non-ascii-id
+    reason: An id contains a non-ASCII letter.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /contexts/0/id, value: bäse}]
+    fails-at: /contexts/0/id
+    keyword: pattern
+  - name: reference-target-not-an-id
+    reason: A reference target is not an id string.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /references/0/target, value: {path: std}}]
+    fails-at: /references/0/target
+    keyword: type
+  - name: malformed-parent-reference
+    reason: An entity `parent` contains `/`, which the id grammar excludes.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/parent, value: geometry/crate}]
+    fails-at: /entities/1/parent
+    keyword: pattern
+  - name: empty-context-list
+    reason: A `contexts` member is a non-empty list.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/3/contexts, value: []}]
+    fails-at: /entities/3/contexts
+    keyword: minItems
+  - name: context-list-not-a-list
+    reason: A `contexts` member is a list of ids, not one id.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/3/contexts, value: build-extras}]
+    fails-at: /entities/3/contexts
+    keyword: type
+  - name: repeated-context-id
+    reason: A `contexts` list names one context twice.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/3/contexts, value: [build-extras, build-extras]}]
+    fails-at: /entities/3/contexts
+    keyword: uniqueItems
+
+  # -------------------------------------------------------------- documents
+  - name: path-with-dot-segment
+    reason: A document path contains a `.` segment, which a canonical path excludes.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/3/path, value: ./src/lib.rs}]
+    fails-at: /documents/3/path
+    keyword: pattern
+  - name: path-with-parent-segment
+    reason: A document path contains a `..` segment.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/3/path, value: src/../src/lib.rs}]
+    fails-at: /documents/3/path
+    keyword: pattern
+  - name: absolute-path
+    reason: A document path has a leading `/`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/3/path, value: /src/lib.rs}]
+    fails-at: /documents/3/path
+    keyword: pattern
+  - name: path-with-trailing-separator
+    reason: A document path has a trailing `/`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/3/path, value: src/}]
+    fails-at: /documents/3/path
+    keyword: pattern
+  - name: uppercase-digest
+    reason: A digest is lowercase hexadecimal.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/0/sha256, value: 1F3A5C7E9B0D2F4A6C8E0B2D4F6A8C0E2B4D6F8A0C2E4B6D8F0A2C4E6B8D0F2A}]
+    fails-at: /documents/0/sha256
+    keyword: pattern
+  - name: short-digest
+    reason: A digest has 64 hexadecimal digits.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/0/sha256, value: 1f3a5c7e}]
+    fails-at: /documents/0/sha256
+    keyword: pattern
+  - name: unknown-document-disposition
+    reason: '`ignored` is not a document disposition.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /documents/2/disposition, value: ignored}]
+    fails-at: /documents/2/disposition
+    keyword: enum
+  - name: out-of-profile-document-without-reason
+    reason: An `out-of-profile` document states its reason.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /documents/2/reason}]
+    fails-at: /documents/2
+    keyword: required
+  - name: inactive-document-without-reason
+    reason: An `inactive` document states its reason.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /documents/8/reason}]
+    fails-at: /documents/8
+    keyword: required
+  - name: indexed-document-without-members
+    reason: An `indexed` document lists the units that compile it.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /documents/3/members}]
+    fails-at: /documents/3
+    keyword: required
+  - name: indexed-document-without-origin
+    reason: An `indexed` document states its origin.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /documents/3/origin}]
+    fails-at: /documents/3
+    keyword: required
+  - name: members-on-configuration-document
+    reason: Only an `indexed` document has members.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /documents/0/members, value: [{unit: geometry-lib}]}]
+    fails-at: /documents/0/members
+    keyword: falseSchema
+
+  # --------------------------------------------------------------- locators
+  - name: locator-line-zero
+    reason: Lines are numbered from 1.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/definitions/0/at/start, value: [0, 9]}]
+    fails-at: /entities/1/definitions/0/at/start/0
+    keyword: minimum
+  - name: locator-column-zero
+    reason: Columns are numbered from 1.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/definitions/0/at/end, value: [1, 0]}]
+    fails-at: /entities/1/definitions/0/at/end/1
+    keyword: minimum
+  - name: locator-position-with-three-numbers
+    reason: A position is exactly `[line, column]`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/definitions/0/at/start, value: [1, 9, 3]}]
+    fails-at: /entities/1/definitions/0/at/start
+    keyword: maxItems
+  - name: locator-fractional-column
+    reason: A column is an integer.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/1/definitions/0/at/start, value: [1, 9.5]}]
+    fails-at: /entities/1/definitions/0/at/start/1
+    keyword: type
+  - name: locator-without-text
+    reason: A locator states the exact text of its span.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /references/0/at/text}]
+    fails-at: /references/0/at
+    keyword: required
+  - name: locator-with-byte-offset
+    reason: A locator has no member besides path, start, end and text.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /references/0/at/offset, value: 120}]
+    fails-at: /references/0/at
+    keyword: additionalProperties
+  - name: locator-path-not-canonical
+    reason: A locator path is a canonical path.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /references/0/at/path, value: 'src//shapes.rs'}]
+    fails-at: /references/0/at/path
+    keyword: pattern
+
+  # --------------------------------------------------------------- contexts
+  - name: context-without-command
+    reason: A context names the command that realizes it.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /contexts/0/command}]
+    fails-at: /contexts/0
+    keyword: required
+  - name: context-parameters-not-an-object
+    reason: Context parameters are a mapping from parameter name to value.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /contexts/0/parameters, value: [mode=build]}]
+    fails-at: /contexts/0/parameters
+    keyword: type
+
+  # ------------------------------------------------ units and distributions
+  - name: unit-without-name
+    reason: A unit has its language-visible name.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /units/0/name}]
+    fails-at: /units/0
+    keyword: required
+  - name: distribution-with-unknown-member
+    reason: A distribution has no member besides id, kind, name and version.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /distributions/0/license, value: Apache-2.0}]
+    fails-at: /distributions/0
+    keyword: additionalProperties
+  - name: unit-attribute-variant-entry-without-contexts
+    reason: Each entry of a context-variant unit attribute names its contexts.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /units/0/features/1/contexts}]
+    fails-at: /units/0/features
+    keyword: anyOf
+
+  # --------------------------------------------------------------- entities
+  - name: unknown-common-entity-kind
+    reason: '`object` is not a common entity kind.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/8/kind, value: object}]
+    fails-at: /entities/8/kind
+    keyword: enum
+  - name: entity-without-unit
+    reason: An entity names its defining unit, or its units for a project-merged kind.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/unit}]
+    fails-at: /entities/8
+    keyword: oneOf
+  - name: entity-without-path
+    reason: An entity states its canonical path.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/path}]
+    fails-at: /entities/8
+    keyword: required
+  - name: entity-without-definitions
+    reason: An entity lists its definition sites, as an empty list when it has none.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/definitions}]
+    fails-at: /entities/8
+    keyword: required
+  - name: unknown-origin
+    reason: '`imported` is not an entity origin.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/8/origin, value: imported}]
+    fails-at: /entities/8/origin
+    keyword: enum
+  - name: definition-not-wrapped-in-at
+    reason: A definition entry holds its site under `at`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: replace
+        path: /entities/8/definitions/0
+        value: {path: src/shapes.rs, start: [7, 12], end: [7, 18], text: Circle}
+    fails-at: /entities/8/definitions/0
+    keyword: required
+  - name: anchor-beside-definition-sites
+    reason: '`anchor` is for an entity with no definition site.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: add
+        path: /entities/8/anchor
+        value: {path: src/shapes.rs, start: [7, 12], end: [7, 18], text: Circle}
+    fails-at: /entities/8/anchor
+    keyword: falseSchema
+  - name: generated-by-on-source-entity
+    reason: '`generated-by` is for an entity with origin `generated`.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: add
+        path: /entities/8/generated-by
+        value:
+          generator: geometry.marker
+          at: {path: src/lib.rs, start: [21, 1], end: [21, 7], text: marker}
+    fails-at: /entities/8/generated-by
+    keyword: falseSchema
+  - name: generated-by-without-site
+    reason: '`generated-by` names the site that invokes the generator.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/26/generated-by/at}]
+    fails-at: /entities/26/generated-by
+    keyword: required
+  - name: entity-without-effective-visibility
+    reason: Every entity except parameters and type parameters has effective visibility.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/effective-visibility}]
+    fails-at: /entities/8
+    keyword: required
+  - name: parameter-with-visibility
+    reason: Visibility of parameters is outside the required categories.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /entities/6/declared-visibility, value: {value: private, explicit: false}}]
+    fails-at: /entities/6/declared-visibility
+    keyword: falseSchema
+
+  # ------------------------------------------------- context-variant shapes
+  - name: variant-list-of-bare-values
+    reason: The list form of a context-variant attribute holds `{contexts, value}` entries, not bare values.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/8/language-kind, value: [struct]}]
+    fails-at: /entities/8/language-kind
+    keyword: anyOf
+  - name: variant-entry-without-contexts
+    reason: Each context-variant entry names its contexts.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/17/effective-visibility/0/contexts}]
+    fails-at: /entities/17/effective-visibility
+    keyword: anyOf
+  - name: variant-entry-without-value
+    reason: Each context-variant entry states its value.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/17/effective-visibility/1/value}]
+    fails-at: /entities/17/effective-visibility
+    keyword: anyOf
+  - name: variant-entry-with-unknown-member
+    reason: A context-variant entry has only `contexts` and `value`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /entities/17/effective-visibility/1/note, value: re-exported}]
+    fails-at: /entities/17/effective-visibility
+    keyword: anyOf
+  - name: empty-variant-list
+    reason: The list form of a context-variant attribute has at least one entry.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/17/effective-visibility, value: []}]
+    fails-at: /entities/17/effective-visibility
+    keyword: anyOf
+  - name: variant-map-keyed-by-context
+    reason: A context-variant attribute is one value or a list, never a map from context to value.
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: replace
+        path: /entities/8/language-kind
+        value: {build: struct, build-extras: struct}
+    fails-at: /entities/8/language-kind
+    keyword: anyOf
+
+  # ------------------------------------------------------------- visibility
+  - name: declared-visibility-without-explicit
+    reason: Declared visibility states whether the source states it.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/declared-visibility/explicit}]
+    fails-at: /entities/8/declared-visibility
+    keyword: anyOf
+  - name: effective-visibility-without-boundary
+    reason: Effective visibility states every boundary.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /entities/8/effective-visibility/external}]
+    fails-at: /entities/8/effective-visibility
+    keyword: anyOf
+  - name: unknown-boundary
+    reason: '`crate` is not a visibility boundary.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /entities/8/effective-visibility/crate, value: all}]
+    fails-at: /entities/8/effective-visibility
+    keyword: anyOf
+  - name: unknown-access
+    reason: '`public` is not an access value.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/8/effective-visibility/project, value: public}]
+    fails-at: /entities/8/effective-visibility
+    keyword: anyOf
+  - name: scoped-without-scope
+    reason: '`scoped` carries its `scope` list.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/2/effective-visibility/unit, value: scoped}]
+    fails-at: /entities/2/effective-visibility
+    keyword: anyOf
+  - name: scoped-with-empty-scope
+    reason: A `scope` list is non-empty.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/2/effective-visibility/unit/scope, value: []}]
+    fails-at: /entities/2/effective-visibility
+    keyword: anyOf
+  - name: subtypes-with-scope
+    reason: '`subtypes` is qualified by `within`, not by `scope`.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/2/effective-visibility/project, value: {access: subtypes, scope: [geometry.crate]}}]
+    fails-at: /entities/2/effective-visibility
+    keyword: anyOf
+  - name: compound-access-with-one-value
+    reason: A compound access list has at least two access values.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/8/effective-visibility/unit, value: [all]}]
+    fails-at: /entities/8/effective-visibility
+    keyword: anyOf
+  - name: scope-member-malformed
+    reason: A scope member is an id or a canonical document path.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /entities/2/effective-visibility/unit/scope/0, value: ../outside.rs}]
+    fails-at: /entities/2/effective-visibility
+    keyword: anyOf
+
+  # ------------------------------------------------------------- references
+  - name: reference-without-from
+    reason: A reference names the innermost entity whose declaration contains its site.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /references/3/from}]
+    fails-at: /references/3
+    keyword: required
+  - name: reference-without-site
+    reason: A reference has its site.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /references/3/at}]
+    fails-at: /references/3
+    keyword: required
+  - name: default-disposition-without-target
+    reason: A reference with no disposition is `resolved` or `external` and names its target.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /references/3/target}]
+    fails-at: /references/3
+    keyword: required
+  - name: external-disposition-without-target
+    reason: An `external` reference names its target.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /references/1/target}]
+    fails-at: /references/1
+    keyword: required
+  - name: resolved-reference-with-candidates
+    reason: '`candidates` belongs only to the `candidates` disposition.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /references/3/candidates, value: [geometry.shapes.Area, geometry.shapes.Solid]}]
+    fails-at: /references/3/candidates
+    keyword: falseSchema
+  - name: resolved-reference-with-reason
+    reason: '`reason` belongs to the non-resolved dispositions.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /references/3/reason, value: bound by the supertrait list}]
+    fails-at: /references/3/reason
+    keyword: falseSchema
+  - name: unknown-common-role
+    reason: '`use` is not a common reference role.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /references/3/role, value: use}]
+    fails-at: /references/3/role
+    keyword: enum
+  - name: unknown-basis
+    reason: '`runtime` is not a reference basis.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /references/3/basis, value: runtime}]
+    fails-at: /references/3/basis
+    keyword: enum
+  - name: unknown-reference-disposition
+    reason: '`ambiguous` is not a target disposition.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /references/1/disposition, value: ambiguous}]
+    fails-at: /references/1/disposition
+    keyword: enum
+
+  # -------------------------------------------------------------- relations
+  - name: exports-without-name
+    reason: An `exports` relation names the name consumers see.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /relations/4/name}]
+    fails-at: /relations/4
+    keyword: required
+  - name: name-on-implements
+    reason: Only an `exports` relation has `name`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /relations/0/name, value: Area}]
+    fails-at: /relations/0/name
+    keyword: falseSchema
+  - name: unknown-relation-kind
+    reason: '`contains` is not a relation kind; containment is `parent`.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /relations/0/kind, value: contains}]
+    fails-at: /relations/0/kind
+    keyword: enum
+  - name: relation-without-to
+    reason: A relation names its target entity.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /relations/0/to}]
+    fails-at: /relations/0
+    keyword: required
+
+  # ------------------------------------------------------------- public API
+  - name: public-api-access-none
+    reason: Public API access is `all` or `subtypes`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/0/access, value: none}]
+    fails-at: /public-api/0/access
+    keyword: enum
+  - name: public-api-without-paths
+    reason: A public API membership has at least one consumer path.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/0/paths, value: []}]
+    fails-at: /public-api/0/paths
+    keyword: minItems
+  - name: public-api-single-path-string
+    reason: '`paths` is a list.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/0/paths, value: 'geometry::shapes'}]
+    fails-at: /public-api/0/paths
+    keyword: type
+
+  # ------------------------------------------------------------- extensions
+  - name: extension-kind-without-namespace
+    reason: An extension kind is `<language>:<name>`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /extensions/macro-expansion, value: []}]
+    fails-at: /extensions
+    keyword: propertyNames
+  - name: extension-facts-not-a-list
+    reason: Extension facts of one kind are a list.
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - op: replace
+        path: /extensions/rust:reachable-unnameable
+        value: {entity: geometry.detail.Hidden, distribution: geometry, via: geometry.make_hidden}
+    fails-at: /extensions/rust:reachable-unnameable
+    keyword: type
