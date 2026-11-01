@@ -34,7 +34,7 @@ jobs:
           tool: shellcheck
       - run: task ci
   platforms:
-    name: Rust 1.85 (${{ matrix.os }})
+    name: Rust 1.90 (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -42,9 +42,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: dtolnay/rust-toolchain@cfcaf53ba4c621917ec7f78a66bff7a8848ddad4 # 1.85.0
+      - uses: dtolnay/rust-toolchain@7dcc700092a1a8b9c17ba0e140b4e34e93000946 # 1.90.0
         with:
-          toolchain: 1.99.1
+          toolchain: 1.90.0
           components: rustfmt
       - run: cargo test --workspace --locked
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
