@@ -138,11 +138,16 @@ description: |
   resolves in the context to another module, merges as if declared in the
   resolved module. Each declaration in the block that merges with a
   declaration of the resolved module is a definition site of that entity,
-  which keeps the resolved module's unit and path. Each declaration that
-  adds a new name is an entity of the resolved module's unit, with the
-  resolved module's path, `parent` the resolved module, and its site in the
-  augmenting document. A `declare global` block augments the global
-  namespace entity in the same way. When the augmented declaration is
+  which keeps the resolved module's unit and path. Every declaration in the
+  block, at any nesting depth, that adds a new name is an entity of the
+  resolved module's unit with its site in the augmenting document. Its
+  `parent` is the entity that contains it after merging, and its path
+  appends its name to that parent's path by the path grammar: a member
+  added to `RecordShape` of `"src/a.ts"` has path `"src/a.ts"#RecordShape.<member>`
+  and parent `RecordShape`; only a declaration directly in the block that
+  merges with no existing declaration has the resolved module as parent. A
+  `declare global` block augments the global namespace entity in the same
+  way. When the augmented declaration is
   external, such as a standard library interface, an added member is an
   entity of the augmenting unit with path `<augmenting module path>#<external
   declaration name>.<member>`, `parent` absent, and a
