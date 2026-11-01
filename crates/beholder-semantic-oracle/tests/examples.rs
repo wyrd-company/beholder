@@ -13,7 +13,7 @@
 //! A case that rejects a member names it in `member`, and `also` lists any
 //! further error the same defect causes. A case passes only when the
 //! distinct `(location, keyword)` pairs of the errors are exactly the named
-//! one and those in `also`, and the named error is about `member`.
+//! one and those in `also`, and the named errors are about `member` alone.
 
 use std::{
     collections::BTreeSet,
@@ -196,9 +196,11 @@ fn invalid_examples_fail_for_their_named_reason() {
                 let named = members(&validator, &dataset, fails_at, keyword);
                 match member {
                     None => failures.push(format!("{label}: `{keyword}` case names no member")),
-                    Some(member) if !named.contains(member) => failures.push(format!(
-                        "{label}: the `{keyword}` error is about {named:?}, not `{member}`"
-                    )),
+                    Some(member) if named != BTreeSet::from([member.to_string()]) => {
+                        failures.push(format!(
+                            "{label}: the `{keyword}` error is about {named:?}, not `{member}`"
+                        ))
+                    }
                     Some(_) => {}
                 }
             } else if member.is_some() {

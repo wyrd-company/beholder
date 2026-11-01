@@ -162,17 +162,7 @@ fn ids_are_unique_across_the_dataset() {
         &[
             ("error", "model:id-unique", "/distributions/0/id"),
             ("error", "model:id-reference", "/public-api/0/distribution"),
-            (
-                "error",
-                "model:public-api-distribution",
-                "/public-api/0/distribution",
-            ),
             ("error", "model:id-reference", "/public-api/1/distribution"),
-            (
-                "error",
-                "model:public-api-distribution",
-                "/public-api/1/distribution",
-            ),
             ("error", "model:id-reference", "/units/0/distribution"),
         ],
     );
@@ -876,4 +866,159 @@ fn validation_alone_does_not_audit() {
     );
     set(&mut dataset, "/documents/0/reason", json!("not read"));
     expect(&validate_with(&dataset, &files()), &[]);
+}
+
+// ------------------------------------------------- review round 1 cases
+
+/// The fixture with a second context, `release`, in which the unit is
+/// built.
+fn two_contexts() -> Value {
+    let mut dataset = dataset();
+    let mut release = dataset["contexts"][0].clone();
+    release["id"] = json!("release");
+    release["parameters"]["profile"] = json!("release");
+    push(&mut dataset, "/contexts", release);
+    dataset
+}
+
+#[test]
+fn a_missing_or_malformed_profile_is_a_schema_error() {
+    for profile in [None, Some(json!(7))] {
+        let mut dataset = dataset();
+        match profile.clone() {
+            None => {
+                dataset.as_object_mut().unwrap().remove("profile");
+            }
+            Some(value) => set(&mut dataset, "/profile", value),
+        }
+        let report = validate_with(&dataset, &files());
+        assert!(!report.passes(), "{profile:?}");
+        assert!(
+            report
+                .findings
+                .iter()
+                .all(|f| f.rule.starts_with("schema:")),
+            "{:#?}",
+            report.findings
+        );
+    }
+    assert!(!validate(&json!({}), None).passes());
+}
+
+#[test]
+fn a_unit_key_names_one_unit_across_contexts() {
+    let mut dataset = two_contexts();
+    set(&mut dataset, "/units/0/contexts", json!(["default"]));
+    let mut copy = dataset["units"][0].clone();
+    copy["id"] = json!("tally-lib-release");
+    copy["contexts"] = json!(["release"]);
+    copy.as_object_mut().unwrap().remove("root");
+    push(&mut dataset, "/units", copy);
+    expect(
+        &validate_with(&dataset, &files()),
+        &[("error", "model:unit-key", "/units/1")],
+    );
+}
+
+#[test]
+fn an_entity_without_a_distribution_has_no_external_access() {
+    let mut dataset = dataset();
+    dataset["units"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("distribution");
+    set(&mut dataset, "/public-api", json!([]));
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            (
+                "error",
+                "model:effective-visibility",
+                "/entities/0/effective-visibility",
+            ),
+            (
+                "error",
+                "model:effective-visibility",
+                "/entities/1/effective-visibility",
+            ),
+            (
+                "error",
+                "model:effective-visibility",
+                "/entities/2/effective-visibility",
+            ),
+        ],
+    );
+}
+
+#[test]
+fn an_omitted_fact_context_list_means_every_context_of_the_unit() {
+    let mut dataset = two_contexts();
+    set(&mut dataset, "/entities/2/contexts", json!(["default"]));
+    set(&mut dataset, "/public-api/1/contexts", json!(["default"]));
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            ("error", "model:context-scope", "/references/0/from"),
+            ("error", "model:context-scope", "/references/1/from"),
+        ],
+    );
+    set(&mut dataset, "/references/0/contexts", json!(["default"]));
+    set(&mut dataset, "/references/1/contexts", json!(["default"]));
+    expect(&validate_with(&dataset, &files()), &[]);
+}
+
+#[test]
+fn a_target_exists_in_every_context_of_its_fact() {
+    let mut dataset = two_contexts();
+    set(&mut dataset, "/entities/1/contexts", json!(["default"]));
+    set(&mut dataset, "/public-api/0/contexts", json!(["default"]));
+    push(
+        &mut dataset,
+        "/relations",
+        json!({"kind": "aliases", "from": "tally.make", "to": "tally.Counter"}),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            ("error", "model:context-scope", "/references/0/target"),
+            ("error", "model:context-scope", "/references/1/target"),
+            ("error", "model:context-scope", "/relations/0/to"),
+        ],
+    );
+}
+
+#[test]
+fn an_unknown_distribution_is_one_finding() {
+    let mut dataset = dataset();
+    set(&mut dataset, "/public-api/0/distribution", json!("missing"));
+    expect(
+        &validate_with(&dataset, &files()),
+        &[("error", "model:id-reference", "/public-api/0/distribution")],
+    );
+}
+
+#[test]
+fn an_extension_fact_holds_in_the_contexts_of_its_owner_unit() {
+    let mut dataset = two_contexts();
+    set(&mut dataset, "/units/0/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/extensions",
+        json!({"rust:macro-expansion": [{"entity": "tally.Counter", "macro": "tally.make",
+               "invocation": {"path": "src/lib.rs", "start": [1, 12], "end": [1, 19], "text": "Counter"}}]}),
+    );
+    expect(&validate_with(&dataset, &files()), &[]);
+    set(
+        &mut dataset,
+        "/extensions/rust:macro-expansion/0/contexts",
+        json!(["release"]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:context-scope",
+            "/extensions/rust:macro-expansion/0/contexts",
+        )],
+    );
 }
