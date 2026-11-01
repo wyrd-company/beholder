@@ -2,43 +2,67 @@
 #
 # Publish generated results back to the beholder ref.
 #
-# Ordinary git, on purpose. The stored index has to travel through fetch and
-# push or the storage model is a claim rather than a fact, so nothing here knows
-# it is running on GitHub.
+# git moves the bytes and beholder reconciles. The push is ordinary git, so it
+# goes over whatever protocol and credentials the checkout already has, and
+# nothing here knows it is running on GitHub. Beholder starts no git process
+# and does not push.
 #
-# The push is never forced. A rejection means another writer got there first,
-# and the answer is to fetch what beat us and re-run the report: results already
-# stored are reused, and only what is still missing is appended to the winning
-# tip. A force push would make that impossible to notice.
+# The push is never forced. A rejection means another writer got there first.
+# The answer is to fetch the tip that beat us and have beholder rebuild the
+# local index commits onto it, which keeps the winner's work and puts ours on
+# top as a fast-forward. A force push would make that impossible to notice.
+#
+# Only a rejected ref is a lost race. Anything else — an unreachable remote,
+# refused credentials, a protected ref — is a fault, and retrying it would only
+# repeat it.
 #
 # Environment:
 #   REMOTE    remote to publish to, default origin
 #   BEHOLDER  path to the beholder binary
-#   BASE HEAD the revisions the report compared
 #   ATTEMPTS  how many times to give way to another writer, default 3
 
 set -euo pipefail
 
 remote="${REMOTE:-origin}"
 attempts="${ATTEMPTS:-3}"
+beholder="${BEHOLDER:?BEHOLDER is required to rebuild against another writer}"
+ref="refs/beholder/index"
+tab=$'\t'
 
-if ! git show-ref --verify --quiet refs/beholder/index; then
+if ! git show-ref --verify --quiet "$ref"; then
   echo "no index to publish"
   exit 0
 fi
 
+errors="$(mktemp)"
+trap 'rm -f "$errors"' EXIT
+
 for attempt in $(seq 1 "$attempts"); do
-  if git push "$remote" refs/beholder/index:refs/beholder/index; then
-    echo "published refs/beholder/index to $remote"
+  # No leading '+'. --porcelain gives one stable status line per ref, so a lost
+  # race is read from the ref's own line and not guessed from stderr.
+  status=0
+  result="$(LC_ALL=C git push --porcelain "$remote" "$ref:$ref" 2> "$errors")" || status=$?
+
+  if [ "$status" -eq 0 ]; then
+    echo "published $ref to $remote"
     exit 0
   fi
 
+  # "[rejected]" is a non-fast-forward. "[remote rejected]" is the remote
+  # refusing for its own reasons, which no rebuild can fix.
+  if ! grep -q "^!${tab}${ref}:${ref}${tab}\[rejected\]" <<< "$result"; then
+    echo "pushing $ref to $remote failed:" >&2
+    printf '%s\n' "$result" >&2
+    cat "$errors" >&2
+    exit 1
+  fi
+
   echo "another writer won attempt $attempt; rebuilding on their tip"
-  git fetch "$remote" '+refs/beholder/*:refs/beholder/*'
-  "${BEHOLDER:?BEHOLDER is required to rebuild against another writer}" \
-    report "${BASE:?BASE is required}" "${HEAD:?HEAD is required}" \
-    --use-store --format json >/dev/null
+  # Into FETCH_HEAD, so the local ref only moves through beholder's
+  # compare-and-swap.
+  git fetch --quiet --no-tags "$remote" "$ref"
+  "$beholder" store --rebuild-onto "$(git rev-parse FETCH_HEAD)" --limit 0 > /dev/null
 done
 
-echo "gave up publishing refs/beholder/index to $remote after $attempts attempts" >&2
+echo "gave up publishing $ref to $remote after $attempts attempts" >&2
 exit 1

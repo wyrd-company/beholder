@@ -84,7 +84,19 @@ git push origin +refs/beholder/*:refs/beholder/*
 git fetch origin +refs/beholder/*:refs/beholder/*
 ```
 
-Those two commands are the whole transport, and beholder never replaces them. Moving the ref is git's job, over whatever protocol the repository already uses; beholder only reads and writes it locally.
+Beholder can also fetch the ref itself, and it keeps every local index commit when it does:
+
+```sh
+beholder store --fetch origin
+```
+
+Beholder does not push. Publishing is `git push` without `+`, over whatever protocol and credentials the repository already uses:
+
+```sh
+git push origin refs/beholder/index:refs/beholder/index
+```
+
+The fetch is pure Rust (gix) over ssh, https and local paths. It reads the repository's git configuration, except URL-scoped `http.<url>.*` keys, so a credential stored as `http.<url>.extraHeader` is not sent; for such a checkout, fetch with git.
 
 A fresh clone fetches the ref, resolves the source commit an index refers to, and reuses the stored phase output for every file whose content is unchanged.
 
@@ -115,7 +127,15 @@ Nothing stored is authoritative, and beholder never trusts it on sight. Metadata
 
 Ref updates are compare-and-swap against the tip the commit was built on. A writer that loses fetches the tip that beat it, rebuilds against that new index parent, and retries.
 
-Pushes are never forced, for the same reason. A force push would make the compare-and-swap meaningless the moment two machines were involved, because the loser would never learn it had lost. A rejected push is the signal to fetch the winning tip and rebuild on it. No existing result is rewritten, and no history is discarded.
+Pushes are never forced, for the same reason. A force push would make the compare-and-swap meaningless the moment two machines were involved, because the loser would never learn it had lost. A rejected push is the signal to fetch the winning tip and rebuild on it:
+
+```sh
+git fetch origin refs/beholder/index
+beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
+git push origin refs/beholder/index:refs/beholder/index
+```
+
+`--rebuild-onto` puts every local index commit the winning tip does not have on top of it, so the next push is a fast-forward. No existing result is rewritten, and no history is discarded.
 
 ## Review surfaces
 
@@ -158,7 +178,7 @@ The action compares the merge base with the pull request head, so the report des
 
 **No gating.** Nothing beholder emits is at SARIF error level and the action does not fail a build. What surfaces is a ranking decision, and what to do about it is the reviewer's.
 
-**Cold start.** The action fetches `refs/beholder/*` before it analyzes anything and publishes it afterwards, through ordinary `git fetch` and `git push`. A runner is just another clone: it reuses whatever anyone else has already indexed and contributes what it had to generate. A repository nobody has indexed yet is the ordinary first run, not an error. The push is never forced — a rejection means another writer got there first, so the action fetches the tip that beat it and appends what is still missing to that tip.
+**Cold start.** The action fetches `refs/beholder/*` before it analyzes anything and publishes it afterwards, through ordinary `git fetch` and `git push`. A runner is just another clone: it reuses whatever anyone else has already indexed and contributes what it had to generate. A repository nobody has indexed yet is the ordinary first run, not an error. The push is never forced — a rejection means another writer got there first, so the action fetches the tip that beat it and has beholder rebuild its index commits on that tip.
 
 ## Core features
 
