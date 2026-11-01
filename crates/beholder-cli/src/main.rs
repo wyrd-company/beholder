@@ -167,6 +167,19 @@ struct StoreArgs {
     /// How many index commits to list.
     #[arg(long, default_value_t = 20)]
     limit: usize,
+    /// Fetch the index from this remote first, keeping local index commits on
+    /// top of it.
+    ///
+    /// Beholder never pushes. Publish with `git push REMOTE
+    /// refs/beholder/index:refs/beholder/index`, which is never forced.
+    #[arg(long, value_name = "REMOTE", conflicts_with = "rebuild_onto")]
+    fetch: Option<String>,
+    /// Rebuild the local index commits this tip does not have onto it.
+    ///
+    /// For a push that was rejected because another writer got there first:
+    /// fetch their tip with git, pass it here, and push again.
+    #[arg(long, value_name = "TIP")]
+    rebuild_onto: Option<String>,
 }
 
 #[derive(Args)]
@@ -507,6 +520,23 @@ fn store(args: StoreArgs) -> Result<()> {
     let (repo, _) = open(&args.root)?;
     let store = Store::open(&repo);
 
+    if let Some(remote) = &args.fetch {
+        let reconciled = store.fetch(remote)?;
+        match reconciled.remote {
+            None => println!("{remote} has no stored index yet"),
+            Some(theirs) => println!("fetched {} from {remote} at {theirs}", store.refname()),
+        }
+        report_rebuilt(&reconciled);
+    }
+
+    if let Some(revision) = &args.rebuild_onto {
+        let theirs = repo
+            .rev_parse_single(revision.as_str())
+            .with_context(|| format!("resolving {revision}"))?
+            .detach();
+        report_rebuilt(&store.rebuild_onto(theirs)?);
+    }
+
     println!("ref:     {}", store.refname());
     println!("refspec: {REFSPEC}");
 
@@ -523,6 +553,15 @@ fn store(args: StoreArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn report_rebuilt(reconciled: &beholder::store::Reconciled) {
+    if reconciled.rebuilt > 0 {
+        println!(
+            "rebuilt {} local index commit(s) on top of it",
+            reconciled.rebuilt
+        );
+    }
 }
 
 fn short(revision: &str) -> String {
