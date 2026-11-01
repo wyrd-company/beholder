@@ -50,8 +50,8 @@ report() {
 
 run_publish() {
   local dir="$1"
-  ( cd "$dir" && BEHOLDER="$beholder" \
-      bash "$publish" )
+  local remote="${2:-origin}"
+  ( cd "$dir" && BEHOLDER="$beholder" REMOTE="$remote" bash "$publish" )
 }
 
 run_fetch() {
@@ -94,6 +94,31 @@ if grep -q 'cold start' "$work/broken"; then fail "a fault must not read as a co
 
 # Index-only publication needs no base/head, even after skipped source commits.
 ( cd "$work/first" && "$beholder" index --store --use-store --out-dir "$work/output" >/dev/null )
+
+# A remote that cannot be reached is a fault, not a lost race: it fails at once
+# and does not try to rebuild against a tip it never saw.
+if run_publish "$work/first" broken > "$work/publish-broken" 2>&1; then
+  fail "publishing to an unreachable remote must fail"
+fi
+if grep -q 'another writer won' "$work/publish-broken"; then
+  fail "an unreachable remote must not read as a lost race: $(cat "$work/publish-broken")"
+fi
+
+# A remote that refuses the ref for its own reasons is a fault as well.
+git init -q --bare "$work/guarded.git"
+printf '#!/bin/sh\necho "the index is not accepted here" >&2\nexit 1\n' \
+  > "$work/guarded.git/hooks/pre-receive"
+chmod +x "$work/guarded.git/hooks/pre-receive"
+git -C "$work/first" remote add guarded "$work/guarded.git"
+if run_publish "$work/first" guarded > "$work/publish-guarded" 2>&1; then
+  fail "publishing to a remote that refuses the ref must fail"
+fi
+if grep -q 'another writer won' "$work/publish-guarded"; then
+  fail "a refused ref must not read as a lost race: $(cat "$work/publish-guarded")"
+fi
+grep -q 'not accepted here' "$work/publish-guarded" \
+  || fail "the remote's reason should be shown: $(cat "$work/publish-guarded")"
+
 run_publish "$work/first" | grep -q 'published' || fail "the first publish should succeed"
 
 # A second machine cold-starts from the remote and finds the work already done.
@@ -119,6 +144,7 @@ git -C "$work/second" commit -qam 'update data'
 grep -Eq '[1-9][0-9]* reused' "$work/reuse" || fail "unchanged files should reuse earlier index results"
 run_publish "$work/second" | grep -q 'published' || fail "the second machine should publish"
 second_head="$(git -C "$work/second" rev-parse HEAD)"
+winner_tip="$(git -C "$work/second" rev-parse refs/beholder/index)"
 
 # Meanwhile the first machine, which never saw any of that, indexes a commit of
 # its own and pushes into the race it has already lost.
@@ -128,8 +154,15 @@ run_publish "$work/first" > "$work/race" 2>&1 || fail "the loser should recover:
 grep -q 'another writer won' "$work/race" || fail "the push should have been rejected first"
 grep -q 'published' "$work/race" || fail "the loser should publish after giving way"
 
-# Both writers' work survives, which is the point of never forcing the push.
+# The loser's tip is what the remote holds now, and it sits on the winner's.
+first_tip="$(git -C "$work/first" rev-parse refs/beholder/index)"
+[ "$(git -C "$work/origin.git" rev-parse refs/beholder/index)" = "$first_tip" ] \
+  || fail "the remote should hold the rebuilt tip"
+git -C "$work/first" merge-base --is-ancestor "$winner_tip" "$first_tip" \
+  || fail "the rebuilt index should be a fast-forward of the winner's"
 git -C "$work/second" fetch -q origin '+refs/beholder/*:refs/beholder/*'
+
+# Both writers' work survives, which is the point of never forcing the push.
 sources="$(indexed_sources "$work/second")"
 grep -q "$second_head" <<< "$sources" || fail "the winner's index was discarded"
 grep -q "$(git -C "$work/first" rev-parse HEAD)" <<< "$sources" \

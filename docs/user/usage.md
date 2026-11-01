@@ -60,5 +60,18 @@ beholder store
 beholder store --limit 10
 ```
 
-This command reports local state. Transporting the ref between clones remains
-an ordinary Git operation; see [Stored results](stored-results).
+Fetch the ref from a remote, keeping local index commits on top of it:
+
+```bash
+beholder store --fetch origin
+```
+
+After a rejected push, rebuild local index commits on the tip that won:
+
+```bash
+git fetch origin refs/beholder/index
+beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
+```
+
+Beholder does not push. Publish with `git push`; see
+[Stored results](stored-results).
