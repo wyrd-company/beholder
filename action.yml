@@ -158,8 +158,6 @@ runs:
       working-directory: ${{ inputs.root }}
       env:
         BEHOLDER: ${{ inputs.beholder != '' && inputs.beholder || format('{0}/target/release/beholder', github.action_path) }}
-        BASE: ${{ steps.report.outputs.base }}
-        HEAD: ${{ steps.report.outputs.head }}
       run: bash "$GITHUB_ACTION_PATH/scripts/publish-index.sh"
 
 branding:
