@@ -85,6 +85,8 @@ It needs no `base` or `head`, creates no report or comment, and leaves report
 outputs empty. Valid file results remain reusable when earlier CI runs failed
 or were skipped. A repository without an index starts cold.
 
-The action script owns `git push`. After a rejection it saves the local tip,
-fetches the remote tip, and asks `beholder store --reconcile <saved-tip>` to
-rebuild local index commits onto it. Beholder does not start a git-push subprocess.
+The action script owns `git push`, which is never forced. Only a rejected ref
+starts a rebuild: the script fetches the remote tip into `FETCH_HEAD` and runs
+`beholder store --rebuild-onto <tip>` to rebuild local index commits onto it,
+then pushes again. Any other push failure stops the step. Beholder does not
+start a git process.
