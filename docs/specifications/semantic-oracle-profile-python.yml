@@ -3,6 +3,16 @@ relationships:
   references:
     - semantic-oracle-model
     - semantic-oracle
+assets:
+  dataset-schema:
+    type: json-schema
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-python.json-schema.yml
+  example:
+    type: example
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-python.example.yml
+  invalid-examples:
+    type: invalid-examples
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-python.invalid-examples.yml
 format: json-schema
 description: |
   # Python semantic-oracle profile, `python/1`

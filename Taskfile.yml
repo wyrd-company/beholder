@@ -17,6 +17,16 @@ tasks:
     cmds:
       - cargo test --workspace --locked
 
+  test:oracle-schema:
+    desc: Check the semantic-oracle dataset schemas against their examples
+    summary: |
+      Validates every valid example dataset in docs/specifications with a
+      Draft 2020-12 validator, and confirms that every invalid example fails
+      at the location and with the keyword it names. `test` runs the same
+      checks as part of the workspace.
+    cmds:
+      - cargo test -p beholder-semantic-oracle --locked
+
   test:action:
     desc: Exercise the shell the GitHub Action runs
     summary: |

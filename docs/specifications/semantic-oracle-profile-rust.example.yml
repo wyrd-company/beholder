@@ -1,0 +1,679 @@
+# ---
+# relationships:
+#   references: semantic-oracle-profile-rust
+# ---
+#
+# A valid `rust/1` dataset for a generic package `geometry` with a library
+# and a binary. It exercises every Rust record form and extension of the
+# schema. Locators and digests describe notional source; schema validation
+# does not read documents.
+model: semantic-oracle/1
+profile: rust/1
+project:
+  language: rust
+  name: geometry
+authoring:
+  notes: >-
+    Facts derived from the Rust Reference and probes compiled outside the
+    project tree. Contexts come from the build task commands.
+  tools:
+    - {name: rustc, version: 1.97.1}
+    - {name: cargo, version: 1.97.1}
+    - {name: The Rust Reference, version: '1.97'}
+
+documents:
+  - path: Cargo.toml
+    sha256: 1f3a5c7e9b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a
+    disposition: configuration
+  - path: Cargo.lock
+    sha256: 2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c
+    disposition: out-of-profile
+    reason: lockfile
+  - path: README.md
+    sha256: 3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c9e1b3d5f7a9c1e3b5d
+    disposition: out-of-profile
+    reason: documentation
+  - path: src/lib.rs
+    sha256: 4c6e8a0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a6c
+    disposition: indexed
+    origin: source
+    members:
+      - {unit: geometry-lib}
+  - path: src/shapes.rs
+    sha256: 5d7f9b1c3e5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e
+    disposition: indexed
+    origin: source
+    members:
+      - {unit: geometry-lib}
+  - path: src/detail.rs
+    sha256: 6e8a0c2d4f6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f
+    disposition: indexed
+    origin: source
+    members:
+      - {unit: geometry-lib}
+  - path: src/extras.rs
+    sha256: 7f9b1d3e5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b
+    disposition: indexed
+    origin: source
+    members:
+      - {unit: geometry-lib, contexts: [build-extras]}
+  - path: src/bin/atlas.rs
+    sha256: 8a0c2e4f6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a
+    disposition: indexed
+    origin: source
+    members:
+      - {unit: atlas-bin}
+  - path: src/unused.rs
+    sha256: 9b1d3f5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d
+    disposition: inactive
+    reason: no mod declaration reaches the file in any context
+  - path: vendor/tiny/src/lib.rs
+    sha256: 0c2e4a6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c
+    disposition: external
+    reason: vendored dependency source
+
+contexts:
+  - id: build
+    parameters:
+      mode: build
+      selection: [bin, lib]
+      manifest: Cargo.toml
+      packages: workspace
+      target: x86_64-unknown-linux-gnu
+      cfg: []
+      features: []
+      profile: dev
+    command: cargo build --offline --workspace
+  - id: build-extras
+    parameters:
+      mode: build
+      selection: [bin, lib]
+      manifest: Cargo.toml
+      packages: [geometry]
+      target: x86_64-unknown-linux-gnu
+      cfg: []
+      features: [--features=extras]
+      profile: dev
+    command: cargo build --offline -p geometry --features extras
+
+distributions:
+  - id: geometry
+    kind: crate
+    name: geometry
+    version: 1.0.0
+
+units:
+  - id: geometry-lib
+    kind: lib
+    name: geometry
+    distribution: geometry
+    root: geometry.crate
+    package: geometry
+    package-version: 1.0.0
+    target-name: geometry
+    edition: '2021'
+    crate-name: geometry
+    platform: target
+    features:
+      - {contexts: [build], value: []}
+      - {contexts: [build-extras], value: [extras]}
+  - id: atlas-bin
+    kind: bin
+    name: atlas
+    root: atlas.crate
+    package: geometry
+    package-version: 1.0.0
+    target-name: atlas
+    edition: '2021'
+    crate-name: atlas
+    platform: target
+    features: []
+
+entities:
+  - id: geometry.crate
+    kind: module
+    language-kind: crate
+    path: geometry
+    unit: geometry-lib
+    origin: source
+    definitions: []
+    declared-visibility: {value: pub, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes
+    kind: module
+    language-kind: mod
+    name: shapes
+    path: geometry::shapes
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [1, 9], end: [1, 15], text: shapes}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.detail
+    kind: module
+    language-kind: mod
+    name: detail
+    path: geometry::detail
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [2, 5], end: [2, 11], text: detail}
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.crate]}
+      project: none
+      external: none
+  - id: geometry.extras
+    kind: module
+    language-kind: mod
+    name: extras
+    path: geometry::extras
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    contexts: [build-extras]
+    definitions:
+      - at: {path: src/lib.rs, start: [4, 9], end: [4, 15], text: extras}
+    declared-visibility: {value: 'pub(crate)', explicit: true}
+    effective-visibility: {unit: all, project: none, external: none}
+  - id: geometry.shapes.Area
+    kind: type
+    language-kind: trait
+    name: Area
+    path: geometry::shapes::Area
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [1, 11], end: [1, 15], text: Area}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.area
+    kind: callable
+    language-kind: method
+    name: area
+    path: geometry::shapes::Area::area
+    unit: geometry-lib
+    parent: geometry.shapes.Area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [2, 8], end: [2, 12], text: area}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.area.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: geometry::shapes::Area::area::(self)
+    unit: geometry-lib
+    parent: geometry.shapes.Area.area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [2, 14], end: [2, 18], text: self}
+  - id: geometry.shapes.Solid
+    kind: type
+    language-kind: trait
+    name: Solid
+    path: geometry::shapes::Solid
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [5, 11], end: [5, 16], text: Solid}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Circle
+    kind: type
+    language-kind: struct
+    name: Circle
+    path: geometry::shapes::Circle
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [7, 12], end: [7, 18], text: Circle}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Circle.radius
+    kind: field
+    language-kind: field
+    name: radius
+    path: geometry::shapes::Circle::radius
+    unit: geometry-lib
+    parent: geometry.shapes.Circle
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [8, 9], end: [8, 15], text: radius}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Pair
+    kind: type
+    language-kind: struct
+    name: Pair
+    path: geometry::shapes::Pair
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [11, 12], end: [11, 16], text: Pair}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Pair.T
+    kind: type-parameter
+    language-kind: type-param
+    name: T
+    path: geometry::shapes::Pair::<T>
+    unit: geometry-lib
+    parent: geometry.shapes.Pair
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [11, 17], end: [11, 18], text: T}
+  - id: geometry.shapes.Pair.0
+    kind: field
+    language-kind: field
+    path: geometry::shapes::Pair::0
+    unit: geometry-lib
+    parent: geometry.shapes.Pair
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [11, 24], end: [11, 25], text: T}
+    declared-visibility: {value: 'pub(super)', explicit: true}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.crate]}
+      project: none
+      external: none
+  - id: geometry.shapes.Kind
+    kind: type
+    language-kind: enum
+    name: Kind
+    path: geometry::shapes::Kind
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [13, 10], end: [13, 14], text: Kind}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Kind.Round
+    kind: enum-member
+    language-kind: variant
+    name: Round
+    path: geometry::shapes::Kind::Round
+    unit: geometry-lib
+    parent: geometry.shapes.Kind
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [14, 5], end: [14, 10], text: Round}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.impl-Area-for-Circle
+    kind: extension
+    language-kind: trait-impl
+    path: geometry::shapes::impl geometry::shapes::Area for geometry::shapes::Circle#1
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions: []
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.shapes]}
+      project: none
+      external: none
+  - id: geometry.shapes.Circle-as-Area.area
+    kind: callable
+    language-kind: method
+    name: area
+    path: <geometry::shapes::Circle as geometry::shapes::Area>::area
+    unit: geometry-lib
+    parent: geometry.shapes.impl-Area-for-Circle
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [18, 8], end: [18, 12], text: area}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.detail.Grid
+    kind: type
+    language-kind: struct
+    name: Grid
+    path: geometry::detail::Grid
+    unit: geometry-lib
+    parent: geometry.detail
+    origin: source
+    definitions:
+      - at: {path: src/detail.rs, start: [1, 12], end: [1, 16], text: Grid}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility:
+      - contexts: [build]
+        value: {unit: all, project: none, external: none}
+      - contexts: [build-extras]
+        value: {unit: all, project: all, external: all}
+  - id: geometry.detail.Hidden
+    kind: type
+    language-kind: struct
+    name: Hidden
+    path: geometry::detail::Hidden
+    unit: geometry-lib
+    parent: geometry.detail
+    origin: source
+    definitions:
+      - at: {path: src/detail.rs, start: [3, 12], end: [3, 18], text: Hidden}
+    declared-visibility: {value: 'pub(in geometry::detail)', explicit: true}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.detail]}
+      project: none
+      external: none
+  - id: geometry.make_hidden
+    kind: callable
+    language-kind: fn
+    name: make_hidden
+    path: geometry::make_hidden
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [8, 8], end: [8, 19], text: make_hidden}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.Scale
+    kind: type-alias
+    language-kind: type
+    name: Scale
+    path: geometry::Scale
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [10, 10], end: [10, 15], text: Scale}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.ORIGIN
+    kind: constant
+    language-kind: const
+    name: ORIGIN
+    path: geometry::ORIGIN
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [11, 11], end: [11, 17], text: ORIGIN}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.COUNTER
+    kind: variable
+    language-kind: static-mut
+    name: COUNTER
+    path: geometry::COUNTER
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [12, 16], end: [12, 23], text: COUNTER}
+    declared-visibility: {value: 'pub(self)', explicit: true}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.crate]}
+      project: none
+      external: none
+  - id: geometry.square
+    kind: macro
+    language-kind: macro-rules
+    name: square
+    path: geometry::square
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [15, 14], end: [15, 20], text: square}
+    declared-visibility: {value: pub, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.marker
+    kind: macro
+    language-kind: macro-rules
+    name: marker
+    path: geometry::marker
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [18, 14], end: [18, 20], text: marker}
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.crate]}
+      project: none
+      external: none
+  - id: geometry.Pin
+    kind: type
+    language-kind: struct
+    name: Pin
+    path: geometry::Pin
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: generated
+    definitions:
+      - at: {path: src/lib.rs, start: [21, 8], end: [21, 11], text: Pin}
+    generated-by:
+      generator: geometry.marker
+      at: {path: src/lib.rs, start: [21, 1], end: [21, 7], text: marker}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.Registry
+    kind: type
+    language-kind: struct
+    name: Registry
+    path: geometry::Registry
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: generated
+    definitions: []
+    anchor: {path: src/lib.rs, start: [22, 1], end: [22, 7], text: marker}
+    generated-by:
+      generator: geometry.marker
+      at: {path: src/lib.rs, start: [22, 1], end: [22, 7], text: marker}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.extras.boost
+    kind: callable
+    language-kind: fn
+    name: boost
+    path: geometry::extras::boost
+    unit: geometry-lib
+    parent: geometry.extras
+    origin: source
+    contexts: [build-extras]
+    definitions:
+      - at: {path: src/extras.rs, start: [1, 15], end: [1, 20], text: boost}
+    declared-visibility: {value: 'pub(crate)', explicit: true}
+    effective-visibility: {unit: all, project: none, external: none}
+  - id: atlas.crate
+    kind: module
+    language-kind: crate
+    path: atlas
+    unit: atlas-bin
+    origin: source
+    definitions: []
+    declared-visibility: {value: pub, explicit: false}
+    effective-visibility: {unit: all, project: none, external: none}
+  - id: atlas.main
+    kind: callable
+    language-kind: fn
+    name: main
+    path: atlas::main
+    unit: atlas-bin
+    parent: atlas.crate
+    origin: source
+    definitions:
+      - at: {path: src/bin/atlas.rs, start: [3, 4], end: [3, 8], text: main}
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [atlas.crate]}
+      project: none
+      external: none
+
+externals:
+  - id: ext.std
+    kind: module
+    language-kind: crate
+    distribution: std
+    path: std
+  - id: ext.core.fmt
+    kind: module
+    language-kind: mod
+    distribution: core
+    path: core::fmt
+  - id: ext.core.fmt.Display
+    kind: type
+    language-kind: trait
+    distribution: core
+    path: core::fmt::Display
+  - id: ext.core.fmt.macros.Debug
+    kind: macro
+    language-kind: proc-macro-derive
+    distribution: core
+    path: core::fmt::macros::Debug
+
+references:
+  - at: {path: src/shapes.rs, start: [20, 5], end: [20, 8], text: std}
+    from: geometry.shapes
+    target: ext.std
+    role: qualifier
+  - at: {path: src/shapes.rs, start: [20, 10], end: [20, 13], text: fmt}
+    from: geometry.shapes
+    target: ext.core.fmt
+    disposition: external
+    role: qualifier
+  - at: {path: src/shapes.rs, start: [20, 15], end: [20, 22], text: Display}
+    from: geometry.shapes
+    target: ext.core.fmt.Display
+    role: import
+  - at: {path: src/shapes.rs, start: [5, 19], end: [5, 23], text: Area}
+    from: geometry.shapes.Solid
+    target: geometry.shapes.Area
+    role: type
+  - at: {path: src/shapes.rs, start: [17, 6], end: [17, 10], text: Area}
+    from: geometry.shapes.impl-Area-for-Circle
+    target: geometry.shapes.Area
+    disposition: resolved
+    role: type
+  - at: {path: src/shapes.rs, start: [17, 15], end: [17, 21], text: Circle}
+    from: geometry.shapes.impl-Area-for-Circle
+    target: geometry.shapes.Circle
+    role: type
+  - at: {path: src/lib.rs, start: [6, 25], end: [6, 31], text: detail}
+    from: geometry.crate
+    target: geometry.detail
+    role: qualifier
+    contexts: [build-extras]
+  - at: {path: src/lib.rs, start: [6, 33], end: [6, 37], text: Grid}
+    from: geometry.crate
+    target: geometry.detail.Grid
+    role: export
+    contexts: [build-extras]
+  - at: {path: src/lib.rs, start: [10, 18], end: [10, 24], text: shapes}
+    from: geometry.Scale
+    target: geometry.shapes
+    role: qualifier
+  - at: {path: src/lib.rs, start: [10, 26], end: [10, 32], text: Circle}
+    from: geometry.Scale
+    target: geometry.shapes.Circle
+    role: type
+  - at: {path: src/lib.rs, start: [22, 1], end: [22, 7], text: marker}
+    from: geometry.crate
+    target: geometry.marker
+    role: macro-invocation
+  - at: {path: src/bin/atlas.rs, start: [4, 13], end: [4, 21], text: geometry}
+    from: atlas.main
+    target: geometry.crate
+    role: qualifier
+  - at: {path: src/bin/atlas.rs, start: [4, 23], end: [4, 29], text: shapes}
+    from: atlas.main
+    target: geometry.shapes
+    role: qualifier
+  - at: {path: src/bin/atlas.rs, start: [4, 31], end: [4, 37], text: Circle}
+    from: atlas.main
+    target: geometry.shapes.Circle
+    role: construct
+  - at: {path: src/bin/atlas.rs, start: [4, 40], end: [4, 46], text: radius}
+    from: atlas.main
+    target: geometry.shapes.Circle.radius
+    role: write
+  - at: {path: src/bin/atlas.rs, start: [5, 7], end: [5, 11], text: area}
+    from: atlas.main
+    target: geometry.shapes.Area.area
+    role: call
+  - at: {path: src/bin/atlas.rs, start: [6, 13], end: [6, 21], text: geometry}
+    from: atlas.main
+    target: geometry.crate
+    role: qualifier
+  - at: {path: src/bin/atlas.rs, start: [6, 23], end: [6, 29], text: square}
+    from: atlas.main
+    target: geometry.square
+    role: macro-invocation
+  - at: {path: src/bin/atlas.rs, start: [7, 9], end: [7, 13], text: Kind}
+    from: atlas.main
+    target: geometry.shapes.Kind
+    role: qualifier
+  - at: {path: src/bin/atlas.rs, start: [7, 15], end: [7, 20], text: Round}
+    from: atlas.main
+    target: geometry.shapes.Kind.Round
+    role: pattern
+  - at: {path: src/extras.rs, start: [2, 5], end: [2, 12], text: COUNTER}
+    from: geometry.extras.boost
+    target: geometry.COUNTER
+    role: read-write
+    contexts: [build-extras]
+  - at: {path: src/shapes.rs, start: [6, 10], end: [6, 15], text: Debug}
+    from: geometry.shapes
+    target: ext.core.fmt.macros.Debug
+    role: attribute
+
+relations:
+  - kind: implements
+    from: geometry.shapes.Circle
+    to: geometry.shapes.Area
+    at: {path: src/shapes.rs, start: [17, 6], end: [17, 10], text: Area}
+  - kind: inherits
+    from: geometry.shapes.Solid
+    to: geometry.shapes.Area
+    at: {path: src/shapes.rs, start: [5, 19], end: [5, 23], text: Area}
+  - kind: overrides
+    from: geometry.shapes.Circle-as-Area.area
+    to: geometry.shapes.Area.area
+  - kind: aliases
+    from: geometry.Scale
+    to: geometry.shapes.Circle
+    at: {path: src/lib.rs, start: [10, 26], end: [10, 32], text: Circle}
+  - kind: exports
+    from: geometry.crate
+    to: geometry.detail.Grid
+    name: Lattice
+    at: {path: src/lib.rs, start: [6, 33], end: [6, 37], text: Grid}
+    contexts: [build-extras]
+
+public-api:
+  - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Circle, paths: ['geometry::shapes::Circle'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Circle.radius, paths: ['geometry::shapes::Circle::radius'], access: all}
+  - distribution: geometry
+    entity: geometry.detail.Grid
+    paths: ['geometry::Lattice']
+    access: all
+    contexts: [build-extras]
+  - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
+  - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+
+extensions:
+  rust:reachable-unnameable:
+    - entity: geometry.detail.Hidden
+      distribution: geometry
+      via: geometry.make_hidden
+  rust:macro-expansion:
+    - entity: geometry.Pin
+      macro: geometry.marker
+      invocation: {path: src/lib.rs, start: [21, 1], end: [21, 7], text: marker}
+    - entity: geometry.Registry
+      macro: geometry.marker
+      invocation: {path: src/lib.rs, start: [22, 1], end: [22, 7], text: marker}

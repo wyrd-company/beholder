@@ -8,6 +8,13 @@ relationships:
     - semantic-oracle-profile-python
     - semantic-oracle-profile-rust
     - semantic-oracle-profile-typescript
+assets:
+  dataset-schema:
+    type: json-schema
+    uri: repo://beholder/docs/specifications/semantic-oracle-model.json-schema.yml
+  invalid-examples:
+    type: invalid-examples
+    uri: repo://beholder/docs/specifications/semantic-oracle-model.invalid-examples.yml
 format: json-schema
 description: |
   # Semantic oracle model, version 1
@@ -43,10 +50,12 @@ description: |
   or evaluation category; it narrows them to its language and adds
   namespaced extensions.
 
-  The machine-readable dataset schema encodes the logical record structure
-  defined here. Field names and meanings in this specification are normative.
-  The schema adds structural constraints only; a disagreement between the
-  schema and this specification is a schema defect.
+  The machine-readable dataset schema, the `dataset-schema` asset, encodes
+  the logical record structure defined here and applies the schema of the
+  profile a dataset names. Field names and meanings in this specification
+  are normative. The schema adds structural constraints only; a
+  disagreement between the schema and this specification is a schema
+  defect.
 
   The technical design `semantic-oracle` describes how datasets, profiles,
   validation, adapters and the evaluator are constructed and why. It carries
@@ -922,6 +931,9 @@ description: |
   `<language>/1` for the profiles that apply this model. A change to a
   required category, to the meaning of a fact, role, disposition or
   category, or to a locator or identity rule defines a new version number.
+  Each model version has its own dataset schema, and each profile version
+  its own profile schema; a schema's `$id` ends with the version it
+  implements, such as `semantic-oracle/1` or `semantic-oracle/1/rust/1`.
   A report never compares a dataset with observations evaluated under a
   different model or profile version.
 

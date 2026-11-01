@@ -3,6 +3,16 @@ relationships:
   references:
     - semantic-oracle-model
     - semantic-oracle
+assets:
+  dataset-schema:
+    type: json-schema
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-dart.json-schema.yml
+  example:
+    type: example
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-dart.example.yml
+  invalid-examples:
+    type: invalid-examples
+    uri: repo://beholder/docs/specifications/semantic-oracle-profile-dart.invalid-examples.yml
 format: json-schema
 description: |
   # Dart semantic-oracle profile, `dart/1`

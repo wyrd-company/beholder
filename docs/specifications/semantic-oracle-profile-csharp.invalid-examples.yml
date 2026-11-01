@@ -1,0 +1,123 @@
+# ---
+# relationships:
+#   references: semantic-oracle-profile-csharp
+# ---
+#
+# Datasets that the `csharp/1` schema rejects for one named reason each: values
+# and members this profile does not define. Each case applies `patch`, a JSON
+# Patch (RFC 6902), to the valid example `base`. The result fails, every
+# error lies at or under `fails-at`, and one error comes from the schema
+# keyword `keyword`.
+cases:
+  - name: unknown-context-parameter
+    reason: '`framework` is not a C# context parameter; the parameter is `target-framework`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /contexts/0/parameters/framework, value: net10.0}]
+    fails-at: /contexts/0/parameters
+    keyword: additionalProperties
+  - name: unknown-unit-kind
+    reason: A C# unit has kind `assembly`.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /units/0/kind, value: project}]
+    fails-at: /units/0/kind
+    keyword: const
+  - name: missing-unit-key-member
+    reason: The unit key includes the canonical path of the project file.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /units/0/project}]
+    fails-at: /units/0
+    keyword: required
+  - name: project-path-not-canonical
+    reason: The project file member is a canonical path.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /units/0/project, value: ./src/Geometry/Geometry.csproj}]
+    fails-at: /units/0/project
+    keyword: anyOf
+  - name: namespace-without-units
+    reason: A C# namespace is project-merged and lists its units.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch:
+      - {op: remove, path: /entities/0/units}
+      - {op: add, path: /entities/0/unit, value: geometry-lib}
+    fails-at: /entities/0
+    keyword: required
+  - name: class-with-units
+    reason: Only a namespace is project-merged in the C# profile.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch:
+      - {op: remove, path: /entities/3/unit}
+      - {op: add, path: /entities/3/units, value: [geometry-lib]}
+    fails-at: /entities/3/units
+    keyword: falseSchema
+  - name: synthetic-without-anchor
+    reason: A synthetic C# entity is anchored on its declaring type's name.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /entities/9/anchor}]
+    fails-at: /entities/9
+    keyword: required
+  - name: synthetic-with-definition
+    reason: A synthetic entity has no definition site.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch:
+      - op: replace
+        path: /entities/9/definitions
+        value: [{at: {path: src/Geometry/Shapes.cs, start: [8, 31], end: [8, 36], text: Shape}}]
+    fails-at: /entities/9
+    keyword: maxItems
+  - name: unknown-language-kind
+    reason: '`record-class` is not a C# language kind; a record class is `record`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /entities/10/language-kind, value: record-class}]
+    fails-at: /entities/10/language-kind
+    keyword: anyOf
+  - name: kind-the-profile-does-not-map
+    reason: The C# profile maps no construct to the common kind `variable`.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /entities/14/kind, value: variable}]
+    fails-at: /entities/14/kind
+    keyword: enum
+  - name: unknown-declared-visibility
+    reason: '`protected-internal` is not a C# declared visibility value; the value is `protected internal`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /entities/8/declared-visibility/value, value: protected-internal}]
+    fails-at: /entities/8/declared-visibility
+    keyword: anyOf
+  - name: role-the-profile-does-not-use
+    reason: The C# profile assigns no occurrence the role `export`.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /references/7/role, value: export}]
+    fails-at: /references/7/role
+    keyword: enum
+  - name: candidates-disposition
+    reason: C# references are `resolved`, `external` or `indeterminate`.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch:
+      - {op: remove, path: /references/12/disposition}
+      - {op: add, path: /references/12/disposition, value: candidates}
+      - {op: add, path: /references/12/candidates, value: [Geometry.Circle, Geometry.Shape]}
+    fails-at: /references/12/disposition
+    keyword: enum
+  - name: relation-kind-the-profile-does-not-define
+    reason: C# has no `aliases` relations; using aliases are bindings.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /relations/0/kind, value: aliases}]
+    fails-at: /relations/0/kind
+    keyword: enum
+  - name: reference-alias-without-aliases
+    reason: A `csharp:reference-alias` fact lists at least one alias.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /extensions/csharp:reference-alias/0/aliases, value: []}]
+    fails-at: /extensions/csharp:reference-alias/0/aliases
+    keyword: minItems
+  - name: extern-alias-without-alias
+    reason: A `csharp:extern-alias` fact names the alias.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /extensions/csharp:extern-alias/0/alias}]
+    fails-at: /extensions/csharp:extern-alias/0
+    keyword: required
+  - name: unknown-extension-kind
+    reason: '`csharp:global-using` is not a C# extension.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /extensions/csharp:global-using, value: []}]
+    fails-at: /extensions
+    keyword: additionalProperties
