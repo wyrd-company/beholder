@@ -5,70 +5,15 @@
 //! These tests measure that directly: a phantom is a symbol change reported when
 //! the code did not change.
 
+mod support;
+
 use std::path::PathBuf;
 use std::process::Command;
 
 use beholder::delta::{self, ChangeKind};
 use beholder::Config;
-use git2::{Oid, Repository};
-
-// ---------------------------------------------------------------------------
-// fixtures
-// ---------------------------------------------------------------------------
-
-struct Fixture {
-    _dir: tempfile::TempDir,
-    repo: Repository,
-}
-
-impl Fixture {
-    fn new() -> Self {
-        let dir = tempfile::tempdir().unwrap();
-        let repo = Repository::init(dir.path()).unwrap();
-        Self { _dir: dir, repo }
-    }
-
-    fn root(&self) -> PathBuf {
-        self.repo.workdir().unwrap().to_owned()
-    }
-
-    fn write(&self, path: &str, contents: &str) {
-        let full = self.root().join(path);
-        std::fs::create_dir_all(full.parent().unwrap()).unwrap();
-        std::fs::write(full, contents).unwrap();
-    }
-
-    fn commit_all(&self, message: &str) -> Oid {
-        let mut index = self.repo.index().unwrap();
-        index
-            .add_all(["*"], git2::IndexAddOption::DEFAULT, None)
-            .unwrap();
-        index.write().unwrap();
-        let tree = self.repo.find_tree(index.write_tree().unwrap()).unwrap();
-
-        let signature =
-            git2::Signature::new("test", "test@example.invalid", &git2::Time::new(0, 0)).unwrap();
-        let parents: Vec<git2::Commit<'_>> = self
-            .repo
-            .head()
-            .ok()
-            .and_then(|h| h.peel_to_commit().ok())
-            .into_iter()
-            .collect();
-        let parent_refs: Vec<&git2::Commit<'_>> = parents.iter().collect();
-
-        self.repo
-            .commit(
-                Some("HEAD"),
-                &signature,
-                &signature,
-                message,
-                &tree,
-                &parent_refs,
-            )
-            .unwrap()
-    }
-}
+use gix::Repository;
+use support::Fixture;
 
 /// A file whose formatting rustfmt will visibly change, but whose meaning it
 /// will not. Deliberately not the beholder domain.
@@ -333,12 +278,14 @@ fn fixture_repository() -> Option<PathBuf> {
 }
 
 fn first_parent_revisions(repo: &Repository, depth: usize) -> Vec<String> {
-    let mut walk = repo.revwalk().unwrap();
-    walk.push_head().unwrap();
-    walk.set_sorting(git2::Sort::TOPOLOGICAL).unwrap();
-    walk.simplify_first_parent().unwrap();
-
-    let mut revisions: Vec<String> = walk.take(depth).map(|id| id.unwrap().to_string()).collect();
+    let mut revisions: Vec<String> = repo
+        .rev_walk([repo.head_id().unwrap()])
+        .first_parent_only()
+        .all()
+        .unwrap()
+        .take(depth)
+        .map(|info| info.unwrap().id.to_string())
+        .collect();
     revisions.reverse();
     revisions
 }
@@ -350,7 +297,7 @@ fn real_history_produces_no_phantom_changes() {
         return;
     };
 
-    let repo = Repository::open(&path).unwrap();
+    let repo = gix::open(&path).unwrap();
     let revisions = first_parent_revisions(&repo, 30);
 
     assert!(
