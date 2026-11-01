@@ -54,8 +54,10 @@ description: |
   A unit is one project's assembly: `kind: assembly`, `name` the
   `AssemblyName`. A unit record carries the C# attributes
   `language-version`, `define-constants` and `target-framework` per context.
-  The unit key is the assembly name and the assembly version; two projects
-  that produce one assembly name with different versions are two units.
+  The unit key is the assembly name, the assembly version and the canonical
+  path of the project file. Two projects that produce one assembly name,
+  with equal or different versions, are two units. An adapter that knows
+  only the assembly name and version supplies a partial unit key.
 
   A distribution is a unit whose project is a library: `kind: assembly`,
   `name` the assembly name, `version` the assembly version. Projects with
