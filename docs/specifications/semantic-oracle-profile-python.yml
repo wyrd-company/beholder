@@ -1,0 +1,279 @@
+$schema: https://refinery.systems/ontology/specification
+relationships:
+  references:
+    - semantic-oracle-model
+    - semantic-oracle
+format: json-schema
+description: |
+  # Python semantic-oracle profile, `python/1`
+
+  This profile applies `semantic-oracle-model` version 1 to Python. It
+  defines only Python mappings and Python extensions.
+
+  ## Primary sources
+
+  - The Python Language Reference: Execution model (naming and binding,
+    resolution of names), The import system, Simple statements (`import`,
+    `global`, `nonlocal`), Compound statements (class and function
+    definitions), Data model (private name mangling, descriptors, `__slots__`).
+    <https://docs.python.org/3/reference/>
+  - `importlib`, `sys.path`, `site` and `.pth` documentation.
+    <https://docs.python.org/3/library/importlib.html>
+  - PEP 420 namespace packages, PEP 562 module `__getattr__`, PEP 561
+    distributing type information.
+  - Python typing specification: Distributing type information and its
+    library interface rules; Stub files; type annotation semantics.
+    <https://typing.python.org/en/latest/spec/>
+  - Python Packaging User Guide: `pyproject.toml` `[project]` metadata.
+  - Corpus toolchain: CPython 3.14.6, 64-bit x86-64 Linux.
+
+  ## Contexts
+
+  Context parameters:
+
+  | Parameter | Value |
+  | --- | --- |
+  | `mode` | `runtime` or `typing`. |
+  | `python` | The interpreter version, such as `3.14`. |
+  | `platform` | `sys.platform`. |
+  | `search-path` | The ordered list of project-relative import roots. |
+  | `options` | The sorted interpreter options that change semantics, such as `-O`. |
+
+  Every Python project has one `runtime` context and one `typing` context
+  with the interpreter and platform the fixture plan declares. The
+  `search-path` is the project root followed by every root the project's
+  configuration, `.pth` files in the project, or task commands add, in the
+  order the import system consults them. Each command in the project's
+  `build` and `test` tasks that runs Python with a different parameter value
+  defines a further `runtime` context.
+
+  `runtime` facts state what the import system and execution model do when
+  the project's modules are imported and its declared entry points run.
+  `typing` facts state what the typing specification determines: stub files
+  take precedence over implementation modules, `typing.TYPE_CHECKING` is
+  true, and annotated declarations fix the types of their receivers.
+
+  ## Units and distributions
+
+  | Unit kind | Module |
+  | --- | --- |
+  | `module` | A `.py` source module. |
+  | `package` | A regular package's `__init__.py`. |
+  | `stub` | A `.pyi` stub module. |
+  | `namespace-package` | A namespace package, project-merged. |
+
+  A unit's `name` is the fully qualified module name. A stub and its
+  implementation module are two units with one module name. The unit key is
+  the module name and the unit kind.
+
+  A distribution is the `[project]` table of a tracked `pyproject.toml`:
+  `kind: python-distribution`, `name` and `version` from that table. Its
+  units are the modules of the import packages and modules its build
+  configuration includes, by the build backend's declared or default package
+  discovery.
+
+  ## Documents
+
+  | File class | Disposition |
+  | --- | --- |
+  | `.py` and `.pyi` files the context can import from `search-path`, and scripts a task runs | `indexed` |
+  | Other tracked `.py` and `.pyi` files | `inactive` |
+  | `pyproject.toml`, `setup.cfg`, `setup.py` used as configuration, `.pth` files, `py.typed` | `configuration` |
+  | Tracked third-party packages | `external` |
+  | C sources, compiled artifacts, data files, Markdown, task files | `out-of-profile` |
+
+  ## Paths
+
+  - A module path is its fully qualified module name.
+  - A module-level binding is `<module>.<name>`; a class attribute or method
+    is `<class path>.<name>`; nested classes and functions defined at class
+    or module level continue the chain.
+  - A name-mangled attribute uses its declared name; `language-kind` records
+    the mangled form.
+  - Parameters are `<callable>.(<name>)`; type parameters
+    `<declaration>.[<name>]`.
+  - A consumer path is the fully qualified dotted name a consumer writes,
+    such as `pkg.sub.Name`.
+
+  ## Entities
+
+  | Construct | Kind | `language-kind` |
+  | --- | --- | --- |
+  | module, package, stub module | `module` | `module`, `package` or `stub` |
+  | namespace package | `module` | `namespace-package` |
+  | `class` | `type` | `class`, `protocol`, `enum`, `typed-dict`, `named-tuple` or `dataclass` |
+  | `type` statement, `TypeAlias` annotation | `type-alias` | `type-statement` or `type-alias` |
+  | module-level and class-level `def` and `async def` | `callable` | `function`, `method`, `classmethod`, `staticmethod` or `async` variants |
+  | `@property` and descriptors defined in the project | `property` | `property` or `descriptor` |
+  | class-body assignment or annotation | `field` | `class-attribute` |
+  | assignment to `self.<name>` or `cls.<name>` in a method body | `field` | `instance-attribute` |
+  | module-level assignment or annotated declaration | `variable` | `variable` or `final` |
+  | enum member | `enum-member` | `enum-member` |
+  | parameter | `parameter` | `param` |
+  | type parameter, `TypeVar` declared at module level | `type-parameter` | `type-param` or `typevar` |
+
+  Instance attributes assigned through `self` or `cls` inside methods are in
+  profile. All other declarations inside function bodies are
+  out-of-profile.
+
+  A module or class binding is one entity per path. Every statement that
+  binds that name in that namespace is a definition site, including
+  conditional definitions and redefinitions. Import statements at module or
+  class level bind names but create no entity; they create `exports`
+  relations.
+
+  A namespace package is a synthetic entity with no anchor, identified by
+  its module name, with `units` listing the directories' modules that
+  contribute portions.
+
+  A module that the project implements in another language, such as a
+  compiled extension module, is an external entity whose distribution is the
+  project distribution.
+
+  ## Declared visibility
+
+  Values: `public`, `private-convention` for a leading underscore,
+  `mangled` for a class-level name with two leading underscores and at most
+  one trailing underscore, and `dunder` for names that begin and end with
+  two underscores. `explicit` is `true`.
+
+  ## Effective visibility
+
+  The language enforces no access control. Every entity has `unit: all`,
+  `project: all`, and `external: all` when its module belongs to a
+  distribution, `none` otherwise.
+
+  ## Public API
+
+  A distribution's public API follows the typing specification's library
+  interface rules, applied to stub units in `typing` contexts and to
+  implementation units in `runtime` contexts:
+
+  - a module is public when no component of its name begins with an
+    underscore;
+  - in a public module that defines `__all__` as a static list or tuple, the
+    public names are exactly the names in `__all__`;
+  - otherwise the public names are the module-level bindings whose names do
+    not begin with an underscore, excluding names bound by `import` unless
+    the import uses the redundant form `import a as a` or
+    `from m import a as a`, or the form `from . import a`; in a package
+    `__init__`, `from .a import x` makes the submodule name `a` public and
+    leaves `x` private;
+  - members of a public class are its attributes, methods and properties
+    whose names do not begin with an underscore, plus dunder names.
+
+  Every public name is a member with the consumer path of the module and
+  name; the entity is the binding's target.
+
+  ## References
+
+  The target is the binding that Python's scoping rules resolve, followed to
+  its defining entity through import bindings. For `from p import n`, the
+  target is the attribute `n` of package `p` when `p` binds `n` at the time
+  the statement executes, and the submodule `p.n` otherwise. When the
+  answer depends on the order in which declared entry points import
+  modules, the disposition is `candidates`.
+
+  Attribute references are in profile when their receiver is a module, a
+  class, `self` or `cls` inside a method of the class, or `super()`. In
+  `typing` contexts, attribute references on a receiver whose type an
+  annotation or a called project callable's return annotation fixes are also
+  in profile, resolved on that type by the method resolution order. Other
+  attribute references are out-of-profile.
+
+  | Occurrence | Role |
+  | --- | --- |
+  | Module name segment in `import` or `from ... import` | `import`, or `qualifier` for non-final segments |
+  | Imported name in `from ... import` | `import` |
+  | Callee of a call expression | `call`, or `construct` when the target is a class |
+  | Name in an annotation, base class list, `isinstance` or `issubclass` second argument | `type` |
+  | Name or attribute used as a value | `read` |
+  | Assignment, `del` or augmented-assignment target that rebinds an in-profile entity | `write`, or `read-write` for augmented assignment |
+  | Class or value pattern in `match` | `pattern` |
+  | Decorator expression | `attribute` |
+  | Non-final dotted segment that selects a module or class | `qualifier` |
+
+  Dynamic imports: the module-name argument of `importlib.import_module`,
+  `__import__`, `importlib.util.find_spec` and `runpy` functions is a value
+  site that spans the argument expression. It has a reference with role
+  `import` and `basis: dynamic` to the module the call imports. A literal or
+  a value composed only of literals and module-level names bound once to
+  literals is `resolved`. A value chosen among such literals by run-time
+  conditions is `candidates`. A name that resolves to no module, in a
+  handler for the failure, is `nonexistent`. A value read from files,
+  environment, arguments or other input is `indeterminate`.
+
+  An import after the project assigns a module object into `sys.modules`
+  under that name targets the assigned object's module, with
+  `basis: dynamic`.
+
+  ## Relations
+
+  - `inherits`: a class to each base class expression that names a class,
+    with `at` on the base name.
+  - `implements`: none; protocol conformance without inheritance is
+    structural and out-of-profile, and listing a protocol as a base is
+    `inherits`.
+  - `overrides`: a class method, property or attribute to the same-named
+    member found next in the method resolution order of the class.
+  - `aliases`: a module-level `type` statement or `TypeAlias` to the class it
+    names.
+  - `exports`: each name a module-level or class-level import statement
+    binds, from the module or class to the target, with `name` the bound
+    name; each name a star import binds.
+
+  ## Generated, synthetic and external entities
+
+  - Files the project's `generate` task writes are generated documents.
+  - Synthetic entities: dataclass-generated methods (`__init__`, `__repr__`,
+    `__eq__` and the methods its options enable) when the class does not
+    declare them, anchored on the class name; named-tuple fields and methods
+    created by `NamedTuple` class syntax.
+  - External key path: the fully qualified name at the defining module.
+    `distribution` is the distribution that provides the module, or `stdlib`
+    for the standard library and `builtins` for built-in names.
+
+  ## Dispositions
+
+  `candidates`, `nonexistent` and `indeterminate` occur as stated under
+  References. A conditional import inside `try` with an `except ImportError`
+  fallback binds one of two modules; references through that binding are
+  `candidates`.
+
+  ## Extensions
+
+  | Kind | Members | Key | Compared |
+  | --- | --- | --- | --- |
+  | `python:stub-of` | `stub`: a stub entity, `runtime`: the implementation entity with the same path, or absent when none exists | `stub` | `runtime` |
+  | `python:all-member` | `module`, `name`: a name the static `__all__` lists | `module`, `name` | none |
+  | `python:module-getattr` | `module`, `name`, `target`: a name that a module `__getattr__` resolves for a literal attribute reference in the project | `module`, `name` | `target` |
+
+  All three extensions are required.
+
+  ## Authoring obligation
+
+  For every Python project dataset:
+
+  1. Inventory every tracked file, and the units and contexts of every
+     indexed file.
+  2. Declare the `runtime` and `typing` contexts and every further context
+     the tasks define, each with its `search-path`.
+  3. Declare every unit, including stubs and namespace packages, and every
+     distribution.
+  4. Record every entity of the kinds in the entity table, in each context,
+     including instance attributes and synthetic entities.
+  5. Record every in-profile reference, including dynamic import value
+     sites with their dispositions.
+  6. Record every relation of the kinds above.
+  7. Record declared and effective visibility for every entity other than
+     parameters.
+  8. Record the public API of every distribution in every context, and every
+     required extension fact.
+validation-criteria: |
+  A Python dataset conforms when it conforms to `semantic-oracle-model`, its
+  contexts follow the context rule above, every indexed document is
+  importable or run in its contexts from `search-path`, every dynamic import
+  disposition follows the rules above, and every public API membership
+  agrees with the library interface rules. Independent review confirms facts
+  against source, configuration, the Language Reference and the typing
+  specification.
