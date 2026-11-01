@@ -31,24 +31,30 @@ description: |
 
   | Parameter | Value |
   | --- | --- |
-  | `mode` | `build`, `test` or `doc`: the Cargo command family. |
+  | `mode` | `build`, `test` or `doc`: whether the context's compilations are ordinary compilations, test-harness compilations (`--test`, which sets `cfg(test)`), or rustdoc compilations (which set `cfg(doc)`). |
+  | `selection` | The sorted unit kinds Cargo compiles in this mode for the command, after target-selection flags such as `--lib`, `--bins`, `--examples`, `--tests`, `--benches` and `--all-targets`. |
   | `manifest` | The project-relative path of the manifest Cargo is invoked on. |
   | `packages` | The selected packages, or `workspace`. |
   | `target` | The target triple. |
   | `cfg` | The sorted list of additional `--cfg` options from `RUSTFLAGS` or `RUSTDOCFLAGS`. |
-  | `features` | For each selected package, the sorted list of enabled features after Cargo feature unification. |
+  | `features` | The feature flags the command passes: `--features`, `--all-features`, `--no-default-features`. |
   | `profile` | The Cargo profile name. |
 
-  Each command in the project's `build` and `test` tasks that compiles Rust
-  source defines a context, unless another command defines the same
-  parameter values. `cargo build` and `cargo check` are mode
-  `build`; `cargo test` is mode `test`; `cargo doc` is mode `doc`, which sets
-  `cfg(doc)`. Formatting commands define no context. When a command omits
-  `--target`, `target` is the host triple the fixture plan declares.
+  Each compilation that a command in the project's `build` and `test` tasks
+  performs has a mode. A command defines one context per mode in which it
+  compiles at least one unit, unless another command defines the same
+  parameter values. `cargo build` and `cargo check` compile `lib` and `bin`
+  targets in mode `build`; with `--all-targets` they also compile examples
+  in mode `build` and test, bench and unit-test targets in mode `test`.
+  `cargo test` compiles unit-test and integration-test targets in mode
+  `test` and examples in mode `build`. `cargo doc` compiles in mode `doc`.
+  Formatting commands define no context. When a command omits `--target`,
+  `target` is the host triple the fixture plan declares.
 
   ## Units and distributions
 
-  A unit is one Cargo target of one package:
+  A unit is one compilation of one Cargo target of one package for one
+  platform:
 
   | Unit kind | Cargo target |
   | --- | --- |
@@ -60,14 +66,22 @@ description: |
   | `bench` | A bench target. |
   | `build-script` | The build script. |
 
+  A unit's platform is `target` when Cargo compiles it for the context's
+  target triple and `host` when Cargo compiles it for the host: build
+  scripts, procedural macros, and the dependencies of either. Under feature
+  resolver 2, a package that a context needs on both platforms is two units,
+  one per platform, each with its own resolved features.
+
   In mode `test`, the `lib` and `bin` units are the unit-test compilations
   with `cfg(test)` set. Integration-test units reference `lib` entities in
   the same context. Valid source never names a `cfg(test)`-only item from an
   integration test, so this unification loses no reference fact.
 
-  A unit record carries the Rust attributes `edition` and `crate-name`. The
-  unit key is the package name, package version, unit kind and Cargo target
-  name.
+  A unit record carries the Rust attributes `edition`, `crate-name`,
+  `platform` and `features`, the sorted features Cargo's feature resolver
+  enables for that unit; `features` is context-variant in the model's
+  attribute form. The unit key is the package name, package version, unit
+  kind, Cargo target name and platform.
 
   A distribution is a package that has a `lib` or `proc-macro` unit:
   `kind: crate`, `name` and `version` from the package manifest. Other units
