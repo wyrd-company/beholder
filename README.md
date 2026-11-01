@@ -210,7 +210,8 @@ errors. Matching is case-sensitive and uses complete path components:
 `src/lib` matches that file or its descendants, never `src/library`.
 Selectors form a union; no match succeeds with empty output. Without `--only`,
 indexing retains its existing scope. Git ignores, infrastructure exclusions,
-and configured exclusions (including `only_paths`) still apply.
+and configured exclusions still apply. The configured `only_paths` substring
+inclusion list also remains in effect.
 
 `--only` cannot be combined with `--store`. Selected analysis is local JSONL;
 it cannot replace the full stored index. Selection is part of the configuration
