@@ -23,10 +23,7 @@ anyhow = "1"
 # So the TLS stack is chosen here instead: reqwest with `rustls-no-provider`, and
 # rustls with `ring`. `beholder::store::ensure_tls_provider` supplies the
 # provider that `rustls-no-provider` deliberately leaves unset.
-#
-# 0.87 is the newest gix whose rust-version is 1.85, the toolchain CI and the
-# release build pin. gix 0.89 and later need Rust 1.88.
-gix = { version = "0.87", features = [
+gix = { version = "0.90", features = [
     "blocking-network-client",
     "blocking-http-transport-reqwest",
 ] }
