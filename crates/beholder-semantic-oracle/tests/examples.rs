@@ -28,7 +28,7 @@ use beholder_semantic_oracle::{
     MODEL_VERSION, PROFILES,
 };
 use jsonschema::{error::ValidationErrorKind, Validator};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 fn specifications() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/specifications")
@@ -380,4 +380,210 @@ fn every_profile_recomputes_public_api() {
             recomputed[0].message
         );
     }
+}
+
+/// The public API recomputation findings of a dataset, as messages.
+fn recomputed(dataset: &Value) -> Vec<String> {
+    beholder_semantic_oracle::validate(dataset, None)
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == "model:public-api-recomputed")
+        .map(|f| format!("{} {}", f.at, f.message))
+        .collect()
+}
+
+fn push(dataset: &mut Value, pointer: &str, value: Value) {
+    dataset
+        .pointer_mut(pointer)
+        .and_then(Value::as_array_mut)
+        .unwrap_or_else(|| panic!("no list {pointer}"))
+        .push(value);
+}
+
+/// A project entity with the members recomputation reads.
+fn entity(
+    id: &str,
+    kind: &str,
+    language_kind: &str,
+    path: &str,
+    parent: &str,
+    unit: &str,
+) -> Value {
+    json!({
+        "id": id, "kind": kind, "language-kind": language_kind,
+        "name": path.rsplit(['.', ':']).next().unwrap(),
+        "path": path, "unit": unit, "parent": parent, "origin": "source",
+        "definitions": [],
+        "declared-visibility": {"value": "exported", "explicit": true},
+        "effective-visibility": {"unit": "all", "project": "all", "external": "all"},
+    })
+}
+
+#[test]
+fn a_re_export_cycle_adds_no_consumer_path() {
+    let mut rust = load("semantic-oracle-profile-rust.example.yml");
+    for (from, name) in [("geometry.crate", "again"), ("geometry.shapes", "up")] {
+        push(
+            &mut rust,
+            "/relations",
+            json!({"kind": "exports", "from": from, "to": "geometry.crate", "name": name, "visibility": "pub"}),
+        );
+    }
+    assert_eq!(recomputed(&rust), Vec::<String>::new());
+
+    let mut typescript = load("semantic-oracle-profile-typescript.example.yml");
+    push(
+        &mut typescript,
+        "/relations",
+        json!({"kind": "exports", "from": "index", "to": "index", "name": "again"}),
+    );
+    let findings = recomputed(&typescript);
+    assert!(
+        findings.iter().all(|f| !f.contains("#again")),
+        "{findings:#?}"
+    );
+}
+
+#[test]
+fn rust_inherent_items_belong_to_the_unit_of_their_type() {
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    let mut block = entity(
+        "atlas.impl-Circle",
+        "extension",
+        "impl",
+        "atlas::impl geometry::shapes::Circle#1",
+        "atlas.crate",
+        "atlas-bin",
+    );
+    block.as_object_mut().unwrap().remove("name");
+    block["declared-visibility"] = json!({"value": "private", "explicit": false});
+    block["effective-visibility"] = json!({"unit": {"access": "scoped", "scope": ["atlas.crate"]}, "project": "none", "external": "none"});
+    push(&mut dataset, "/entities", block);
+    let mut item = entity(
+        "atlas.Circle.extra",
+        "callable",
+        "method",
+        "geometry::shapes::Circle::extra",
+        "atlas.impl-Circle",
+        "atlas-bin",
+    );
+    item["declared-visibility"] = json!({"value": "pub", "explicit": true});
+    item["effective-visibility"] = json!({"unit": "all", "project": "none", "external": "none"});
+    push(&mut dataset, "/entities", item);
+    let findings = recomputed(&dataset);
+    assert!(
+        findings.iter().all(|f| !f.contains("atlas.Circle.extra")),
+        "{findings:#?}"
+    );
+}
+
+#[test]
+fn go_promotion_through_a_diamond_is_ambiguous() {
+    let mut dataset = load("semantic-oracle-profile-go.example.yml");
+    let unit = "geometry-pkg";
+    let package = "geometry";
+    let prefix = "example.com/geometry";
+    for name in ["Left", "Right", "Outer"] {
+        push(
+            &mut dataset,
+            "/entities",
+            entity(
+                &format!("geometry.{name}"),
+                "type",
+                "struct",
+                &format!("{prefix}.{name}"),
+                package,
+                unit,
+            ),
+        );
+    }
+    // Left and Right embed Base; Outer embeds Left and Right; Base embeds
+    // Outer, closing a cycle.
+    let embeds = [
+        ("Left", "Base"),
+        ("Right", "Base"),
+        ("Outer", "Left"),
+        ("Outer", "Right"),
+        ("Base", "Outer"),
+    ];
+    for (outer, inner) in embeds {
+        let field = format!("geometry.{outer}.{inner}");
+        push(
+            &mut dataset,
+            "/entities",
+            entity(
+                &field,
+                "field",
+                "embedded",
+                &format!("{prefix}.{outer}.{inner}"),
+                &format!("geometry.{outer}"),
+                unit,
+            ),
+        );
+        push(
+            &mut dataset,
+            "/extensions/go:embeds",
+            json!({"struct": format!("geometry.{outer}"), "field": field, "type": format!("geometry.{inner}")}),
+        );
+    }
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("`example.com/geometry.Left.Label`"),
+        "{findings}"
+    );
+    assert!(
+        findings.contains("`example.com/geometry.Right.Label`"),
+        "{findings}"
+    );
+    assert!(!findings.contains("Outer.Label"), "{findings}");
+}
+
+#[test]
+fn a_python_submodule_named_by_all_follows_stub_selection() {
+    for stub_first in [false, true] {
+        let mut dataset = load("semantic-oracle-profile-python.example.yml");
+        if stub_first {
+            let entities = dataset["entities"].as_array_mut().unwrap();
+            let at = entities
+                .iter()
+                .position(|e| e["id"] == "stub.atlas.shapes")
+                .unwrap();
+            let stub = entities.remove(at);
+            entities.insert(0, stub);
+        }
+        let all = dataset["extensions"]
+            .as_object_mut()
+            .unwrap()
+            .entry("python:all-member")
+            .or_insert_with(|| json!([]));
+        all.as_array_mut()
+            .unwrap()
+            .push(json!({"module": "atlas", "name": "shapes"}));
+        let findings = recomputed(&dataset);
+        assert!(
+            findings.iter().all(|f| !f.contains("`atlas.shapes`")),
+            "stub first: {stub_first}: {findings:#?}"
+        );
+    }
+}
+
+#[test]
+fn a_python_class_level_import_is_a_class_member() {
+    let mut dataset = load("semantic-oracle-profile-python.example.yml");
+    for (to, name) in [("atlas.fast", "helper"), ("ext.importlib", "loader")] {
+        push(
+            &mut dataset,
+            "/relations",
+            json!({"kind": "exports", "from": "atlas.shapes.Circle", "to": to, "name": name, "visibility": "import"}),
+        );
+    }
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("missing [`atlas.shapes.Circle.helper`]"),
+        "{findings}"
+    );
+    assert!(
+        findings.contains("makes `ext.importlib` a member of `atlas-dist` with paths [`atlas.shapes.Circle.loader`]"),
+        "{findings}"
+    );
 }

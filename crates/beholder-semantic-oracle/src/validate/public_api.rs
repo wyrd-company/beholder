@@ -174,6 +174,10 @@ impl<'c, 'a> Walk<'c, 'a> {
     }
 
     fn rust_member(&mut self, id: &'a str, path: String) {
+        // A path that returns to a container on it is not a consumer path.
+        if self.stack.contains(&id) {
+            return;
+        }
         self.add(id, path.clone(), Access::All);
         let Some(entity) = self.entity(id) else {
             return;
@@ -206,6 +210,7 @@ impl<'c, 'a> Walk<'c, 'a> {
         // Inherent associated items: children of an inherent `impl` block
         // whose canonical path continues the type's canonical path.
         if let Some(type_path) = text(entity, "path") {
+            let unit = text(entity, "unit");
             let inherent: Vec<(&'a str, &'a str)> = self
                 .index
                 .by_path
@@ -215,6 +220,7 @@ impl<'c, 'a> Walk<'c, 'a> {
                     (!name.contains("::")).then_some((name, records))
                 })
                 .flat_map(|(name, records)| records.iter().map(move |r| (name, *r)))
+                .filter(|(_, item)| text(item, "unit") == unit)
                 .filter(|(_, item)| {
                     text(item, "parent")
                         .and_then(|parent| self.entity(parent))
@@ -264,6 +270,9 @@ impl<'c, 'a> Walk<'c, 'a> {
     }
 
     fn typescript_member(&mut self, id: &'a str, path: String, access: Access) {
+        if self.stack.contains(&id) {
+            return;
+        }
         self.add(id, path.clone(), access);
         let Some(entity) = self.entity(id) else {
             return;
@@ -357,19 +366,42 @@ impl<'c, 'a> Walk<'c, 'a> {
         };
         let submodule = || {
             let path = format!("{module_name}.{binding}");
-            self.index
+            let modules: Vec<(&'a str, bool)> = self
+                .index
                 .by_path
                 .get(path.as_str())
                 .into_iter()
                 .flatten()
-                .find(|record| text(record, "kind") == Some("module"))
-                .and_then(|record| text(record, "id"))
-                .filter(|id| self.exists(id))
+                .filter(|record| text(record, "kind") == Some("module"))
+                .filter_map(|record| {
+                    let id = text(record, "id")?;
+                    self.exists(id).then(|| (id, self.python_stub(record)))
+                })
+                .collect();
+            // A typing context reads the stub where one exists; a runtime
+            // context reads the implementation.
+            let stub = modules.iter().find(|(_, stub)| *stub).map(|(id, _)| *id);
+            let implementation = modules.iter().find(|(_, stub)| !*stub).map(|(id, _)| *id);
+            if self.checker.python_typing(self.context) {
+                stub.or(implementation)
+            } else {
+                implementation
+            }
         };
         declared.or_else(imported).or_else(submodule)
     }
 
+    /// Whether a module entity is a stub: a unit of kind `stub` defines it.
+    fn python_stub(&self, record: &'a Value) -> bool {
+        self.checker.units_of(record).iter().any(|unit| {
+            matches!(self.checker.ids.get(unit), Some((Class::Unit, u)) if text(u, "kind") == Some("stub"))
+        })
+    }
+
     fn python_member(&mut self, id: &'a str, path: String) {
+        if self.stack.contains(&id) {
+            return;
+        }
         self.add(id, path.clone(), Access::All);
         if let Some(entity) = self.entity(id) {
             if text(entity, "kind") == Some("type") {
@@ -392,9 +424,16 @@ impl<'c, 'a> Walk<'c, 'a> {
             let (Some(child_id), Some(name)) = (text(child, "id"), text(child, "name")) else {
                 continue;
             };
-            let dunder = name.len() > 4 && name.starts_with("__") && name.ends_with("__");
-            if !name.starts_with('_') || dunder {
+            if python_class_member(name) {
                 self.python_member(child_id, format!("{path}.{name}"));
+            }
+        }
+        // A class-level import binds a class attribute.
+        for relation in self.exports(id) {
+            if let (Some(to), Some(name)) = (text(relation, "to"), text(relation, "name")) {
+                if python_class_member(name) {
+                    self.python_member(to, format!("{path}.{name}"));
+                }
             }
         }
         self.stack.pop();
@@ -431,11 +470,14 @@ impl<'c, 'a> Walk<'c, 'a> {
     /// occurs twice at one depth, is not promoted.
     fn go_type(&mut self, id: &'a str, path: &str) {
         let mut seen: BTreeSet<&'a str> = BTreeSet::new();
-        let mut level: Vec<&'a str> = vec![id];
-        let mut visited: BTreeSet<&'a str> = BTreeSet::from([id]);
+        // Each embedding path to a type at this depth, as the chain of types
+        // it passes. One type reached by two paths, as in a diamond, counts
+        // twice, so its members are ambiguous at that depth.
+        let mut level: Vec<Vec<&'a str>> = vec![vec![id]];
         while !level.is_empty() {
             let mut names: BTreeMap<&'a str, Vec<&'a Value>> = BTreeMap::new();
-            for owner in &level {
+            for chain in &level {
+                let owner = chain[chain.len() - 1];
                 for child in self.children(owner) {
                     if matches!(text(child, "kind"), Some("parameter" | "type-parameter")) {
                         continue;
@@ -456,10 +498,22 @@ impl<'c, 'a> Walk<'c, 'a> {
                     }
                 }
             }
-            let next: Vec<&'a str> = level
+            let next: Vec<Vec<&'a str>> = level
                 .iter()
-                .flat_map(|owner| self.checker.go_embedded(owner, self.context))
-                .filter(|embedded| visited.insert(embedded))
+                .flat_map(|chain| {
+                    let owner = chain[chain.len() - 1];
+                    self.checker
+                        .go_embedded(owner, self.context)
+                        .into_iter()
+                        // An embedding cycle ends where a path returns to a
+                        // type it passed.
+                        .filter(|embedded| !chain.contains(embedded))
+                        .map(|embedded| {
+                            let mut longer = chain.clone();
+                            longer.push(embedded);
+                            longer
+                        })
+                })
                 .collect();
             level = next;
         }
@@ -607,6 +661,16 @@ impl<'a> Checker<'a> {
                     );
             }
         }
+    }
+
+    /// Whether a Python context is a `typing` context.
+    fn python_typing(&self, context: &str) -> bool {
+        self.list("contexts")
+            .iter()
+            .find(|c| text(c, "id") == Some(context))
+            .and_then(|c| c.get("parameters"))
+            .and_then(|p| text(p, "mode"))
+            == Some("typing")
     }
 
     /// The names a module's static `__all__` lists in a context.
@@ -769,13 +833,7 @@ impl<'a> Checker<'a> {
                 }
             }
             PublicApiRule::Python => {
-                let typing = self
-                    .list("contexts")
-                    .iter()
-                    .find(|c| text(c, "id") == Some(context))
-                    .and_then(|c| c.get("parameters"))
-                    .and_then(|p| text(p, "mode"))
-                    == Some("typing");
+                let typing = self.python_typing(context);
                 let distributed: Vec<&'a Value> = self
                     .list("units")
                     .iter()
@@ -1078,6 +1136,13 @@ enum Entry<'a> {
     GoPackage { root: &'a str },
     /// A public Dart library and its canonical URI.
     DartLibrary { root: &'a str, uri: &'a str },
+}
+
+/// A class member name the library interface rules make public: no leading
+/// underscore, or a dunder name.
+fn python_class_member(name: &str) -> bool {
+    let dunder = name.len() > 4 && name.starts_with("__") && name.ends_with("__");
+    !name.starts_with('_') || dunder
 }
 
 fn path_list(paths: &BTreeSet<String>) -> String {
