@@ -233,6 +233,9 @@ description: |
   - A unit keeps its id across contexts. A context that compiles the same
     unit with different options yields the same unit with context-qualified
     facts.
+  - A profile may define unit attributes. A unit attribute that differs by
+    context uses the `{contexts, value}` list form of context-variant entity
+    attributes.
   - The profile defines the unit key: the members that identify a unit to
     an adapter, such as an assembly name with its version. Unit keys are
     unique in the dataset. Observations name units by unit key.

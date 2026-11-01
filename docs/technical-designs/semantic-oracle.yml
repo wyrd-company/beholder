@@ -270,24 +270,27 @@ proposed-design:
     at commit `ba01bbfcb3e3f919a72039722f6ec6465b882b0c`. Sites are exact; each
     claim is checkable against that source and the named build declarations.
 
-    ### Rust: one file, three entities
+    ### Rust: one file, four entities
 
     `modules-visibility-and-resolution` mounts `src/shared_source.rs` at
-    `shared_first` and `shared_second` with `#[path]` in `src/lib.rs`, and the
-    binary `mvr-bin` mounts it again as `bin_shared`. The struct name site is
+    `shared_first` and `shared_second` with `#[path]` in `src/lib.rs`, includes
+    it textually inside `shared_via_include` with `include!` at lines 66–68,
+    and the binary `mvr-bin` mounts it again as `bin_shared`. The struct name site is
     `src/shared_source.rs` 4:12–4:24, `SharedMarker`.
 
     The dataset has one document with members in the `lib` and `bin` units
-    and three entities that share that site:
+    and four entities that share that site:
 
     | Entity path | Unit key |
     | --- | --- |
-    | `modules_visibility_and_resolution::shared_first::SharedMarker` | package `modules-visibility-and-resolution` 0.1.0, `lib` |
+    | `modules_visibility_and_resolution::shared_first::SharedMarker` | package `modules-visibility-and-resolution` 0.1.0, `lib`, platform `target` |
     | `modules_visibility_and_resolution::shared_second::SharedMarker` | same `lib` unit |
-    | `mvr_bin::bin_shared::SharedMarker` | same package, `bin` `mvr-bin` |
+    | `modules_visibility_and_resolution::shared_via_include::SharedMarker` | same `lib` unit |
+    | `mvr_bin::bin_shared::SharedMarker` | same package, `bin` `mvr-bin`, platform `target` |
 
     An index that emits one definition at 4:12 without distinct paths is one
-    `wrong-target (conflated)` observation and two `missing` entities.
+    `wrong-target (conflated)` observation and four `missing` definition
+    units.
 
     ### Rust: context-selected module
 
