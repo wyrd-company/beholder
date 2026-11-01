@@ -9,8 +9,11 @@
 //! `<specification>.invalid-examples.yml` lists cases; each case applies a
 //! JSON Patch to a valid example and names the one reason the result fails:
 //! the instance location of the defect and the schema keyword that rejects
-//! it, as the validator names keywords (`falseSchema` for a `false` schema). A case passes only when the patched dataset fails, every error lies at
-//! or under that location, and one of them is that keyword.
+//! it, as the validator names keywords (`falseSchema` for a `false` schema).
+//! A case that rejects a member names it in `member`, and `also` lists any
+//! further error the same defect causes. A case passes only when the
+//! distinct `(location, keyword)` pairs of the errors are exactly the named
+//! one and those in `also`, and the named error is about `member`.
 
 use std::{
     collections::BTreeSet,
@@ -22,7 +25,7 @@ use beholder_semantic_oracle::{
     dataset_validator, model_schema, parse_yaml, profile_validator, Profile, MODEL_SCHEMA_ID,
     MODEL_VERSION, PROFILES,
 };
-use jsonschema::Validator;
+use jsonschema::{error::ValidationErrorKind, Validator};
 use serde_json::Value;
 
 fn specifications() -> PathBuf {
@@ -64,6 +67,30 @@ fn errors(validator: &Validator, instance: &Value) -> Vec<(String, String, Strin
             )
         })
         .collect()
+}
+
+/// Keywords whose error is about one member of an object.
+const MEMBER_KEYWORDS: [&str; 3] = ["required", "additionalProperties", "unevaluatedProperties"];
+
+/// The members the errors at `at` with `keyword` are about.
+fn members(validator: &Validator, instance: &Value, at: &str, keyword: &str) -> BTreeSet<String> {
+    let mut members = BTreeSet::new();
+    for error in validator.iter_errors(instance) {
+        if error.instance_path().to_string() != at || error.kind().keyword() != keyword {
+            continue;
+        }
+        match error.kind() {
+            ValidationErrorKind::Required { property } => {
+                members.insert(property.as_str().unwrap_or_default().to_string());
+            }
+            ValidationErrorKind::AdditionalProperties { unexpected }
+            | ValidationErrorKind::UnevaluatedProperties { unexpected } => {
+                members.extend(unexpected.iter().cloned());
+            }
+            _ => {}
+        }
+    }
+    members
 }
 
 fn describe(errors: &[(String, String, String)]) -> String {
@@ -148,32 +175,39 @@ fn invalid_examples_fail_for_their_named_reason() {
                 failures.push(format!("{label}: validates"));
                 continue;
             }
-            let outside: Vec<_> = found
-                .iter()
-                .filter(|(at, _, _)| !within(at, fails_at))
-                .cloned()
-                .collect();
-            if !outside.is_empty() {
-                failures.push(format!(
-                    "{label}: errors outside {fails_at}:\n{}",
-                    describe(&outside)
-                ));
+            let mut expected = BTreeSet::from([(fails_at.to_string(), keyword.to_string())]);
+            for also in case["also"].as_array().into_iter().flatten() {
+                let at = also["at"].as_str().expect("also at");
+                let keyword = also["keyword"].as_str().expect("also keyword");
+                expected.insert((at.to_string(), keyword.to_string()));
             }
-            if !found.iter().any(|(_, k, _)| k == keyword) {
+            let actual: BTreeSet<(String, String)> = found
+                .iter()
+                .map(|(at, keyword, _)| (at.clone(), keyword.clone()))
+                .collect();
+            if actual != expected {
                 failures.push(format!(
-                    "{label}: no `{keyword}` error:\n{}",
+                    "{label}: expected {expected:?}, found:\n{}",
                     describe(&found)
                 ));
+            }
+            let member = case["member"].as_str();
+            if MEMBER_KEYWORDS.contains(&keyword) {
+                let named = members(&validator, &dataset, fails_at, keyword);
+                match member {
+                    None => failures.push(format!("{label}: `{keyword}` case names no member")),
+                    Some(member) if !named.contains(member) => failures.push(format!(
+                        "{label}: the `{keyword}` error is about {named:?}, not `{member}`"
+                    )),
+                    Some(_) => {}
+                }
+            } else if member.is_some() {
+                failures.push(format!("{label}: `member` with keyword `{keyword}`"));
             }
         }
     }
     assert!(count > 0, "no invalid examples");
     assert!(failures.is_empty(), "{}", failures.join("\n"));
-}
-
-/// Whether JSON Pointer `at` is `prefix` or lies under it.
-fn within(at: &str, prefix: &str) -> bool {
-    at == prefix || prefix.is_empty() || at.starts_with(&format!("{prefix}/"))
 }
 
 #[test]
@@ -276,4 +310,52 @@ fn schema_ids_and_version_constants_agree() {
         );
         assert_eq!(Profile::by_version(profile.version), Some(profile));
     }
+}
+
+/// Errors the validator reports on the valid examples that wait on
+/// contract calibration, as `(example, rule, location)`. The examples have
+/// no project files, so only rules that need none apply. The examples are
+/// excerpts, so coverage warnings are expected and not checked.
+const CALIBRATION: [(&str, &str, &str); 1] = [
+    // A Go package's definition sites are its package clauses, so a
+    // build-constrained file changes the site set by context; see #17.
+    (
+        "semantic-oracle-profile-go.example.yml",
+        "model:site-membership",
+        "/entities/0/definitions/1/at/path",
+    ),
+];
+
+#[test]
+fn valid_examples_pass_validation_and_audit_without_project_files() {
+    let mut unexpected = Vec::new();
+    let mut seen = BTreeSet::new();
+    for example in assets(".example.yml") {
+        let dataset = load(&example);
+        let report = beholder_semantic_oracle::audit(&dataset, None);
+        for finding in report
+            .findings
+            .iter()
+            .filter(|finding| finding.severity == beholder_semantic_oracle::Severity::Error)
+        {
+            let key = (example.as_str(), finding.rule.as_str(), finding.at.as_str());
+            if CALIBRATION
+                .iter()
+                .any(|known| (known.0, known.1, known.2) == key)
+            {
+                seen.insert((key.0.to_string(), key.1.to_string(), key.2.to_string()));
+            } else {
+                unexpected.push(format!(
+                    "{example}: {} {} {}: {}",
+                    finding.severity, finding.rule, finding.at, finding.message
+                ));
+            }
+        }
+    }
+    assert!(unexpected.is_empty(), "{}", unexpected.join("\n"));
+    assert_eq!(
+        seen.len(),
+        CALIBRATION.len(),
+        "a calibration finding no longer occurs"
+    );
 }

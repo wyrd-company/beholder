@@ -5,9 +5,11 @@
 #
 # Datasets that the `python/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: unknown-mode
     reason: A Python context mode is `runtime` or `typing`.
@@ -39,6 +41,7 @@ cases:
     patch: [{op: add, path: /units/1/language-version, value: '3.14'}]
     fails-at: /units/1
     keyword: unevaluatedProperties
+    member: language-version
   - name: bare-async-language-kind
     reason: '`async` is not a language kind; the async variants are `async-function`, `async-method`, `async-classmethod` and `async-staticmethod`.'
     base: semantic-oracle-profile-python.example.yml
@@ -59,6 +62,7 @@ cases:
       - {op: add, path: /entities/26/unit, value: plugins-ns}
     fails-at: /entities/26
     keyword: required
+    member: units
   - name: module-with-units
     reason: Only a namespace package is project-merged in the Python profile.
     base: semantic-oracle-profile-python.example.yml
@@ -73,6 +77,7 @@ cases:
     patch: [{op: remove, path: /entities/11/anchor}]
     fails-at: /entities/11
     keyword: required
+    member: anchor
   - name: unknown-declared-visibility
     reason: '`private` is not a Python declared visibility value.'
     base: semantic-oracle-profile-python.example.yml
@@ -97,12 +102,14 @@ cases:
     patch: [{op: remove, path: /references/3/reason}]
     fails-at: /references/3
     keyword: required
+    member: reason
   - name: candidates-without-candidate-list
     reason: A `candidates` reference lists its candidates.
     base: semantic-oracle-profile-python.example.yml
     patch: [{op: remove, path: /references/3/candidates}]
     fails-at: /references/3
     keyword: required
+    member: candidates
   - name: single-candidate
     reason: A candidate set has at least two targets; one target is `resolved`.
     base: semantic-oracle-profile-python.example.yml
@@ -127,9 +134,11 @@ cases:
     patch: [{op: remove, path: /references/10/reason}]
     fails-at: /references/10
     keyword: required
+    member: reason
   - name: stub-of-without-stub
     reason: A `python:stub-of` fact names its stub entity.
     base: semantic-oracle-profile-python.example.yml
     patch: [{op: remove, path: /extensions/python:stub-of/0/stub}]
     fails-at: /extensions/python:stub-of/0
     keyword: required
+    member: stub

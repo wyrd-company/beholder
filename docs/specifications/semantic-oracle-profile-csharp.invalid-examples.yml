@@ -5,9 +5,11 @@
 #
 # Datasets that the `csharp/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: unknown-context-parameter
     reason: '`framework` is not a C# context parameter; the parameter is `target-framework`.'
@@ -15,6 +17,7 @@ cases:
     patch: [{op: add, path: /contexts/0/parameters/framework, value: net10.0}]
     fails-at: /contexts/0/parameters
     keyword: additionalProperties
+    member: framework
   - name: unknown-unit-kind
     reason: A C# unit has kind `assembly`.
     base: semantic-oracle-profile-csharp.example.yml
@@ -27,6 +30,7 @@ cases:
     patch: [{op: remove, path: /units/0/project}]
     fails-at: /units/0
     keyword: required
+    member: project
   - name: project-path-not-canonical
     reason: The project file member is a canonical path.
     base: semantic-oracle-profile-csharp.example.yml
@@ -41,6 +45,7 @@ cases:
       - {op: add, path: /entities/0/unit, value: geometry-lib}
     fails-at: /entities/0
     keyword: required
+    member: units
   - name: class-with-units
     reason: Only a namespace is project-merged in the C# profile.
     base: semantic-oracle-profile-csharp.example.yml
@@ -55,6 +60,7 @@ cases:
     patch: [{op: remove, path: /entities/9/anchor}]
     fails-at: /entities/9
     keyword: required
+    member: anchor
   - name: synthetic-with-definition
     reason: A synthetic entity has no definition site.
     base: semantic-oracle-profile-csharp.example.yml
@@ -62,8 +68,10 @@ cases:
       - op: replace
         path: /entities/9/definitions
         value: [{at: {path: src/Geometry/Shapes.cs, start: [8, 31], end: [8, 36], text: Shape}}]
-    fails-at: /entities/9
+    fails-at: /entities/9/definitions
     keyword: maxItems
+    also:
+      - {at: /entities/9/anchor, keyword: falseSchema}
   - name: unknown-language-kind
     reason: '`record-class` is not a C# language kind; a record class is `record`.'
     base: semantic-oracle-profile-csharp.example.yml
@@ -115,9 +123,11 @@ cases:
     patch: [{op: remove, path: /extensions/csharp:extern-alias/0/alias}]
     fails-at: /extensions/csharp:extern-alias/0
     keyword: required
+    member: alias
   - name: unknown-extension-kind
     reason: '`csharp:global-using` is not a C# extension.'
     base: semantic-oracle-profile-csharp.example.yml
     patch: [{op: add, path: /extensions/csharp:global-using, value: []}]
     fails-at: /extensions
     keyword: additionalProperties
+    member: csharp:global-using

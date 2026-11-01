@@ -5,9 +5,11 @@
 #
 # Datasets that the `dart/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: unknown-platform
     reason: A Dart platform is `vm`, `js` or `wasm`.
@@ -33,6 +35,7 @@ cases:
     patch: [{op: remove, path: /units/1/language-version}]
     fails-at: /units/1
     keyword: required
+    member: language-version
   - name: unknown-language-kind
     reason: '`abstract-class` is not a Dart language kind; class modifiers keep `class`.'
     base: semantic-oracle-profile-dart.example.yml
@@ -59,6 +62,7 @@ cases:
     patch: [{op: remove, path: /entities/18/anchor}]
     fails-at: /entities/18
     keyword: required
+    member: anchor
   - name: role-the-profile-does-not-use
     reason: The Dart profile assigns no occurrence the role `macro-invocation`.
     base: semantic-oracle-profile-dart.example.yml
@@ -77,6 +81,7 @@ cases:
     patch: [{op: remove, path: /extensions/dart:deferred-import/0/prefix}]
     fails-at: /extensions/dart:deferred-import/0
     keyword: required
+    member: prefix
   - name: mixin-application-with-site
     reason: A `dart:mixin-application` fact has only `relation`.
     base: semantic-oracle-profile-dart.example.yml
@@ -86,3 +91,4 @@ cases:
         value: {path: lib/src/shapes.dart, start: [13, 33], end: [13, 40], text: Labeled}
     fails-at: /extensions/dart:mixin-application/0
     keyword: unevaluatedProperties
+    member: at

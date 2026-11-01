@@ -5,9 +5,11 @@
 #
 # Datasets that the `go/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: cgo-as-number
     reason: '`cgo` is `true` or `false`.'
@@ -27,6 +29,7 @@ cases:
     patch: [{op: remove, path: /contexts/0/parameters/arch-level}]
     fails-at: /contexts/0/parameters
     keyword: required
+    member: arch-level
   - name: module-with-version
     reason: A Go module distribution has no version.
     base: semantic-oracle-profile-go.example.yml
@@ -45,6 +48,7 @@ cases:
     patch: [{op: remove, path: /units/0/package-name}]
     fails-at: /units/0
     keyword: required
+    member: package-name
   - name: declared-visibility-not-explicit
     reason: Go declared visibility is always explicit.
     base: semantic-oracle-profile-go.example.yml
@@ -101,3 +105,4 @@ cases:
     patch: [{op: add, path: /extensions/go:pointer-receiver/0/method, value: geometry.Circle.Area}]
     fails-at: /extensions/go:pointer-receiver/0
     keyword: unevaluatedProperties
+    member: method
