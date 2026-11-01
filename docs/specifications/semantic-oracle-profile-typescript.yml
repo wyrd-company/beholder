@@ -164,17 +164,25 @@ description: |
   A distribution's public API in a context consists of every entity that has
   a consumer path:
 
-  1. When `package.json` has `exports`, each subpath, after pattern
-     expansion and after removing subpaths whose target is `null`, selects
-     an entry for mode `import` and mode `require`. The entry is the first
-     matching condition in object order among the conditions the context
-     enables: `types`, the context's `customConditions`, `import` or
-     `require` for the mode, `node` when the host is Node.js, and `default`.
-     A `types@<range>` condition matches when the context's compiler version
-     is in the range. The selected file's declaration file, by TypeScript's
-     declaration lookup, is the entry module.
-  2. Otherwise `types`, `typings` or `main`, with `typesVersions` applied for
-     the context's compiler version, selects the entry module for both modes.
+  1. When `package.json` has `exports` and the context's module resolution
+     consults it (`moduleResolution` `node16`, `nodenext` or `bundler` with
+     `resolvePackageJsonExports` true, its default for those modes), each
+     subpath, after pattern expansion and after removing subpaths whose
+     target is `null`, selects an entry for mode `import` and mode
+     `require`. The entry is the target of the first key, in object order,
+     whose condition is enabled. The enabled conditions are those the
+     TypeScript Modules Reference lists for the context's
+     `moduleResolution`, plus `customConditions` and `default`: `types`,
+     `node`, and `import` or `require` by mode for `node16` and `nodenext`;
+     `types`, and `import` or `require` by mode for `bundler`. A
+     `types@<range>` condition is enabled when the context's compiler
+     version is in the range. Nested condition objects are resolved the same
+     way. The selected file's declaration file, by TypeScript's declaration
+     lookup, is the entry module.
+  2. Otherwise, including `moduleResolution` `node10` and `classic` and
+     `resolvePackageJsonExports` false, `types`, `typings` or `main`, with
+     `typesVersions` applied for the context's compiler version, selects the
+     entry module for both modes.
   3. The members are the entry module's export namespace, with `export *`
      and re-exports followed, and the `public` and `protected` members of
      exported classes, interfaces, enums and namespaces, with `protected`
@@ -206,8 +214,8 @@ description: |
   A module specifier string is a value site that spans the string contents
   without quotes; an observation spanning the quotes is accepted. Its target
   is the module entity that module resolution selects in the context,
-  including `paths`, `imports` (`#` specifiers), `exports`, conditions and
-  `moduleSuffixes`.
+  including `paths`, `imports` (`#` specifiers), `exports` with the
+  enabled conditions that Public API defines, and `moduleSuffixes`.
 
   A `new` expression or JSX tag targets the class entity. Equivalence rule
   `typescript:constructor-for-class`: an observation targeting the class's
