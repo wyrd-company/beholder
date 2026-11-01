@@ -737,7 +737,10 @@ description: |
   external key `(distribution, version, path, kind)`. An adapter that cannot
   supply `kind` emits a key without it; such a key resolves to an entity
   only when exactly one entity in the context has that unit key and path,
-  or that distribution, version and path.
+  or that distribution, version and path. The same rule applies to a
+  partial unit key, one that omits a member the profile defines: it
+  resolves only when exactly one unit in the dataset has the supplied
+  members.
 
   Coordinates are converted to this specification's locator coordinates
   from the encoding the index declares, using the document bytes. An

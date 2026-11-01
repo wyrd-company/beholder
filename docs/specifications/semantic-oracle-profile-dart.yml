@@ -139,7 +139,14 @@ description: |
   The target is the declaration that Dart's lexical and library scope rules
   select, after following imports with prefixes and combinators and
   re-exports. A prefix identifier targets the library its import selects in
-  the context.
+  the context. When several imports share one prefix, the language merges
+  their namespaces under that prefix; a prefix identifier then targets the
+  imported library whose namespace provides the name that follows the
+  prefix, which valid source makes unique. In `shared.max` with
+  `dart:convert` and `dart:math` both imported `as shared`, `shared` targets
+  `dart:math`. A prefix identifier used without a following name, as in
+  `shared.loadLibrary()` on a deferred prefix, targets that import's
+  library.
 
   | Occurrence | Role |
   | --- | --- |
