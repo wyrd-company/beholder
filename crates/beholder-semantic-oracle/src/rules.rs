@@ -58,6 +58,9 @@ pub struct ProfileRules {
     pub indexable_suffixes: &'static [&'static str],
     /// File names of source files the profile allows as configuration.
     pub source_configuration: &'static [&'static str],
+    /// Whether the profile defines an augmentation form, through which a
+    /// site in one unit's document belongs to a fact of another unit.
+    pub augmentation: bool,
     /// File name patterns the profile classifies as configuration. `*`
     /// matches any run of characters within the file name.
     pub configuration: &'static [&'static str],
@@ -100,6 +103,7 @@ const RUST: ProfileRules = ProfileRules {
     optional_source_suffixes: &[],
     indexable_suffixes: &[],
     source_configuration: &[],
+    augmentation: false,
     configuration: &["Cargo.toml", "rust-toolchain.toml", ".cargo/config.toml"],
 };
 
@@ -133,6 +137,7 @@ const CSHARP: ProfileRules = ProfileRules {
     optional_source_suffixes: &[],
     indexable_suffixes: &[],
     source_configuration: &[],
+    augmentation: false,
     configuration: &[
         "*.csproj",
         "*.sln",
@@ -171,6 +176,7 @@ const DART: ProfileRules = ProfileRules {
     optional_source_suffixes: &[],
     indexable_suffixes: &[],
     source_configuration: &[],
+    augmentation: false,
     configuration: &[
         "pubspec.yaml",
         "analysis_options.yaml",
@@ -218,6 +224,7 @@ const GO: ProfileRules = ProfileRules {
     optional_source_suffixes: &[],
     indexable_suffixes: &[],
     source_configuration: &[],
+    augmentation: false,
     configuration: &["go.mod", "go.work", "go.sum"],
 };
 
@@ -247,6 +254,7 @@ const PYTHON: ProfileRules = ProfileRules {
     optional_source_suffixes: &[],
     indexable_suffixes: &[],
     source_configuration: &["setup.py"],
+    augmentation: false,
     configuration: &["pyproject.toml", "setup.cfg", "*.pth", "py.typed"],
 };
 
@@ -280,6 +288,7 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
     optional_source_suffixes: &[".js", ".jsx", ".mjs", ".cjs"],
     indexable_suffixes: &[".json"],
     source_configuration: &[],
+    augmentation: true,
     configuration: &["package.json", "tsconfig*.json", "jsconfig*.json"],
 };
 

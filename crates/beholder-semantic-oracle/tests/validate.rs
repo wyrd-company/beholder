@@ -1109,3 +1109,76 @@ fn an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact() {
     );
     expect(&validate(&dataset, None), &[]);
 }
+
+#[test]
+fn a_site_is_in_a_document_of_its_fact_unit() {
+    let mut dataset = dataset();
+    let mut other = dataset["units"][0].clone();
+    other["id"] = json!("tally-bin");
+    other["kind"] = json!("bin");
+    other["target-name"] = json!("tally-bin");
+    other.as_object_mut().unwrap().remove("distribution");
+    other.as_object_mut().unwrap().remove("root");
+    push(&mut dataset, "/units", other);
+    set(
+        &mut dataset,
+        "/documents/2/members",
+        json!([{"unit": "tally-bin"}]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            (
+                "error",
+                "model:site-membership",
+                "/entities/1/definitions/0/at/path",
+            ),
+            (
+                "error",
+                "model:site-membership",
+                "/entities/2/definitions/0/at/path",
+            ),
+            ("error", "model:site-membership", "/references/0/at/path"),
+            ("error", "model:site-membership", "/references/1/at/path"),
+        ],
+    );
+}
+
+#[test]
+fn an_unowned_extension_fact_holds_where_its_site_unit_is_built() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../docs/specifications/semantic-oracle-profile-csharp.example.yml"
+    );
+    let mut dataset = parse_yaml(&std::fs::read_to_string(path).unwrap()).unwrap();
+    // The alias site's document is compiled only in `debug`, while its unit
+    // is built in both contexts.
+    let documents = dataset["documents"].as_array_mut().unwrap();
+    let program = documents
+        .iter_mut()
+        .find(|d| d["path"] == "src/Atlas/Program.cs")
+        .unwrap();
+    program["members"][0]["contexts"] = json!(["debug"]);
+    let report = validate(&dataset, None);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.at == "/extensions/csharp:extern-alias/0/at/path"
+                && f.rule == "model:site-membership"),
+        "{:#?}",
+        report.findings
+    );
+}
+
+#[test]
+fn equal_coordinates_are_one_site_whatever_their_number_form() {
+    let mut dataset = dataset();
+    let mut copy = dataset["references"][1].clone();
+    copy["at"]["start"] = json!([4.0, 5.0]);
+    push(&mut dataset, "/references", copy);
+    expect(
+        &validate_with(&dataset, &files()),
+        &[("error", "model:locator-ambiguous", "/references/2/at")],
+    );
+}

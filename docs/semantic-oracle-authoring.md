@@ -140,7 +140,7 @@ model-level part of criterion 7:
 | `model:document-inventory`, `model:document-unique`, `model:document-digest`, `model:document-utf8` | One entry per tracked file and none for anything else, each digest equal to the file's SHA-256, and every indexed document valid UTF-8. |
 | `model:locator-stale`, `model:locator-range`, `model:locator-order`, `model:locator-document`, `model:locator-empty` | Each locator's document is in the inventory, its coordinates lie in the document, end does not precede start, and its text equals the source. A digest that differs makes every locator in that document stale. |
 | `model:locator-ambiguous` | A definition site listed twice for one entity, or two references with one site, `from` and role in a shared context. |
-| `model:site-membership` | Each site is in an indexed document that is a member of a unit in every context of its fact. |
+| `model:site-membership` | Each site is in an indexed document that is a member of the fact's unit in every context of the fact. Only a profile with an augmentation form, TypeScript, allows a site in another unit's document. |
 | `model:context-declared`, `model:context-scope`, `model:context-partition`, `model:context-distinct` | Context ids are declared. A fact without `contexts` holds in every context its unit is built in, and listed contexts lie within those. The entities a fact names exist in each of its contexts. Context-variant lists partition their record's contexts, and contexts differ in a parameter. |
 | `model:unit-key`, `model:unit-root` | Unit keys, by the profile's key members, name one unit in the dataset; a unit root is a module or namespace of that unit. |
 | `model:effective-visibility` | An entity whose unit has no distribution has `external: none`. |
@@ -164,5 +164,5 @@ model-level part of criterion 7:
 Not checked mechanically, and left to review: that each context derives
 from a project command, that the inventory dispositions and members follow
 the build, that the dataset is exhaustive for the required categories, that
-a site in another unit's document is an augmentation, and that public API
+a TypeScript site in another unit's document is an augmentation, and that public API
 paths agree with the profile's consumer-path rule.
