@@ -58,11 +58,7 @@ impl GitProject {
         // a literal backslash in a Unix directory name is kept.
         let mut prefix_bytes = Vec::new();
         for component in prefix.components() {
-            let name = component
-                .as_os_str()
-                .to_str()
-                .ok_or_else(|| anyhow!("the project path is not UTF-8"))?;
-            prefix_bytes.extend_from_slice(name.as_bytes());
+            prefix_bytes.extend_from_slice(&os_bytes(component.as_os_str())?);
             prefix_bytes.push(b'/');
         }
 
@@ -123,6 +119,20 @@ impl ProjectFiles for GitProject {
             .map(Some)
             .with_context(|| format!("read {path}"))
     }
+}
+
+/// The bytes of a path component as git stores them in the index.
+#[cfg(unix)]
+fn os_bytes(name: &std::ffi::OsStr) -> Result<Vec<u8>> {
+    use std::os::unix::ffi::OsStrExt;
+    Ok(name.as_bytes().to_vec())
+}
+
+#[cfg(not(unix))]
+fn os_bytes(name: &std::ffi::OsStr) -> Result<Vec<u8>> {
+    name.to_str()
+        .map(|name| name.as_bytes().to_vec())
+        .ok_or_else(|| anyhow!("the project path is not UTF-8"))
 }
 
 /// The bytes git stores for a symbolic link: its target path.

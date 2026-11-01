@@ -24,10 +24,7 @@ impl Position {
     pub fn from_value(value: &Value) -> Option<Self> {
         let pair = value.as_array()?;
         match pair.as_slice() {
-            [line, column] => Some(Self::new(
-                usize::try_from(line.as_u64()?).ok()?,
-                usize::try_from(column.as_u64()?).ok()?,
-            )),
+            [line, column] => Some(Self::new(count(line)?, count(column)?)),
             _ => None,
         }
     }
@@ -37,6 +34,17 @@ impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}, {}]", self.line, self.column)
     }
+}
+
+/// A JSON integer as a count. JSON Schema's `integer` admits a number with
+/// a zero fractional part, such as `12.0`.
+fn count(value: &Value) -> Option<usize> {
+    if let Some(n) = value.as_u64() {
+        return usize::try_from(n).ok();
+    }
+    let n = value.as_f64()?;
+    // Below 2^53 every integral float is exact.
+    (n.fract() == 0.0 && (0.0..9_007_199_254_740_992.0).contains(&n)).then_some(n as usize)
 }
 
 /// A span of one document identified by path, coordinates and exact text.
@@ -410,6 +418,14 @@ mod tests {
             capture(&source, "a", "gamma", None, None),
             Err(CaptureError::NotFound)
         );
+    }
+
+    #[test]
+    fn integral_floats_are_positions() {
+        let position = Position::from_value(&serde_json::json!([1.0, 12.0]));
+        assert_eq!(position, Some(Position::new(1, 12)));
+        assert_eq!(Position::from_value(&serde_json::json!([1, 1e30])), None);
+        assert_eq!(Position::from_value(&serde_json::json!([1, 1.5])), None);
     }
 
     #[test]
