@@ -24,6 +24,7 @@ tasks:
       right — one comment ever, and never forcing the index ref — are not
       provable from Rust.
     cmds:
+      - python3 scripts/tests/index-workflow.test.py
       - for: ["sticky-comment", "publish-index"]
         cmd: bash scripts/tests/{{.ITEM}}.test.sh
 

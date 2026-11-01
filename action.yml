@@ -4,10 +4,13 @@ author: Wyrd Company
 
 # One comment, edited in place, and silence when nothing is risky. Everything
 # the action stores travels through ordinary git: it fetches the beholder ref
-# before analyzing and publishes it afterwards, so a runner cold-starts from
+# before analyzing and optionally publishes it afterwards, so a runner cold-starts from
 # whatever anyone else has already indexed, exactly as a fresh clone does.
 
 inputs:
+  mode:
+    description: "Operation: report or index. Index updates the checked-out commit without a report."
+    default: report
   root:
     description: Repository root to analyze.
     default: .
@@ -27,8 +30,8 @@ inputs:
     description: Post the sticky pull request comment.
     default: "true"
   publish-index:
-    description: Publish generated results back to the beholder ref on the remote.
-    default: "true"
+    description: Publish generated results back to the beholder ref on the remote (opt-in).
+    default: "false"
   sarif-file:
     description: Where to write SARIF. Upload it with github/codeql-action/upload-sarif.
     default: beholder.sarif
@@ -53,6 +56,16 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Validate mode
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+      run: |
+        case "$MODE" in
+          report|index) ;;
+          *) echo "mode must be report or index" >&2; exit 1 ;;
+        esac
+
     - name: Key the build on beholder's own lockfile
       id: build-key
       shell: bash
@@ -88,7 +101,16 @@ runs:
       working-directory: ${{ inputs.root }}
       run: bash "$GITHUB_ACTION_PATH/scripts/fetch-index.sh"
 
+    - name: Update the checked-out index
+      if: inputs.mode == 'index'
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      env:
+        BEHOLDER: ${{ inputs.beholder != '' && inputs.beholder || format('{0}/target/release/beholder', github.action_path) }}
+      run: '"$BEHOLDER" index --store --use-store'
+
     - name: Report
+      if: inputs.mode == 'report'
       id: report
       shell: bash
       working-directory: ${{ inputs.root }}
@@ -142,7 +164,7 @@ runs:
         } >> "$GITHUB_OUTPUT"
 
     - name: Sticky comment
-      if: inputs.comment == 'true' && github.event.pull_request.number != ''
+      if: inputs.mode == 'report' && inputs.comment == 'true' && github.event.pull_request.number != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
@@ -158,8 +180,6 @@ runs:
       working-directory: ${{ inputs.root }}
       env:
         BEHOLDER: ${{ inputs.beholder != '' && inputs.beholder || format('{0}/target/release/beholder', github.action_path) }}
-        BASE: ${{ steps.report.outputs.base }}
-        HEAD: ${{ steps.report.outputs.head }}
       run: bash "$GITHUB_ACTION_PATH/scripts/publish-index.sh"
 
 branding:

@@ -51,7 +51,6 @@ report() {
 run_publish() {
   local dir="$1"
   ( cd "$dir" && BEHOLDER="$beholder" \
-      BASE="$(git rev-parse HEAD~1)" HEAD="$(git rev-parse HEAD)" \
       bash "$publish" )
 }
 
@@ -68,6 +67,10 @@ git init -q --bare -b main "$work/origin.git"
 clone first
 commit "$work/first" tally '    items.iter().sum()\n'
 commit "$work/first" tally '    let mut t = 0;\n    for i in items {\n        if *i > 0 {\n            t += i;\n        }\n    }\n    t\n'
+mkdir -p "$work/first/assets"
+printf 'stable\n' > "$work/first/assets/stable.txt"
+git -C "$work/first" add assets/stable.txt
+git -C "$work/first" commit -q -m 'add stable data'
 git -C "$work/first" push -q origin HEAD:main
 
 # Nothing is indexed yet: fetching says so plainly, and there is nothing to
@@ -89,7 +92,8 @@ grep -q '::warning' "$work/broken" \
   || fail "an unreachable remote should warn: $(cat "$work/broken")"
 if grep -q 'cold start' "$work/broken"; then fail "a fault must not read as a cold start"; fi
 
-report "$work/first"
+# Index-only publication needs no base/head, even after skipped source commits.
+( cd "$work/first" && "$beholder" index --store --use-store --out-dir "$work/output" >/dev/null )
 run_publish "$work/first" | grep -q 'published' || fail "the first publish should succeed"
 
 # A second machine cold-starts from the remote and finds the work already done.
@@ -104,7 +108,15 @@ grep -q 'reused a stored analysis' "$work/second-origins" \
 
 # The second machine indexes something of its own and publishes it.
 commit "$work/second" totalled '    let mut t = 0;\n    for i in items {\n        if *i > 1 {\n            t += i;\n        }\n    }\n    t\n'
-report "$work/second"
+# Two unindexed commits represent earlier skipped or failed main CI runs.
+mkdir -p "$work/second/assets"
+printf 'one\n' > "$work/second/assets/data.txt"
+git -C "$work/second" add assets/data.txt
+git -C "$work/second" commit -q -m 'add data'
+printf 'two\n' >> "$work/second/assets/data.txt"
+git -C "$work/second" commit -qam 'update data'
+( cd "$work/second" && "$beholder" index --store --use-store --out-dir "$work/output" >/dev/null ) 2> "$work/reuse"
+grep -Eq '[1-9][0-9]* reused' "$work/reuse" || fail "unchanged files should reuse earlier index results"
 run_publish "$work/second" | grep -q 'published' || fail "the second machine should publish"
 second_head="$(git -C "$work/second" rev-parse HEAD)"
 

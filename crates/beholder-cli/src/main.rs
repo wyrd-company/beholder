@@ -162,6 +162,9 @@ struct GitprArgs {
 
 #[derive(Args)]
 struct StoreArgs {
+    /// Reconcile a saved local index tip onto the current (fetched) index tip.
+    #[arg(long)]
+    reconcile: Option<String>,
     #[arg(long, default_value = ".")]
     root: PathBuf,
     /// How many index commits to list.
@@ -506,6 +509,10 @@ fn only_open_snapshot(root: &Path) -> Result<String> {
 fn store(args: StoreArgs) -> Result<()> {
     let (repo, _) = open(&args.root)?;
     let store = Store::open(&repo);
+    if let Some(mine) = args.reconcile {
+        store.rebuild_onto(Some(git2::Oid::from_str(&mine)?), store.tip()?)?;
+        return Ok(());
+    }
 
     println!("ref:     {}", store.refname());
     println!("refspec: {REFSPEC}");
