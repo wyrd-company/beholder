@@ -1,6 +1,6 @@
 [package]
 name = "beholder-semantic-oracle"
-description = "Semantic-oracle dataset schemas and their version constants"
+description = "Semantic-oracle dataset schemas, validation, profile audit and locator capture"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,10 +11,13 @@ publish = false
 
 [dependencies]
 anyhow.workspace = true
+# Reads the repository index for the tracked-file inventory.
+gix.workspace = true
 # HTTP and file retrieval stay off: every schema resource is registered from
 # the embedded assets, and the default TLS backend builds aws-lc-sys.
 jsonschema = { version = "0.60", default-features = false }
 serde_json.workspace = true
+sha2.workspace = true
 # YAML 1.2, the version the semantic-oracle model names for datasets.
 serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }
 

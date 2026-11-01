@@ -18,14 +18,68 @@ tasks:
       - cargo test --workspace --locked
 
   test:oracle-schema:
-    desc: Check the semantic-oracle dataset schemas against their examples
+    desc: Check the semantic-oracle schemas, validator and authoring commands
     summary: |
       Validates every valid example dataset in docs/specifications with a
-      Draft 2020-12 validator, and confirms that every invalid example fails
-      at the location and with the keyword it names. `test` runs the same
-      checks as part of the workspace.
+      Draft 2020-12 validator, confirms that every invalid example fails with
+      exactly the errors it names, and runs the validator, audit, locator and
+      CLI tests against a small fixture project. `test` runs the same checks
+      as part of the workspace.
     cmds:
-      - cargo test -p beholder-semantic-oracle --locked
+      - cargo test -p beholder-semantic-oracle -p beholder-semantic-oracle-cli --locked
+
+  semantic-oracle:locate:
+    desc: Print the locator of a span of source text in a semantic-oracle project
+    summary: |
+      FILE is the document's canonical path under PROJECT, TEXT the exact
+      span text. LINE and COLUMN narrow the search when TEXT occurs more than
+      once; the command lists the positions when it is not unique.
+
+        task semantic-oracle:locate PROJECT=path/to/project FILE=src/lib.rs TEXT=Counter LINE=3
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [FILE, TEXT]
+    vars:
+      PROJECT: '{{.PROJECT | default "."}}'
+    cmds:
+      - >-
+        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        -p beholder-semantic-oracle-cli --
+        locate {{shellQuote .FILE}} {{shellQuote .TEXT}} --project {{shellQuote .PROJECT}}
+        {{if .LINE}}--line {{.LINE}}{{end}} {{if .COLUMN}}--column {{.COLUMN}}{{end}}
+
+  semantic-oracle:inventory:
+    desc: Print the documents block of a semantic-oracle project with current digests
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      PROJECT: '{{.PROJECT | default "."}}'
+    cmds:
+      - >-
+        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        -p beholder-semantic-oracle-cli -- inventory {{shellQuote .PROJECT}}
+
+  semantic-oracle:validate:
+    desc: Validate a semantic-oracle dataset against the model, its profile and its project
+    summary: |
+      Writes one JSON line per finding and a summary line, and exits nonzero
+      on any error. PROJECT is the project root or its semantic-oracle.yml.
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      PROJECT: '{{.PROJECT | default "."}}'
+    cmds:
+      - >-
+        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        -p beholder-semantic-oracle-cli -- validate {{shellQuote .PROJECT}}
+
+  semantic-oracle:audit:
+    desc: Validate a semantic-oracle dataset and audit it against its language profile
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      PROJECT: '{{.PROJECT | default "."}}'
+    cmds:
+      - >-
+        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        -p beholder-semantic-oracle-cli -- audit {{shellQuote .PROJECT}}
 
   test:action:
     desc: Exercise the shell the GitHub Action runs

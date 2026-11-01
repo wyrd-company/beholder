@@ -195,10 +195,23 @@ name = "beholder-semantic-oracle"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "gix",
  "json-patch",
  "jsonschema",
  "serde-saphyr",
  "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "beholder-semantic-oracle-cli"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "beholder-semantic-oracle",
+ "clap",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
