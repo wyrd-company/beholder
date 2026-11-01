@@ -68,8 +68,8 @@ clone first
 commit "$work/first" tally '    items.iter().sum()\n'
 commit "$work/first" tally '    let mut t = 0;\n    for i in items {\n        if *i > 0 {\n            t += i;\n        }\n    }\n    t\n'
 mkdir -p "$work/first/assets"
-printf 'stable\n' > "$work/first/assets/stable.txt"
-git -C "$work/first" add assets/stable.txt
+printf 'pub fn unchanged() -> u32 { 1 }\n' > "$work/first/src/stable.rs"
+git -C "$work/first" add src/stable.rs
 git -C "$work/first" commit -q -m 'add stable data'
 git -C "$work/first" push -q origin HEAD:main
 
