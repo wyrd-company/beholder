@@ -240,6 +240,14 @@ proposed-design:
     own adapter maps `edges.jsonl` and symbol output the same way. Neither
     adapter's output can change a dataset.
 
+    Facts are compared as atomic units: one definition site, one
+    reference, one relation, one boundary value, one public API path. Each
+    unit and each observation pairs at most once, first exactly, then by a
+    form-specific pairing key when exactly one candidate remains, so that an
+    observation with the wrong base type is one `wrong-target` rather than a
+    `missing` and an `unexpected`, while a guess among several candidates is
+    not credited to any of them.
+
     Matching runs inside one context: document digests first, so stale
     documents are reported and excluded; then definitions by unit key, path
     and site, with conflated entities reported when an index collapses
