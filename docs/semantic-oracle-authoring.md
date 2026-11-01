@@ -141,13 +141,14 @@ model-level part of criterion 7:
 | `model:locator-stale`, `model:locator-range`, `model:locator-order`, `model:locator-document`, `model:locator-empty` | Each locator's document is in the inventory, its coordinates lie in the document, end does not precede start, and its text equals the source. A digest that differs makes every locator in that document stale. |
 | `model:locator-ambiguous` | A definition site listed twice for one entity, or two references with one site, `from` and role in a shared context. |
 | `model:site-membership` | Each site is in an indexed document that is a member of a unit in every context of its fact. |
-| `model:context-declared`, `model:context-scope`, `model:context-partition`, `model:context-distinct` | Context ids are declared; fact contexts lie within the contexts of their unit or entity; context-variant lists partition their record's contexts; contexts differ in a parameter. |
-| `model:unit-key`, `model:unit-root` | Unit keys, by the profile's key members, are unique in each context; a unit root is a module or namespace of that unit. |
+| `model:context-declared`, `model:context-scope`, `model:context-partition`, `model:context-distinct` | Context ids are declared. A fact without `contexts` holds in every context its unit is built in, and listed contexts lie within those. The entities a fact names exist in each of its contexts. Context-variant lists partition their record's contexts, and contexts differ in a parameter. |
+| `model:unit-key`, `model:unit-root` | Unit keys, by the profile's key members, name one unit in the dataset; a unit root is a module or namespace of that unit. |
+| `model:effective-visibility` | An entity whose unit has no distribution has `external: none`. |
 | `model:entity-identity`, `model:entity-parent`, `model:entity-origin` | Unit, path and kind identify one entity per context; parent chains end; generated entities outside generated documents have `anchor` and `generated-by`; entities defined in generated documents are generated. |
 | `model:external-key`, `model:external-unused` | External keys are unique, and every external is a target of a reference, relation or extension fact. |
 | `model:relation-duplicate`, `model:public-api-duplicate` | No relation or public API membership is stated twice in a context. |
 | `model:public-api-distribution`, `model:public-api-access` | A member belongs to a unit of its distribution, and its `access` agrees with the entity's effective `external` access in every context. |
-| `model:extension-key`, `<language>:extension-target` | Extension keys, by the profile's key members, are unique per context; an extension member names a record of the kind the profile states. |
+| `model:extension-key`, `<language>:extension-target` | Extension keys, by the profile's key members, are unique per context; an extension member names a record of the kind the profile states. An extension fact without `contexts` holds where the unit of its first entity or unit member is built. |
 | `<language>:sorted` | Lists the profile states are sorted are sorted. |
 
 `audit` adds the mechanical part of criterion 8:
@@ -157,7 +158,7 @@ model-level part of criterion 7:
 | `<language>:document-class` | Files of the profile language are `indexed`, `inactive` or `external`; other files are not `indexed`; known configuration files are `configuration` (a warning). |
 | `model:out-of-profile` | No entity declared inside a callable body, and no reference to a parameter or type parameter. |
 | `model:coverage` | Every indexed document holds a fact site in every context it is compiled in (a warning). |
-| `go:generated-origin` | A Go file's origin agrees with its generated-code header. |
+| `go:generated-origin` | A Go file with a generated-code header before its package clause has `origin: generated`. |
 | `rust:visibility-path` | Every `pub(in P)` names a module entity. |
 
 Not checked mechanically, and left to review: that each context derives

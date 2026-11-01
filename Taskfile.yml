@@ -43,10 +43,11 @@ tasks:
       PROJECT: '{{.PROJECT | default "."}}'
     cmds:
       - >-
-        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        cargo run -q --locked --manifest-path {{shellQuote (joinPath .ROOT_DIR "Cargo.toml")}}
         -p beholder-semantic-oracle-cli --
-        locate {{shellQuote .FILE}} {{shellQuote .TEXT}} --project {{shellQuote .PROJECT}}
-        {{if .LINE}}--line {{.LINE}}{{end}} {{if .COLUMN}}--column {{.COLUMN}}{{end}}
+        locate --project {{shellQuote .PROJECT}}
+        {{if .LINE}}--line {{shellQuote .LINE}}{{end}} {{if .COLUMN}}--column {{shellQuote .COLUMN}}{{end}}
+        -- {{shellQuote .FILE}} {{shellQuote .TEXT}}
 
   semantic-oracle:inventory:
     desc: Print the documents block of a semantic-oracle project with current digests
@@ -55,7 +56,7 @@ tasks:
       PROJECT: '{{.PROJECT | default "."}}'
     cmds:
       - >-
-        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        cargo run -q --locked --manifest-path {{shellQuote (joinPath .ROOT_DIR "Cargo.toml")}}
         -p beholder-semantic-oracle-cli -- inventory {{shellQuote .PROJECT}}
 
   semantic-oracle:validate:
@@ -68,7 +69,7 @@ tasks:
       PROJECT: '{{.PROJECT | default "."}}'
     cmds:
       - >-
-        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        cargo run -q --locked --manifest-path {{shellQuote (joinPath .ROOT_DIR "Cargo.toml")}}
         -p beholder-semantic-oracle-cli -- validate {{shellQuote .PROJECT}}
 
   semantic-oracle:audit:
@@ -78,7 +79,7 @@ tasks:
       PROJECT: '{{.PROJECT | default "."}}'
     cmds:
       - >-
-        cargo run -q --locked --manifest-path {{.ROOT_DIR}}/Cargo.toml
+        cargo run -q --locked --manifest-path {{shellQuote (joinPath .ROOT_DIR "Cargo.toml")}}
         -p beholder-semantic-oracle-cli -- audit {{shellQuote .PROJECT}}
 
   test:action:

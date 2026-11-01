@@ -149,13 +149,23 @@ pub fn audit(dataset: &Value, files: Option<&dyn ProjectFiles>) -> Report {
 
 fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report {
     let mut findings = Vec::new();
-    let Some(rules) = versions(dataset, &mut findings) else {
-        return Report::new(findings);
-    };
-    schema(dataset, &mut findings);
+    let rules = versions(dataset, &mut findings);
     if !findings.is_empty() {
         return Report::new(findings);
     }
+    schema(dataset, &mut findings);
+    let Some(rules) = rules.filter(|_| findings.is_empty()) else {
+        if findings.is_empty() {
+            // The schema requires a known profile, so this is unreachable
+            // unless the schema and the profile list disagree.
+            findings.push(error(
+                "model:profile-version",
+                "/profile".into(),
+                "the dataset names no profile this validator defines".into(),
+            ));
+        }
+        return Report::new(findings);
+    };
     let mut checker = Checker::new(dataset, rules, files);
     checker.validate();
     if audit {
@@ -166,7 +176,8 @@ fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report
 }
 
 /// Checks the model and profile versions first, so that a dataset of
-/// another version gets one finding instead of every schema error.
+/// another version gets one finding instead of every schema error. A
+/// missing or malformed version is left to the schema.
 fn versions(dataset: &Value, findings: &mut Vec<Finding>) -> Option<&'static ProfileRules> {
     if let Some(model) = dataset.get("model").and_then(Value::as_str) {
         if model != MODEL_VERSION {
@@ -505,6 +516,34 @@ impl<'a> Checker<'a> {
         self.entity_contexts.get(id).cloned().unwrap_or_default()
     }
 
+    /// The contexts in which the unit of an entity, or a unit, is built:
+    /// the default contexts of a fact that it owns. Empty for an id that
+    /// names neither.
+    fn built_contexts(&self, id: &str) -> Contexts<'a> {
+        match self.ids.get(id) {
+            Some((Class::Entity, record)) => self.units_contexts(record),
+            Some((Class::Unit, _)) => self.unit_contexts.get(id).cloned().unwrap_or_default(),
+            _ => BTreeSet::new(),
+        }
+    }
+
+    /// Reports contexts of a fact in which the project entity `id` does not
+    /// exist. Other ids are not checked.
+    fn check_exists(&mut self, at: String, id: &str, contexts: &Contexts<'a>) {
+        if !matches!(self.ids.get(id), Some((Class::Entity, _))) {
+            return;
+        }
+        let exists = self.entity_contexts(id);
+        let missing: Contexts<'a> = contexts.difference(&exists).copied().collect();
+        if !missing.is_empty() {
+            self.error(
+                "model:context-scope",
+                at,
+                format!("entity `{id}` does not exist in {}", names(&missing)),
+            );
+        }
+    }
+
     /// Reports undeclared context ids in a record's `contexts`.
     fn check_declared(&mut self, at: &str, record: &'a Value) {
         for (k, context) in list(record, "contexts").iter().enumerate() {
@@ -668,7 +707,7 @@ impl<'a> Checker<'a> {
     }
 
     fn check_units(&mut self) {
-        let mut keys: BTreeMap<(&'a str, Vec<String>), &'a str> = BTreeMap::new();
+        let mut keys: BTreeMap<Vec<String>, &'a str> = BTreeMap::new();
         for (i, unit) in self.list("units").iter().enumerate() {
             let at = format!("/units/{i}");
             let id = text(unit, "id").unwrap_or_default();
@@ -714,26 +753,34 @@ impl<'a> Checker<'a> {
                     None => self.check_sorted(format!("{at}/{name}"), Some(value)),
                 }
             }
-            for context in &contexts {
-                let key: Vec<String> = self
-                    .rules
-                    .unit_key
-                    .iter()
-                    .map(|member| {
-                        unit.get(*member)
-                            .and_then(|value| value_in(value, context))
-                            .map(Value::to_string)
-                            .unwrap_or_default()
-                    })
-                    .collect();
-                if let Some(other) = keys.insert((context, key.clone()), id) {
-                    keys.insert((context, key), other);
-                    self.error(
-                        "model:unit-key",
-                        at.clone(),
-                        format!("unit key equals that of unit `{other}` in context `{context}`"),
-                    );
-                    break;
+            // A unit key names one unit in the whole dataset; a
+            // context-variant member can give a unit several keys.
+            let unit_keys: BTreeSet<Vec<String>> = contexts
+                .iter()
+                .map(|context| {
+                    self.rules
+                        .unit_key
+                        .iter()
+                        .map(|member| {
+                            unit.get(*member)
+                                .and_then(|value| value_in(value, context))
+                                .map(Value::to_string)
+                                .unwrap_or_default()
+                        })
+                        .collect()
+                })
+                .collect();
+            for key in unit_keys {
+                match keys.get(&key) {
+                    Some(other) if *other != id => {
+                        let message = format!("unit key equals that of unit `{other}`");
+                        self.error("model:unit-key", at.clone(), message);
+                        break;
+                    }
+                    Some(_) => {}
+                    None => {
+                        keys.insert(key, id);
+                    }
                 }
             }
         }
@@ -1023,6 +1070,7 @@ impl<'a> Checker<'a> {
             }
             if let Some(visibility) = entity.get("effective-visibility") {
                 self.check_scopes(&format!("{at}/effective-visibility"), visibility);
+                self.check_undistributed(&at, entity, visibility, &contexts);
             }
 
             let origin = text(entity, "origin").unwrap_or_default();
@@ -1097,6 +1145,41 @@ impl<'a> Checker<'a> {
                 );
             }
             records.push((id, contexts));
+        }
+    }
+
+    /// An entity in a unit with no distribution has `external: none`.
+    fn check_undistributed(
+        &mut self,
+        at: &str,
+        entity: &'a Value,
+        visibility: &'a Value,
+        contexts: &Contexts<'a>,
+    ) {
+        let distributed = self.units_of(entity).iter().any(|unit| {
+            matches!(self.ids.get(unit), Some((Class::Unit, record)) if record.get("distribution").is_some())
+        });
+        if distributed {
+            return;
+        }
+        let open: Contexts<'a> = contexts
+            .iter()
+            .copied()
+            .filter(|context| {
+                value_in(visibility, context)
+                    .and_then(|value| value.get("external"))
+                    .is_some_and(|external| external.as_str() != Some("none"))
+            })
+            .collect();
+        if !open.is_empty() {
+            self.error(
+                "model:effective-visibility",
+                format!("{at}/effective-visibility"),
+                format!(
+                    "the entity's unit has no distribution, but `external` is not `none` in {}",
+                    names(&open)
+                ),
+            );
         }
     }
 
@@ -1196,14 +1279,23 @@ impl<'a> Checker<'a> {
             let at = format!("/references/{i}");
             let from = text(reference, "from").unwrap_or_default();
             self.expect(format!("{at}/from"), from, &[Class::Entity]);
-            let exists = self.entity_contexts(from);
+            let built = self.built_contexts(from);
             let contexts = self.fact_contexts(
                 &at,
                 reference,
-                exists.clone(),
-                &exists,
-                &format!("entity `{from}`"),
+                built.clone(),
+                &built,
+                &format!("the unit of `{from}`"),
             );
+            self.check_exists(format!("{at}/from"), from, &contexts);
+            if let Some(target) = text(reference, "target") {
+                self.check_exists(format!("{at}/target"), target, &contexts);
+            }
+            for (k, candidate) in list(reference, "candidates").iter().enumerate() {
+                if let Some(candidate) = candidate.as_str() {
+                    self.check_exists(format!("{at}/candidates/{k}"), candidate, &contexts);
+                }
+            }
             let target = text(reference, "target");
             match (text(reference, "disposition"), target) {
                 (None, Some(target)) => {
@@ -1260,14 +1352,18 @@ impl<'a> Checker<'a> {
             let from = text(relation, "from").unwrap_or_default();
             self.expect(format!("{at}/from"), from, &[Class::Entity]);
             self.expect_member(&at, relation, "to", &[Class::Entity, Class::External]);
-            let exists = self.entity_contexts(from);
+            let built = self.built_contexts(from);
             let contexts = self.fact_contexts(
                 &at,
                 relation,
-                exists.clone(),
-                &exists,
-                &format!("entity `{from}`"),
+                built.clone(),
+                &built,
+                &format!("the unit of `{from}`"),
             );
+            self.check_exists(format!("{at}/from"), from, &contexts);
+            if let Some(to) = text(relation, "to") {
+                self.check_exists(format!("{at}/to"), to, &contexts);
+            }
             if let Some(site) = relation.get("at") {
                 self.check_locator(format!("{at}/at"), site, &contexts);
             }
@@ -1294,25 +1390,32 @@ impl<'a> Checker<'a> {
         for (i, membership) in self.list("public-api").iter().enumerate() {
             let at = format!("/public-api/{i}");
             let distribution = text(membership, "distribution").unwrap_or_default();
-            self.expect(
-                format!("{at}/distribution"),
-                distribution,
-                &[Class::Distribution],
-            );
+            let resolved = self
+                .expect(
+                    format!("{at}/distribution"),
+                    distribution,
+                    &[Class::Distribution],
+                )
+                .is_some();
             let id = text(membership, "entity").unwrap_or_default();
             // A forwarded type is a member that is an external entity.
             let entity = match self.ids.get(id) {
                 Some((Class::External, _)) => None,
                 _ => self.expect(format!("{at}/entity"), id, &[Class::Entity]),
             };
-            let exists = self.entity_contexts(id);
+            // A forwarded external type holds wherever the dataset does.
+            let built = match entity {
+                Some(_) => self.built_contexts(id),
+                None => self.all.clone(),
+            };
             let contexts = self.fact_contexts(
                 &at,
                 membership,
-                exists.clone(),
-                &exists,
-                &format!("entity `{id}`"),
+                built.clone(),
+                &built,
+                &format!("the unit of `{id}`"),
             );
+            self.check_exists(format!("{at}/entity"), id, &contexts);
             let earlier = seen.entry((distribution, id)).or_default();
             if let Some(shared) = earlier.iter().find_map(|theirs| overlap(theirs, &contexts)) {
                 self.error(
@@ -1325,7 +1428,9 @@ impl<'a> Checker<'a> {
                 );
             }
             earlier.push(contexts.clone());
-            let Some(entity) = entity else { continue };
+            let Some(entity) = entity.filter(|_| resolved) else {
+                continue;
+            };
 
             let distributions: BTreeSet<&str> = self
                 .units_of(entity)
@@ -1377,8 +1482,11 @@ impl<'a> Checker<'a> {
             let mut keys: BTreeMap<Vec<String>, Vec<Contexts<'a>>> = BTreeMap::new();
             for (j, fact) in facts.as_array().into_iter().flatten().enumerate() {
                 let at = format!("/extensions/{kind}/{j}");
-                let all = self.all.clone();
-                let contexts = self.fact_contexts(&at, fact, all.clone(), &all, "the dataset");
+                let (built, what) = match self.extension_owner(fact, extension) {
+                    Some(owner) => (self.built_contexts(owner), format!("the unit of `{owner}`")),
+                    None => (self.all.clone(), "the dataset".to_string()),
+                };
+                let contexts = self.fact_contexts(&at, fact, built.clone(), &built, &what);
                 for (member, names) in extension.members {
                     let Some(value) = fact.get(*member) else {
                         continue;
@@ -1411,6 +1519,24 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// The record whose unit owns an extension fact: the first member, in
+    /// the profile's order, that names a project entity or a unit, or the
+    /// `from` entity of a named reference or relation.
+    fn extension_owner(
+        &self,
+        fact: &'a Value,
+        extension: &crate::rules::Extension,
+    ) -> Option<&'a str> {
+        extension.members.iter().find_map(|(member, _)| {
+            let id = text(fact, member)?;
+            match self.ids.get(id)? {
+                (Class::Entity | Class::Unit, _) => Some(id),
+                (Class::Reference | Class::Relation, record) => text(record, "from"),
+                _ => None,
+            }
+        })
+    }
+
     fn check_extension_member(
         &mut self,
         at: String,
@@ -1421,7 +1547,9 @@ impl<'a> Checker<'a> {
         let id = value.as_str();
         match (names, id) {
             (Names::Entity, Some(id)) => {
-                self.expect(at, id, &[Class::Entity]);
+                if self.expect(at.clone(), id, &[Class::Entity]).is_some() {
+                    self.check_exists(at, id, contexts);
+                }
             }
             (Names::EntityOrExternal, Some(id)) => {
                 self.expect(at, id, &[Class::Entity, Class::External]);
@@ -1432,12 +1560,9 @@ impl<'a> Checker<'a> {
             (Names::UnitOrEntity, Some(id)) => {
                 self.expect(at, id, &[Class::Unit, Class::Entity, Class::External]);
             }
-            (Names::UnitOrName, Some(id)) => {
-                // A name that is not an id is an external assembly name.
-                if self.ids.contains_key(id) {
-                    self.expect(at, id, &[Class::Unit]);
-                }
-            }
+            // A unit id, or else an external assembly name, which may equal
+            // the id of a record of another kind.
+            (Names::UnitOrName, _) => {}
             (Names::Distribution, Some(id)) => {
                 self.expect(at, id, &[Class::Distribution]);
             }
@@ -1650,13 +1775,13 @@ impl<'a> Checker<'a> {
                 continue;
             };
             let generated = go_generated_header(source);
-            let origin = text(document, "origin").unwrap_or_default();
-            let expected = if generated { "generated" } else { "source" };
-            if origin != expected {
+            // The header makes a file generated; a generator may also write
+            // a file without one.
+            if generated && text(document, "origin") != Some("generated") {
                 self.error(
                     "go:generated-origin",
                     format!("/documents/{i}/origin"),
-                    format!("`{path}` has origin `{expected}` by its generated-code header"),
+                    format!("`{path}` has a generated-code header, so its origin is `generated`"),
                 );
             }
         }
@@ -1757,20 +1882,44 @@ fn external_access(boundary: &Value) -> &'static str {
 }
 
 /// Whether a Go file has a line matching `^// Code generated .* DO NOT
-/// EDIT\.$` before its package clause.
+/// EDIT\.$` before its package clause. Lines inside a block comment are
+/// not the package clause.
 fn go_generated_header(source: &SourceText) -> bool {
     const HEAD: &str = "// Code generated ";
     const TAIL: &str = " DO NOT EDIT.";
+    let mut in_block = false;
     for line in 1..=source.lines() {
         let content = source.line(line).unwrap_or_default();
-        if content.trim_start().starts_with("package ") {
-            return false;
-        }
         if content.len() >= HEAD.len() + TAIL.len()
             && content.starts_with(HEAD)
             && content.ends_with(TAIL)
+            && !in_block
         {
             return true;
+        }
+        let mut rest = content.as_str();
+        loop {
+            if in_block {
+                match rest.find("*/") {
+                    Some(end) => {
+                        in_block = false;
+                        rest = &rest[end + 2..];
+                    }
+                    None => break,
+                }
+            } else {
+                let code = rest.trim_start();
+                if let Some(after) = code.strip_prefix("/*") {
+                    in_block = true;
+                    rest = after;
+                } else if code.is_empty() || code.starts_with("//") {
+                    break;
+                } else {
+                    // The first token outside comments is the package
+                    // clause in a valid Go file.
+                    return false;
+                }
+            }
         }
     }
     false
