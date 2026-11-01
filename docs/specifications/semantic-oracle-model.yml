@@ -278,6 +278,23 @@ description: |
   | `declared-visibility` | The visibility the source states or the language defaults. |
   | `effective-visibility` | Access at each boundary. |
 
+  `declared-visibility`, `effective-visibility` and `language-kind` are
+  context-variant attributes. Each is either one value that holds in every
+  context of the entity, or a list of `{contexts, value}` entries whose
+  context lists are disjoint and together equal the entity's contexts:
+
+  ```yaml
+  effective-visibility:
+    - contexts: [default]
+      value: {unit: all, project: none, external: none}
+    - contexts: [with-feature]
+      value: {unit: all, project: all, external: all}
+  ```
+
+  Every other entity member holds in all of the entity's contexts. A
+  difference in unit, path, kind, parent or definition sites is a different
+  record, by the identity rules below.
+
   ### Common entity kinds
 
   | Kind | Elements |
@@ -689,95 +706,168 @@ description: |
   | Form | Members |
   | --- | --- |
   | `document` | `path`, `sha256` when the index records it. |
-  | `definition` | `at`, `unit`, `path`, `kind` when known. |
-  | `reference` | `at`, the target key, `role` when known, `from` when known. |
+  | `membership` | `path`, unit key. |
+  | `definition` | `at`, entity key. |
+  | `reference` | `at`, target key, `role` when known, `from` key when known. |
   | `relation` | `kind`, `from` key, `to` key, `name` for `exports`. |
-  | `visibility` | entity key, boundary, access; or declared value. |
-  | `public-api` | distribution, entity key, path. |
-  | `extension` | extension kind and its key members. |
+  | `visibility` | entity key, boundary and access, or the declared value. |
+  | `public-api` | distribution, entity key, one consumer path, access when known. |
+  | `extension` | extension kind and its members. |
 
-  A target or entity key is either a project entity key `(unit key, path)`
-  or an external key. Coordinates are converted to this specification's
-  locator coordinates from the encoding the index declares, using the
-  document bytes. An adapter declares its capabilities: the observation
-  forms, fact kinds, roles, boundaries and extensions it can produce.
+  An entity key is either a project key `(unit key, path, kind)` or an
+  external key `(distribution, version, path, kind)`. An adapter that cannot
+  supply `kind` emits a key without it; such a key resolves to an entity
+  only when exactly one entity in the context has that unit key and path,
+  or that distribution, version and path.
+
+  Coordinates are converted to this specification's locator coordinates
+  from the encoding the index declares, using the document bytes. An
+  adapter declares its capabilities: the observation forms, fact kinds,
+  roles, boundaries and extensions it can produce.
 
   An index is produced under exactly one context. The evaluation run binds
-  each index to a context id of the dataset.
+  each index to a context id of the dataset. Evaluation runs once per bound
+  context; a fact that holds in several bound contexts is evaluated once in
+  each.
 
-  ### Matching
+  ### Comparison units
 
-  Evaluation compares facts and observations within one context:
+  Facts are compared as atomic units. In one context:
 
-  1. Documents. An observation for a path whose digest differs from the
-     inventory digest makes the run `stale` for that document; its facts and
-     observations are reported as stale and not compared further.
-  2. Entities. A definition observation matches the entity whose unit and
-     path equal the observation's key and whose definition sites include the
-     observation's site. When the observation carries no unit or path, it
-     matches by site; when the site defines several entities in the context,
-     the observation is `wrong-target` with reason `conflated`, and each of
-     those entities that no other observation matches is `missing`.
-  3. References. A reference observation matches the reference fact at the
-     same site in the context, applying the profile's alternate-span rule.
-     Where the site has several facts, the observation's `from` key selects
-     the fact; without a `from` key, the fact whose target equals the
-     observation's target is selected, and the role selects between two
-     references of one token. Then the target key is compared, then the
-     role, then `from`.
-  4. Relations. A relation observation matches the fact with the same kind,
-     `from` and `to`; for `exports`, also `name`.
-  5. Visibility. A visibility observation matches the entity's value for
-     the same boundary.
-  6. Public API. A public API observation matches the membership with the
-     same distribution and entity; its path is compared with `paths`.
-  7. Extensions. An extension observation matches by the extension's key.
+  | Unit | Identity of the unit |
+  | --- | --- |
+  | document membership | `(path, unit)` for each member of an indexed document |
+  | definition | `(entity, site)` for each definition site; `(entity, anchor)` for an entity without definition sites |
+  | reference | one reference fact: `(site, from, role)` |
+  | relation | one relation fact: `(kind, from, to, name)` |
+  | declared visibility | `(entity)` |
+  | effective visibility | `(entity, boundary)` |
+  | public API | `(distribution, entity, path)` for each consumer path |
+  | extension | one extension fact, identified by its key members |
+
+  Observations are normalized the same way: one observation is one unit of
+  its form. Every count in a report counts units.
+
+  ### Pairing
+
+  For each form, evaluation pairs observations with fact units in three
+  passes. Each fact unit and each observation is paired at most once.
+
+  1. **Exact pass.** An observation pairs with an unpaired fact unit whose
+     identity it equals and whose compared members all agree, directly or by
+     a profile equivalence rule. The pair is `matched`.
+  2. **Key pass.** An unpaired observation pairs with an unpaired fact unit
+     that shares its pairing key, when exactly one such fact unit remains
+     for that observation. The pair is incorrect, in the category of the
+     first differing member in this precedence: target, role, `from`, value.
+  3. **Remainder.** Unpaired fact units are `missing`, or `unsupported` when
+     the adapter does not declare their capability. Unpaired observations
+     are `unexpected`, or `out-of-profile` when they describe something in
+     the v1 out-of-profile set.
+
+  An observation that omits an optional member, such as `role` or `from`,
+  is compared without that member. When several unpaired fact units then
+  agree with it in the exact pass, it pairs with the first in canonical
+  order.
+
+  An observation whose identity equals an already `matched` pair's
+  observation is a duplicate: it is counted as `duplicate`, takes no fact
+  unit, and enters neither precision nor recall.
+
+  Pairing keys for the key pass:
+
+  | Form | Pairing key | Compared members |
+  | --- | --- | --- |
+  | membership | `path` | unit |
+  | definition | site | entity key, then kind |
+  | reference | site; where several unpaired facts remain at the site, the one whose `from` equals the observation's `from` | target, then role, then `from` |
+  | relation | `(kind, from)`; `(kind, from, name)` for `exports` | `to` |
+  | declared visibility | entity | value |
+  | effective visibility | `(entity, boundary)` | access and scope |
+  | public API | `(distribution, entity)` | path, then access |
+  | extension | the extension's key members | the extension's compared members |
+
+  Processing is deterministic: within a form, observations are taken in
+  ascending order of site, then of key members as strings.
+
+  A definition observation whose site defines several entities in the
+  context and whose key resolves to none of them is `wrong-target` with
+  reason `conflated`; it pairs with no fact unit, and those entities' units
+  at that site that remain unpaired are `missing`. A reference observation
+  at a site with several unpaired facts, no exact pair and no fact whose
+  `from` equals its `from` is `unexpected` with reason `unattributed`. A document observation whose
+  digest differs from the inventory makes that document `stale`: every fact
+  unit and observation located in it is counted as `stale` and in no other
+  category.
+
+  When an `unexpected` observation's identity equals a fact unit that holds
+  in another context, the report marks it `context-mismatch`.
+
+  ### Dispositions
+
+  - `candidates`: an observation whose target is in `candidates` is an exact
+    pair; another target pairs in the key pass as `wrong-target`; no
+    observation leaves the fact unit `missing`.
+  - `nonexistent`: the fact unit is `matched` when no reference observation
+    occurs at its site; an observation at its site pairs with it as
+    `wrong-target`.
+  - `indeterminate`: the fact unit and every observation at its site are
+    counted as `indeterminate` and in no other category.
 
   ### Categories
 
-  Each fact and each observation lands in exactly one category:
+  Each fact unit and each observation lands in exactly one category:
 
   | Category | Rule |
   | --- | --- |
-  | `matched` | The observation matches a fact and every compared member agrees, directly or by a profile equivalence rule. |
-  | `missing` | A fact in a capability the adapter declares has no matching observation. |
-  | `unexpected` | An in-profile observation matches no fact in its context. When a fact with the same key holds in another context, the report marks it `context-mismatch`. |
-  | `wrong-target` | The observation matches a fact by site or key but names a different target, or conflates entities. |
-  | `wrong-role` | Site and target agree; the role differs. |
-  | `wrong-source` | Site, target and role agree; `from` differs. |
-  | `wrong-value` | The key agrees; a compared value differs: entity kind, declared or effective visibility, public API path or access, extension value. |
-  | `unsupported` | A fact in a fact kind, role, boundary or extension the adapter does not declare. |
-  | `out-of-profile` | An observation of something in the v1 out-of-profile set. |
-  | `stale` | A fact or observation in a document whose digests disagree. |
+  | `matched` | Exact pass pair, or `nonexistent` fact with no observation. Counted once per pair. |
+  | `missing` | Unpaired fact unit in a declared capability. |
+  | `unexpected` | Unpaired in-profile observation; may carry `context-mismatch` or `unattributed`. |
+  | `wrong-target` | Key pass pair whose target or entity key differs, or a `conflated` observation. |
+  | `wrong-role` | Key pass pair whose target agrees and role differs. |
+  | `wrong-source` | Key pass pair whose target and role agree and `from` differs. |
+  | `wrong-value` | Key pass pair whose compared value differs: kind, declared or effective visibility, public API path or access, membership unit, extension value. |
+  | `duplicate` | Observation equal to an already matched observation. |
+  | `unsupported` | Fact unit outside the adapter's declared capabilities. |
+  | `out-of-profile` | Observation in the v1 out-of-profile set. |
+  | `stale` | Fact unit or observation in a document whose digests disagree. |
+  | `indeterminate` | Fact unit with that disposition and observations at its site. |
 
   `incorrect` is the union of `wrong-target`, `wrong-role`, `wrong-source`
-  and `wrong-value`.
+  and `wrong-value`. A key pass pair counts once as incorrect.
 
-  Dispositions apply as follows:
+  ### Controlled cases
 
-  - `candidates`: an observation whose target is in `candidates` is
-    `matched`; any other target is `wrong-target`; no observation is
-    `missing`.
-  - `nonexistent`: no observation is `matched`; an observation with a target
-    is `wrong-target`.
-  - `indeterminate`: the fact and any observation at its site are counted in
-    `indeterminate` and in no other category.
+  | Facts | Observations | Result |
+  | --- | --- | --- |
+  | `inherits A→B` | `inherits A→C` | one `wrong-target` |
+  | `implements A→B`, `implements A→D` | `implements A→C` | `unexpected` A→C; `missing` A→B and A→D |
+  | entity with sites S1 and S2 | definitions at S1 and S2 | two `matched` |
+  | entity with sites S1 and S2 | definition at S1 twice | one `matched`, one `duplicate`, one `missing` |
+  | public API paths P1 and P2 | path P1 only | one `matched`, one `missing` |
+  | public API path P1 | path P3 only | one `wrong-value` |
+  | references at site S from F1→T1 and F2→T2 | at S, no `from`, target T1 | one `matched` (F1); F2 `missing` |
+  | references at site S from F1→T1 and F2→T2 | at S, no `from`, target T3 | `unexpected (unattributed)`; two `missing` |
+  | reference at S, target T, role `call` | at S, target T, role `read` | one `wrong-role` |
 
   ### Reports
 
   A report is deterministic for one dataset, one index, one adapter version
-  and one context binding. It states counts for every category, grouped by
-  project, context, fact kind, role, disposition, origin, basis and API
-  boundary, where API boundary separates facts about public API members
-  from all other facts. It lists every non-matched fact and observation with
+  and one context binding. It states unit counts for every category,
+  grouped by project, context, fact kind, role, disposition, origin, basis
+  and API boundary, where API boundary separates units about public API
+  members from all other units. It lists every unit not in `matched` with
   its site or key.
 
-  A report gives, for each grouping, micro counts and macro values:
+  For each grouping a report gives micro counts and macro values:
 
-  - micro counts sum facts and observations across the grouping;
-  - macro values compute `recall = matched / (matched + missing +
-    incorrect)` and `precision = matched / (matched + unexpected +
-    incorrect)` per project and take the unweighted mean across projects.
+  - micro counts sum units across the grouping;
+  - `recall = matched / (matched + missing + incorrect)` and
+    `precision = matched / (matched + unexpected + incorrect)`;
+  - macro values compute each rate per project and take the unweighted mean
+    over projects whose denominator is non-zero; the report states how many
+    projects each mean excludes for a zero denominator, and a rate with a
+    zero denominator is reported as undefined, never as 0 or 1.
 
   A report contains no single score that combines fact kinds or categories.
 
@@ -961,7 +1051,9 @@ validation-criteria: |
      evaluated indexer output.
 
   An evaluator conforms when, for controlled datasets and controlled
-  indexes, it assigns every fact and observation the category this
-  specification defines, including `conflated`, `context-mismatch`,
-  `stale`, `unsupported`, `out-of-profile` and each disposition rule, and
-  its reports contain no cross-category aggregate score.
+  indexes, it assigns every fact unit and observation the category this
+  specification defines, reproduces every row of the controlled cases
+  table, applies `conflated`, `unattributed`, `context-mismatch`,
+  `duplicate`, `stale`, `unsupported`, `out-of-profile` and each
+  disposition rule, reports undefined rates for zero denominators, and
+  contains no cross-category aggregate score.
