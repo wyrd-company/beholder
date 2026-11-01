@@ -11,8 +11,6 @@ pub enum Names {
     EntityOrExternal,
     /// A unit.
     Unit,
-    /// A unit, a project entity or an external entity.
-    UnitOrEntity,
     /// A unit by id, or an external assembly by name.
     UnitOrName,
     /// A distribution.
@@ -215,7 +213,7 @@ const DART: ProfileRules = ProfileRules {
         },
         Extension {
             kind: "dart:deferred-import",
-            members: &[("unit", Unit), ("library", UnitOrEntity)],
+            members: &[("unit", Unit), ("library", Entity)],
             key: &["unit", "prefix"],
         },
     ],

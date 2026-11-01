@@ -219,7 +219,7 @@ description: |
   | --- | --- | --- | --- |
   | `dart:visibility-annotation` | `entity`, `annotation`: `protected`, `visibleForTesting`, `visibleForOverriding`, `internal` or `nonVirtual` | `entity`, `annotation` | none |
   | `dart:mixin-application` | `relation`: the id of an `inherits` relation from a `with` clause | `relation` | none |
-  | `dart:deferred-import` | `unit`, `prefix`, `library`: the deferred library | `unit`, `prefix` | `library` |
+  | `dart:deferred-import` | `unit`, `prefix`, `library`: the root entity of the deferred library's unit | `unit`, `prefix` | `library` |
 
   All three extensions are required.
 

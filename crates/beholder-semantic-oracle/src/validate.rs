@@ -1283,13 +1283,17 @@ impl<'a> Checker<'a> {
                             let resolves = matches!(
                                 self.ids.get(member),
                                 Some((Class::Entity | Class::Unit, _))
-                            ) || self.documents.contains_key(member);
+                            ) || self.documents.contains_key(member)
+                                || member
+                                    .strip_prefix("external:")
+                                    .is_some_and(|key| !key.is_empty());
                             if !resolves {
                                 self.error(
                                     "model:id-reference",
                                     format!("{access_at}/{qualifier}/{k}"),
                                     format!(
-                                        "`{member}` names no entity, unit or inventory document"
+                                        "`{member}` names no entity, unit, inventory document \
+                                         or external unit"
                                     ),
                                 );
                             }
@@ -1685,18 +1689,6 @@ impl<'a> Checker<'a> {
             }
             (Names::Unit, Some(id)) => {
                 self.expect(at, id, &[Class::Unit]);
-            }
-            (Names::UnitOrEntity, Some(id)) => {
-                if self
-                    .expect(
-                        at.clone(),
-                        id,
-                        &[Class::Unit, Class::Entity, Class::External],
-                    )
-                    .is_some()
-                {
-                    self.check_exists(at, id, contexts);
-                }
             }
             // A unit id, or else an external assembly name, which may equal
             // the id of a record of another kind.

@@ -43,11 +43,11 @@ description: |
   | `mode` | `build` or `test`. |
   | `goos` | `GOOS`. |
   | `goarch` | `GOARCH`. |
-  | `arch-level` | The architecture level variable for `goarch`, such as `GOAMD64`. |
+  | `arch-level` | The value of the architecture level variable for `goarch`, such as `v1` for `GOAMD64`, or `none` when `goarch` has no level variable. |
   | `cgo` | `CGO_ENABLED` as `true` or `false`. |
   | `tags` | The sorted `-tags` list. |
   | `compiler` | `gc` or `gccgo`. |
-  | `module-root` | The project-relative directory of the main module or `go.work` the command uses. |
+  | `module-root` | The project-relative directory of the main module or `go.work` the command uses; `.` for the project root. |
   | `go-version` | The language version the module's `go` directive selects. |
   | `patterns` | The package patterns the command names. |
 
@@ -206,7 +206,12 @@ description: |
   - External key path: the entity path at the defining package.
     `distribution` is the module path; `version` is present when the build
     list contains two major versions of one module path. Standard library
-    packages use distribution `std`.
+    packages use distribution `std`. A predeclared identifier is an external
+    of distribution `std` with path `builtin.<name>`, and the kind and
+    `language-kind` of its declaration in the `builtin` package source:
+    `int` is a `defined` type, `byte`, `rune` and `any` are aliases,
+    `error` and `comparable` are interfaces, `len` is a `func`, `true`,
+    `false` and `iota` are `const`, and `nil` is a `var`.
 
   ## Dispositions
 

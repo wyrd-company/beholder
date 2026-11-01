@@ -105,7 +105,8 @@ description: |
     `declare module "x"` has the path `ambient:"x"`.
   - A declaration path is `<module path>#<name>` followed by `.`-separated
     member names, such as `"src/shapes.ts"#Circle.area`. Static members use
-    `.` as well; `language-kind` records `static`.
+    `.` as well; their `language-kind` is `static-method`, `static-field` or
+    `static-accessor`.
   - A default export is `#default`; an `export =` target is `#export=`.
   - A private name `#x` keeps its `#` in the member segment.
   - A global declaration is `global#<name>`.
@@ -126,11 +127,11 @@ description: |
   | `interface` | `type` | `interface` |
   | `enum`, `const enum` | `type` | `enum` or `const-enum` |
   | `type` alias | `type-alias` | `type` |
-  | function declaration, method, constructor | `callable` | `function`, `method` or `constructor` |
+  | function declaration, method, constructor | `callable` | `function`, `method`, `static-method` or `constructor` |
   | index, call and construct signatures of an interface or type literal member | `callable` | `index-signature`, `call-signature` or `construct-signature` |
-  | class field, parameter property | `field` | `field` or `parameter-property` |
+  | class field, parameter property | `field` | `field`, `static-field` or `parameter-property` |
   | property signature of an interface | `field` | `property-signature` |
-  | `get` and `set` accessor pair | `property` | `accessor` |
+  | `get` and `set` accessor pair | `property` | `accessor` or `static-accessor` |
   | module-level `let`, `var` | `variable` | `let` or `var` |
   | module-level `const` | `variable` | `const` |
   | enum member | `enum-member` | `enum-member` |
@@ -176,8 +177,10 @@ description: |
   Values for module-level declarations: `exported`, `exported-default` and
   `module`, with `module` the default. Values for class members: `public`,
   `protected`, `private` and `ecmascript-private` for `#` names, with
-  `public` the default. Interface and type members: `inherited`. Namespace
-  members: `exported` or `namespace`.
+  `public` the default. Interface, type and enum members: `inherited`.
+  Namespace members: `exported` or `namespace`. A source-file module has
+  `{value: exported, explicit: false}`; it has no name token, so it has no
+  definition site and no `anchor`.
 
   ## Effective visibility
 
@@ -194,7 +197,9 @@ description: |
   ## Public API
 
   A distribution's public API in a context consists of every entity that has
-  a consumer path:
+  a consumer path. Rules 1 and 2 select the entry module of each subpath and
+  mode; the dataset records each selection as a `typescript:entry` fact.
+  Rule 3 gives the members of an entry module.
 
   1. When `package.json` has `exports` and the context's module resolution
      consults it (`moduleResolution` `node16`, `nodenext` or `bundler` with
@@ -219,10 +224,16 @@ description: |
      `resolvePackageJsonExports` false, `types`, `typings` or `main`, with
      `typesVersions` applied for the context's compiler version, selects the
      entry module for both modes.
-  3. The members are the entry module's export namespace, with `export *`
-     and re-exports followed, and the `public` and `protected` members of
-     exported classes, interfaces, enums and namespaces, with `protected`
-     members recorded with `access: subtypes`.
+  3. The members are the entry module's export namespace: its declarations
+     whose declared visibility is `exported`, under their names, or
+     `exported-default`, under `default`, and every name an `exports`
+     relation adds, with `export *` and re-exports followed. A member module
+     or namespace adds its own export namespace, with `.` between names. A
+     member class, interface or enum adds its `public`, `inherited` and
+     `protected` members, with `protected` members recorded with
+     `access: subtypes`. Constructors and members without a name, such as
+     index signatures, are not members. An external entity that a re-export
+     names is a member.
 
   ## References
 
@@ -306,11 +317,13 @@ description: |
 
   | Kind | Members | Key | Compared |
   | --- | --- | --- | --- |
-  | `typescript:module-format` | `unit`, `format`: `esm` or `cjs`, `contexts` | `unit` | `format` |
+  | `typescript:module-format` | `unit`, `format`: `esm` or `cjs`, and the fact's `contexts` | `unit` | `format` |
+  | `typescript:entry` | `distribution`, `mode`: `import` or `require`, `subpath`: `.` or `./<subpath>` as `exports` writes it after pattern expansion, `.` when Public API rule 2 applies, `module`: the entry module entity | `distribution`, `mode`, `subpath` | `module` |
   | `typescript:type-only` | `reference`: the id of an import, export or module-specifier reference that is elided from emit | `reference` | none |
   | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 
-  All three extensions are required.
+  All four extensions are required. A subpath and mode whose resolution
+  yields no TypeScript or declaration file has no `typescript:entry` fact.
 
   ## Authoring obligation
 
@@ -330,8 +343,8 @@ description: |
   6. Record every relation of the kinds above.
   7. Record declared and effective visibility for every entity other than
      parameters.
-  8. Record the public API of every distribution in every context, for both
-     modes.
+  8. Record the `typescript:entry` facts and the public API of every
+     distribution in every context, for both modes.
 validation-criteria: |
   A TypeScript dataset conforms when it conforms to `semantic-oracle-model`,
   every context derives from a `build` task command, every module specifier

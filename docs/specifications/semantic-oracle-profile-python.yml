@@ -51,7 +51,7 @@ description: |
 
   Every Python project has one `runtime` context and one `typing` context
   with the interpreter and platform the fixture plan declares. The
-  `search-path` is the project root followed by every root the project's
+  `search-path` is the project root, written `.`, followed by every root the project's
   configuration, `.pth` files in the project, or task commands add, in the
   order the import system consults them. Each command in the project's
   `build` and `test` tasks that runs Python with a different parameter value
@@ -145,7 +145,9 @@ description: |
   Values: `public`, `private-convention` for a leading underscore,
   `mangled` for a class-level name with two leading underscores and at most
   one trailing underscore, and `dunder` for names that begin and end with
-  two underscores. `explicit` is `true`.
+  two underscores. `explicit` is `true`. A module or package takes the
+  value of the last component of its module name. A module has no name
+  token, so it has no definition site and no `anchor`.
 
   ## Effective visibility
 
@@ -173,8 +175,14 @@ description: |
   - members of a public class are its attributes, methods and properties
     whose names do not begin with an underscore, plus dunder names.
 
-  Every public name is a member with the consumer path of the module and
-  name; the entity is the binding's target.
+  A public module is a member with its module name as consumer path. Every
+  public name is a member with the consumer path of the module and name;
+  the entity is the binding's target: the module's own entity of that name,
+  the target of the import binding, or, for a name `__all__` lists that the
+  module does not bind, the submodule of that name. A name `__all__` lists
+  that resolves to nothing adds no member. In a `typing` context a module
+  with a stub contributes through the stub unit, and a module without one
+  through its implementation unit.
 
   ## References
 
@@ -235,7 +243,10 @@ description: |
     names.
   - `exports`: each name a module-level or class-level import statement
     binds, from the module or class to the target, with `name` the bound
-    name; each name a star import binds.
+    name; each name a star import binds. `visibility` is `re-export` when
+    the import is a re-export form of the library interface rules
+    (`import a as a`, `from m import a as a`, `from . import a`,
+    `from m import *`), and `import` otherwise.
 
   ## Generated, synthetic and external entities
 

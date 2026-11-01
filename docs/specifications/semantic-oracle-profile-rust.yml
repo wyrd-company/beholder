@@ -87,11 +87,12 @@ description: |
   the same context. Valid source never names a `cfg(test)`-only item from an
   integration test, so this unification loses no reference fact.
 
-  A unit record carries the Rust attributes `package` and
-  `package-version`, the package name and version from its manifest,
-  `target-name`, the Cargo target name, `edition`, `crate-name`, `platform`
-  and `features`, the sorted features Cargo's feature resolver enables for
-  that unit; `features` is context-variant in the model's attribute form.
+  A unit's `name` is its crate name. A unit record carries the Rust
+  attributes `package` and `package-version`, the package name and version
+  from its manifest, `target-name`, the Cargo target name, `edition`,
+  `platform` and `features`, the sorted features Cargo's feature resolver
+  enables for that unit; `features` is context-variant in the model's
+  attribute form.
   The unit key is `package`, `package-version`, the unit kind,
   `target-name` and `platform`.
 
@@ -134,6 +135,9 @@ description: |
   same name in the same module is a redeclaration form; the second and later
   definitions append `#<n>`.
 
+  A crate root and an implementation block have no name token, so they have
+  no definition site and no `anchor`.
+
   A consumer path is the path a downstream crate writes, beginning with the
   dependency's crate name.
 
@@ -174,7 +178,9 @@ description: |
   `pub(in <path>)`, with `<path>` written as a canonical absolute path.
   `private` is the default for items, fields and inherent associated items.
   Enum variants, their fields, trait items and trait implementation items
-  have the value `inherited` with `explicit: false`.
+  have the value `inherited` with `explicit: false`. A crate root has
+  `{value: pub, explicit: false}`. An implementation block has
+  `{value: private, explicit: false}`.
 
   ## Effective visibility
 
@@ -189,19 +195,30 @@ description: |
     `none` and is recorded by the `rust:reachable-unnameable` extension.
   - `project`: equal to `external`. Other crates of a workspace consume a
     crate exactly as a downstream crate does.
+  - A crate root has `unit: all`, and `project` and `external` by the rule
+    above: `all` for a `lib` or `proc-macro` crate root, `none` for others.
+    An implementation block has `unit` scoped to its module and `project`
+    and `external` `none`. A trait implementation item has the effective
+    visibility of the trait item it implements.
 
   ## Public API
 
   The public API of a distribution is the set of entities of its `lib` or
   `proc-macro` unit that have at least one consumer path in the context. A
-  consumer path exists for an entity when it is `pub` and every segment of
-  the path is a `pub` module, a `pub` re-export, or a glob re-export that
-  includes a `pub` name. Members are:
+  consumer path starts at the crate root, written as the crate name, and
+  continues through names that a downstream crate can use: in a module, its
+  children whose declared visibility is `pub` and the names that its `pub`
+  `use` items and `pub` glob re-exports add (`exports` relations with
+  `visibility: pub`); in a member type, its variants, its `pub` fields and
+  variant fields, its trait items and its `pub` inherent associated items.
+  Members are:
 
+  - the crate root, with the crate name as its consumer path;
   - modules, types, type aliases, functions, statics, constants, enum
     variants, `pub` fields of members, trait items of member traits, `pub`
     inherent associated items of member types, and `#[macro_export]` macros;
-  - procedural macros of a `proc-macro` unit.
+  - procedural macros of a `proc-macro` unit;
+  - external entities that a `pub` re-export names.
 
   Trait implementation items are not members; they are reached through the
   trait's items. `#[doc(hidden)]` does not remove membership.
@@ -255,7 +272,8 @@ description: |
     definition is a path to a nominal type without type arguments.
   - `exports`: each name a `pub` or `pub(...)` `use` adds to a module, with
     `name` set to the bound name; each name a glob re-export adds, with `at`
-    on the `*` token.
+    on the `*` token. `visibility` is the declared visibility of the `use`
+    item, written as declared visibility values are.
 
   ## Generated, synthetic and external entities
 
@@ -295,7 +313,7 @@ description: |
   1. Inventory every tracked file with its disposition and every indexed
      file's unit and context members.
   2. Declare every context the project's `build` and `test` tasks define.
-  3. Declare every unit with `edition` and `crate-name`, and every
+  3. Declare every unit with its crate name and `edition`, and every
      distribution.
   4. Record every entity of the kinds in the entity table, in every context,
      including generated items and their extension facts.

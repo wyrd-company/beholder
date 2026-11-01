@@ -159,8 +159,8 @@ description: |
   | `file` | `scoped` to the declaring document | `none` |
 
   A friend unit is a unit that an `InternalsVisibleTo` attribute of the
-  declaring assembly names. `external` friends are listed by assembly name
-  as external units.
+  declaring assembly names. A friend outside the project is the scope member
+  `external:<assembly name>`.
 
   ## Public API
 
@@ -168,8 +168,8 @@ description: |
   `external` access is `all` or includes `subtypes`, together with every
   type the unit forwards with `TypeForwardedTo`. A forwarded type is a member
   with the consumer path of the forwarded type, and the
-  `csharp:type-forward` extension records the forward. Namespaces are not
-  members.
+  `csharp:type-forward` extension records the forward. Namespaces and
+  extension blocks are not members; the members of an extension block are.
 
   ## References
 
