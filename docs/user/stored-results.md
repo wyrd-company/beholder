@@ -17,10 +17,38 @@ git fetch origin +refs/beholder/*:refs/beholder/*
 git push origin +refs/beholder/*:refs/beholder/*
 ```
 
-Beholder does not replace those commands. The leading `+` lets Git update a
-non-branch ref; the Action's own index push is never forced. Concurrent writers
-use compare-and-swap, and a rejected writer fetches the winning tip, rebuilds on
-it, and retries.
+The leading `+` lets Git update a non-branch ref. To publish without
+overwriting another writer, push the index without `+`:
+
+```bash
+git push origin refs/beholder/index:refs/beholder/index
+```
+
+Beholder can fetch the ref itself. It keeps local index commits on top of what
+it fetched:
+
+```bash
+beholder store --fetch origin
+```
+
+Beholder does not push. Its fetch uses the repository's Git configuration, but
+not URL-scoped `http.<url>.*` keys. If your credential is stored as
+`http.<url>.extraHeader`, as `actions/checkout` stores its token, fetch with Git.
+
+## Concurrent writers
+
+Local ref updates use compare-and-swap. A rejected push means another writer
+published first. Fetch their tip, rebuild your index commits on it, and push
+again:
+
+```bash
+git fetch origin refs/beholder/index
+beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
+git push origin refs/beholder/index:refs/beholder/index
+```
+
+The Action does this for you. Its push is never forced, and only a rejected ref
+starts a rebuild. Other push failures stop the publish step.
 
 ## Index history
 
