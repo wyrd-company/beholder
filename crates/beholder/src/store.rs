@@ -385,18 +385,8 @@ impl<'r> Store<'r> {
     /// The ref moves by compare-and-swap against the tip this started from, so
     /// a local writer that lands in between is rebuilt as well, not lost.
     pub fn rebuild_onto(&self, theirs: Oid) -> Result<Reconciled> {
-        // Parent 1 of an index commit is the previous index; parent 1 of an
-        // ordinary merge is not. Walking a source commit as if it were an index
-        // would graft unrelated history onto the ref.
-        let commit = self
-            .repo
-            .find_commit(theirs)
-            .with_context(|| format!("{theirs} is not a commit in this repository"))?;
-        let tree = commit.tree().context("reading an index tree")?;
-        read_json::<Meta>(&tree, META_PATH)?
-            .with_context(|| format!("{theirs} is not an index commit: it has no {META_PATH}"))?;
-
-        let shared: HashSet<Oid> = self.index_ancestry(Some(theirs))?.into_iter().collect();
+        // The incoming chain is checked whole before the ref can move onto it.
+        let shared: HashSet<Oid> = self.checked_index_chain(theirs)?.into_iter().collect();
 
         for _ in 0..self.attempts {
             let mine = self.tip()?;
@@ -449,6 +439,49 @@ impl<'r> Store<'r> {
             self.refname,
             self.attempts
         )
+    }
+
+    /// Every commit of the index chain at `tip`, newest first, each checked
+    /// against the index commit convention.
+    ///
+    /// A tip from elsewhere is not trusted. Parent 1 of an index commit is the
+    /// previous index, but parent 1 of an ordinary merge is not, and a copied
+    /// index tree on a commit without a source parent would read as an index
+    /// until something asked for its source. Every commit must have one or two
+    /// parents, a readable `meta.json`, and a source parent that is the commit
+    /// its `meta.json` names.
+    fn checked_index_chain(&self, tip: Oid) -> Result<Vec<Oid>> {
+        let chain = self.index_ancestry(Some(tip))?;
+
+        for &id in &chain {
+            let not_an_index = |why: String| anyhow::anyhow!("{id} is not an index commit: {why}");
+
+            let commit = self
+                .repo
+                .find_commit(id)
+                .with_context(|| format!("{id} is not a commit in this repository"))?;
+            let parents = commit.parent_ids().count();
+            if !(1..=2).contains(&parents) {
+                return Err(not_an_index(format!("it has {parents} parents")));
+            }
+
+            let tree = commit.tree().context("reading an index tree")?;
+            let meta = read_json::<Meta>(&tree, META_PATH)
+                .map_err(|err| not_an_index(format!("{err:#}")))?
+                .ok_or_else(|| not_an_index(format!("it has no {META_PATH}")))?;
+
+            let source = parent(self.repo, id, 0)?
+                .expect("a commit with a parent")
+                .to_string();
+            if meta.source_commit != source {
+                return Err(not_an_index(format!(
+                    "its {META_PATH} names {} but its source parent is {source}",
+                    meta.source_commit
+                )));
+            }
+        }
+
+        Ok(chain)
     }
 
     /// Every index commit reachable from a tip, newest first, following parent 1.

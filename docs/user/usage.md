@@ -69,7 +69,7 @@ beholder store --fetch origin
 After a rejected push, rebuild local index commits on the tip that won:
 
 ```bash
-git fetch origin refs/beholder/index
+git fetch --refmap= origin refs/beholder/index
 beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
 ```
 
