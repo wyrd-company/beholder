@@ -141,7 +141,7 @@ description: |
   | `internal` | `all` | `scoped` to friend units, otherwise `none` |
   | `protected` | `[{access: scoped, scope: [<type>]}, subtypes]` | `subtypes` |
   | `protected internal` | `all` | `[subtypes, {access: scoped, scope: <friend units>}]` |
-  | `private protected` | `[{access: scoped, scope: [<type>]}, subtypes]` | `subtypes` within friend units, otherwise `none` |
+  | `private protected` | `[{access: scoped, scope: [<type>]}, subtypes]` | `{access: subtypes, within: <friend units>}` when friend units exist at the boundary, otherwise `none` |
   | `private` | `scoped` to the containing type | `none` |
   | `file` | `scoped` to the declaring document | `none` |
 
