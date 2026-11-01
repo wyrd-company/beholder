@@ -337,6 +337,12 @@ description: |
   - One entity can have several definition sites: partial declarations,
     merged declarations and declarations spread over several documents.
     Several sites do not make an entity ambiguous.
+  - A profile may define an augmentation form: a declaration in one unit's
+    document that the language merges into an entity owned by another unit
+    or by an external distribution. A merged entity keeps its owning unit
+    and path; the augmenting site is one of its definition sites. A member
+    that an augmentation adds to an external entity is a project entity of
+    the augmenting unit, and the profile states its path.
   - An entity that exists in several contexts with the same unit, path and
     sites is one record with several contexts. When contexts select
     different definition sites for one unit, path and kind, the dataset has
@@ -1070,7 +1076,9 @@ validation-criteria: |
      canonical.
   4. Every locator is valid and no locator is stale.
   5. Every fact's contexts are declared contexts, and every fact holds only
-     in contexts in which its unit is built and its document is a member.
+     in contexts in which its unit is built and the document of each of its
+     sites is a member of a unit; a site in another unit's document occurs
+     only through a profile's augmentation form.
   6. Every reference has exactly one disposition with the members that
      disposition requires.
   7. Every `public-api` entry agrees with the membership recomputed from

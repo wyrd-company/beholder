@@ -133,6 +133,22 @@ description: |
   A function, class or enum and a namespace of the same name are two
   entities of different kinds.
 
+  Module augmentation is the profile's augmentation form. A
+  `declare module "<specifier>"` block in a module, whose specifier
+  resolves in the context to another module, merges as if declared in the
+  resolved module. Each declaration in the block that merges with a
+  declaration of the resolved module is a definition site of that entity,
+  which keeps the resolved module's unit and path. Each declaration that
+  adds a new name is an entity of the resolved module's unit, with the
+  resolved module's path, `parent` the resolved module, and its site in the
+  augmenting document. A `declare global` block augments the global
+  namespace entity in the same way. When the augmented declaration is
+  external, such as a standard library interface, an added member is an
+  entity of the augmenting unit with path `<augmenting module path>#<external
+  declaration name>.<member>`, `parent` absent, and a
+  `typescript:augments` fact naming the external declaration. The
+  augmenting document's own unit membership is unchanged.
+
   Import bindings, `import x = require()` bindings and `export` specifiers
   are bindings, not entities. Members of type literals and object literal
   expressions are out-of-profile, except object literal members that a
@@ -272,8 +288,9 @@ description: |
   | --- | --- | --- | --- |
   | `typescript:module-format` | `unit`, `format`: `esm` or `cjs`, `contexts` | `unit` | `format` |
   | `typescript:type-only` | `reference`: the id of an import, export or module-specifier reference that is elided from emit | `reference` | none |
+  | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 
-  Both extensions are required.
+  All three extensions are required.
 
   ## Authoring obligation
 
@@ -286,7 +303,8 @@ description: |
   3. Declare every unit, its `typescript:module-format` per context, and
      every distribution.
   4. Record every entity of the kinds in the entity table, including merged
-     declarations with all their sites and synthetic constructors.
+     declarations with all their sites, module and global augmentations,
+     `typescript:augments` facts and synthetic constructors.
   5. Record every in-profile reference, including module specifier strings,
      JSX tags and attributes, decorators and type-only imports.
   6. Record every relation of the kinds above.
