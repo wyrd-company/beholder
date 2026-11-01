@@ -49,7 +49,10 @@ documents:
 ```
 
 The tracked files are the entries of the git index under the project root,
-except the dataset file. An entry the dataset already has keeps its
+except the dataset file. Digests and locators describe the bytes in the
+working tree, so a project's files must check out unconverted: mark the
+project `-text` in `.gitattributes` so that no platform rewrites its line
+endings. An entry the dataset already has keeps its
 disposition, reason, origin and members. A new entry has none, so the
 dataset fails validation until you classify it. Untracked files are not
 documents.

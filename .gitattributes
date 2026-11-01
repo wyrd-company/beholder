@@ -1,0 +1,3 @@
+# Semantic-oracle fixture projects: datasets record SHA-256 digests and
+# locators of the exact bytes, so no checkout may convert line endings.
+crates/beholder-semantic-oracle/tests/fixtures/** -text
