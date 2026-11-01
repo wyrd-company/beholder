@@ -147,7 +147,10 @@ second_head="$(git -C "$work/second" rev-parse HEAD)"
 winner_tip="$(git -C "$work/second" rev-parse refs/beholder/index)"
 
 # Meanwhile the first machine, which never saw any of that, indexes a commit of
-# its own and pushes into the race it has already lost.
+# its own and pushes into the race it has already lost. It also maps the index
+# in its fetch configuration, as a user following the README may, so the fetch
+# that answers the rejection must not overwrite the local index first.
+git -C "$work/first" config --add remote.origin.fetch '+refs/beholder/*:refs/beholder/*'
 commit "$work/first" counted '    items.iter().filter(|i| **i > 0).sum()\n'
 report "$work/first"
 run_publish "$work/first" > "$work/race" 2>&1 || fail "the loser should recover: $(cat "$work/race")"

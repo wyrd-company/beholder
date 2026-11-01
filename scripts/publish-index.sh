@@ -58,9 +58,11 @@ for attempt in $(seq 1 "$attempts"); do
   fi
 
   echo "another writer won attempt $attempt; rebuilding on their tip"
-  # Into FETCH_HEAD, so the local ref only moves through beholder's
-  # compare-and-swap.
-  git fetch --quiet --no-tags "$remote" "$ref"
+  # Into FETCH_HEAD only, so the local ref moves through beholder's
+  # compare-and-swap and nothing else. --refmap= stops a configured fetch
+  # refspec for this ref from overwriting the local index first, which would
+  # drop the local commits before beholder could rebuild them.
+  git fetch --quiet --no-tags --refmap= "$remote" "$ref"
   "$beholder" store --rebuild-onto "$(git rev-parse FETCH_HEAD)" --limit 0 > /dev/null
 done
 
