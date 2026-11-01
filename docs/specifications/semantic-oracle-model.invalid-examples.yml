@@ -9,8 +9,9 @@
 # `base`. The result fails at `fails-at` with the schema keyword `keyword`
 # (`falseSchema` for a member that a `false` schema forbids). For `required`,
 # `additionalProperties` and `unevaluatedProperties`, `member` names the
-# member the error is about. `also` lists any further error, by location and
-# keyword, that the same defect causes; no other error occurs.
+# member the error is about, or the list of members. `also` lists any
+# further error, by location, keyword and the same `member` rule, that the
+# same defect causes; no other error occurs.
 #
 # A dangling id reference, a duplicate id, context lists that do not
 # partition an entity's contexts, and a locator that does not match its
@@ -324,7 +325,7 @@ cases:
     keyword: required
     member: at
     also:
-      - {at: /entities/8/definitions/0, keyword: additionalProperties}
+      - {at: /entities/8/definitions/0, keyword: additionalProperties, member: [end, path, start, text]}
   - name: anchor-beside-definition-sites
     reason: '`anchor` is for an entity with no definition site.'
     base: semantic-oracle-profile-rust.example.yml
@@ -579,7 +580,7 @@ cases:
     fails-at: /extensions
     keyword: propertyNames
     also:
-      - {at: /extensions, keyword: additionalProperties}
+      - {at: /extensions, keyword: additionalProperties, member: macro-expansion}
   - name: extension-facts-not-a-list
     reason: Extension facts of one kind are a list.
     base: semantic-oracle-profile-rust.example.yml

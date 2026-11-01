@@ -1064,3 +1064,48 @@ fn integral_float_coordinates_are_checked_like_integers() {
         )],
     );
 }
+
+#[test]
+fn an_extension_target_exists_in_every_context_of_its_fact() {
+    let mut dataset = two_contexts();
+    set(&mut dataset, "/entities/2/contexts", json!(["default"]));
+    set(&mut dataset, "/public-api/1/contexts", json!(["default"]));
+    set(&mut dataset, "/references/0/contexts", json!(["default"]));
+    set(&mut dataset, "/references/1/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/extensions",
+        json!({"rust:macro-expansion": [{"entity": "tally.Counter", "macro": "tally.make",
+               "invocation": {"path": "src/lib.rs", "start": [1, 12], "end": [1, 19], "text": "Counter"}}]}),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:context-scope",
+            "/extensions/rust:macro-expansion/0/macro",
+        )],
+    );
+}
+
+#[test]
+fn an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../docs/specifications/semantic-oracle-profile-csharp.example.yml"
+    );
+    let mut dataset = parse_yaml(&std::fs::read_to_string(path).unwrap()).unwrap();
+    // The aliased assembly's name equals the id of an entity in a unit
+    // built only in `debug`; the alias site's unit is built in both.
+    set(
+        &mut dataset,
+        "/extensions/csharp:extern-alias/0/unit",
+        json!("Geometry.Tests.ShapeTests"),
+    );
+    set(
+        &mut dataset,
+        "/extensions/csharp:extern-alias/0/contexts",
+        json!(["release"]),
+    );
+    expect(&validate(&dataset, None), &[]);
+}

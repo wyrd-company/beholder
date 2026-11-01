@@ -155,7 +155,7 @@ model-level part of criterion 7:
 
 | Rule | Checks |
 | --- | --- |
-| `<language>:document-class` | Files of the profile language are `indexed`, `inactive` or `external`; other files are not `indexed`; known configuration files are `configuration` (a warning). |
+| `<language>:document-class` | Files of the profile language are `indexed`, `inactive` or `external`; other files are not `indexed`; known configuration files are `configuration` (a warning). The profiles' exceptions apply: a Python `setup.py` may be `configuration`, a TypeScript `.json` file may be `indexed`, and TypeScript `.js`, `.jsx`, `.mjs` and `.cjs` files are not checked, because whether they are source depends on `allowJs`. |
 | `model:out-of-profile` | No entity declared inside a callable body, and no reference to a parameter or type parameter. |
 | `model:coverage` | Every indexed document holds a fact site in every context it is compiled in (a warning). |
 | `go:generated-origin` | A Go file with a generated-code header before its package clause has `origin: generated`. |

@@ -11,9 +11,11 @@
 //! the instance location of the defect and the schema keyword that rejects
 //! it, as the validator names keywords (`falseSchema` for a `false` schema).
 //! A case that rejects a member names it in `member`, and `also` lists any
-//! further error the same defect causes. A case passes only when the
+//! further error the same defect causes, with its own `member` where its
+//! keyword rejects members. A case passes only when the
 //! distinct `(location, keyword)` pairs of the errors are exactly the named
-//! one and those in `also`, and the named errors are about `member` alone.
+//! one and those in `also`, and each such error is about exactly its
+//! `member`: one name, or a list.
 
 use std::{
     collections::BTreeSet,
@@ -175,12 +177,18 @@ fn invalid_examples_fail_for_their_named_reason() {
                 failures.push(format!("{label}: validates"));
                 continue;
             }
-            let mut expected = BTreeSet::from([(fails_at.to_string(), keyword.to_string())]);
+            // The named error and each `also` error: location, keyword and
+            // the members the error must be about.
+            let mut named = vec![(fails_at.to_string(), keyword.to_string(), &case["member"])];
             for also in case["also"].as_array().into_iter().flatten() {
                 let at = also["at"].as_str().expect("also at");
                 let keyword = also["keyword"].as_str().expect("also keyword");
-                expected.insert((at.to_string(), keyword.to_string()));
+                named.push((at.to_string(), keyword.to_string(), &also["member"]));
             }
+            let expected: BTreeSet<(String, String)> = named
+                .iter()
+                .map(|(at, keyword, _)| (at.clone(), keyword.clone()))
+                .collect();
             let actual: BTreeSet<(String, String)> = found
                 .iter()
                 .map(|(at, keyword, _)| (at.clone(), keyword.clone()))
@@ -191,20 +199,32 @@ fn invalid_examples_fail_for_their_named_reason() {
                     describe(&found)
                 ));
             }
-            let member = case["member"].as_str();
-            if MEMBER_KEYWORDS.contains(&keyword) {
-                let named = members(&validator, &dataset, fails_at, keyword);
-                match member {
-                    None => failures.push(format!("{label}: `{keyword}` case names no member")),
-                    Some(member) if named != BTreeSet::from([member.to_string()]) => {
-                        failures.push(format!(
-                            "{label}: the `{keyword}` error is about {named:?}, not `{member}`"
-                        ))
+            for (at, keyword, member) in &named {
+                let listed: Option<BTreeSet<String>> = match member {
+                    Value::Null => None,
+                    Value::String(member) => Some(BTreeSet::from([member.clone()])),
+                    Value::Array(items) => Some(
+                        items
+                            .iter()
+                            .map(|item| item.as_str().expect("member name").to_string())
+                            .collect(),
+                    ),
+                    other => panic!("{label}: member {other}"),
+                };
+                if MEMBER_KEYWORDS.contains(&keyword.as_str()) {
+                    let found = members(&validator, &dataset, at, keyword);
+                    match listed {
+                        None => failures.push(format!(
+                            "{label}: the `{keyword}` error at {at} names no member"
+                        )),
+                        Some(listed) if listed != found => failures.push(format!(
+                            "{label}: the `{keyword}` error at {at} is about {found:?}, not {listed:?}"
+                        )),
+                        Some(_) => {}
                     }
-                    Some(_) => {}
+                } else if listed.is_some() {
+                    failures.push(format!("{label}: `member` with keyword `{keyword}`"));
                 }
-            } else if member.is_some() {
-                failures.push(format!("{label}: `member` with keyword `{keyword}`"));
             }
         }
     }
