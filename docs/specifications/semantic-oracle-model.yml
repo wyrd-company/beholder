@@ -759,7 +759,8 @@ description: |
   2. **Key pass.** An unpaired observation pairs with an unpaired fact unit
      that shares its pairing key, when exactly one such fact unit remains
      for that observation. The pair is incorrect, in the category of the
-     first differing member in this precedence: target, role, `from`, value.
+     first differing member in this precedence: target, role, `from`, value,
+     except where Dispositions below assign the pair another category.
   3. **Remainder.** Unpaired fact units are `missing`, or `unsupported` when
      the adapter does not declare their capability. Unpaired observations
      are `unexpected`, or `out-of-profile` when they describe something in
@@ -770,9 +771,12 @@ description: |
   agree with it in the exact pass, it pairs with the first in canonical
   order.
 
-  An observation whose identity equals an already `matched` pair's
-  observation is a duplicate: it is counted as `duplicate`, takes no fact
-  unit, and enters neither precision nor recall.
+  An observation whose identity and every compared member equal those of
+  the observation of an already `matched` pair is a duplicate: it is
+  counted as `duplicate`, takes no fact unit, and enters neither precision
+  nor recall. An observation that shares the identity but differs in a
+  compared member is not a duplicate; it continues through the key pass
+  and the remainder like any other observation.
 
   Pairing keys for the key pass:
 
@@ -805,14 +809,22 @@ description: |
 
   ### Dispositions
 
-  - `candidates`: an observation whose target is in `candidates` is an exact
-    pair; another target pairs in the key pass as `wrong-target`; no
-    observation leaves the fact unit `missing`.
-  - `nonexistent`: the fact unit is `matched` when no reference observation
-    occurs at its site; an observation at its site pairs with it as
-    `wrong-target`.
-  - `indeterminate`: the fact unit and every observation at its site are
-    counted as `indeterminate` and in no other category.
+  Dispositions act on the pairing of the fact unit they belong to. An
+  observation affects a fact unit only by pairing with it under the rules
+  above; an observation paired with another fact unit at the same site, or
+  left unpaired, never changes the outcome of a fact unit with a
+  non-resolved disposition.
+
+  - `candidates`: the fact unit pairs in the exact pass with an
+    observation whose target is in `candidates`. In the key pass, an
+    observation with another target pairs as `wrong-target`. Unpaired, it is
+    `missing`.
+  - `nonexistent`: the fact unit takes part only in the key pass. An
+    observation paired with it is `wrong-target`. Unpaired after the key
+    pass, it is `matched`.
+  - `indeterminate`: the fact unit takes part only in the key pass. The
+    pair, and the fact unit when unpaired, are counted as `indeterminate`
+    and in no other category.
 
   ### Categories
 
@@ -820,7 +832,7 @@ description: |
 
   | Category | Rule |
   | --- | --- |
-  | `matched` | Exact pass pair, or `nonexistent` fact with no observation. Counted once per pair. |
+  | `matched` | Exact pass pair, or `nonexistent` fact unit unpaired after the key pass. Counted once per pair. |
   | `missing` | Unpaired fact unit in a declared capability. |
   | `unexpected` | Unpaired in-profile observation; may carry `context-mismatch` or `unattributed`. |
   | `wrong-target` | Key pass pair whose target or entity key differs, or a `conflated` observation. |
@@ -831,7 +843,7 @@ description: |
   | `unsupported` | Fact unit outside the adapter's declared capabilities. |
   | `out-of-profile` | Observation in the v1 out-of-profile set. |
   | `stale` | Fact unit or observation in a document whose digests disagree. |
-  | `indeterminate` | Fact unit with that disposition and observations at its site. |
+  | `indeterminate` | Fact unit with that disposition, and an observation paired with it. |
 
   `incorrect` is the union of `wrong-target`, `wrong-role`, `wrong-source`
   and `wrong-value`. A key pass pair counts once as incorrect.
@@ -849,6 +861,13 @@ description: |
   | references at site S from F1→T1 and F2→T2 | at S, no `from`, target T1 | one `matched` (F1); F2 `missing` |
   | references at site S from F1→T1 and F2→T2 | at S, no `from`, target T3 | `unexpected (unattributed)`; two `missing` |
   | reference at S, target T, role `call` | at S, target T, role `read` | one `wrong-role` |
+  | reference at S from F, role `read`, target T1 | at S from F, `read`, T1 twice | one `matched`, one `duplicate` |
+  | reference at S from F, role `read`, target T1 | at S from F, `read`, T1 and T2 | one `matched`, one `unexpected` |
+  | at S: F1→T1 resolved, F2 `indeterminate` | at S from F1, target T1 | F1 `matched`; F2 `indeterminate` |
+  | at S: F1→T1 resolved, F2 `indeterminate` | at S, no `from`, target T9 | `unexpected (unattributed)`; F1 `missing`; F2 `indeterminate` |
+  | at S: F1→T1 resolved, F2 `nonexistent` | at S from F1, target T1 | F1 `matched`; F2 `matched` |
+  | at S: F1→T1 resolved, F2 `nonexistent` | at S from F2, target T5 | F2 `wrong-target`; F1 `missing` |
+  | at S: F2 `nonexistent` only | at S, no `from`, target T5 | one `wrong-target` |
 
   ### Reports
 
