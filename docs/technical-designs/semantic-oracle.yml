@@ -162,7 +162,7 @@ proposed-design:
     An entity's identity is its unit, canonical path and kind within a
     context. Definition sites anchor it to source. The unit key is
     profile-defined so that it separates units an index would otherwise
-    merge: a C# assembly name with its version, a Rust package and target, a
+    merge: a C# assembly name with its version and project file, a Rust package and target, a
     Python module name with its unit kind, a Go import path with its test
     variant.
 
@@ -310,9 +310,13 @@ proposed-design:
     `SharedConsumer.cs` 15:29–15:40, `ApiConstant`, has two references in
     one context, one for each enclosing `ConsumeConstants` method in the two
     consumer units: one to `Acme.Versioned.ApiConstants.ApiConstant` in unit key
-    (`Versioned.Api`, 1.0.0.0), defined at `src/Versioned.Api.V1/Constants.cs`
-    5:25, and one to the same path in (`Versioned.Api`, 2.0.0.0). The unit key
-    includes the version because the assembly names collide.
+    (`Versioned.Api`, 1.0.0.0, `src/Versioned.Api.V1/Versioned.Api.V1.csproj`),
+    defined at `src/Versioned.Api.V1/Constants.cs` 5:25, and one to the same
+    path in (`Versioned.Api`, 2.0.0.0,
+    `src/Versioned.Api.V2/Versioned.Api.V2.csproj`). The unit key carries the
+    project file because assembly identity alone does not name the producing
+    project: `Forwarding.Facade` and `Forwarding.Facade.PreMove` in the same
+    solution both produce assembly `Forwarding.Facade` with one version.
 
     ### C#: extern alias and the global alias
 
