@@ -5,9 +5,11 @@
 #
 # Datasets that the `typescript/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: missing-host
     reason: A context assigns every TypeScript context parameter.
@@ -15,6 +17,7 @@ cases:
     patch: [{op: remove, path: /contexts/0/parameters/host}]
     fails-at: /contexts/0/parameters
     keyword: required
+    member: host
   - name: tsconfig-not-canonical
     reason: '`tsconfig` is `none` or a canonical path.'
     base: semantic-oracle-profile-typescript.example.yml
@@ -47,6 +50,7 @@ cases:
       - {op: add, path: /entities/0/unit, value: globals-dts}
     fails-at: /entities/0
     keyword: required
+    member: units
   - name: namespace-block-with-units
     reason: Only the global scope is project-merged in the TypeScript profile.
     base: semantic-oracle-profile-typescript.example.yml
@@ -61,6 +65,7 @@ cases:
     patch: [{op: remove, path: /entities/9/anchor}]
     fails-at: /entities/9
     keyword: required
+    member: anchor
   - name: static-on-a-type
     reason: '`static` is a language kind of members, not of types.'
     base: semantic-oracle-profile-typescript.example.yml
@@ -91,9 +96,11 @@ cases:
     patch: [{op: remove, path: /extensions/typescript:type-only/0/reference}]
     fails-at: /extensions/typescript:type-only/0
     keyword: required
+    member: reference
   - name: augments-without-site
     reason: A `typescript:augments` fact names the augmentation block's name site.
     base: semantic-oracle-profile-typescript.example.yml
     patch: [{op: remove, path: /extensions/typescript:augments/0/at}]
     fails-at: /extensions/typescript:augments/0
     keyword: required
+    member: at

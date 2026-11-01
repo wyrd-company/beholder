@@ -6,9 +6,11 @@
 # Datasets that the model schema rejects for one named reason each.
 #
 # Each case applies `patch`, a JSON Patch (RFC 6902), to the valid example
-# `base`. The result fails, every error lies at or under `fails-at`, and one
-# error comes from the schema keyword `keyword` (`falseSchema` for a member
-# that a `false` schema forbids).
+# `base`. The result fails at `fails-at` with the schema keyword `keyword`
+# (`falseSchema` for a member that a `false` schema forbids). For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 #
 # A dangling id reference, a duplicate id, context lists that do not
 # partition an entity's contexts, and a locator that does not match its
@@ -48,18 +50,21 @@ cases:
     patch: [{op: remove, path: /relations}]
     fails-at: ''
     keyword: required
+    member: relations
   - name: unknown-top-level-member
     reason: The dataset defines no top-level member `notes`.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /notes, value: free text}]
     fails-at: ''
     keyword: additionalProperties
+    member: notes
   - name: authoring-tool-without-version
     reason: An authoring tool entry names its version.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /authoring/tools/0/version}]
     fails-at: /authoring/tools/0
     keyword: required
+    member: version
 
   # -------------------------------------------------------------------- ids
   - name: id-with-space
@@ -163,24 +168,28 @@ cases:
     patch: [{op: remove, path: /documents/2/reason}]
     fails-at: /documents/2
     keyword: required
+    member: reason
   - name: inactive-document-without-reason
     reason: An `inactive` document states its reason.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /documents/8/reason}]
     fails-at: /documents/8
     keyword: required
+    member: reason
   - name: indexed-document-without-members
     reason: An `indexed` document lists the units that compile it.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /documents/3/members}]
     fails-at: /documents/3
     keyword: required
+    member: members
   - name: indexed-document-without-origin
     reason: An `indexed` document states its origin.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /documents/3/origin}]
     fails-at: /documents/3
     keyword: required
+    member: origin
   - name: members-on-configuration-document
     reason: Only an `indexed` document has members.
     base: semantic-oracle-profile-rust.example.yml
@@ -219,12 +228,14 @@ cases:
     patch: [{op: remove, path: /references/0/at/text}]
     fails-at: /references/0/at
     keyword: required
+    member: text
   - name: locator-with-byte-offset
     reason: A locator has no member besides path, start, end and text.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /references/0/at/offset, value: 120}]
     fails-at: /references/0/at
     keyword: additionalProperties
+    member: offset
   - name: locator-path-not-canonical
     reason: A locator path is a canonical path.
     base: semantic-oracle-profile-rust.example.yml
@@ -239,6 +250,7 @@ cases:
     patch: [{op: remove, path: /contexts/0/command}]
     fails-at: /contexts/0
     keyword: required
+    member: command
   - name: context-parameters-not-an-object
     reason: Context parameters are a mapping from parameter name to value.
     base: semantic-oracle-profile-rust.example.yml
@@ -253,12 +265,14 @@ cases:
     patch: [{op: remove, path: /units/0/name}]
     fails-at: /units/0
     keyword: required
+    member: name
   - name: distribution-with-unknown-member
     reason: A distribution has no member besides id, kind, name and version.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /distributions/0/license, value: Apache-2.0}]
     fails-at: /distributions/0
     keyword: additionalProperties
+    member: license
   - name: unit-attribute-variant-entry-without-contexts
     reason: Each entry of a context-variant unit attribute names its contexts.
     base: semantic-oracle-profile-rust.example.yml
@@ -285,12 +299,14 @@ cases:
     patch: [{op: remove, path: /entities/8/path}]
     fails-at: /entities/8
     keyword: required
+    member: path
   - name: entity-without-definitions
     reason: An entity lists its definition sites, as an empty list when it has none.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /entities/8/definitions}]
     fails-at: /entities/8
     keyword: required
+    member: definitions
   - name: unknown-origin
     reason: '`imported` is not an entity origin.'
     base: semantic-oracle-profile-rust.example.yml
@@ -306,6 +322,9 @@ cases:
         value: {path: src/shapes.rs, start: [7, 12], end: [7, 18], text: Circle}
     fails-at: /entities/8/definitions/0
     keyword: required
+    member: at
+    also:
+      - {at: /entities/8/definitions/0, keyword: additionalProperties}
   - name: anchor-beside-definition-sites
     reason: '`anchor` is for an entity with no definition site.'
     base: semantic-oracle-profile-rust.example.yml
@@ -332,12 +351,14 @@ cases:
     patch: [{op: remove, path: /entities/26/generated-by/at}]
     fails-at: /entities/26/generated-by
     keyword: required
+    member: at
   - name: entity-without-effective-visibility
     reason: Every entity except parameters and type parameters has effective visibility.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /entities/8/effective-visibility}]
     fails-at: /entities/8
     keyword: required
+    member: effective-visibility
   - name: parameter-with-visibility
     reason: Visibility of parameters is outside the required categories.
     base: semantic-oracle-profile-rust.example.yml
@@ -449,24 +470,28 @@ cases:
     patch: [{op: remove, path: /references/3/from}]
     fails-at: /references/3
     keyword: required
+    member: from
   - name: reference-without-site
     reason: A reference has its site.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /references/3/at}]
     fails-at: /references/3
     keyword: required
+    member: at
   - name: default-disposition-without-target
     reason: A reference with no disposition is `resolved` or `external` and names its target.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /references/3/target}]
     fails-at: /references/3
     keyword: required
+    member: target
   - name: external-disposition-without-target
     reason: An `external` reference names its target.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /references/1/target}]
     fails-at: /references/1
     keyword: required
+    member: target
   - name: resolved-reference-with-candidates
     reason: '`candidates` belongs only to the `candidates` disposition.'
     base: semantic-oracle-profile-rust.example.yml
@@ -505,6 +530,7 @@ cases:
     patch: [{op: remove, path: /relations/4/name}]
     fails-at: /relations/4
     keyword: required
+    member: name
   - name: name-on-implements
     reason: Only an `exports` relation has `name`.
     base: semantic-oracle-profile-rust.example.yml
@@ -523,6 +549,7 @@ cases:
     patch: [{op: remove, path: /relations/0/to}]
     fails-at: /relations/0
     keyword: required
+    member: to
 
   # ------------------------------------------------------------- public API
   - name: public-api-access-none
@@ -551,6 +578,8 @@ cases:
     patch: [{op: add, path: /extensions/macro-expansion, value: []}]
     fails-at: /extensions
     keyword: propertyNames
+    also:
+      - {at: /extensions, keyword: additionalProperties}
   - name: extension-facts-not-a-list
     reason: Extension facts of one kind are a list.
     base: semantic-oracle-profile-rust.example.yml

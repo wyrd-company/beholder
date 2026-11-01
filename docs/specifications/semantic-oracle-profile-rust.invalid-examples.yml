@@ -5,9 +5,11 @@
 #
 # Datasets that the `rust/1` schema rejects for one named reason each: values
 # and members this profile does not define. Each case applies `patch`, a JSON
-# Patch (RFC 6902), to the valid example `base`. The result fails, every
-# error lies at or under `fails-at`, and one error comes from the schema
-# keyword `keyword`.
+# Patch (RFC 6902), to the valid example `base`. The result fails at
+# `fails-at` with the schema keyword `keyword`. For `required`,
+# `additionalProperties` and `unevaluatedProperties`, `member` names the
+# member the error is about. `also` lists any further error, by location and
+# keyword, that the same defect causes; no other error occurs.
 cases:
   - name: unknown-context-parameter
     reason: '`rustflags` is not a Rust context parameter.'
@@ -15,12 +17,14 @@ cases:
     patch: [{op: add, path: /contexts/0/parameters/rustflags, value: []}]
     fails-at: /contexts/0/parameters
     keyword: additionalProperties
+    member: rustflags
   - name: missing-context-parameter
     reason: A context assigns every Rust context parameter.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /contexts/0/parameters/profile}]
     fails-at: /contexts/0/parameters
     keyword: required
+    member: profile
   - name: unknown-mode
     reason: '`release` is not a Rust context mode.'
     base: semantic-oracle-profile-rust.example.yml
@@ -45,12 +49,14 @@ cases:
     patch: [{op: add, path: /units/0/rustc-version, value: 1.97.1}]
     fails-at: /units/0
     keyword: unevaluatedProperties
+    member: rustc-version
   - name: missing-unit-key-member
     reason: The unit key includes the Cargo target name.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /units/0/target-name}]
     fails-at: /units/0
     keyword: required
+    member: target-name
   - name: unknown-platform
     reason: A unit platform is `target` or `host`.
     base: semantic-oracle-profile-rust.example.yml
@@ -137,24 +143,28 @@ cases:
     patch: [{op: add, path: /extensions/rust:inline-expansion, value: []}]
     fails-at: /extensions
     keyword: additionalProperties
+    member: rust:inline-expansion
   - name: extension-of-another-profile
     reason: '`go:embeds` is not an extension of the Rust profile.'
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /extensions/go:embeds, value: []}]
     fails-at: /extensions
     keyword: additionalProperties
+    member: go:embeds
   - name: extension-fact-without-member
     reason: A `rust:reachable-unnameable` fact names `via`.
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: remove, path: /extensions/rust:reachable-unnameable/0/via}]
     fails-at: /extensions/rust:reachable-unnameable/0
     keyword: required
+    member: via
   - name: extension-fact-with-unknown-member
     reason: '`depth` is not a member of `rust:macro-expansion`.'
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /extensions/rust:macro-expansion/0/depth, value: 1}]
     fails-at: /extensions/rust:macro-expansion/0
     keyword: unevaluatedProperties
+    member: depth
   - name: extension-member-of-wrong-type
     reason: '`invocation` is a site, not an id.'
     base: semantic-oracle-profile-rust.example.yml
