@@ -509,7 +509,7 @@ description: |
   | `all` | All code at the boundary can access the entity. |
   | `none` | No code at the boundary can access the entity. |
   | `scoped` | Only code inside the entities, units or documents listed in `scope` can access the entity. A `scope` member is an entity id, a unit id or a canonical document path. |
-  | `subtypes` | Only code inside types derived from the entity's declaring type can access the entity, by the language's rule for such members. |
+  | `subtypes` | Only code inside types derived from the entity's declaring type can access the entity, by the language's rule for such members. With `within`, only such code that also lies inside a listed scope member. |
 
   `scoped` and `subtypes` carry their qualifier:
 
@@ -520,9 +520,22 @@ description: |
     external: none
   ```
 
+  A rule that grants access only to derived types inside named scopes, such
+  as derived types in friend units, is `subtypes` with `within`, the list of
+  scope members whose code qualifies:
+
+  ```yaml
+  effective-visibility:
+    unit: [{access: scoped, scope: [geometry.Shape]}, subtypes]
+    project: {access: subtypes, within: [geometry-tests]}
+    external: none
+  ```
+
   A compound rule that grants access through either of two paths, such as
   unit-wide access or subtype access, is written as a list of access values;
-  code that satisfies any listed value has access.
+  code that satisfies any listed value has access. A boundary value is
+  compared as a whole: the set of listed access values, each with its sorted
+  `scope` or `within` list.
 
   Effective visibility accounts for every enclosing restriction the language
   applies: a member of an inaccessible container is restricted by its
