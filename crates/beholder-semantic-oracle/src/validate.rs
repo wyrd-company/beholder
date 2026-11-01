@@ -306,6 +306,10 @@ struct Checker<'a> {
     used_externals: BTreeSet<&'a str>,
     /// `(document, context)` pairs that hold at least one fact site.
     sites: BTreeSet<(&'a str, &'a str)>,
+    /// The units that own the fact whose sites are being checked. A site's
+    /// document is a member of one of them, unless the profile defines an
+    /// augmentation form. Empty when the owner is unknown.
+    site_owners: Vec<&'a str>,
     findings: Vec<Finding>,
 }
 
@@ -375,6 +379,7 @@ impl<'a> Checker<'a> {
             texts: BTreeMap::new(),
             used_externals: BTreeSet::new(),
             sites: BTreeSet::new(),
+            site_owners: Vec::new(),
             findings: Vec::new(),
         }
     }
@@ -990,6 +995,29 @@ impl<'a> Checker<'a> {
                 format!("{at}/path"),
                 format!("`{path}` is a member of no unit in {}", names(&outside)),
             );
+        } else if !self.rules.augmentation && !self.site_owners.is_empty() {
+            let owners = self.site_owners.clone();
+            let foreign: Contexts<'a> = contexts
+                .iter()
+                .copied()
+                .filter(|context| {
+                    !members
+                        .iter()
+                        .any(|(unit, member)| owners.contains(unit) && member.contains(context))
+                })
+                .collect();
+            if !foreign.is_empty() {
+                let units: Vec<String> = owners.iter().map(|unit| format!("`{unit}`")).collect();
+                self.error(
+                    "model:site-membership",
+                    format!("{at}/path"),
+                    format!(
+                        "`{path}` is not a member of the fact's unit {} in {}",
+                        units.join(", "),
+                        names(&foreign)
+                    ),
+                );
+            }
         }
         for context in contexts {
             self.sites.insert((path, context));
@@ -1097,6 +1125,7 @@ impl<'a> Checker<'a> {
                     }
                 }
             }
+            self.site_owners = self.units_of(entity);
             let mut sites = BTreeSet::new();
             for (k, definition) in definitions.iter().enumerate() {
                 let Some(site) = definition.get("at") else {
@@ -1129,6 +1158,7 @@ impl<'a> Checker<'a> {
             if let Some(site) = entity.get("generated-by").and_then(|g| g.get("at")) {
                 self.check_locator(format!("{at}/generated-by/at"), site, &contexts);
             }
+            self.site_owners.clear();
 
             let mut units = self.units_of(entity);
             units.sort_unstable();
@@ -1330,7 +1360,9 @@ impl<'a> Checker<'a> {
                 }
             }
             if let Some(site) = reference.get("at") {
+                self.site_owners = self.owner_units(from);
                 self.check_locator(format!("{at}/at"), site, &contexts);
+                self.site_owners.clear();
                 let key = (
                     site_key(site),
                     from,
@@ -1372,7 +1404,9 @@ impl<'a> Checker<'a> {
                 self.check_exists(format!("{at}/to"), to, &contexts);
             }
             if let Some(site) = relation.get("at") {
+                self.site_owners = self.owner_units(from);
                 self.check_locator(format!("{at}/at"), site, &contexts);
+                self.site_owners.clear();
             }
             let key = [
                 text(relation, "kind").unwrap_or_default(),
@@ -1489,7 +1523,9 @@ impl<'a> Checker<'a> {
             let mut keys: BTreeMap<Vec<String>, Vec<Contexts<'a>>> = BTreeMap::new();
             for (j, fact) in facts.as_array().into_iter().flatten().enumerate() {
                 let at = format!("/extensions/{kind}/{j}");
-                let (built, what) = match self.extension_owner(fact, extension) {
+                let owner = self.extension_owner(fact, extension);
+                self.site_owners = owner.map(|o| self.owner_units(o)).unwrap_or_default();
+                let (built, what) = match owner {
                     Some(owner) => (self.built_contexts(owner), format!("the unit of `{owner}`")),
                     None => match self.site_contexts(fact, extension) {
                         Some((path, contexts)) => (contexts, format!("a unit compiling `{path}`")),
@@ -1504,6 +1540,7 @@ impl<'a> Checker<'a> {
                     let member_at = format!("{at}/{member}");
                     self.check_extension_member(member_at, value, *names, &contexts);
                 }
+                self.site_owners.clear();
                 if kind == "dart:mixin-application" {
                     self.check_relation_kind(&at, fact, "relation", "inherits");
                 }
@@ -1552,8 +1589,17 @@ impl<'a> Checker<'a> {
         })
     }
 
-    /// For an extension fact with no owner record: the contexts in which
-    /// the document of its first site is a member of a unit.
+    /// The units of an entity, or the unit itself; empty for other ids.
+    fn owner_units(&self, id: &'a str) -> Vec<&'a str> {
+        match self.ids.get(id) {
+            Some((Class::Entity, record)) => self.units_of(record),
+            Some((Class::Unit, _)) => vec![id],
+            _ => Vec::new(),
+        }
+    }
+
+    /// For an extension fact with no owner record: the contexts in which a
+    /// unit that compiles the document of its first site is built.
     fn site_contexts(
         &self,
         fact: &'a Value,
@@ -1567,7 +1613,8 @@ impl<'a> Checker<'a> {
             let members = self.members.get(path)?;
             let contexts = members
                 .iter()
-                .flat_map(|(_, contexts)| contexts.iter().copied())
+                .filter_map(|(unit, _)| self.unit_contexts.get(unit))
+                .flat_map(|contexts| contexts.iter().copied())
                 .collect();
             Some((path, contexts))
         })
@@ -1897,13 +1944,22 @@ fn overlap<'a>(left: &Contexts<'a>, right: &Contexts<'a>) -> Option<Contexts<'a>
     (!shared.is_empty()).then_some(shared)
 }
 
-/// The identity of a site: path, start and end.
+/// The identity of a site: path, start and end, with coordinates read as
+/// positions so that `12` and `12.0` are one site.
 fn site_key(site: &Value) -> String {
+    let position = |member: &str| {
+        site.get(member)
+            .map(|value| match Position::from_value(value) {
+                Some(position) => position.to_string(),
+                None => value.to_string(),
+            })
+            .unwrap_or_default()
+    };
     format!(
         "{}|{}|{}",
         site.get("path").map(Value::to_string).unwrap_or_default(),
-        site.get("start").map(Value::to_string).unwrap_or_default(),
-        site.get("end").map(Value::to_string).unwrap_or_default()
+        position("start"),
+        position("end")
     )
 }
 
