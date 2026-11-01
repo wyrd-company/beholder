@@ -480,11 +480,6 @@ entities:
     effective-visibility: {unit: all, project: none, external: none}
 
 externals:
-  - id: ext.dart.core.Object
-    kind: type
-    language-kind: class
-    distribution: sdk
-    path: 'dart:core::Object'
   - id: ext.dart.core.double
     kind: type
     language-kind: class

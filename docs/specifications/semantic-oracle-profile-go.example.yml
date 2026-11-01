@@ -116,7 +116,7 @@ contexts:
     command: CGO_ENABLED=0 go test ./...
 
 distributions:
-  - id: geometry
+  - id: geometry-module
     kind: module
     name: example.com/geometry
 
@@ -124,13 +124,13 @@ units:
   - id: geometry-pkg
     kind: package
     name: example.com/geometry
-    distribution: geometry
+    distribution: geometry-module
     root: geometry
     package-name: geometry
   - id: calc-pkg
     kind: package
     name: example.com/geometry/internal/calc
-    distribution: geometry
+    distribution: geometry-module
     root: calc
     package-name: calc
   - id: geometry-xtest
@@ -483,11 +483,6 @@ externals:
     language-kind: package
     distribution: std
     path: embed
-  - id: ext.reflect.Value.Call
-    kind: callable
-    language-kind: method
-    distribution: std
-    path: reflect.Value.Call
   - id: ext.runtime.nanotime
     kind: callable
     language-kind: func
@@ -583,15 +578,15 @@ relations:
     at: {path: shapes.go, start: [37, 2], end: [37, 7], text: Shape}
 
 public-api:
-  - {distribution: geometry, entity: geometry.Shape, paths: [example.com/geometry.Shape], access: all}
-  - {distribution: geometry, entity: geometry.Circle, paths: [example.com/geometry.Circle], access: all}
-  - {distribution: geometry, entity: geometry.Base.Label, paths: [example.com/geometry.Base.Label, example.com/geometry.Circle.Label], access: all}
-  - distribution: geometry
+  - {distribution: geometry-module, entity: geometry.Shape, paths: [example.com/geometry.Shape], access: all}
+  - {distribution: geometry-module, entity: geometry.Circle, paths: [example.com/geometry.Circle], access: all}
+  - {distribution: geometry-module, entity: geometry.Base.Label, paths: [example.com/geometry.Base.Label, example.com/geometry.Circle.Label], access: all}
+  - distribution: geometry-module
     entity: geometry.Platform.linux
     paths: [example.com/geometry.Platform]
     access: all
     contexts: [linux, linux-test]
-  - distribution: geometry
+  - distribution: geometry-module
     entity: geometry.Platform.darwin
     paths: [example.com/geometry.Platform]
     access: all
