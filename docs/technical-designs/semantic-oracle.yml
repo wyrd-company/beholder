@@ -274,7 +274,7 @@ proposed-design:
 
     `modules-visibility-and-resolution` mounts `src/shared_source.rs` at
     `shared_first` and `shared_second` with `#[path]` in `src/lib.rs`, includes
-    it textually inside `shared_via_include` with `include!` at lines 66–68,
+    it textually inside `shared_via_include` with `include!` at line 66,
     and the binary `mvr-bin` mounts it again as `bin_shared`. The struct name site is
     `src/shared_source.rs` 4:12–4:24, `SharedMarker`.
 
