@@ -579,6 +579,64 @@ fn rebuilding_onto_a_commit_that_is_not_an_index_is_refused() {
 }
 
 #[test]
+fn rebuilding_onto_a_malformed_index_chain_is_refused() {
+    // Parseable metadata alone does not make an index commit. Each forged tip
+    // below carries a real index tree, and each is refused before the ref
+    // moves.
+    let mut shared = Shared::new();
+    let a = shared.clone("a");
+    let dir = a.workdir().unwrap().to_owned();
+    let store = Store::open(&a);
+
+    let genuine = store
+        .write(shared.first, &analyze_at(&a, shared.first))
+        .unwrap();
+    let mine = store
+        .write(shared.second, &analyze_at(&a, shared.second))
+        .unwrap();
+    let tree = support::git(&dir, &["rev-parse", &format!("{genuine}^{{tree}}")]);
+    let tree = tree.trim();
+
+    let forge = |parents: &[String]| -> Oid {
+        let mut args = vec![
+            "commit-tree".to_owned(),
+            tree.to_owned(),
+            "-m".into(),
+            "forged".into(),
+        ];
+        for p in parents {
+            args.push("-p".into());
+            args.push(p.clone());
+        }
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        oid(support::git(&dir, &args).trim())
+    };
+
+    // No source parent at all.
+    let rootless = forge(&[]);
+    // A source parent that is not the commit meta.json names.
+    let mismatched = forge(&[shared.second.to_string()]);
+    // A well-formed tip on top of a forged previous index.
+    let on_forged = forge(&[shared.first.to_string(), rootless.to_string()]);
+
+    for (name, tip) in [
+        ("rootless", rootless),
+        ("mismatched", mismatched),
+        ("on a forged chain", on_forged),
+    ] {
+        let err = store.rebuild_onto(tip).unwrap_err();
+        assert!(
+            format!("{err:#}").contains("is not an index commit"),
+            "{name}: unexpected error: {err:#}"
+        );
+        assert_eq!(store.tip().unwrap(), Some(mine), "{name}: the ref moved");
+    }
+
+    // The genuine chain is still accepted.
+    assert_eq!(store.rebuild_onto(genuine).unwrap().tip, Some(mine));
+}
+
+#[test]
 fn the_ref_pushes_with_an_ordinary_refspec() {
     // Beholder does not push. Ordinary git does, without `+`, and the index
     // has to arrive whole that way.
