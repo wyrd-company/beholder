@@ -92,8 +92,31 @@ pub fn yaml_scalar(value: &str) -> String {
     if plain {
         value.to_owned()
     } else {
-        serde_json::to_string(value).expect("a string serializes")
+        double_quoted(value)
     }
+}
+
+/// A YAML double-quoted scalar. Every character YAML does not allow
+/// literally in a stream is escaped.
+fn double_quoted(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for c in value.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            ' '..='~' | '\u{a0}'..='\u{d7ff}' | '\u{e000}'..='\u{fffd}' | '\u{10000}'.. => {
+                out.push(c)
+            }
+            c if (c as u32) <= 0xffff => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push_str(&format!("\\U{:08x}", c as u32)),
+        }
+    }
+    out.push('"');
+    out
 }
 
 /// Why a locator does not hold against its document text.
@@ -192,7 +215,16 @@ impl SourceText {
         let column = position.column.checked_sub(1)?;
         let start = *self.line_starts.get(line)?;
         let end = self.line_ends[line];
-        (start + column <= end).then_some(start + column)
+        let offset = start.checked_add(column)?;
+        (offset <= end).then_some(offset)
+    }
+
+    /// Whether a character offset has a position: it starts a line or lies
+    /// at most one column past a line's content. The LF of a CR LF pair has
+    /// none.
+    fn representable(&self, offset: usize) -> bool {
+        let line = self.line_starts.partition_point(|&start| start <= offset) - 1;
+        offset <= self.line_ends[line]
     }
 
     /// The position of a character offset.
@@ -230,6 +262,7 @@ impl SourceText {
         }
         (0..=self.chars.len() - needle.len())
             .filter(|&i| self.chars[i..i + needle.len()] == needle[..])
+            .filter(|&i| self.representable(i) && self.representable(i + needle.len()))
             .map(|i| self.position(i))
             .collect()
     }
@@ -238,7 +271,10 @@ impl SourceText {
     pub fn locator(&self, path: &str, start: Position, text: &str) -> Option<Locator> {
         let from = self.offset(start)?;
         let to = from + text.chars().count();
-        if to > self.chars.len() || self.chars[from..to].iter().copied().ne(text.chars()) {
+        if to > self.chars.len()
+            || !self.representable(to)
+            || self.chars[from..to].iter().copied().ne(text.chars())
+        {
             return None;
         }
         Some(Locator {
@@ -374,6 +410,46 @@ mod tests {
             capture(&source, "a", "gamma", None, None),
             Err(CaptureError::NotFound)
         );
+    }
+
+    #[test]
+    fn an_overflowing_column_is_out_of_range() {
+        let source = SourceText::new("a\nb");
+        assert_eq!(source.offset(Position::new(2, usize::MAX)), None);
+    }
+
+    #[test]
+    fn a_span_cannot_split_a_cr_lf_pair() {
+        let source = SourceText::new("a\r\nb");
+        assert_eq!(
+            capture(&source, "x", "\n", None, None),
+            Err(CaptureError::NotFound)
+        );
+        assert_eq!(
+            capture(&source, "x", "\r", None, None),
+            Err(CaptureError::NotFound)
+        );
+        let pair = capture(&source, "x", "\r\n", None, None).unwrap();
+        assert_eq!(source.check(&pair), Ok(()));
+        assert_eq!(source.locator("x", Position::new(1, 2), "\r"), None);
+    }
+
+    #[test]
+    fn yaml_scalars_read_back_as_the_same_string() {
+        for value in [
+            "a\u{7f}b",
+            "\u{80}\u{9f}",
+            "tab\there",
+            "q\"\\",
+            "\u{feff}x",
+            "😀",
+            "\u{85}",
+            "\u{0}",
+        ] {
+            let text = format!("v: {}\n", yaml_scalar(value));
+            let parsed = crate::parse_yaml(&text).unwrap_or_else(|e| panic!("{text}: {e}"));
+            assert_eq!(parsed["v"], value, "{text}");
+        }
     }
 
     #[test]

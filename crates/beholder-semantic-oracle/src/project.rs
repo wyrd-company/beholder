@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{anyhow, Context, Result};
 use sha2::{Digest, Sha256};
 
 /// The file name of a dataset at its project root.
@@ -54,11 +54,17 @@ impl GitProject {
         let prefix = root
             .strip_prefix(&workdir)
             .with_context(|| format!("{} is outside its working tree", root.display()))?;
-        let prefix = match prefix.to_str() {
-            Some("") => String::new(),
-            Some(prefix) => format!("{}/", prefix.replace('\\', "/")),
-            None => bail!("the project path is not UTF-8"),
-        };
+        // Index paths are `/`-separated bytes; join the components so that
+        // a literal backslash in a Unix directory name is kept.
+        let mut prefix_bytes = Vec::new();
+        for component in prefix.components() {
+            let name = component
+                .as_os_str()
+                .to_str()
+                .ok_or_else(|| anyhow!("the project path is not UTF-8"))?;
+            prefix_bytes.extend_from_slice(name.as_bytes());
+            prefix_bytes.push(b'/');
+        }
 
         let index = repo.index_or_empty()?;
         let mut tracked = Vec::new();
@@ -67,13 +73,20 @@ impl GitProject {
             if entry.mode == gix::index::entry::Mode::COMMIT {
                 continue;
             }
-            let path = entry.path(&index);
-            let path = std::str::from_utf8(path.as_ref())
-                .map_err(|_| anyhow!("a tracked path is not UTF-8: {path}"))?;
-            if let Some(relative) = path.strip_prefix(prefix.as_str()) {
-                if relative != DATASET_FILE {
-                    tracked.push(relative.to_owned());
-                }
+            let path: &[u8] = entry.path(&index).as_ref();
+            // Paths outside the project are not its business, whatever their
+            // encoding.
+            let Some(relative) = path.strip_prefix(prefix_bytes.as_slice()) else {
+                continue;
+            };
+            let relative = std::str::from_utf8(relative).map_err(|_| {
+                anyhow!(
+                    "a tracked path is not UTF-8: {}",
+                    String::from_utf8_lossy(relative)
+                )
+            })?;
+            if relative != DATASET_FILE {
+                tracked.push(relative.to_owned());
             }
         }
         tracked.sort();
@@ -101,10 +114,7 @@ impl ProjectFiles for GitProject {
         // Git stores a symbolic link as its target path.
         if metadata.file_type().is_symlink() {
             let target = std::fs::read_link(&full)?;
-            let target = target
-                .to_str()
-                .ok_or_else(|| anyhow!("the link target of {path} is not UTF-8"))?;
-            return Ok(Some(target.as_bytes().to_vec()));
+            return Ok(Some(link_bytes(&target, path)?));
         }
         if !metadata.is_file() {
             return Ok(None);
@@ -113,6 +123,21 @@ impl ProjectFiles for GitProject {
             .map(Some)
             .with_context(|| format!("read {path}"))
     }
+}
+
+/// The bytes git stores for a symbolic link: its target path.
+#[cfg(unix)]
+fn link_bytes(target: &Path, _path: &str) -> Result<Vec<u8>> {
+    use std::os::unix::ffi::OsStrExt;
+    Ok(target.as_os_str().as_bytes().to_vec())
+}
+
+#[cfg(not(unix))]
+fn link_bytes(target: &Path, path: &str) -> Result<Vec<u8>> {
+    let target = target
+        .to_str()
+        .ok_or_else(|| anyhow!("the link target of {path} is not UTF-8"))?;
+    Ok(target.replace('\\', "/").into_bytes())
 }
 
 /// A project held in memory, for tests and for checks that need no
@@ -164,8 +189,12 @@ pub fn inventory(files: &dyn ProjectFiles, dataset: Option<&serde_json::Value>) 
         .flatten()
         .filter_map(|document| Some((document.get("path")?.as_str()?, document)))
         .collect();
+    let tracked = files.tracked()?;
+    if tracked.is_empty() {
+        return Ok("documents: []\n".into());
+    }
     let mut out = String::from("documents:\n");
-    for path in files.tracked()? {
+    for path in tracked {
         let bytes = files
             .read(&path)?
             .ok_or_else(|| anyhow!("tracked file `{path}` is missing from the working tree"))?;
@@ -227,6 +256,15 @@ mod tests {
         assert_eq!(
             parsed["documents"][1]["members"][0]["contexts"][0],
             "default"
+        );
+    }
+
+    #[test]
+    fn an_empty_inventory_is_an_empty_list() {
+        let text = inventory(&MemoryProject::new(), None).unwrap();
+        assert_eq!(
+            crate::parse_yaml(&text).unwrap()["documents"],
+            serde_json::json!([])
         );
     }
 
