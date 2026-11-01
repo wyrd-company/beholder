@@ -239,3 +239,40 @@ fn inventory_reads_paths_and_links_as_git_stores_them() {
         .collect();
     assert_eq!(paths, ["a.txt", "link"]);
 }
+
+/// A project directory whose name is not UTF-8 still lists its files.
+#[cfg(unix)]
+#[test]
+fn inventory_opens_a_project_whose_directory_name_is_not_utf8() {
+    use std::{ffi::OsStr, os::unix::ffi::OsStrExt};
+
+    let dir = tempfile::tempdir().unwrap();
+    let git = |args: &[&str]| {
+        let status = Command::new("git")
+            .args(args)
+            .current_dir(dir.path())
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_CONFIG_SYSTEM", "/dev/null")
+            .status()
+            .unwrap();
+        assert!(status.success(), "git {args:?}");
+    };
+    git(&["init", "-q"]);
+    let name = OsStr::from_bytes(b"proj-\xff");
+    std::fs::create_dir_all(dir.path().join(name)).unwrap();
+    std::fs::write(dir.path().join(name).join("a"), "a\n").unwrap();
+    git(&["add", "."]);
+    let output = Command::new(env!("CARGO_BIN_EXE_semantic-oracle"))
+        .arg("inventory")
+        .arg(name)
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(stdout(&output).contains("  - path: a\n"));
+}

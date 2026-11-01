@@ -937,6 +937,13 @@ impl<'a> Checker<'a> {
     /// every context of the fact, and its text holds.
     fn check_locator(&mut self, at: String, value: &'a Value, contexts: &Contexts<'a>) {
         let Some(locator) = Locator::from_value(value) else {
+            // The schema accepted it, so a coordinate is too large to be a
+            // position.
+            self.error(
+                "model:locator-range",
+                at,
+                "a coordinate is not a representable position".into(),
+            );
             return;
         };
         if locator.end < locator.start {

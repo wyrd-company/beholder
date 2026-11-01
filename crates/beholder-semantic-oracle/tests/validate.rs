@@ -1022,3 +1022,45 @@ fn an_extension_fact_holds_in_the_contexts_of_its_owner_unit() {
         )],
     );
 }
+
+#[test]
+fn integral_float_coordinates_are_checked_like_integers() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/at/start",
+        json!([1.0, 12.0]),
+    );
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/at/end",
+        json!([1.0, 19.0]),
+    );
+    expect(&validate_with(&dataset, &files()), &[]);
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/at/text",
+        json!("Count"),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:locator-stale",
+            "/entities/1/definitions/0/at",
+        )],
+    );
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/at/end",
+        json!([1, 1e30]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:locator-range",
+            "/entities/1/definitions/0/at",
+        )],
+    );
+}
