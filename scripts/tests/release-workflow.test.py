@@ -106,7 +106,7 @@ class WorkflowBoundaryTests(unittest.TestCase):
             self.assertEqual(jobs[name]["needs"], "release")
         self.assertEqual(set(jobs["release"]["needs"]), {"build", "verify-arm64-archive"})
         self.assertEqual(jobs["verify-arm64-archive"]["needs"], "build")
-        self.assertEqual(jobs["verify-arm64-archive"]["runs-on"], "ubuntu-24.04-arm")
+        self.assertEqual(jobs["verify-arm64-archive"]["runs-on"], "ubuntu-26.04-arm")
         archive_steps = jobs["verify-arm64-archive"]["steps"]
         self.assertTrue(any(step.get("with", {}).get("name") == "beholder-linux-arm64"
                             for step in archive_steps))
@@ -158,7 +158,7 @@ class WorkflowBoundaryTests(unittest.TestCase):
         self.assertIn("task ci", [s.get("run") for s in ci["jobs"]["ci"]["steps"]])
         platforms = ci["jobs"]["platforms"]
         self.assertEqual(set(platforms["strategy"]["matrix"]["os"]),
-                         {"ubuntu-latest", "ubuntu-24.04-arm", "macos-latest", "windows-latest"})
+                         {"ubuntu-latest", "ubuntu-26.04-arm", "macos-latest", "windows-latest"})
         self.assertIn("cargo test --workspace --locked", [s.get("run") for s in platforms["steps"]])
         self.assertIn("npm test --prefix npm", [s.get("run") for s in platforms["steps"]])
 
