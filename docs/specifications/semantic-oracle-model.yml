@@ -85,7 +85,7 @@ description: |
   | `model` | The literal `semantic-oracle/1`. |
   | `profile` | The profile identity and version, `<language>/1`, for example `rust/1`. |
   | `project` | `language` (the profile language) and `name` (the project directory name). |
-  | `authoring` | The sources consulted: toolchain versions, specifications and build commands. Free text plus a list of named tools. |
+  | `authoring` | The sources consulted: `notes`, free text naming specifications and build commands, and `tools`, the list of `{name, version}` entries for the toolchains and specifications consulted. |
   | `documents` | The complete document inventory. |
   | `contexts` | Every declared context. |
   | `distributions` | Every distribution the project defines. |
@@ -276,7 +276,7 @@ description: |
   | `origin` | `source`, `generated` or `synthetic`. |
   | `definitions` | The definition sites. |
   | `anchor` | For an entity with no definition site: the site of the construct that generates or implies it. |
-  | `generated-by` | For `origin: generated`: the generator or macro and the site that invokes it. |
+  | `generated-by` | For `origin: generated`: `generator`, the generator or macro, and `at`, the site that invokes it. |
   | `contexts` | The contexts in which the entity exists. |
   | `declared-visibility` | The visibility the source states or the language defaults. |
   | `effective-visibility` | Access at each boundary. |

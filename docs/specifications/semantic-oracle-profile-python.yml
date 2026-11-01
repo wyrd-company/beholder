@@ -88,8 +88,8 @@ description: |
   - A module-level binding is `<module>.<name>`; a class attribute or method
     is `<class path>.<name>`; nested classes and functions defined at class
     or module level continue the chain.
-  - A name-mangled attribute uses its declared name; `language-kind` records
-    the mangled form.
+  - A name-mangled attribute uses its declared name; its declared
+    visibility is `mangled`.
   - Parameters are `<callable>.(<name>)`; type parameters
     `<declaration>.[<name>]`.
   - A consumer path is the fully qualified dotted name a consumer writes,
@@ -103,7 +103,7 @@ description: |
   | namespace package | `module` | `namespace-package` |
   | `class` | `type` | `class`, `protocol`, `enum`, `typed-dict`, `named-tuple` or `dataclass` |
   | `type` statement, `TypeAlias` annotation | `type-alias` | `type-statement` or `type-alias` |
-  | module-level and class-level `def` and `async def` | `callable` | `function`, `method`, `classmethod`, `staticmethod` or `async` variants |
+  | module-level and class-level `def` and `async def` | `callable` | `function`, `method`, `classmethod`, `staticmethod`, `async-function`, `async-method`, `async-classmethod` or `async-staticmethod` |
   | `@property` and descriptors defined in the project | `property` | `property` or `descriptor` |
   | class-body assignment or annotation | `field` | `class-attribute` |
   | assignment to `self.<name>` or `cls.<name>` in a method body | `field` | `instance-attribute` |

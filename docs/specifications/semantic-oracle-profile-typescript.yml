@@ -58,7 +58,8 @@ description: |
   | `declaration-script` | A declaration file that contributes to the global scope. |
   | `json-module` | A JSON file that `resolveJsonModule` imports. |
 
-  The unit key is the canonical document path.
+  A unit's `name` is its canonical document path, and the unit key is that
+  name.
 
   The global scope is a project-merged namespace entity with path `global`
   and `units` listing every `script` and `declaration-script` unit, and every
