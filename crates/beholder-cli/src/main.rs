@@ -162,9 +162,6 @@ struct GitprArgs {
 
 #[derive(Args)]
 struct StoreArgs {
-    /// Reconcile a saved local index tip onto the current (fetched) index tip.
-    #[arg(long)]
-    reconcile: Option<String>,
     #[arg(long, default_value = ".")]
     root: PathBuf,
     /// How many index commits to list.
@@ -196,8 +193,8 @@ fn main() -> Result<()> {
     }
 }
 
-fn open(root: &Path) -> Result<(git2::Repository, Config)> {
-    let repo = git2::Repository::discover(root)
+fn open(root: &Path) -> Result<(gix::Repository, Config)> {
+    let repo = gix::discover(root)
         .with_context(|| format!("{} is not inside a git repository", root.display()))?;
     let workdir = repo
         .workdir()
@@ -238,7 +235,7 @@ fn index(args: IndexArgs) -> Result<()> {
     )?;
 
     if args.store {
-        let head = repo.head()?.peel_to_commit()?.id();
+        let head = repo.head_id()?.detach();
         refuse_to_store_a_dirty_tree(&repo, head, &analysis, &config)?;
         let index_commit = Store::open(&repo).write(head, &analysis)?;
         println!("stored {index_commit} on {DEFAULT_REF}");
@@ -284,8 +281,8 @@ fn index(args: IndexArgs) -> Result<()> {
 /// when the two agree, and a stored result that is wrong is worse than no stored
 /// result: every later run and every fresh clone would trust it.
 fn refuse_to_store_a_dirty_tree(
-    repo: &git2::Repository,
-    head: git2::Oid,
+    repo: &gix::Repository,
+    head: gix::ObjectId,
     analysis: &beholder::Analysis,
     config: &Config,
 ) -> Result<()> {
@@ -509,10 +506,6 @@ fn only_open_snapshot(root: &Path) -> Result<String> {
 fn store(args: StoreArgs) -> Result<()> {
     let (repo, _) = open(&args.root)?;
     let store = Store::open(&repo);
-    if let Some(mine) = args.reconcile {
-        store.rebuild_onto(Some(git2::Oid::from_str(&mine)?), store.tip()?)?;
-        return Ok(());
-    }
 
     println!("ref:     {}", store.refname());
     println!("refspec: {REFSPEC}");
@@ -543,19 +536,18 @@ fn short(revision: &str) -> String {
 fn audit(args: AuditArgs) -> Result<()> {
     let (repo, config) = open(&args.root)?;
 
-    let mut walk = repo.revwalk()?;
-    walk.push(repo.revparse_single(&args.revision)?.peel_to_commit()?.id())?;
-    walk.set_sorting(git2::Sort::TOPOLOGICAL)?;
+    let start = beholder::walk::revision_commit(&repo, &args.revision)?.id();
+
     // First parent only, so each adjacent pair really is one revision and the
     // one that followed it.
-    walk.simplify_first_parent()?;
-
-    let mut revisions: Vec<String> = walk
+    let mut revisions: Vec<String> = repo
+        .rev_walk([start])
+        .first_parent_only()
+        .sorting(gix::revision::walk::Sorting::BreadthFirst)
+        .all()?
         .take(args.depth)
-        .collect::<std::result::Result<Vec<_>, _>>()?
-        .into_iter()
-        .map(|id| id.to_string())
-        .collect();
+        .map(|info| Ok(info?.id.to_string()))
+        .collect::<Result<Vec<_>>>()?;
     revisions.reverse();
 
     let audit = delta::audit_identity(&repo, &revisions, &config)?;
