@@ -2,70 +2,15 @@
 //! behavior: the commit convention, the validation rules, concurrent writers,
 //! and portability through ordinary fetch and push.
 
-use std::path::Path;
+mod support;
 
 use beholder::analysis::{self, Analysis, Fingerprint};
 use beholder::store::{Store, REFSPEC};
 use beholder::walk::SourceFile;
 use beholder::Config;
-use git2::{Oid, Repository};
-
-// ---------------------------------------------------------------------------
-// fixtures
-// ---------------------------------------------------------------------------
-
-struct Fixture {
-    _dir: tempfile::TempDir,
-    repo: Repository,
-}
-
-impl Fixture {
-    fn new() -> Self {
-        let dir = tempfile::tempdir().unwrap();
-        let repo = Repository::init(dir.path()).unwrap();
-        Self { _dir: dir, repo }
-    }
-
-    fn path(&self) -> &Path {
-        self.repo.workdir().unwrap()
-    }
-
-    /// Write and commit one file, returning the new commit id.
-    fn commit(&self, path: &str, contents: &str) -> Oid {
-        let full = self.path().join(path);
-        std::fs::create_dir_all(full.parent().unwrap()).unwrap();
-        std::fs::write(&full, contents).unwrap();
-
-        let mut index = self.repo.index().unwrap();
-        index
-            .add_all(["*"], git2::IndexAddOption::DEFAULT, None)
-            .unwrap();
-        index.write().unwrap();
-        let tree = self.repo.find_tree(index.write_tree().unwrap()).unwrap();
-
-        let signature =
-            git2::Signature::new("test", "test@example.invalid", &git2::Time::new(0, 0)).unwrap();
-        let parents: Vec<git2::Commit<'_>> = self
-            .repo
-            .head()
-            .ok()
-            .and_then(|h| h.peel_to_commit().ok())
-            .into_iter()
-            .collect();
-        let parent_refs: Vec<&git2::Commit<'_>> = parents.iter().collect();
-
-        self.repo
-            .commit(
-                Some("HEAD"),
-                &signature,
-                &signature,
-                &format!("commit {path}"),
-                &tree,
-                &parent_refs,
-            )
-            .unwrap()
-    }
-}
+use gix::ObjectId as Oid;
+use gix::Repository;
+use support::{parent, parent_count, ref_target, Fixture};
 
 /// Analyze a revision exactly as beholder would.
 ///
@@ -95,10 +40,8 @@ fn the_first_index_has_only_the_source_parent() {
     let index = store
         .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
-    let commit = fixture.repo.find_commit(index).unwrap();
-
-    assert_eq!(commit.parent_count(), 1);
-    assert_eq!(commit.parent_id(0).unwrap(), source);
+    assert_eq!(parent_count(&fixture.repo, index), 1);
+    assert_eq!(parent(&fixture.repo, index, 0).unwrap(), source);
 }
 
 #[test]
@@ -116,15 +59,14 @@ fn later_indexes_carry_the_source_then_the_previous_index() {
         .write(second_source, &analyze_at(&fixture.repo, second_source))
         .unwrap();
 
-    let commit = fixture.repo.find_commit(second_index).unwrap();
-    assert_eq!(commit.parent_count(), 2);
+    assert_eq!(parent_count(&fixture.repo, second_index), 2);
     assert_eq!(
-        commit.parent_id(0).unwrap(),
+        parent(&fixture.repo, second_index, 0).unwrap(),
         second_source,
         "parent 0 is the source"
     );
     assert_eq!(
-        commit.parent_id(1).unwrap(),
+        parent(&fixture.repo, second_index, 1).unwrap(),
         first_index,
         "parent 1 is the previous index"
     );
@@ -163,7 +105,7 @@ fn the_ref_lives_outside_refs_heads() {
 
     assert_eq!(store.refname(), "refs/beholder/index");
     assert!(!store.refname().starts_with("refs/heads/"));
-    assert!(fixture.repo.find_reference("refs/beholder/index").is_ok());
+    assert!(ref_target(&fixture.repo, "refs/beholder/index").is_some());
 }
 
 #[test]
@@ -332,7 +274,7 @@ fn phase1_reuse_does_not_depend_on_the_checkout_location() {
 
     let clone_dir = tempfile::tempdir().unwrap();
     let clone_path = clone_dir.path().join("clone");
-    let clone = Repository::clone(origin.path().to_str().unwrap(), &clone_path).unwrap();
+    let clone = support::clone(origin.path().to_str().unwrap(), &clone_path);
     Store::open(&clone).fetch("origin").unwrap();
 
     let fingerprint = Fingerprint::new(&config());
@@ -472,7 +414,7 @@ fn a_fresh_clone_can_fetch_the_ref_and_reuse_the_analysis() {
 
     let clone_dir = tempfile::tempdir().unwrap();
     let clone_path = clone_dir.path().join("clone");
-    let clone = Repository::clone(origin.path().to_str().unwrap(), &clone_path).unwrap();
+    let clone = support::clone(origin.path().to_str().unwrap(), &clone_path);
 
     // Nothing is available before the ref is fetched.
     assert!(Store::open(&clone).tip().unwrap().is_none());
@@ -489,17 +431,163 @@ fn a_fresh_clone_can_fetch_the_ref_and_reuse_the_analysis() {
     assert_eq!(found, original);
 }
 
+/// A bare remote and two clones of one seeded history, for the tests about
+/// more than one writer.
+struct Shared {
+    _dirs: Vec<tempfile::TempDir>,
+    origin_path: std::path::PathBuf,
+    first: Oid,
+    second: Oid,
+}
+
+impl Shared {
+    fn new() -> Self {
+        let origin_dir = tempfile::tempdir().unwrap();
+        let origin_path = origin_dir.path().join("origin.git");
+        support::init_bare(&origin_path);
+
+        let seed = Fixture::new();
+        seed.add_remote("origin", origin_path.to_str().unwrap());
+        let first = seed.commit("src/first.rs", "fn first() {}\n");
+        let second = seed.commit("src/second.rs", "fn second() {}\n");
+        support::push_default_branch(seed.path());
+
+        Self {
+            _dirs: vec![origin_dir],
+            origin_path,
+            first,
+            second,
+        }
+    }
+
+    fn clone(&mut self, name: &str) -> Repository {
+        let dir = tempfile::tempdir().unwrap();
+        let repo = support::clone(self.origin_path.to_str().unwrap(), &dir.path().join(name));
+        self._dirs.push(dir);
+        repo
+    }
+}
+
+#[test]
+fn a_fetch_keeps_local_index_commits_on_top_of_the_remote() {
+    // The ref is fetched without `+` semantics on the local side: whatever was
+    // only written here survives, rebuilt on the tip that arrived.
+    let mut shared = Shared::new();
+    let a = shared.clone("a");
+    let b = shared.clone("b");
+
+    let a_index = Store::open(&a)
+        .write(shared.first, &analyze_at(&a, shared.first))
+        .unwrap();
+    assert!(support::push_index(a.workdir().unwrap()));
+
+    Store::open(&b)
+        .write(shared.second, &analyze_at(&b, shared.second))
+        .unwrap();
+
+    let reconciled = Store::open(&b).fetch("origin").unwrap();
+
+    assert_eq!(reconciled.remote, Some(a_index));
+    assert_eq!(reconciled.rebuilt, 1);
+
+    let tip = Store::open(&b).tip().unwrap().unwrap();
+    assert_eq!(reconciled.tip, Some(tip));
+    assert_eq!(parent(&b, tip, 0).unwrap(), shared.second);
+    assert_eq!(parent(&b, tip, 1).unwrap(), a_index);
+
+    // What the fetch left is a fast-forward of the remote.
+    assert!(support::push_index(b.workdir().unwrap()));
+}
+
+#[test]
+fn fetching_a_remote_with_no_index_leaves_the_local_ref_alone() {
+    let mut shared = Shared::new();
+    let a = shared.clone("a");
+
+    let cold = Store::open(&a).fetch("origin").unwrap();
+    assert_eq!(cold.remote, None);
+    assert_eq!(cold.tip, None);
+
+    let mine = Store::open(&a)
+        .write(shared.first, &analyze_at(&a, shared.first))
+        .unwrap();
+    let kept = Store::open(&a).fetch("origin").unwrap();
+    assert_eq!(kept.remote, None);
+    assert_eq!(kept.tip, Some(mine));
+    assert_eq!(Store::open(&a).tip().unwrap(), Some(mine));
+}
+
+#[test]
+fn a_fetch_asks_for_the_index_and_nothing_else() {
+    let origin = Fixture::new();
+    let source = origin.commit("src/lib.rs", "fn draw() {}\n");
+    support::git(origin.path(), &["tag", "-a", "release", "-m", "a release"]);
+    Store::open(&origin.repo)
+        .write(source, &analyze_at(&origin.repo, source))
+        .unwrap();
+
+    let local = Fixture::new();
+    local.add_remote("origin", origin.path().to_str().unwrap());
+    // Reopened, because a repository reads its configuration when it opens.
+    let repo = gix::open(local.path()).unwrap();
+    Store::open(&repo).fetch("origin").unwrap();
+
+    assert!(Store::open(&repo).tip().unwrap().is_some());
+    assert_eq!(
+        support::git(local.path(), &["for-each-ref", "--format=%(refname)"]).trim(),
+        "refs/beholder/index",
+        "fetching the index must not bring down branches or tags"
+    );
+}
+
+#[test]
+fn rebuilding_onto_a_tip_the_local_ref_already_contains_moves_nothing() {
+    // Index commits are a function of their content and parents, so replaying
+    // a chain onto its own base reproduces it exactly.
+    let mut shared = Shared::new();
+    let a = shared.clone("a");
+    let store = Store::open(&a);
+
+    let older = store
+        .write(shared.first, &analyze_at(&a, shared.first))
+        .unwrap();
+    let newer = store
+        .write(shared.second, &analyze_at(&a, shared.second))
+        .unwrap();
+
+    let reconciled = store.rebuild_onto(older).unwrap();
+    assert_eq!(reconciled.tip, Some(newer));
+    assert_eq!(reconciled.rebuilt, 1);
+    assert_eq!(store.tip().unwrap(), Some(newer));
+}
+
+#[test]
+fn rebuilding_onto_a_commit_that_is_not_an_index_is_refused() {
+    let mut shared = Shared::new();
+    let a = shared.clone("a");
+    let store = Store::open(&a);
+    let mine = store
+        .write(shared.first, &analyze_at(&a, shared.first))
+        .unwrap();
+
+    let err = store.rebuild_onto(shared.second).unwrap_err();
+    assert!(
+        format!("{err:#}").contains("is not an index commit"),
+        "unexpected error: {err:#}"
+    );
+    assert_eq!(store.tip().unwrap(), Some(mine), "the ref did not move");
+}
+
 #[test]
 fn the_ref_pushes_with_an_ordinary_refspec() {
+    // Beholder does not push. Ordinary git does, without `+`, and the index
+    // has to arrive whole that way.
     let origin_dir = tempfile::tempdir().unwrap();
     let origin_path = origin_dir.path().join("origin.git");
-    Repository::init_bare(&origin_path).unwrap();
+    support::init_bare(&origin_path);
 
     let fixture = Fixture::new();
-    fixture
-        .repo
-        .remote("origin", origin_path.to_str().unwrap())
-        .unwrap();
+    fixture.add_remote("origin", origin_path.to_str().unwrap());
 
     let files = [("src/lib.rs", "fn draw() {}\n")];
     let source = fixture.commit("src/lib.rs", files[0].1);
@@ -508,17 +596,13 @@ fn the_ref_pushes_with_an_ordinary_refspec() {
         .write(source, &analyze_at(&fixture.repo, source))
         .unwrap();
 
-    store.push("origin").unwrap();
-
-    let origin = Repository::open(&origin_path).unwrap();
-    assert_eq!(
-        origin
-            .find_reference("refs/beholder/index")
-            .unwrap()
-            .target()
-            .unwrap(),
-        index
+    assert!(
+        support::push_index(fixture.path()),
+        "nothing else was there"
     );
+
+    let origin = gix::open(&origin_path).unwrap();
+    assert_eq!(ref_target(&origin, "refs/beholder/index").unwrap(), index);
     // Pushing the index carried the analyzed source objects with it.
     assert!(origin.find_commit(source).is_ok());
     assert_eq!(REFSPEC, "+refs/beholder/*:refs/beholder/*");
@@ -531,20 +615,20 @@ fn a_second_pusher_rebuilds_instead_of_overwriting() {
     // without ever noticing it existed.
     let origin_dir = tempfile::tempdir().unwrap();
     let origin_path = origin_dir.path().join("origin.git");
-    Repository::init_bare(&origin_path).unwrap();
+    support::init_bare(&origin_path);
     let origin_url = origin_path.to_str().unwrap().to_owned();
 
     // A shared history both machines already have.
     let seed = Fixture::new();
-    seed.repo.remote("origin", &origin_url).unwrap();
+    seed.add_remote("origin", &origin_url);
     let first_source = seed.commit("src/first.rs", "fn first() {}\n");
     let second_source = seed.commit("src/second.rs", "fn second() {}\n");
-    push_default_branch(&seed.repo);
+    support::push_default_branch(seed.path());
 
     let clone_of = |name: &str| {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(name);
-        let repo = Repository::clone(&origin_url, &path).unwrap();
+        let repo = support::clone(&origin_url, &path);
         (dir, repo)
     };
 
@@ -555,7 +639,7 @@ fn a_second_pusher_rebuilds_instead_of_overwriting() {
     let a_index = Store::open(&a)
         .write(first_source, &analyze_at(&a, first_source))
         .unwrap();
-    Store::open(&a).push("origin").unwrap();
+    assert_eq!(support::publish_index(&a), 0);
 
     // Machine B never saw A's index and indexes a different commit.
     let b_index = Store::open(&b)
@@ -563,25 +647,24 @@ fn a_second_pusher_rebuilds_instead_of_overwriting() {
         .unwrap();
     assert_eq!(Store::open(&b).tip().unwrap(), Some(b_index));
 
-    Store::open(&b).push("origin").unwrap();
+    assert_eq!(
+        support::publish_index(&b),
+        1,
+        "B's first push must be rejected, not forced"
+    );
 
     // A's index survived, and B's now sits on top of it.
-    let origin = Repository::open(&origin_path).unwrap();
-    let tip = origin
-        .find_reference("refs/beholder/index")
-        .unwrap()
-        .target()
-        .unwrap();
+    let origin = gix::open(&origin_path).unwrap();
+    let tip = ref_target(&origin, "refs/beholder/index").unwrap();
 
     assert_ne!(
         tip, b_index,
         "B's original index was built on nothing; a rebuilt one must differ"
     );
 
-    let tip_commit = origin.find_commit(tip).unwrap();
-    assert_eq!(tip_commit.parent_id(0).unwrap(), second_source);
+    assert_eq!(parent(&origin, tip, 0).unwrap(), second_source);
     assert_eq!(
-        tip_commit.parent_id(1).unwrap(),
+        parent(&origin, tip, 1).unwrap(),
         a_index,
         "B rebuilt on A's tip rather than replacing it"
     );
@@ -608,32 +691,32 @@ fn reconciliation_walks_past_the_cache_depth() {
 
     let origin_dir = tempfile::tempdir().unwrap();
     let origin_path = origin_dir.path().join("origin.git");
-    Repository::init_bare(&origin_path).unwrap();
+    support::init_bare(&origin_path);
     let origin_url = origin_path.to_str().unwrap().to_owned();
 
     let seed = Fixture::new();
-    seed.repo.remote("origin", &origin_url).unwrap();
+    seed.add_remote("origin", &origin_url);
     let source = seed.commit("src/lib.rs", "fn draw() {}\n");
     // A distinct source for A's late write. Index commits are a function of
     // their content and parents, so two writes of the same analysis onto the
     // same parent would converge to one commit and the divergence would be a
     // commit shallower than intended.
     let late_source = seed.commit("src/lib.rs", "fn draw() {}\nfn erase() {}\n");
-    push_default_branch(&seed.repo);
+    support::push_default_branch(seed.path());
 
     // A shared prefix, deep enough that a bounded walk from either tip would
     // stop before reaching it.
     let a_dir = tempfile::tempdir().unwrap();
-    let a = Repository::clone(&origin_url, a_dir.path().join("a")).unwrap();
+    let a = support::clone(&origin_url, &a_dir.path().join("a"));
     let analysis = analyze_at(&a, source);
 
     for _ in 0..SHARED {
         Store::open(&a).write(source, &analysis).unwrap();
     }
-    Store::open(&a).push("origin").unwrap();
+    assert!(support::push_index(a.workdir().unwrap()));
 
     let b_dir = tempfile::tempdir().unwrap();
-    let b = Repository::clone(&origin_url, b_dir.path().join("b")).unwrap();
+    let b = support::clone(&origin_url, &b_dir.path().join("b"));
     Store::open(&b).fetch("origin").unwrap();
 
     let shared_tip = Store::open(&b).tip().unwrap().expect("the shared prefix");
@@ -661,13 +744,13 @@ fn reconciliation_walks_past_the_cache_depth() {
     let a_tip = Store::open(&a)
         .write(late_source, &analyze_at(&a, late_source))
         .unwrap();
-    Store::open(&a).push("origin").unwrap();
+    assert!(support::push_index(a.workdir().unwrap()));
 
-    Store::open(&b).push("origin").unwrap();
+    assert_eq!(support::publish_index(&b), 1);
 
     // Everything survives exactly once: the shared prefix, A's commit, and all
     // seventy of B's, rebuilt on top.
-    let origin = Repository::open(&origin_path).unwrap();
+    let origin = gix::open(&origin_path).unwrap();
     let pushed = Store::open(&origin).history(1000).unwrap();
 
     assert_eq!(
@@ -697,17 +780,6 @@ fn reconciliation_walks_past_the_cache_depth() {
             "a local commit was pushed unreconciled instead of rebuilt"
         );
     }
-}
-
-/// Push whatever the default branch is called, so the fixture works regardless
-/// of the local `init.defaultBranch`.
-fn push_default_branch(repo: &Repository) {
-    let head = repo.head().unwrap();
-    let name = head.name().unwrap().to_owned();
-    repo.find_remote("origin")
-        .unwrap()
-        .push(&[format!("{name}:{name}")], None)
-        .unwrap();
 }
 
 // ---------------------------------------------------------------------------
@@ -759,9 +831,8 @@ fn a_concurrent_writer_forces_a_retry_and_loses_nothing() {
         "my write won in the end"
     );
 
-    let commit = fixture.repo.find_commit(my_index).unwrap();
     assert_eq!(
-        commit.parent_id(1).unwrap(),
+        parent(&fixture.repo, my_index, 1).unwrap(),
         interloper_index,
         "the retry rebuilt against the new beholder parent"
     );
@@ -806,8 +877,110 @@ fn a_concurrent_first_writer_does_not_get_clobbered() {
         .unwrap();
 
     let their_index = theirs.unwrap();
-    let commit = fixture.repo.find_commit(my_index).unwrap();
 
-    assert_eq!(commit.parent_count(), 2);
-    assert_eq!(commit.parent_id(1).unwrap(), their_index);
+    assert_eq!(parent_count(&fixture.repo, my_index), 2);
+    assert_eq!(parent(&fixture.repo, my_index, 1).unwrap(), their_index);
+}
+
+// ---------------------------------------------------------------------------
+// indexes written before the move to gix
+// ---------------------------------------------------------------------------
+
+/// An index written by beholder 0.1.1 while it still read and wrote git through
+/// git2 (libgit2), made by `tests/fixtures/make-git2-index.sh`.
+///
+/// The ids are recorded, not derived. An index commit's id is a function of the
+/// bytes of its tree and commit objects, so these literals are what an index
+/// written before the migration is, and nothing the gix code does can move them.
+const GIT2_BUNDLE: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/tests/fixtures/git2-index.bundle"
+);
+const GIT2_SOURCES: [&str; 2] = [
+    "90d0b64748a24be942ebee5d6ef4e4987a49b0df",
+    "606d87ad05b3bd4eae6589ef12abd04848d65f27",
+];
+const GIT2_INDEXES: [&str; 2] = [
+    "12279d7af101447ddff12297b341933f8eab74e6",
+    "58cdbdd3b5b1db433f4106805625eeb09f5fdf47",
+];
+
+fn oid(hex: &str) -> Oid {
+    Oid::from_hex(hex.as_bytes()).unwrap()
+}
+
+/// A repository holding the git2-written history and index.
+fn git2_written() -> Fixture {
+    let fixture = Fixture::new();
+    support::git(
+        fixture.path(),
+        &[
+            "fetch",
+            "--quiet",
+            GIT2_BUNDLE,
+            "+refs/heads/main:refs/heads/source",
+            "+refs/beholder/index:refs/beholder/index",
+        ],
+    );
+    fixture
+}
+
+#[test]
+fn an_index_written_through_git2_reads_back() {
+    let fixture = git2_written();
+    let store = Store::open(&fixture.repo);
+
+    let history = store.history(10).unwrap();
+    let ids: Vec<Oid> = history.iter().map(|e| e.id).collect();
+    let sources: Vec<Oid> = history.iter().map(|e| e.source_commit).collect();
+    assert_eq!(ids, vec![oid(GIT2_INDEXES[1]), oid(GIT2_INDEXES[0])]);
+    assert_eq!(sources, vec![oid(GIT2_SOURCES[1]), oid(GIT2_SOURCES[0])]);
+
+    for (index, source) in GIT2_INDEXES.iter().zip(GIT2_SOURCES) {
+        let stored = store.read_analysis(oid(index)).unwrap();
+        let manifest = beholder::walk::revision_manifest(&fixture.repo, source, &config()).unwrap();
+        beholder::store::validate_payload(&stored, &manifest)
+            .unwrap_or_else(|why| panic!("{index} no longer matches {source}: {why}"));
+        assert!(!stored.files.is_empty());
+    }
+}
+
+#[test]
+fn an_index_written_through_git2_is_reused_file_by_file() {
+    // Reuse is gated on the fingerprint, which carries the tool version, so the
+    // stored fingerprint is the one asked for. What this proves is that every
+    // phase 1 result git2 wrote is found and accepted by the gix reader.
+    let fixture = git2_written();
+    let store = Store::open(&fixture.repo);
+    let tip = oid(GIT2_INDEXES[1]);
+    let stored = store.read_analysis(tip).unwrap();
+
+    let cache = store.phase1_cache(&stored.fingerprint).unwrap();
+    let files = beholder::walk::read_revision(&fixture.repo, GIT2_SOURCES[1], &config()).unwrap();
+    let (rerun, stats) = analysis::run_with_cache(&files, &config(), &cache);
+
+    assert_eq!(stats.computed, 0, "every file should come from the store");
+    assert_eq!(stats.reused, files.len());
+    assert_eq!(rerun.files, stored.files);
+}
+
+#[test]
+fn rewriting_an_index_written_through_git2_reproduces_its_ids() {
+    // The tree is assembled entry by entry and the commit field by field. If
+    // either serialized differently from libgit2, a reconciled or rewritten
+    // index would get a new id, and two machines on either side of the
+    // migration would stop converging on the same commits.
+    let fixture = git2_written();
+    let original = Store::open(&fixture.repo);
+    let rewrite = Store::with_ref(&fixture.repo, "refs/beholder/rewrite");
+
+    for (index, source) in GIT2_INDEXES.iter().zip(GIT2_SOURCES) {
+        let stored = original.read_analysis(oid(index)).unwrap();
+        let written = rewrite.write(oid(source), &stored).unwrap();
+        assert_eq!(
+            written,
+            oid(index),
+            "rewriting {source} changed its index id"
+        );
+    }
 }

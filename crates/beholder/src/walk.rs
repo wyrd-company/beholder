@@ -166,7 +166,7 @@ pub fn walk_worktree(root: &Path, config: &Config) -> Result<Vec<SourceFile>> {
 
 /// Read every analyzable blob in a git revision's tree.
 pub fn read_revision(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     revision: &str,
     config: &Config,
 ) -> Result<Vec<SourceFile>> {
@@ -197,7 +197,7 @@ pub fn read_revision(
 /// This is what a stored analysis has to agree with before it can be treated as
 /// the analysis of that revision.
 pub fn revision_manifest(
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     revision: &str,
     config: &Config,
 ) -> Result<std::collections::BTreeMap<String, String>> {
@@ -224,12 +224,30 @@ pub fn worktree_manifest(
         .collect())
 }
 
-/// The tree of a revision.
-pub fn revision_tree<'r>(repo: &'r git2::Repository, revision: &str) -> Result<git2::Tree<'r>> {
-    repo.revparse_single(revision)
+/// The commit a revision names.
+///
+/// A revision may name a commit through a chain of annotated tags, and a tag may
+/// point at another tag. Every revision beholder accepts arrives here — delta,
+/// report, audit and the stored-analysis lookup all resolve through this — so
+/// peeling has to follow the chain to its end rather than requiring the caller
+/// to hand over a commit already.
+pub fn revision_commit<'r>(repo: &'r gix::Repository, revision: &str) -> Result<gix::Commit<'r>> {
+    // gix peels an annotated tag to its commit before it applies `~n` or `^n`,
+    // so `sometag~1` resolves the way git resolves it.
+    let id = repo
+        .rev_parse_single(revision)
         .with_context(|| format!("resolving revision {revision}"))?
+        .detach();
+
+    repo.find_object(id)
+        .with_context(|| format!("reading the object {revision} names"))?
         .peel_to_commit()
-        .with_context(|| format!("{revision} does not name a commit"))?
+        .with_context(|| format!("{revision} does not name a commit"))
+}
+
+/// The tree of a revision.
+pub fn revision_tree<'r>(repo: &'r gix::Repository, revision: &str) -> Result<gix::Tree<'r>> {
+    revision_commit(repo, revision)?
         .tree()
         .context("reading the commit tree")
 }
@@ -240,8 +258,8 @@ pub fn revision_tree<'r>(repo: &'r git2::Repository, revision: &str) -> Result<g
 /// The working-tree walk honors `.gitignore`; a committed tree has to be given
 /// the same treatment explicitly or the two walkers disagree.
 fn revision_ignores(
-    repo: &git2::Repository,
-    tree: &git2::Tree<'_>,
+    repo: &gix::Repository,
+    tree: &gix::Tree<'_>,
 ) -> Result<Vec<(String, Gitignore)>> {
     let mut sources = Vec::new();
 
@@ -282,50 +300,48 @@ fn revision_ignores(
 /// gitlink. The working-tree walk sees neither as a file, so the revision walk
 /// must not either — otherwise `delta` analyzes a symlink's target path as if it
 /// were source and `index` does not.
-fn is_regular_file(entry: &git2::TreeEntry<'_>) -> bool {
-    entry.kind() == Some(git2::ObjectType::Blob)
-        && matches!(
-            entry.filemode(),
-            0o100644 /* blob */ | 0o100755 /* executable blob */
-        )
+///
+/// The two accepted kinds are exactly filemodes 0o100644 and 0o100755.
+fn is_regular_file(mode: gix::object::tree::EntryMode) -> bool {
+    matches!(
+        mode.kind(),
+        gix::object::tree::EntryKind::Blob | gix::object::tree::EntryKind::BlobExecutable
+    )
 }
 
 /// Visit every blob in a tree with its repo-relative path.
+///
+/// The traversal yields entries in git's own tree order, which is not path
+/// order; every caller sorts what it collects, so the two are kept apart
+/// deliberately rather than relying on the walk to arrive sorted.
 fn for_each_blob(
-    repo: &git2::Repository,
-    tree: &git2::Tree<'_>,
+    repo: &gix::Repository,
+    tree: &gix::Tree<'_>,
     visit: &mut dyn FnMut(&str, &[u8]) -> Result<()>,
 ) -> Result<()> {
-    let mut error: Option<anyhow::Error> = None;
+    let entries = tree
+        .traverse()
+        .breadthfirst
+        .files()
+        .context("walking the revision tree")?;
 
-    tree.walk(git2::TreeWalkMode::PreOrder, |dir, entry| {
-        if !is_regular_file(entry) {
-            return git2::TreeWalkResult::Ok;
+    for entry in entries {
+        if !is_regular_file(entry.mode) {
+            continue;
         }
 
-        let Some(name) = entry.name() else {
-            return git2::TreeWalkResult::Ok;
+        let Ok(path) = std::str::from_utf8(&entry.filepath) else {
+            continue;
         };
-        let path = format!("{dir}{name}");
 
-        match repo
-            .find_blob(entry.id())
-            .map_err(anyhow::Error::new)
-            .and_then(|blob| visit(&path, blob.content()))
-        {
-            Ok(()) => git2::TreeWalkResult::Ok,
-            Err(err) => {
-                error = Some(err.context(format!("reading blob {path}")));
-                git2::TreeWalkResult::Abort
-            }
-        }
-    })
-    .context("walking the revision tree")?;
+        let blob = repo
+            .find_object(entry.oid)
+            .with_context(|| format!("reading blob {path}"))?;
 
-    match error {
-        Some(err) => Err(err),
-        None => Ok(()),
+        visit(path, &blob.data).with_context(|| format!("reading blob {path}"))?;
     }
+
+    Ok(())
 }
 
 /// Deterministic order: byte order of the repo-relative path.
@@ -350,29 +366,59 @@ mod tests {
         std::fs::write(full, contents).unwrap();
     }
 
+    /// Run one git command in `dir`, panicking on failure.
+    ///
+    /// Fixtures are built by running git rather than by calling a library, so a
+    /// passing test is a statement about what git actually writes.
+    fn git(dir: &Path, args: &[&str]) {
+        let status = std::process::Command::new("git")
+            .args(args)
+            .current_dir(dir)
+            .env("GIT_AUTHOR_NAME", "test")
+            .env("GIT_AUTHOR_EMAIL", "test@example.invalid")
+            .env("GIT_AUTHOR_DATE", "@0 +0000")
+            .env("GIT_COMMITTER_NAME", "test")
+            .env("GIT_COMMITTER_EMAIL", "test@example.invalid")
+            .env("GIT_COMMITTER_DATE", "@0 +0000")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_CONFIG_SYSTEM", "/dev/null")
+            .output()
+            .expect("running git");
+        assert!(status.status.success(), "git {args:?} failed");
+    }
+
+    fn init(root: &Path) {
+        git(root, &["init", "--quiet", "-b", "main", "."]);
+    }
+
+    fn commit_all(root: &Path, message: &str) {
+        git(root, &["add", "-A"]);
+        git(root, &["commit", "--quiet", "--allow-empty", "-m", message]);
+    }
+
+    /// The object id a revision resolves to, according to git.
+    fn resolve(root: &Path, revision: &str) -> String {
+        let output = std::process::Command::new("git")
+            .args(["rev-parse", revision])
+            .current_dir(root)
+            .output()
+            .expect("running git rev-parse");
+        assert!(output.status.success(), "git rev-parse {revision} failed");
+        String::from_utf8(output.stdout).unwrap().trim().to_owned()
+    }
+
     /// A repository with the same files in the worktree and in a commit.
-    fn fixture(files: &[(&str, &str)]) -> (tempfile::TempDir, git2::Repository) {
+    fn fixture(files: &[(&str, &str)]) -> (tempfile::TempDir, gix::Repository) {
         let dir = tempfile::tempdir().unwrap();
-        let repo = git2::Repository::init(dir.path()).unwrap();
+        init(dir.path());
 
         for (path, contents) in files {
             write(dir.path(), path, contents);
         }
 
-        {
-            let mut index = repo.index().unwrap();
-            index
-                .add_all(["*"], git2::IndexAddOption::DEFAULT, None)
-                .unwrap();
-            index.write().unwrap();
-            let tree = repo.find_tree(index.write_tree().unwrap()).unwrap();
-            let signature =
-                git2::Signature::new("test", "test@example.invalid", &git2::Time::new(0, 0))
-                    .unwrap();
-            repo.commit(Some("HEAD"), &signature, &signature, "fixture", &tree, &[])
-                .unwrap();
-        }
+        commit_all(dir.path(), "fixture");
 
+        let repo = gix::open(dir.path()).unwrap();
         (dir, repo)
     }
 
@@ -384,7 +430,7 @@ mod tests {
     fn honors_gitignore_and_configured_ignores() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        git2::Repository::init(root).unwrap();
+        init(root);
 
         write(root, ".gitignore", "target/\n");
         write(root, "src/main.rs", "fn main() {}\n");
@@ -410,7 +456,7 @@ mod tests {
     fn beholder_does_not_index_its_own_output() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        git2::Repository::init(root).unwrap();
+        init(root);
 
         write(root, "src/main.rs", "fn main() {}\n");
         write(root, "symbols.jsonl", "{}\n");
@@ -426,7 +472,7 @@ mod tests {
     fn output_is_stably_sorted() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        git2::Repository::init(root).unwrap();
+        init(root);
 
         for name in ["z.rs", "a.rs", "m/n.rs", "m/a.rs"] {
             write(root, name, "fn f() {}\n");
@@ -506,9 +552,20 @@ mod tests {
         .unwrap();
 
         // Git itself agrees the file is excluded on this machine.
-        assert!(repo
-            .status_should_ignore(Path::new("src/excluded_locally.rs"))
-            .unwrap());
+        assert!(
+            std::process::Command::new("git")
+                .args([
+                    "check-ignore",
+                    "--no-index",
+                    "-q",
+                    "src/excluded_locally.rs"
+                ])
+                .current_dir(dir.path())
+                .status()
+                .expect("running git check-ignore")
+                .success(),
+            "the local exclude is not in force, so this test proves nothing"
+        );
 
         let worktree = paths(walk_worktree(dir.path(), &Config::default()).unwrap());
         let revision = paths(read_revision(&repo, "HEAD", &Config::default()).unwrap());
@@ -546,33 +603,116 @@ mod tests {
         let (dir, repo) = fixture(&[("src/main.rs", "fn main() {}\n")]);
 
         std::os::unix::fs::symlink("main.rs", dir.path().join("src/alias.rs")).unwrap();
-
-        let mut index = repo.index().unwrap();
-        index
-            .add_all(["*"], git2::IndexAddOption::DEFAULT, None)
-            .unwrap();
-        index.write().unwrap();
-        let tree_id = index.write_tree().unwrap();
-        let signature =
-            git2::Signature::new("test", "test@example.invalid", &git2::Time::new(0, 0)).unwrap();
-        let parent = repo.head().unwrap().peel_to_commit().unwrap();
-        let tree = repo.find_tree(tree_id).unwrap();
-        repo.commit(
-            Some("HEAD"),
-            &signature,
-            &signature,
-            "add a symlink",
-            &tree,
-            &[&parent],
-        )
-        .unwrap();
-        drop(tree);
+        commit_all(dir.path(), "add a symlink");
 
         let worktree = paths(walk_worktree(dir.path(), &Config::default()).unwrap());
         let revision = paths(read_revision(&repo, "HEAD", &Config::default()).unwrap());
 
         assert_eq!(worktree, vec!["src/main.rs".to_string()]);
         assert_eq!(worktree, revision);
+    }
+
+    #[test]
+    fn an_annotated_tag_names_the_commit_it_points_at() {
+        // A tag is a revision like any other, and an annotated tag is its own
+        // object rather than a pointer to the commit. Every command that takes a
+        // revision resolves it here, so a tag that does not peel takes delta,
+        // report, audit and the stored-analysis lookup with it.
+        let (dir, repo) = fixture(&[("src/main.rs", "fn main() {}\n")]);
+        let head = resolve(dir.path(), "HEAD");
+
+        git(dir.path(), &["tag", "-a", "release", "-m", "a release"]);
+        git(dir.path(), &["tag", "lightweight"]);
+
+        assert_ne!(
+            resolve(dir.path(), "release"),
+            head,
+            "an annotated tag must be its own object or this test proves nothing"
+        );
+
+        for revision in ["release", "lightweight"] {
+            assert_eq!(
+                revision_commit(&repo, revision).unwrap().id().to_string(),
+                head,
+                "{revision} should name the commit it points at"
+            );
+            assert_eq!(
+                paths(read_revision(&repo, revision, &Config::default()).unwrap()),
+                vec!["src/main.rs".to_string()]
+            );
+        }
+    }
+
+    #[test]
+    fn a_tag_pointing_at_a_tag_still_names_a_commit() {
+        // Peeling is a chain, not one step.
+        let (dir, repo) = fixture(&[("src/main.rs", "fn main() {}\n")]);
+        let head = resolve(dir.path(), "HEAD");
+
+        git(dir.path(), &["tag", "-a", "inner", "-m", "inner"]);
+        let inner = resolve(dir.path(), "inner");
+        git(dir.path(), &["tag", "-a", "outer", "-m", "outer", &inner]);
+
+        assert_ne!(
+            resolve(dir.path(), "outer"),
+            inner,
+            "outer is its own object"
+        );
+        assert_ne!(inner, head, "inner is its own object");
+
+        assert_eq!(
+            revision_commit(&repo, "outer").unwrap().id().to_string(),
+            head
+        );
+        assert_eq!(
+            paths(read_revision(&repo, "outer", &Config::default()).unwrap()),
+            vec!["src/main.rs".to_string()]
+        );
+    }
+
+    #[test]
+    fn a_revision_navigating_from_an_annotated_tag_names_a_commit() {
+        // `~` and `^` count from a commit, so git peels the tag before
+        // navigating. A revision spelled this way is ordinary in a release
+        // workflow, and it resolved before the migration.
+        let (dir, repo) = fixture(&[("src/main.rs", "fn first() {}\n")]);
+        let first = resolve(dir.path(), "HEAD");
+
+        write(dir.path(), "src/main.rs", "fn first() {}\nfn second() {}\n");
+        commit_all(dir.path(), "second");
+        let second = resolve(dir.path(), "HEAD");
+
+        git(dir.path(), &["tag", "-a", "release", "-m", "a release"]);
+
+        for (revision, expected) in [
+            ("release", &second),
+            ("release~1", &first),
+            ("release^", &first),
+            ("release^1", &first),
+            ("release^{commit}", &second),
+        ] {
+            assert_eq!(
+                &revision_commit(&repo, revision).unwrap().id().to_string(),
+                expected,
+                "{revision} resolved to the wrong commit"
+            );
+            assert_eq!(
+                resolve(dir.path(), &format!("{revision}^{{commit}}")),
+                *expected,
+                "the fixture disagrees with git about {revision}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_revision_that_names_no_commit_is_refused() {
+        // Peeling follows tags to a commit. It must not keep going and turn a
+        // commit into its tree, or a revision naming a tree would be accepted as
+        // if it were the revision itself.
+        let (dir, repo) = fixture(&[("src/main.rs", "fn main() {}\n")]);
+        let tree = resolve(dir.path(), "HEAD^{tree}");
+
+        assert!(revision_commit(&repo, &tree).is_err());
     }
 
     #[test]
