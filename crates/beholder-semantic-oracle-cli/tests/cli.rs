@@ -197,7 +197,8 @@ fn unreadable_input_exits_2_and_bad_yaml_is_a_finding() {
 
 /// Paths git stores as bytes: a backslash in a directory name, a sibling
 /// file name that is not UTF-8, and a link target that is not UTF-8.
-#[cfg(unix)]
+// macOS and Windows file systems reject file names that are not UTF-8.
+#[cfg(target_os = "linux")]
 #[test]
 fn inventory_reads_paths_and_links_as_git_stores_them() {
     use std::{ffi::OsStr, os::unix::ffi::OsStrExt};
@@ -241,7 +242,8 @@ fn inventory_reads_paths_and_links_as_git_stores_them() {
 }
 
 /// A project directory whose name is not UTF-8 still lists its files.
-#[cfg(unix)]
+// macOS and Windows file systems reject file names that are not UTF-8.
+#[cfg(target_os = "linux")]
 #[test]
 fn inventory_opens_a_project_whose_directory_name_is_not_utf8() {
     use std::{ffi::OsStr, os::unix::ffi::OsStrExt};
