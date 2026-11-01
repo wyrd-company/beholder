@@ -623,3 +623,23 @@ fn audit(args: AuditArgs) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod selection_tests {
+    use super::*;
+
+    #[test]
+    fn partial_index_cannot_be_stored() {
+        assert!(Cli::try_parse_from(["beholder", "index", "--only", "src", "--store"]).is_err());
+        assert!(Cli::try_parse_from([
+            "beholder",
+            "index",
+            "--only",
+            "src",
+            "--only",
+            "tests",
+            "--use-store"
+        ])
+        .is_ok());
+    }
+}
