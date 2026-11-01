@@ -42,7 +42,7 @@ published first. Fetch their tip, rebuild your index commits on it, and push
 again:
 
 ```bash
-git fetch origin refs/beholder/index
+git fetch --refmap= origin refs/beholder/index
 beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
 git push origin refs/beholder/index:refs/beholder/index
 ```

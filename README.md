@@ -130,7 +130,7 @@ Ref updates are compare-and-swap against the tip the commit was built on. A writ
 Pushes are never forced, for the same reason. A force push would make the compare-and-swap meaningless the moment two machines were involved, because the loser would never learn it had lost. A rejected push is the signal to fetch the winning tip and rebuild on it:
 
 ```sh
-git fetch origin refs/beholder/index
+git fetch --refmap= origin refs/beholder/index
 beholder store --rebuild-onto "$(git rev-parse FETCH_HEAD)"
 git push origin refs/beholder/index:refs/beholder/index
 ```
