@@ -194,3 +194,48 @@ fn unreadable_input_exits_2_and_bad_yaml_is_a_finding() {
     assert_eq!(output.status.code(), Some(1));
     assert_eq!(lines(&output)[0]["rule"], "model:yaml");
 }
+
+/// Paths git stores as bytes: a backslash in a directory name, a sibling
+/// file name that is not UTF-8, and a link target that is not UTF-8.
+#[cfg(unix)]
+#[test]
+fn inventory_reads_paths_and_links_as_git_stores_them() {
+    use std::{ffi::OsStr, os::unix::ffi::OsStrExt};
+
+    let dir = tempfile::tempdir().unwrap();
+    let git = |args: &[&str]| {
+        let status = Command::new("git")
+            .args(args)
+            .current_dir(dir.path())
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_CONFIG_SYSTEM", "/dev/null")
+            .status()
+            .unwrap();
+        assert!(status.success(), "git {args:?}");
+    };
+    git(&["init", "-q"]);
+    let project = dir.path().join("fix\\ture");
+    std::fs::create_dir_all(&project).unwrap();
+    std::fs::write(project.join("a.txt"), "a\n").unwrap();
+    std::os::unix::fs::symlink(OsStr::from_bytes(b"bad-\xff"), project.join("link")).unwrap();
+    std::fs::write(dir.path().join(OsStr::from_bytes(b"bad-\xff")), "x\n").unwrap();
+    git(&["add", "."]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_semantic-oracle"))
+        .args(["inventory", "fix\\ture"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let text = stdout(&output);
+    let paths: Vec<&str> = text
+        .lines()
+        .filter_map(|line| line.strip_prefix("  - path: "))
+        .collect();
+    assert_eq!(paths, ["a.txt", "link"]);
+}
