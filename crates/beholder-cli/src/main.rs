@@ -44,6 +44,9 @@ enum Command {
 
 #[derive(Args)]
 struct IndexArgs {
+    /// Select an exact file or directory subtree; repeat for multiple selectors.
+    #[arg(long, value_name = "PATH", conflicts_with = "store")]
+    only: Vec<String>,
     /// Repository root. Defaults to the current directory.
     #[arg(default_value = ".")]
     root: PathBuf,
@@ -205,7 +208,10 @@ fn open(root: &Path) -> Result<(git2::Repository, Config)> {
 }
 
 fn index(args: IndexArgs) -> Result<()> {
-    let (repo, config) = open(&args.root)?;
+    let (repo, mut config) = open(&args.root)?;
+    if !args.only.is_empty() {
+        config.select_paths(&args.only)?;
+    }
     let workdir = repo.workdir().expect("checked in open").to_owned();
     let files = beholder::walk::walk_worktree(&workdir, &config)?;
     let fingerprint = Fingerprint::new(&config);

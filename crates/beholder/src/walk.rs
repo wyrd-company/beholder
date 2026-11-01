@@ -381,6 +381,34 @@ mod tests {
     }
 
     #[test]
+    fn selected_paths_are_shared_boundaries_and_preserve_exclusions() {
+        let (dir, repo) = fixture(&[
+            ("src/lib/a.rs", "fn a() {}"),
+            ("src/library/b.rs", "fn b() {}"),
+            ("other.rs", "fn c() {}"),
+            ("src/lib/skip.lock", "ignored"),
+            (".gitignore", "src/lib/generated/\n"),
+            ("src/lib/generated/a.rs", "ignored"),
+        ]);
+        let mut config = Config::from_toml("ignored_extensions = [\"lock\"]").unwrap();
+        config
+            .select_paths(&["./src/lib/".into(), "other.rs".into()])
+            .unwrap();
+        let expected = vec!["other.rs", "src/lib/a.rs"];
+        assert_eq!(paths(walk_worktree(dir.path(), &config).unwrap()), expected);
+        assert_eq!(
+            paths(read_revision(&repo, "HEAD", &config).unwrap()),
+            expected
+        );
+        assert_ne!(config.fingerprint(), Config::default().fingerprint());
+        config.select_paths(&["missing".into()]).unwrap();
+        assert!(walk_worktree(dir.path(), &config).unwrap().is_empty());
+        for invalid in ["", ".", "../src", "/src", "C:/src"] {
+            assert!(config.select_paths(&[invalid.into()]).is_err());
+        }
+    }
+
+    #[test]
     fn honors_gitignore_and_configured_ignores() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
