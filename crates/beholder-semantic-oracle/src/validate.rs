@@ -1491,7 +1491,10 @@ impl<'a> Checker<'a> {
                 let at = format!("/extensions/{kind}/{j}");
                 let (built, what) = match self.extension_owner(fact, extension) {
                     Some(owner) => (self.built_contexts(owner), format!("the unit of `{owner}`")),
-                    None => (self.all.clone(), "the dataset".to_string()),
+                    None => match self.site_contexts(fact, extension) {
+                        Some((path, contexts)) => (contexts, format!("a unit compiling `{path}`")),
+                        None => (self.all.clone(), "the dataset".to_string()),
+                    },
                 };
                 let contexts = self.fact_contexts(&at, fact, built.clone(), &built, &what);
                 for (member, names) in extension.members {
@@ -1534,13 +1537,39 @@ impl<'a> Checker<'a> {
         fact: &'a Value,
         extension: &crate::rules::Extension,
     ) -> Option<&'a str> {
-        extension.members.iter().find_map(|(member, _)| {
+        extension.members.iter().find_map(|(member, names)| {
+            // A unit-or-assembly member may be an assembly name that equals
+            // an unrelated id; it never decides ownership.
+            if matches!(names, Names::UnitOrName | Names::Locator) {
+                return None;
+            }
             let id = text(fact, member)?;
             match self.ids.get(id)? {
                 (Class::Entity | Class::Unit, _) => Some(id),
                 (Class::Reference | Class::Relation, record) => text(record, "from"),
                 _ => None,
             }
+        })
+    }
+
+    /// For an extension fact with no owner record: the contexts in which
+    /// the document of its first site is a member of a unit.
+    fn site_contexts(
+        &self,
+        fact: &'a Value,
+        extension: &crate::rules::Extension,
+    ) -> Option<(&'a str, Contexts<'a>)> {
+        extension.members.iter().find_map(|(member, names)| {
+            if *names != Names::Locator {
+                return None;
+            }
+            let path = text(fact.get(*member)?, "path")?;
+            let members = self.members.get(path)?;
+            let contexts = members
+                .iter()
+                .flat_map(|(_, contexts)| contexts.iter().copied())
+                .collect();
+            Some((path, contexts))
         })
     }
 
@@ -1559,13 +1588,27 @@ impl<'a> Checker<'a> {
                 }
             }
             (Names::EntityOrExternal, Some(id)) => {
-                self.expect(at, id, &[Class::Entity, Class::External]);
+                if self
+                    .expect(at.clone(), id, &[Class::Entity, Class::External])
+                    .is_some()
+                {
+                    self.check_exists(at, id, contexts);
+                }
             }
             (Names::Unit, Some(id)) => {
                 self.expect(at, id, &[Class::Unit]);
             }
             (Names::UnitOrEntity, Some(id)) => {
-                self.expect(at, id, &[Class::Unit, Class::Entity, Class::External]);
+                if self
+                    .expect(
+                        at.clone(),
+                        id,
+                        &[Class::Unit, Class::Entity, Class::External],
+                    )
+                    .is_some()
+                {
+                    self.check_exists(at, id, contexts);
+                }
             }
             // A unit id, or else an external assembly name, which may equal
             // the id of a record of another kind.

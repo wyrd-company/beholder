@@ -8,8 +8,9 @@
 # Patch (RFC 6902), to the valid example `base`. The result fails at
 # `fails-at` with the schema keyword `keyword`. For `required`,
 # `additionalProperties` and `unevaluatedProperties`, `member` names the
-# member the error is about. `also` lists any further error, by location and
-# keyword, that the same defect causes; no other error occurs.
+# member the error is about, or the list of members. `also` lists any
+# further error, by location, keyword and the same `member` rule, that the
+# same defect causes; no other error occurs.
 cases:
   - name: unknown-context-parameter
     reason: '`rustflags` is not a Rust context parameter.'
