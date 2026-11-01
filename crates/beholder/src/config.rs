@@ -24,7 +24,7 @@ pub struct Config {
     /// substrings are analyzed.
     pub only_paths: Vec<String>,
     /// Additional repository-relative exact files or directory prefixes.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_deserializing, skip_serializing_if = "Vec::is_empty")]
     pub selected_paths: Vec<String>,
 }
 
@@ -129,6 +129,20 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selection_is_canonical_and_cannot_be_loaded_from_toml() {
+        assert!(Config::from_toml("selected_paths = [\"src\"]").is_err());
+        let mut a = Config::default();
+        a.select_paths(&["./src//lib/".into(), "tests".into(), "tests".into()])
+            .unwrap();
+        let mut b = Config::default();
+        b.select_paths(&["tests".into(), "src/lib".into()]).unwrap();
+        assert_eq!(a.fingerprint(), b.fingerprint());
+        assert_ne!(a.fingerprint(), Config::default().fingerprint());
+        b.select_paths(&["src/library".into()]).unwrap();
+        assert_ne!(a.fingerprint(), b.fingerprint());
+    }
 
     #[test]
     fn missing_configuration_is_the_default() {
