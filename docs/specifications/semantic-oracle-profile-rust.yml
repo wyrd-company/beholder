@@ -77,11 +77,13 @@ description: |
   the same context. Valid source never names a `cfg(test)`-only item from an
   integration test, so this unification loses no reference fact.
 
-  A unit record carries the Rust attributes `edition`, `crate-name`,
-  `platform` and `features`, the sorted features Cargo's feature resolver
-  enables for that unit; `features` is context-variant in the model's
-  attribute form. The unit key is the package name, package version, unit
-  kind, Cargo target name and platform.
+  A unit record carries the Rust attributes `package` and
+  `package-version`, the package name and version from its manifest,
+  `target-name`, the Cargo target name, `edition`, `crate-name`, `platform`
+  and `features`, the sorted features Cargo's feature resolver enables for
+  that unit; `features` is context-variant in the model's attribute form.
+  The unit key is `package`, `package-version`, the unit kind,
+  `target-name` and `platform`.
 
   A distribution is a package that has a `lib` or `proc-macro` unit:
   `kind: crate`, `name` and `version` from the package manifest. Other units
