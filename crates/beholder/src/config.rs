@@ -23,9 +23,40 @@ pub struct Config {
     /// When non-empty, only repo-relative paths containing one of these
     /// substrings are analyzed.
     pub only_paths: Vec<String>,
+    /// Additional repository-relative exact files or directory prefixes.
+    #[serde(skip_deserializing, skip_serializing_if = "Vec::is_empty")]
+    pub selected_paths: Vec<String>,
 }
 
 impl Config {
+    /// Apply an additional selection without widening configured exclusions.
+    pub fn select_paths(&mut self, paths: &[String]) -> Result<()> {
+        let mut normalized = Vec::new();
+        for path in paths {
+            anyhow::ensure!(
+                !path.is_empty()
+                    && !path.starts_with('/')
+                    && !path.contains('\\')
+                    && !path.contains(':'),
+                "selector must be a non-empty repository-relative path"
+            );
+            let mut parts = Vec::new();
+            for part in path.split('/') {
+                match part {
+                    "" | "." => {}
+                    ".." => anyhow::bail!("selector must not contain .."),
+                    value => parts.push(value),
+                }
+            }
+            anyhow::ensure!(!parts.is_empty(), "selector must name a file or directory");
+            normalized.push(parts.join("/"));
+        }
+        normalized.sort();
+        normalized.dedup();
+        self.selected_paths = normalized;
+        Ok(())
+    }
+
     /// Parse configuration from TOML text.
     pub fn from_toml(body: &str) -> Result<Self> {
         let mut config: Config = toml::from_str(body).context("parsing beholder configuration")?;
@@ -57,7 +88,16 @@ impl Config {
 
     /// Should this repo-relative path be analyzed?
     pub fn accepts(&self, path: &str) -> bool {
-        self.extension_allowed(path) && self.path_allowed(path) && self.only_path_allowed(path)
+        self.extension_allowed(path)
+            && self.path_allowed(path)
+            && self.only_path_allowed(path)
+            && (self.selected_paths.is_empty()
+                || self.selected_paths.iter().any(|p| {
+                    path == p
+                        || path
+                            .strip_prefix(p)
+                            .is_some_and(|tail| tail.starts_with('/'))
+                }))
     }
 
     fn extension_allowed(&self, path: &str) -> bool {
@@ -89,6 +129,20 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selection_is_canonical_and_cannot_be_loaded_from_toml() {
+        assert!(Config::from_toml("selected_paths = [\"src\"]").is_err());
+        let mut a = Config::default();
+        a.select_paths(&["./src//lib/".into(), "tests".into(), "tests".into()])
+            .unwrap();
+        let mut b = Config::default();
+        b.select_paths(&["tests".into(), "src/lib".into()]).unwrap();
+        assert_eq!(a.fingerprint(), b.fingerprint());
+        assert_ne!(a.fingerprint(), Config::default().fingerprint());
+        b.select_paths(&["src/library".into()]).unwrap();
+        assert_ne!(a.fingerprint(), b.fingerprint());
+    }
 
     #[test]
     fn missing_configuration_is_the_default() {
