@@ -811,3 +811,37 @@ fn a_concurrent_first_writer_does_not_get_clobbered() {
     assert_eq!(commit.parent_count(), 2);
     assert_eq!(commit.parent_id(1).unwrap(), their_index);
 }
+
+#[test]
+fn selections_cannot_reuse_full_stored_results_or_phase1_cache() {
+    let fixture = Fixture::new();
+    fixture.commit("src/a.rs", "fn a() {}\n");
+    let source = fixture.commit("src/b.rs", "fn b() {}\n");
+    let store = Store::open(&fixture.repo);
+    store
+        .write(source, &analyze_at(&fixture.repo, source))
+        .unwrap();
+    let mut selected = Config::default();
+    selected.select_paths(&["src/a.rs".into()]).unwrap();
+    let fingerprint = Fingerprint::new(&selected);
+    assert!(store
+        .find(source, &fingerprint, &selected)
+        .unwrap()
+        .is_none());
+    let files = beholder::walk::read_revision(&fixture.repo, "HEAD", &selected).unwrap();
+    let cache = store.phase1_cache(&fingerprint).unwrap();
+    let (partial, stats) = analysis::run_with_cache(&files, &selected, &cache);
+    assert_eq!(stats.reused, 0);
+    // Library callers may store selected analyses, but full readers cannot
+    // mistake that fingerprint and payload for a complete source analysis.
+    let isolated = Store::with_ref(&fixture.repo, "refs/beholder/selected-test");
+    isolated.write(source, &partial).unwrap();
+    assert!(isolated
+        .find(
+            source,
+            &Fingerprint::new(&Config::default()),
+            &Config::default()
+        )
+        .unwrap()
+        .is_none());
+}
