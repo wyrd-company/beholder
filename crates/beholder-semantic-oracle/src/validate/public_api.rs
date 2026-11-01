@@ -401,7 +401,214 @@ impl<'c, 'a> Walk<'c, 'a> {
     }
 }
 
+impl<'c, 'a> Walk<'c, 'a> {
+    // ------------------------------------------------------------------ Go
+
+    /// An exported package-level declaration, and for an exported type its
+    /// exported fields and methods, including promoted ones.
+    fn go_package(&mut self, package: &'a str) {
+        for child in self.children(package) {
+            let kind = text(child, "kind").unwrap_or_default();
+            if matches!(kind, "parameter" | "type-parameter") {
+                continue;
+            }
+            if self.declared(child) != Some("exported") {
+                continue;
+            }
+            let (Some(id), Some(path)) = (text(child, "id"), text(child, "path")) else {
+                continue;
+            };
+            self.add(id, path.to_owned(), Access::All);
+            if kind == "type" {
+                self.go_type(id, path);
+            }
+        }
+    }
+
+    /// The exported fields and methods of an exported type: its own, then
+    /// those promoted through embedded fields at the shallowest depth at
+    /// which a name occurs once. A name the type declares itself, or that
+    /// occurs twice at one depth, is not promoted.
+    fn go_type(&mut self, id: &'a str, path: &str) {
+        let mut seen: BTreeSet<&'a str> = BTreeSet::new();
+        let mut level: Vec<&'a str> = vec![id];
+        let mut visited: BTreeSet<&'a str> = BTreeSet::from([id]);
+        while !level.is_empty() {
+            let mut names: BTreeMap<&'a str, Vec<&'a Value>> = BTreeMap::new();
+            for owner in &level {
+                for child in self.children(owner) {
+                    if matches!(text(child, "kind"), Some("parameter" | "type-parameter")) {
+                        continue;
+                    }
+                    if let Some(name) = text(child, "name") {
+                        names.entry(name).or_default().push(child);
+                    }
+                }
+            }
+            for (name, members) in &names {
+                if !seen.insert(name) || members.len() != 1 {
+                    continue;
+                }
+                let member = members[0];
+                if self.declared(member) == Some("exported") {
+                    if let Some(member_id) = text(member, "id") {
+                        self.add(member_id, format!("{path}.{name}"), Access::All);
+                    }
+                }
+            }
+            let next: Vec<&'a str> = level
+                .iter()
+                .flat_map(|owner| self.checker.go_embedded(owner, self.context))
+                .filter(|embedded| visited.insert(embedded))
+                .collect();
+            level = next;
+        }
+    }
+
+    // ---------------------------------------------------------------- Dart
+
+    /// A public library's export namespace and the public members of the
+    /// classes, mixins, enums, extensions and extension types it exports.
+    fn dart_library(&mut self, library: &'a str, uri: &str) {
+        for child in self.children(library) {
+            let kind = text(child, "kind").unwrap_or_default();
+            if matches!(kind, "parameter" | "type-parameter") {
+                continue;
+            }
+            if self.declared(child) != Some("public") {
+                continue;
+            }
+            if let (Some(id), Some(name)) = (text(child, "id"), text(child, "name")) {
+                self.dart_member(id, format!("{uri}::{name}"));
+            }
+        }
+        for relation in self.exports(library) {
+            if let (Some(to), Some(name)) = (text(relation, "to"), text(relation, "name")) {
+                self.dart_member(to, format!("{uri}::{name}"));
+            }
+        }
+    }
+
+    fn dart_member(&mut self, id: &'a str, path: String) {
+        self.add(id, path.clone(), Access::All);
+        let Some(entity) = self.entity(id) else {
+            return;
+        };
+        if !matches!(text(entity, "kind"), Some("type" | "extension")) {
+            return;
+        }
+        for child in self.children(id) {
+            if matches!(text(child, "kind"), Some("parameter" | "type-parameter")) {
+                continue;
+            }
+            let (Some(child_id), Some(name)) = (text(child, "id"), text(child, "name")) else {
+                continue;
+            };
+            if !name.starts_with('_') {
+                self.add(child_id, format!("{path}.{name}"), Access::All);
+            }
+        }
+    }
+}
+
 impl<'a> Checker<'a> {
+    /// The types a Go type embeds, by `go:embeds`, in a context.
+    fn go_embedded(&self, owner: &str, context: &str) -> Vec<&'a str> {
+        self.extension_facts("go:embeds")
+            .iter()
+            .filter(|fact| text(fact, "struct") == Some(owner))
+            .filter(|fact| {
+                self.declared(fact)
+                    .unwrap_or_else(|| self.built_contexts(owner))
+                    .contains(context)
+            })
+            .filter_map(|fact| text(fact, "type"))
+            .collect()
+    }
+
+    fn extension_facts(&self, kind: &str) -> &'a [Value] {
+        self.dataset
+            .get("extensions")
+            .and_then(|e| e.get(kind))
+            .and_then(Value::as_array)
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+    }
+
+    /// C#: every entity whose `external` access is `all` or `subtypes`,
+    /// under its own path, and every forwarded type.
+    fn csharp_members(&self, context: &'a str, membership: &mut Membership<'a>) {
+        let distribution_of = |unit: &str| match self.ids.get(unit) {
+            Some((Class::Unit, record)) => text(record, "distribution"),
+            _ => None,
+        };
+        for entity in self.list("entities") {
+            let (Some(id), Some(path)) = (text(entity, "id"), text(entity, "path")) else {
+                continue;
+            };
+            // Namespaces are not members, and an extension block is not a
+            // name a consumer writes; its members are.
+            if matches!(
+                text(entity, "kind"),
+                Some("namespace" | "extension" | "parameter" | "type-parameter")
+            ) || !self.entity_contexts(id).contains(context)
+            {
+                continue;
+            }
+            let Some(external) = entity
+                .get("effective-visibility")
+                .and_then(|v| value_in(v, context))
+                .and_then(|v| v.get("external"))
+            else {
+                continue;
+            };
+            let accesses: Vec<&Value> = match external.as_array() {
+                Some(items) => items.iter().collect(),
+                None => vec![external],
+            };
+            let access = if accesses.iter().any(|a| a.as_str() == Some("all")) {
+                Access::All
+            } else if accesses.iter().any(|a| a.as_str() == Some("subtypes")) {
+                Access::Subtypes
+            } else {
+                continue;
+            };
+            for unit in self.units_of(entity) {
+                if let Some(distribution) = distribution_of(unit) {
+                    membership.entry((distribution, id)).or_default().insert(
+                        context,
+                        Member {
+                            paths: BTreeSet::from([path.to_owned()]),
+                            access,
+                        },
+                    );
+                }
+            }
+        }
+        for fact in self.extension_facts("csharp:type-forward") {
+            let (Some(unit), Some(forwarded)) = (text(fact, "unit"), text(fact, "type")) else {
+                continue;
+            };
+            let holds = self
+                .declared(fact)
+                .unwrap_or_else(|| self.built_contexts(unit))
+                .contains(context);
+            let path = self.ids.get(forwarded).and_then(|(_, r)| text(r, "path"));
+            if let (true, Some(distribution), Some(path)) = (holds, distribution_of(unit), path) {
+                membership
+                    .entry((distribution, forwarded))
+                    .or_default()
+                    .insert(
+                        context,
+                        Member {
+                            paths: BTreeSet::from([path.to_owned()]),
+                            access: Access::All,
+                        },
+                    );
+            }
+        }
+    }
+
     /// The names a module's static `__all__` lists in a context.
     fn python_all_names(&self, module: &str, context: &str) -> Vec<&'a str> {
         let facts = self
@@ -458,6 +665,10 @@ impl<'a> Checker<'a> {
     fn recompute_public_api(&self, index: &Index<'a>) -> Membership<'a> {
         let mut membership: Membership<'a> = BTreeMap::new();
         for context in self.all.iter().copied() {
+            if self.rules.public_api == PublicApiRule::CSharp {
+                self.csharp_members(context, &mut membership);
+                continue;
+            }
             for (distribution, entries) in self.public_api_entries(context) {
                 let mut walk = Walk {
                     checker: self,
@@ -478,6 +689,8 @@ impl<'a> Checker<'a> {
                         Entry::PythonModule { module, name } => {
                             walk.python_module(module, name);
                         }
+                        Entry::GoPackage { root } => walk.go_package(root),
+                        Entry::DartLibrary { root, uri } => walk.dart_library(root, uri),
                     }
                 }
                 for (id, member) in walk.found {
@@ -600,7 +813,49 @@ impl<'a> Checker<'a> {
                         .push(Entry::PythonModule { module, name });
                 }
             }
-            PublicApiRule::CSharp | PublicApiRule::Dart | PublicApiRule::Go => {}
+            PublicApiRule::Go => {
+                for unit in self.list("units") {
+                    let (Some(id), Some(distribution), Some(root), Some(name)) = (
+                        text(unit, "id"),
+                        text(unit, "distribution"),
+                        text(unit, "root"),
+                        text(unit, "name"),
+                    ) else {
+                        continue;
+                    };
+                    let internal = name.split('/').any(|element| element == "internal");
+                    if text(unit, "kind") == Some("package") && !internal && built(id) {
+                        entries
+                            .entry(distribution)
+                            .or_default()
+                            .push(Entry::GoPackage { root });
+                    }
+                }
+            }
+            PublicApiRule::Dart => {
+                for unit in self.list("units") {
+                    let (Some(id), Some(distribution), Some(root), Some(uri)) = (
+                        text(unit, "id"),
+                        text(unit, "distribution"),
+                        text(unit, "root"),
+                        text(unit, "name"),
+                    ) else {
+                        continue;
+                    };
+                    // `package:<package>/<path>`, outside `lib/src/`.
+                    let public = uri
+                        .strip_prefix("package:")
+                        .and_then(|rest| rest.split_once('/'))
+                        .is_some_and(|(_, path)| !path.starts_with("src/"));
+                    if public && built(id) {
+                        entries
+                            .entry(distribution)
+                            .or_default()
+                            .push(Entry::DartLibrary { root, uri });
+                    }
+                }
+            }
+            PublicApiRule::CSharp => {}
         }
         entries
     }
@@ -648,12 +903,6 @@ impl<'a> Checker<'a> {
 
     /// Compares the recomputed membership with the dataset's entries.
     pub(super) fn check_public_api_recomputed(&mut self) {
-        if matches!(
-            self.rules.public_api,
-            PublicApiRule::CSharp | PublicApiRule::Dart | PublicApiRule::Go
-        ) {
-            return;
-        }
         let index = self.public_api_index();
         let expected = self.recompute_public_api(&index);
         let stated = self.stated_public_api();
@@ -825,6 +1074,10 @@ enum Entry<'a> {
     TypeScript { module: &'a str, prefix: String },
     /// A public Python module and its module name.
     PythonModule { module: &'a str, name: &'a str },
+    /// A Go `package` unit outside `internal` directories.
+    GoPackage { root: &'a str },
+    /// A public Dart library and its canonical URI.
+    DartLibrary { root: &'a str, uri: &'a str },
 }
 
 fn path_list(paths: &BTreeSet<String>) -> String {

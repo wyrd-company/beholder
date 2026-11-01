@@ -334,24 +334,12 @@ fn schema_ids_and_version_constants_agree() {
     }
 }
 
-/// Errors the validator reports on the valid examples that wait on
-/// contract calibration, as `(example, rule, location)`. The examples have
-/// no project files, so only rules that need none apply. The examples are
-/// excerpts, so coverage warnings are expected and not checked.
-const CALIBRATION: [(&str, &str, &str); 1] = [
-    // A Go package's definition sites are its package clauses, so a
-    // build-constrained file changes the site set by context; see #17.
-    (
-        "semantic-oracle-profile-go.example.yml",
-        "model:site-membership",
-        "/entities/0/definitions/1/at/path",
-    ),
-];
-
+/// The examples have no project files, so only rules that need none apply.
+/// The examples are excerpts, so coverage warnings are expected and not
+/// checked.
 #[test]
 fn valid_examples_pass_validation_and_audit_without_project_files() {
     let mut unexpected = Vec::new();
-    let mut seen = BTreeSet::new();
     for example in assets(".example.yml") {
         let dataset = load(&example);
         let report = beholder_semantic_oracle::audit(&dataset, None);
@@ -360,24 +348,36 @@ fn valid_examples_pass_validation_and_audit_without_project_files() {
             .iter()
             .filter(|finding| finding.severity == beholder_semantic_oracle::Severity::Error)
         {
-            let key = (example.as_str(), finding.rule.as_str(), finding.at.as_str());
-            if CALIBRATION
-                .iter()
-                .any(|known| (known.0, known.1, known.2) == key)
-            {
-                seen.insert((key.0.to_string(), key.1.to_string(), key.2.to_string()));
-            } else {
-                unexpected.push(format!(
-                    "{example}: {} {} {}: {}",
-                    finding.severity, finding.rule, finding.at, finding.message
-                ));
-            }
+            unexpected.push(format!(
+                "{example}: {} {} {}: {}",
+                finding.severity, finding.rule, finding.at, finding.message
+            ));
         }
     }
     assert!(unexpected.is_empty(), "{}", unexpected.join("\n"));
-    assert_eq!(
-        seen.len(),
-        CALIBRATION.len(),
-        "a calibration finding no longer occurs"
-    );
+}
+
+/// Every profile's public API rule is recomputed: an example without one of
+/// its `public-api` entries reports the member the rule still finds.
+#[test]
+fn every_profile_recomputes_public_api() {
+    for example in assets(".example.yml") {
+        let mut dataset = load(&example);
+        let entries = dataset["public-api"].as_array_mut().unwrap();
+        let removed = entries.pop().expect("the example states public API");
+        let report = beholder_semantic_oracle::validate(&dataset, None);
+        let recomputed: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == "model:public-api-recomputed")
+            .collect();
+        assert_eq!(recomputed.len(), 1, "{example}: {recomputed:#?}");
+        let entity = removed["entity"].as_str().unwrap();
+        assert_eq!(recomputed[0].at, "/public-api", "{example}");
+        assert!(
+            recomputed[0].message.contains(&format!("`{entity}`")),
+            "{example}: {}",
+            recomputed[0].message
+        );
+    }
 }

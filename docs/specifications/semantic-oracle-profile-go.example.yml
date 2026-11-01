@@ -156,6 +156,9 @@ entities:
     definitions:
       - at: {path: shapes.go, start: [1, 9], end: [1, 17], text: geometry}
       - at: {path: shapes_linux.go, start: [3, 9], end: [3, 17], text: geometry}
+        contexts: [linux, linux-test]
+      - at: {path: shapes_darwin.go, start: [3, 9], end: [3, 17], text: geometry}
+        contexts: [darwin]
     declared-visibility: {value: unexported, explicit: true}
     effective-visibility: {unit: all, project: all, external: all}
   - id: geometry.Shape
@@ -591,6 +594,15 @@ public-api:
     paths: [example.com/geometry.Platform]
     access: all
     contexts: [darwin]
+  - {distribution: geometry-module, entity: 'geometry.Base', paths: ['example.com/geometry.Base'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Circle.Area', paths: ['example.com/geometry.Circle.Area'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Circle.Base', paths: ['example.com/geometry.Circle.Base'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Meters', paths: ['example.com/geometry.Meters'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Pair', paths: ['example.com/geometry.Pair'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Pi', paths: ['example.com/geometry.Pi'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Shape.Area', paths: ['example.com/geometry.Shape.Area'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Solid', paths: ['example.com/geometry.Solid'], access: all}
+  - {distribution: geometry-module, entity: 'geometry.Table', paths: ['example.com/geometry.Table'], access: all}
 
 extensions:
   go:embeds:

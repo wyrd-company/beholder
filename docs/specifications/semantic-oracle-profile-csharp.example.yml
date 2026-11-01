@@ -659,6 +659,17 @@ public-api:
   - {distribution: geometry, entity: Geometry.Circle, paths: [Geometry.Circle], access: all}
   - {distribution: geometry, entity: Geometry.Circle.Area, paths: [Geometry.Circle.Area], access: all}
   - {distribution: geometry, entity: ext.Legacy.Point, paths: [Legacy.Point], access: all}
+  - {distribution: geometry, entity: 'Geometry.Circle.Changed', paths: ['Geometry.Circle.Changed'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Circle.ToString', paths: ['Geometry.Circle.ToString'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Generated.Metrics', paths: ['Geometry.Metrics'], access: all}
+  - {distribution: geometry, entity: 'Geometry.IShape.Area', paths: ['Geometry.IShape.Area'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Kind.Round', paths: ['Geometry.Kind.Round'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Kind', paths: ['Geometry.Kind'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Shape..ctor', paths: ['Geometry.Shape..ctor'], access: subtypes}
+  - {distribution: geometry, entity: 'Geometry.Shape.Area', paths: ['Geometry.Shape.Area'], access: all}
+  - {distribution: geometry, entity: 'Geometry.ShapeExtensions.extension-IShape.Doubled', paths: ['Geometry.ShapeExtensions.extension(Geometry.IShape).Doubled'], access: all}
+  - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
+  - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
 
 extensions:
   csharp:type-forward:
