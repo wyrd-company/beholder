@@ -156,9 +156,10 @@ description: |
   - otherwise the public names are the module-level bindings whose names do
     not begin with an underscore, excluding names bound by `import` unless
     the import uses the redundant form `import a as a` or
-    `from m import a as a`, or the form `from . import a`; in a package
-    `__init__`, `from .a import x` makes the submodule name `a` public and
-    leaves `x` private;
+    `from m import a as a`, the form `from . import a`, or the wildcard form
+    `from m import *`, which re-exports every public name of `m` by these
+    same rules; in a package `__init__`, `from .a import x` makes the
+    submodule name `a` public and leaves `x` private;
   - members of a public class are its attributes, methods and properties
     whose names do not begin with an underscore, plus dunder names.
 
@@ -194,9 +195,13 @@ description: |
   | Non-final dotted segment that selects a module or class | `qualifier` |
 
   Dynamic imports: the module-name argument of `importlib.import_module`,
-  `__import__`, `importlib.util.find_spec` and `runpy` functions is a value
-  site that spans the argument expression. It has a reference with role
-  `import` and `basis: dynamic` to the module the call imports. A literal or
+  `__import__` and `runpy.run_module` is a value site that spans the
+  argument expression. It has a reference with role `import` and
+  `basis: dynamic` to the module that the import system locates for that
+  name; for `runpy.run_module` this is the module it executes. Calls that
+  take a filesystem location or only search for a module, such as
+  `runpy.run_path`, `importlib.util.spec_from_file_location` and
+  `importlib.util.find_spec`, are out-of-profile as references. A literal or
   a value composed only of literals and module-level names bound once to
   literals is `resolved`. A value chosen among such literals by run-time
   conditions is `candidates`. A name that resolves to no module, in a
