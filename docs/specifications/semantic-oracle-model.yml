@@ -1,0 +1,967 @@
+$schema: https://refinery.systems/ontology/specification
+relationships:
+  references:
+    - semantic-oracle
+    - semantic-oracle-profile-csharp
+    - semantic-oracle-profile-dart
+    - semantic-oracle-profile-go
+    - semantic-oracle-profile-python
+    - semantic-oracle-profile-rust
+    - semantic-oracle-profile-typescript
+format: json-schema
+description: |
+  # Semantic oracle model, version 1
+
+  ## Scope and authority
+
+  A semantic oracle is an independently authored statement of what the source
+  of one project means. It records the program entities the project declares,
+  the entities that each name occurrence denotes, the structural relations
+  between entities, the visibility of every entity at named boundaries, and the
+  public API of every distributable unit. Indexers are evaluated by comparing
+  their normalized observations with the oracle. The oracle is the expectation;
+  index output is never an input to it.
+
+  This specification is the single authority for:
+
+  - the common vocabulary: datasets, documents, contexts, units,
+    distributions, entities, facts, locators and dispositions;
+  - entity identity and source locator semantics;
+  - declared visibility, effective visibility and public API membership;
+  - the v1 required fact categories and the v1 out-of-profile set;
+  - the contract that every language profile fulfils;
+  - extension rules for language-specific facts;
+  - evaluation: observation normalization, matching and accounting
+    categories.
+
+  Six language profiles apply this model:
+  `semantic-oracle-profile-csharp`, `semantic-oracle-profile-dart`,
+  `semantic-oracle-profile-go`, `semantic-oracle-profile-python`,
+  `semantic-oracle-profile-rust` and `semantic-oracle-profile-typescript`.
+  A profile is the single authority for how its language maps onto this
+  model. A profile never redefines a common term, fact kind, role, disposition
+  or evaluation category; it narrows them to its language and adds
+  namespaced extensions.
+
+  The machine-readable dataset schema encodes the logical record structure
+  defined here. Field names and meanings in this specification are normative.
+  The schema adds structural constraints only; a disagreement between the
+  schema and this specification is a schema defect.
+
+  The technical design `semantic-oracle` describes how datasets, profiles,
+  validation, adapters and the evaluator are constructed and why. It carries
+  no normative rule that this specification or a profile does not state.
+
+  The key words MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119.
+
+  ## Terms
+
+  | Term | Meaning |
+  | --- | --- |
+  | project | One fixture project: a directory tree with its own build configuration. The unit of authoring and of evaluation. |
+  | project root | The directory that contains the project's dataset. Every path is relative to it. |
+  | dataset | The oracle for one project: one YAML document that conforms to this model and one profile. |
+  | document | One file under the project root, identified by its canonical path. |
+  | context | One configured build or analysis of the project: a named, complete assignment of the profile's context parameters. |
+  | unit | A compilation unit the language processes as one: a crate, an assembly, a Go package, a Dart library, a TypeScript module, a Python module. Units are stable across contexts. |
+  | distribution | A unit or set of units that an external consumer depends on as one artifact: a crate, an assembly, a Go module, an npm package, a Python distribution, a pub package. |
+  | entity | A program element with identity: a declared or implied thing that names can denote. |
+  | fact | One assertion of the dataset: an entity record, a reference, a relation, a visibility value or a public API membership. |
+  | locator | A span of a document identified by path, coordinates and exact text. |
+  | site | The locator of a name token: the place a definition or reference occurs. |
+  | observation | One normalized assertion produced by an adapter from indexer output. |
+  | adapter | A component that converts one index format into observations and declares which fact kinds it supports. |
+  | profile | The language-specific specification that applies this model to one language. |
+  | extension | A profile-defined fact kind or attribute, namespaced by the profile's language. |
+  | out-of-profile | Outside the v1 required categories; neither expected nor penalized. |
+
+  ## Dataset
+
+  A dataset is one YAML 1.2 document stored as `semantic-oracle.yml` at the
+  project root. Its top-level members are:
+
+  | Member | Content |
+  | --- | --- |
+  | `model` | The literal `semantic-oracle/1`. |
+  | `profile` | The profile identity and version, `<language>/1`, for example `rust/1`. |
+  | `project` | `language` (the profile language) and `name` (the project directory name). |
+  | `authoring` | The sources consulted: toolchain versions, specifications and build commands. Free text plus a list of named tools. |
+  | `documents` | The complete document inventory. |
+  | `contexts` | Every declared context. |
+  | `distributions` | Every distribution the project defines. |
+  | `units` | Every unit the project defines. |
+  | `entities` | Every in-profile entity the project defines. |
+  | `externals` | Every external entity that a fact targets. |
+  | `references` | Every in-profile reference occurrence. |
+  | `relations` | Every in-profile relation. |
+  | `public-api` | Every public API membership. |
+  | `extensions` | Profile extension facts, grouped by extension kind. |
+
+  Every record that other records reference has an `id`. An id is a
+  case-sensitive string of ASCII letters, digits and the characters
+  `_ . : # -`, at most 200 characters, unique across the whole dataset. Ids
+  are opaque: evaluation never interprets them, and no id is derived from an
+  indexer symbol. Authors choose readable ids.
+
+  Every fact that can vary by context has a `contexts` member: a non-empty
+  list of context ids. An omitted `contexts` member means every context in
+  which the fact's unit is built. A fact holds in exactly its contexts.
+
+  ## Documents
+
+  `documents` lists every file under the project root that the version
+  control system tracks, except the dataset file itself. Each entry has:
+
+  - `path`: the canonical path;
+  - `sha256`: the lowercase hexadecimal SHA-256 digest of the file bytes;
+  - `disposition`: one of the values below;
+  - `reason`: required for every disposition except `indexed` and
+    `configuration`;
+  - `origin`: `source` or `generated`, for `indexed` documents;
+  - `members`: for `indexed` documents, the list of `{unit, contexts}` pairs
+    that compile the document.
+
+  A canonical path uses `/` as separator, is relative to the project root,
+  has no `.` or `..` segment, no leading `/`, no trailing `/`, and preserves
+  the exact case and Unicode code points of the stored file name.
+
+  | Disposition | Meaning |
+  | --- | --- |
+  | `indexed` | Program source of the profile language that at least one context compiles into at least one unit. Facts are exhaustive for it. |
+  | `inactive` | Program source of the profile language that no declared context compiles: a build-constraint exclusion in every context, a file outside every module tree, an excluded project. |
+  | `configuration` | Build, package, project or language configuration that defines contexts, units or distributions. |
+  | `external` | Tracked source that belongs to a dependency rather than to the project: vendored or bundled third-party code. |
+  | `out-of-profile` | Every other file: other languages, assets, documentation, task runner files, lockfiles, test data. |
+
+  A document that one unit compiles in one context and no unit compiles in
+  another context is `indexed`; its `members` state where it is compiled.
+  A document compiled into several units, or at several module positions in
+  one unit, has one entry with several members.
+
+  `origin: generated` marks an indexed document that a project generator
+  wrote and the project tracks. Entities in it have `origin: generated`.
+
+  ## Source locators
+
+  A locator identifies a span of one document:
+
+  ```yaml
+  at:
+    path: src/shapes.rs
+    start: [12, 8]
+    end: [12, 14]
+    text: Circle
+  ```
+
+  - Lines are numbered from 1. The line terminators are LF, CR LF and CR.
+    No other character ends a line, whatever the language's lexical rules.
+  - Columns are numbered from 1 and count Unicode scalar values from the
+    start of the line. A byte order mark at the start of a document is not
+    counted. A tab counts as one column.
+  - `start` is inclusive and `end` is exclusive.
+  - `text` is the exact source text of the span after decoding the document
+    as UTF-8. An indexed document is valid UTF-8.
+
+  A locator is valid when the document exists, its digest equals the
+  inventory digest, the coordinates lie in the document, and the text at the
+  coordinates equals `text`. A locator is stale when the digest or text check
+  fails. A dataset with a stale locator is invalid.
+
+  A site is the locator of one name token. A definition site spans the
+  declared name as written. A reference site spans the token that denotes
+  the target. Where the language writes a name with a lexical prefix that is
+  not part of the name, such as a raw-identifier or verbatim prefix, the
+  profile states whether the site includes the prefix and which alternative
+  span an observation may use. That rule is the profile's
+  `alternate-span` rule.
+
+  A profile may define a value site: the locator of a literal or expression
+  through which the language denotes a target by value rather than by name,
+  such as a module specifier string or a dynamically computed module name.
+  The profile names each value-site form and the span it covers.
+
+  Two sites are equal when their path, start and end are equal.
+
+  ## Contexts
+
+  A context is one configured build or analysis of the project:
+
+  ```yaml
+  contexts:
+    - id: default
+      parameters:
+        target: x86_64-unknown-linux-gnu
+        features: []
+      command: cargo build --offline --workspace
+  ```
+
+  - `parameters` assigns a value to every context parameter the profile
+    defines. Two contexts differ in at least one parameter value.
+  - `command` names the project's declared build or analysis invocation that
+    realizes the context. Contexts come from the project's own build
+    declarations and the profile's derivation rule; an author does not invent
+    a context the project does not declare.
+
+  A context fixes which documents are compiled, into which units, and under
+  which language options. Every fact is evaluated within one context at a
+  time. A fact that holds in several contexts is one fact with several
+  context ids; an observation produced in one context is compared only with
+  facts that list that context.
+
+  ## Units and distributions
+
+  ```yaml
+  units:
+    - id: geometry-lib
+      kind: lib-crate
+      name: geometry
+      distribution: geometry
+      root: geometry.crate
+      contexts: [default, test]
+  distributions:
+    - id: geometry
+      kind: crate
+      name: geometry
+      version: 1.0.0
+  ```
+
+  - A unit has `kind` (a profile value), `name` (the language-visible unit
+    name), `distribution` (the distribution id, or absent for a unit no
+    external consumer can depend on, such as a test unit or an executable),
+    `root` (the id of the unit's root module or namespace entity, where the
+    language defines one) and `contexts`.
+  - A unit keeps its id across contexts. A context that compiles the same
+    unit with different options yields the same unit with context-qualified
+    facts.
+  - The profile defines the unit key: the members that identify a unit to
+    an adapter, such as an assembly name with its version. Unit keys are
+    unique in the dataset. Observations name units by unit key.
+  - A distribution has `kind` (a profile value), `name` and `version` as the
+    distribution's own configuration declares them.
+
+  ## Entities
+
+  An entity record states one entity and its definition:
+
+  ```yaml
+  entities:
+    - id: geometry.shapes.Circle
+      kind: type
+      language-kind: struct
+      name: Circle
+      path: geometry::shapes::Circle
+      unit: geometry-lib
+      parent: geometry.shapes
+      origin: source
+      definitions:
+        - at: {path: src/shapes.rs, start: [12, 12], end: [12, 18], text: Circle}
+      declared-visibility: {value: pub, explicit: true}
+      effective-visibility:
+        unit: all
+        project: all
+        external: all
+  ```
+
+  | Member | Meaning |
+  | --- | --- |
+  | `kind` | One common entity kind. |
+  | `language-kind` | The profile's name for the construct. |
+  | `name` | The declared name as the language defines it, without lexical prefixes. Absent for unnamed entities. |
+  | `path` | The profile's canonical path of the entity in its unit. |
+  | `unit` | The defining unit. |
+  | `parent` | The innermost in-profile entity that contains this entity, absent for a unit root. |
+  | `origin` | `source`, `generated` or `synthetic`. |
+  | `definitions` | The definition sites. |
+  | `anchor` | For an entity with no definition site: the site of the construct that generates or implies it. |
+  | `generated-by` | For `origin: generated`: the generator or macro and the site that invokes it. |
+  | `contexts` | The contexts in which the entity exists. |
+  | `declared-visibility` | The visibility the source states or the language defaults. |
+  | `effective-visibility` | Access at each boundary. |
+
+  ### Common entity kinds
+
+  | Kind | Elements |
+  | --- | --- |
+  | `module` | A namespace-bearing compilation-level container: a module, package, library, source-file module or unit root. |
+  | `namespace` | A named declaration space that is not a compilation-level container. |
+  | `type` | A nominal type declaration: class, struct, enum, union, interface, trait, protocol, mixin, record, delegate, extension type. |
+  | `type-alias` | A declaration that gives a name to another type. |
+  | `extension` | A declaration that adds members to a type it does not declare: an extension block, an implementation block. |
+  | `callable` | A function, method, constructor, finalizer, operator, conversion or accessor. |
+  | `field` | Storage that belongs to a type or instance. |
+  | `property` | A member with accessor semantics: a property, indexer, event or getter and setter pair. |
+  | `variable` | A module-level or static binding whose value is set at run time. |
+  | `constant` | A binding whose value the language fixes at compile time. |
+  | `enum-member` | One member of an enumeration. |
+  | `macro` | A macro or compile-time code generator that source invokes by name. |
+  | `parameter` | A parameter of an in-profile callable, property or type. |
+  | `type-parameter` | A type or generic parameter of an in-profile declaration. |
+
+  The profile maps every in-profile construct of its language to exactly one
+  common kind and one `language-kind`.
+
+  ### Identity
+
+  An entity is identified by its unit, its canonical path and its kind,
+  within the contexts in which it exists.
+
+  - Two records are distinct entities when they differ in unit, path or
+    kind, even when they share a definition site. One document compiled into
+    two units, or mounted at two module paths in one unit, defines one entity
+    per unit and path. A language with several namespaces can bind one path
+    to entities of different kinds.
+  - Within one context, unit, path and kind identify exactly one entity
+    record. Where a language declaration creates a new entity under an
+    existing path in one context, the profile defines it as a redeclaration
+    form and states the path suffix that distinguishes the entities.
+  - A profile may define a kind whose entities span units, such as a
+    namespace that several units contribute to. Such an entity has `units`,
+    the list of contributing units, in place of `unit`.
+  - One entity can have several definition sites: partial declarations,
+    merged declarations and declarations spread over several documents.
+    Several sites do not make an entity ambiguous.
+  - An entity that exists in several contexts with the same unit, path and
+    sites is one record with several contexts. When contexts select
+    different definition sites for one unit, path and kind, the dataset has
+    one record per distinct site set; those records hold in disjoint
+    contexts.
+  - The canonical path is the path at the entity's definition. Paths through
+    re-exports and aliases are consumer paths and appear in public API
+    membership, not in identity.
+
+  ### Origins
+
+  - `source`: the entity is declared in an indexed document.
+  - `generated`: the entity is produced by a macro expansion, a source
+    generator, a build script or a code generator. When the generated code is
+    an indexed document, `definitions` points into it. Otherwise
+    `definitions` is empty, `anchor` is the site of the invoking token, and
+    `generated-by` names the generator.
+  - `synthetic`: the language implies the entity without a declaration, such
+    as a default constructor or a compiler-declared member. `definitions` is
+    empty and `anchor` is the name site of the declaration that implies it.
+    A profile may name a synthetic form with no anchor, such as a namespace
+    package assembled from directories; the entity is then identified by its
+    key alone.
+
+  ### External entities
+
+  An external entity is defined outside the project: a dependency, the
+  standard library, the language runtime or the toolchain. It has no
+  locator. It is identified by its external key:
+
+  ```yaml
+  externals:
+    - id: ext.core.fmt.Display
+      kind: type
+      language-kind: trait
+      distribution: core
+      path: core::fmt::Display
+  ```
+
+  The key is `(distribution, version, path, kind)`. `version` is present
+  when the project resolves more than one version of the distribution. The
+  path is the canonical path at the external definition, by the profile's
+  path grammar. `externals` contains exactly the external entities that a
+  reference, relation or extension fact targets.
+
+  ## Facts
+
+  ### Definitions
+
+  Each entity record is the definition fact of its entity. Its sites,
+  `kind`, `parent`, unit and contexts are compared with definition
+  observations.
+
+  ### References
+
+  A reference states that one name token denotes one target:
+
+  ```yaml
+  references:
+    - at: {path: src/render.rs, start: [30, 17], end: [30, 23], text: Circle}
+      from: geometry.render.draw
+      target: geometry.shapes.Circle
+      role: type
+  ```
+
+  | Member | Meaning |
+  | --- | --- |
+  | `at` | The reference site. |
+  | `from` | The innermost in-profile entity whose declaration contains the site; the unit root for a site outside every other in-profile entity. |
+  | `target` | The id of an entity or external entity, for disposition `resolved` or `external`. |
+  | `disposition` | `resolved` by default when `target` names a project entity and `external` when it names an external entity; otherwise one of the values under Target dispositions. |
+  | `role` | One common reference role. |
+  | `basis` | `static` by default; `dynamic` when the target is fixed by run-time evaluation of values the project source determines. |
+  | `contexts` | The contexts in which the token denotes this target. |
+
+  The target is the entity that the language's name resolution denotes at
+  the site after following import, re-export and use bindings. A binding
+  that is not itself an entity in the language is never a target. A profile
+  names the binding forms that are entities in its language.
+
+  One site in one context has at most one reference fact for each `from`
+  entity. A document compiled into several units, or mounted at several
+  module positions, has one reference per enclosing entity at each site.
+  A profile may
+  define a token form that denotes two targets at once, such as a shorthand
+  that both reads a binding and names a member; the two references then
+  differ in role, and matching selects by role. A site may be both a
+  definition site and a reference site where the profile names the form,
+  such as an embedded field whose name is a type name. A site whose target
+  differs by context has one reference per distinct target, each with its
+  contexts.
+
+  References and relations MAY carry an `id` so that extension facts can
+  refer to them.
+
+  #### Common reference roles
+
+  | Role | Use of the target at the site |
+  | --- | --- |
+  | `call` | Invocation of a callable. |
+  | `construct` | Creation of an instance: a constructor invocation, an instance or composite literal, a variant constructor. |
+  | `read` | Reading a value: a variable, field, property, constant or enum member, or a callable used as a value without invocation. |
+  | `write` | Assignment to the target. |
+  | `read-write` | Compound assignment, increment or decrement. |
+  | `type` | Use of a type in a type position: annotations, base lists, constraints, casts, type arguments. |
+  | `pattern` | Use in a pattern that tests or destructures a value. |
+  | `import` | Naming the target in an import, use or using directive that binds it in a scope. |
+  | `export` | Naming the target in a directive that adds it to an export namespace. |
+  | `qualifier` | A path segment that selects a module, namespace or type to qualify a following name. |
+  | `attribute` | Application of an attribute, annotation or decorator. |
+  | `macro-invocation` | Invocation of a macro. |
+
+  A profile states the role for every in-profile occurrence form of its
+  language. When one occurrence satisfies several roles, the profile names
+  the one recorded.
+
+  ### Relations
+
+  A relation states a structural fact between two entities:
+
+  ```yaml
+  relations:
+    - kind: implements
+      from: geometry.shapes.Circle
+      to: geometry.shapes.Area
+      at: {path: src/shapes.rs, start: [20, 6], end: [20, 10], text: Area}
+  ```
+
+  | Kind | Meaning |
+  | --- | --- |
+  | `inherits` | `from` is a type whose declaration names `to` as a base type it derives from. |
+  | `implements` | `from` is a type that conforms to the interface, trait or protocol `to`, either by a declaration or by the language's structural rule as the profile defines it. |
+  | `overrides` | Member `from` overrides, implements or satisfies member `to` of a supertype or interface. |
+  | `aliases` | Alias entity `from` denotes entity `to`. |
+  | `exports` | Container `from` makes `to` a member of its export namespace under `name`. |
+
+  - `at` is the site that establishes the relation, when one exists: the
+    base-type token, the implemented-interface token, the re-exported name.
+    Structural relations with no establishing token have no `at`.
+  - `exports` has a `name` member: the name under which consumers of the
+    container see the target. A container's own declarations are members of
+    its namespace through `parent`; `exports` records every other member
+    that a re-export, export directive or glob adds.
+  - `to` may name an external entity.
+  - Relations carry `contexts`.
+
+  Containment is the `parent` member of entity records; it is not repeated
+  as a relation.
+
+  ### Declared visibility
+
+  `declared-visibility` has `value`, a profile vocabulary value, and
+  `explicit`: `true` when the source states it and `false` when the language
+  default applies. Declared visibility records what the source says. It is
+  compared as a value; it never substitutes for effective visibility.
+
+  ### Effective visibility
+
+  `effective-visibility` states, for each boundary, which code at that
+  boundary can access the entity by the language's accessibility rules:
+
+  | Boundary | Code it contains |
+  | --- | --- |
+  | `unit` | Code in the entity's own unit. |
+  | `project` | Code in other units of the same project. |
+  | `external` | Code in a consumer outside the project that depends on the entity's distribution through its published form. |
+
+  | Access | Meaning |
+  | --- | --- |
+  | `all` | All code at the boundary can access the entity. |
+  | `none` | No code at the boundary can access the entity. |
+  | `scoped` | Only code inside the entities, units or documents listed in `scope` can access the entity. A `scope` member is an entity id, a unit id or a canonical document path. |
+  | `subtypes` | Only code inside types derived from the entity's declaring type can access the entity, by the language's rule for such members. |
+
+  `scoped` and `subtypes` carry their qualifier:
+
+  ```yaml
+  effective-visibility:
+    unit: {access: scoped, scope: [geometry.shapes]}
+    project: none
+    external: none
+  ```
+
+  A compound rule that grants access through either of two paths, such as
+  unit-wide access or subtype access, is written as a list of access values;
+  code that satisfies any listed value has access.
+
+  Effective visibility accounts for every enclosing restriction the language
+  applies: a member of an inaccessible container is restricted by its
+  container where the language says so. The profile defines how containers,
+  privacy units and distribution layout combine.
+
+  For an entity in a unit with no distribution, `external` is `none`.
+
+  ### Public API membership
+
+  A public API membership states that an external consumer of a distribution
+  can name an entity:
+
+  ```yaml
+  public-api:
+    - distribution: geometry
+      entity: geometry.shapes.Circle
+      paths: [geometry::Circle, geometry::shapes::Circle]
+      access: all
+      contexts: [default]
+  ```
+
+  - `paths` lists every consumer path by which a consumer names the entity,
+    by the profile's path grammar for consumer paths. The list is complete.
+  - `access` is `all` or `subtypes`. A member that only derived types of an
+    external consumer can access is a member with `access: subtypes`.
+  - An entity is a member when at least one consumer path exists in the
+    context. An entity a consumer can reach only as the type of a value,
+    with no path that names it, is not a member.
+  - The profile defines consumer paths: which units and modules a
+    distribution exposes, which export maps or layout conventions apply, and
+    which entity kinds can be members.
+  - Every `public-api` entry is consistent with `exports`, `parent`,
+    effective visibility and the profile's rule. A validator recomputes the
+    membership from those facts and rejects a disagreement.
+
+  ## Target dispositions
+
+  Every reference has exactly one disposition:
+
+  | Disposition | Meaning | Members |
+  | --- | --- | --- |
+  | `resolved` | The language fixes exactly one project entity. | `target` |
+  | `external` | The language fixes exactly one external entity. | `target` |
+  | `candidates` | The language selects the target at run time from a finite set that project source and contexts determine. | `candidates`, `reason` |
+  | `nonexistent` | The language semantics establish that no entity is denoted, and the program handles that outcome. | `reason` |
+  | `indeterminate` | The target depends on input that neither project source nor any context determines. | `reason` |
+
+  A difference between contexts is never a disposition: it is expressed as
+  context-qualified facts. Valid source does not contain a reference whose
+  static meaning the language leaves undecided; where an indexer cannot
+  decide, the oracle still states what the language decides.
+
+  ## Language extensions
+
+  A profile defines an extension when the common vocabulary cannot state a
+  semantic distinction of its language without loss. An extension:
+
+  - has a kind named `<language>:<name>`, such as `rust:macro-expansion`;
+  - defines its members, each with a type and meaning;
+  - states its evaluation key and its compared members;
+  - lists the common facts it relates to, by id;
+  - never restates a common fact. When a common fact exists for the same
+    meaning, the dataset records the common fact.
+
+  Extension facts appear under `extensions.<kind>`. An extension fact is in
+  profile exactly when its profile marks it required.
+
+  ## Exhaustiveness
+
+  A dataset is exhaustive for the v1 required categories: across every
+  indexed document and every context, it contains every fact in those
+  categories and no fact outside them.
+
+  ### V1 required categories
+
+  1. Documents: one inventory entry with a disposition for every tracked
+     file, and the unit and context membership of every indexed document.
+  2. Contexts, units and distributions: every context the project declares,
+     every unit and every distribution.
+  3. Entities: every entity of the kinds `module`, `namespace`, `type`,
+     `type-alias`, `extension`, `callable`, `field`, `property`, `variable`,
+     `constant`, `enum-member`, `macro`, `parameter` and `type-parameter`
+     that the project defines, generates or implies, in every context,
+     except entities whose declaration lies inside a callable body or an
+     initializer expression.
+  4. References: every site in an indexed document whose token denotes an
+     in-profile entity or an external entity of an in-profile kind, in every
+     context, with its disposition. The targets `parameter`,
+     `type-parameter` and body-local declarations are out-of-profile as
+     reference targets.
+  5. Relations: every `inherits`, `implements`, `overrides`, `aliases` and
+     `exports` fact whose `from` is a project entity.
+  6. Visibility: declared and effective visibility of every entity except
+     `parameter` and `type-parameter`.
+  7. Public API: every public API membership of every distribution, in every
+     context.
+  8. Extensions: every extension fact that the profile marks required.
+
+  ### V1 out-of-profile set
+
+  - Declarations inside callable bodies and initializer expressions: local
+    variables, local functions, closures, lambda parameters and pattern
+    bindings, and references to them.
+  - References to parameters and type parameters, including named
+    arguments.
+  - Occurrences inside comments and documentation comments, including
+    documentation links.
+  - References with no source token that denotes the target: implicit
+    conversions, implicit receivers, compiler-inserted calls, operator
+    resolution where the profile marks the operator token out-of-profile.
+  - Tokens inside macro definition bodies, unless the profile places them in
+    profile.
+  - Types of expressions, inferred types, run-time dispatch targets, call
+    graphs beyond the static target, control flow, data flow, values and
+    diagnostics.
+  - Internal structure of external entities and of generated code that is
+    not an indexed document.
+
+  A profile may move a named construct from this set into its required
+  categories. A profile never removes a required category.
+
+  ## Language profile contract
+
+  Each profile is a specification that defines, for its language:
+
+  1. its primary sources: language specification, compiler and build tool
+     documentation, and the toolchain versions the corpus uses;
+  2. context parameters and the rule that derives contexts from project
+     build declarations;
+  3. unit kinds, distribution kinds and how configuration defines them;
+  4. document membership rules and the disposition of every file class;
+  5. the canonical path grammar for entities and for consumer paths;
+  6. the mapping of every in-profile construct to a common kind and a
+     `language-kind`, and every out-of-profile construct it names;
+  7. the declared visibility vocabulary and its defaults;
+  8. the effective visibility rule for each boundary;
+  9. the public API membership rule;
+  10. the role of every in-profile occurrence form and the target
+      normalization rule;
+  11. the relation rules;
+  12. generated, synthetic and external entity rules, including the
+      external key's path grammar;
+  13. the cases for each non-resolved disposition;
+  14. alternate-span and equivalence rules;
+  15. its extensions;
+  16. its authoring obligation: the checklist of required facts for every
+      project dataset.
+
+  ### Equivalence rules
+
+  Where a language admits two readings of one occurrence that differ only in
+  representation, the profile fixes the canonical reading and may declare an
+  equivalence rule: a named alternative target or role that evaluation
+  accepts as `matched` and reports in the `equivalent` count. An equivalence
+  rule names the occurrence form, the canonical value and the accepted
+  alternative. Evaluation applies no equivalence the profile does not name.
+
+  ## Authoring independence
+
+  Dataset authors derive facts from project source, project build
+  configuration, the language specification, and the behavior of the
+  language's reference compiler and build tool. An author MAY compile and
+  run probes outside the project tree to confirm a semantic rule.
+
+  An author MUST NOT use, as an input to any fact: the output of an indexer
+  or language service that is evaluated against the corpus; Beholder
+  output; SCIP data; fixture coverage maps; or research reports. An author
+  MUST NOT change fixture source to make a dataset valid.
+
+  `authoring` records the compiler, build tool and specification versions
+  consulted.
+
+  ## Evaluation
+
+  ### Observations
+
+  An adapter converts one index into observations. Every observation names
+  its context and has one of these forms:
+
+  | Form | Members |
+  | --- | --- |
+  | `document` | `path`, `sha256` when the index records it. |
+  | `definition` | `at`, `unit`, `path`, `kind` when known. |
+  | `reference` | `at`, the target key, `role` when known, `from` when known. |
+  | `relation` | `kind`, `from` key, `to` key, `name` for `exports`. |
+  | `visibility` | entity key, boundary, access; or declared value. |
+  | `public-api` | distribution, entity key, path. |
+  | `extension` | extension kind and its key members. |
+
+  A target or entity key is either a project entity key `(unit key, path)`
+  or an external key. Coordinates are converted to this specification's
+  locator coordinates from the encoding the index declares, using the
+  document bytes. An adapter declares its capabilities: the observation
+  forms, fact kinds, roles, boundaries and extensions it can produce.
+
+  An index is produced under exactly one context. The evaluation run binds
+  each index to a context id of the dataset.
+
+  ### Matching
+
+  Evaluation compares facts and observations within one context:
+
+  1. Documents. An observation for a path whose digest differs from the
+     inventory digest makes the run `stale` for that document; its facts and
+     observations are reported as stale and not compared further.
+  2. Entities. A definition observation matches the entity whose unit and
+     path equal the observation's key and whose definition sites include the
+     observation's site. When the observation carries no unit or path, it
+     matches by site; when the site defines several entities in the context,
+     the observation is `wrong-target` with reason `conflated`, and each of
+     those entities that no other observation matches is `missing`.
+  3. References. A reference observation matches the reference fact at the
+     same site in the context, applying the profile's alternate-span rule.
+     Where the site has several facts, the observation's `from` key selects
+     the fact; without a `from` key, the fact whose target equals the
+     observation's target is selected, and the role selects between two
+     references of one token. Then the target key is compared, then the
+     role, then `from`.
+  4. Relations. A relation observation matches the fact with the same kind,
+     `from` and `to`; for `exports`, also `name`.
+  5. Visibility. A visibility observation matches the entity's value for
+     the same boundary.
+  6. Public API. A public API observation matches the membership with the
+     same distribution and entity; its path is compared with `paths`.
+  7. Extensions. An extension observation matches by the extension's key.
+
+  ### Categories
+
+  Each fact and each observation lands in exactly one category:
+
+  | Category | Rule |
+  | --- | --- |
+  | `matched` | The observation matches a fact and every compared member agrees, directly or by a profile equivalence rule. |
+  | `missing` | A fact in a capability the adapter declares has no matching observation. |
+  | `unexpected` | An in-profile observation matches no fact in its context. When a fact with the same key holds in another context, the report marks it `context-mismatch`. |
+  | `wrong-target` | The observation matches a fact by site or key but names a different target, or conflates entities. |
+  | `wrong-role` | Site and target agree; the role differs. |
+  | `wrong-source` | Site, target and role agree; `from` differs. |
+  | `wrong-value` | The key agrees; a compared value differs: entity kind, declared or effective visibility, public API path or access, extension value. |
+  | `unsupported` | A fact in a fact kind, role, boundary or extension the adapter does not declare. |
+  | `out-of-profile` | An observation of something in the v1 out-of-profile set. |
+  | `stale` | A fact or observation in a document whose digests disagree. |
+
+  `incorrect` is the union of `wrong-target`, `wrong-role`, `wrong-source`
+  and `wrong-value`.
+
+  Dispositions apply as follows:
+
+  - `candidates`: an observation whose target is in `candidates` is
+    `matched`; any other target is `wrong-target`; no observation is
+    `missing`.
+  - `nonexistent`: no observation is `matched`; an observation with a target
+    is `wrong-target`.
+  - `indeterminate`: the fact and any observation at its site are counted in
+    `indeterminate` and in no other category.
+
+  ### Reports
+
+  A report is deterministic for one dataset, one index, one adapter version
+  and one context binding. It states counts for every category, grouped by
+  project, context, fact kind, role, disposition, origin, basis and API
+  boundary, where API boundary separates facts about public API members
+  from all other facts. It lists every non-matched fact and observation with
+  its site or key.
+
+  A report gives, for each grouping, micro counts and macro values:
+
+  - micro counts sum facts and observations across the grouping;
+  - macro values compute `recall = matched / (matched + missing +
+    incorrect)` and `precision = matched / (matched + unexpected +
+    incorrect)` per project and take the unweighted mean across projects.
+
+  A report contains no single score that combines fact kinds or categories.
+
+  ## Versioning
+
+  A dataset names the model version and its profile version. The model
+  version is `1` for this specification. A profile version is
+  `<language>/1` for the profiles that apply this model. A change to a
+  required category, to the meaning of a fact, role, disposition or
+  category, or to a locator or identity rule defines a new version number.
+  A report never compares a dataset with observations evaluated under a
+  different model or profile version.
+
+  ## Examples
+
+  The examples use a generic library, `geometry`, and a generic application,
+  `atlas`.
+
+  ### One file compiled at two module positions
+
+  `src/shared.rs` is mounted as both `geometry::left` and
+  `geometry::right`. It declares `pub struct Marker;` at line 1.
+
+  ```yaml
+  documents:
+    - path: src/shared.rs
+      sha256: 4f0c…
+      disposition: indexed
+      origin: source
+      members:
+        - {unit: geometry-lib}
+  entities:
+    - id: left.Marker
+      kind: type
+      language-kind: struct
+      name: Marker
+      path: geometry::left::Marker
+      unit: geometry-lib
+      parent: left
+      origin: source
+      definitions:
+        - at: {path: src/shared.rs, start: [1, 12], end: [1, 18], text: Marker}
+    - id: right.Marker
+      kind: type
+      language-kind: struct
+      name: Marker
+      path: geometry::right::Marker
+      unit: geometry-lib
+      parent: right
+      origin: source
+      definitions:
+        - at: {path: src/shared.rs, start: [1, 12], end: [1, 18], text: Marker}
+  ```
+
+  An indexer that emits one definition at that site with no unit or path
+  produces one `wrong-target (conflated)` observation and two `missing`
+  entities. An indexer that emits both with the two paths produces two
+  `matched` observations.
+
+  ### Context-dependent target
+
+  `atlas` declares contexts `desktop` and `mobile`. In `src/view.ts`, line 3,
+  `import { renderer } from "./renderer"` resolves to `src/renderer.desktop.ts`
+  in `desktop` and to `src/renderer.mobile.ts` in `mobile`.
+
+  ```yaml
+  references:
+    - at: {path: src/view.ts, start: [3, 10], end: [3, 18], text: renderer}
+      from: atlas.view
+      target: atlas.renderer-desktop.renderer
+      role: import
+      contexts: [desktop]
+    - at: {path: src/view.ts, start: [3, 10], end: [3, 18], text: renderer}
+      from: atlas.view
+      target: atlas.renderer-mobile.renderer
+      role: import
+      contexts: [mobile]
+  ```
+
+  An index produced in `mobile` that names the desktop function is
+  `wrong-target`. The same observation in an index bound to `desktop` is
+  `matched`.
+
+  ### Declared public, effectively restricted, exported by alias
+
+  `geometry` declares `pub struct Grid` inside private module `detail` and
+  re-exports it at the crate root as `pub use detail::Grid as Lattice;`.
+
+  ```yaml
+  entities:
+    - id: detail.Grid
+      kind: type
+      language-kind: struct
+      name: Grid
+      path: geometry::detail::Grid
+      unit: geometry-lib
+      parent: detail
+      origin: source
+      definitions:
+        - at: {path: src/detail.rs, start: [4, 12], end: [4, 16], text: Grid}
+      declared-visibility: {value: pub, explicit: true}
+      effective-visibility: {unit: all, project: all, external: all}
+  relations:
+    - kind: exports
+      from: geometry.crate
+      to: detail.Grid
+      name: Lattice
+      at: {path: src/lib.rs, start: [7, 17], end: [7, 21], text: Grid}
+  public-api:
+    - distribution: geometry
+      entity: detail.Grid
+      paths: [geometry::Lattice]
+      access: all
+  ```
+
+  `geometry::detail::Grid` is not a consumer path, because `detail` is
+  private. An indexer that reports `Grid` as absent from the public API
+  produces `missing`; one that reports the path `geometry::detail::Grid`
+  produces `wrong-value`.
+
+  ### Run-time selected target
+
+  `atlas/loader.py` selects a backend module when it is imported. Module
+  `atlas.fast` imports an optional native extension and raises `ImportError`
+  when that extension is absent.
+
+  ```python
+  try:
+      from atlas import fast as backend
+  except ImportError:
+      from atlas import portable as backend
+
+  backend.run()
+  ```
+
+  Line 6 holds two sites. `backend` denotes one of two modules and `run`
+  denotes the function of that module.
+
+  ```yaml
+  references:
+    - at: {path: atlas/loader.py, start: [6, 1], end: [6, 8], text: backend}
+      from: atlas.loader
+      disposition: candidates
+      candidates: [atlas.fast, atlas.portable]
+      reason: the module bound depends on whether the optional extension imports
+      role: qualifier
+      basis: dynamic
+    - at: {path: atlas/loader.py, start: [6, 9], end: [6, 12], text: run}
+      from: atlas.loader
+      disposition: candidates
+      candidates: [atlas.fast.run, atlas.portable.run]
+      reason: the module bound depends on whether the optional extension imports
+      role: call
+      basis: dynamic
+  ```
+
+  An indexer that names `atlas.portable.run` at the `run` site is `matched`.
+  One that names a third function is `wrong-target`.
+validation-criteria: |
+  A dataset conforms to this specification when all of the following hold:
+
+  1. It validates against the dataset JSON Schema for its model and profile
+     version.
+  2. Every id is unique and every id reference resolves to a record of the
+     required kind.
+  3. Every tracked file under the project root has exactly one inventory
+     entry, every digest equals the file's SHA-256, and every path is
+     canonical.
+  4. Every locator is valid and no locator is stale.
+  5. Every fact's contexts are declared contexts, and every fact holds only
+     in contexts in which its unit is built and its document is a member.
+  6. Every reference has exactly one disposition with the members that
+     disposition requires.
+  7. Every `public-api` entry agrees with the membership recomputed from
+     `exports`, `parent`, effective visibility and the profile rule.
+  8. The profile audit passes: every required category of the profile is
+     present for every indexed document and context, and no out-of-profile
+     fact is present.
+  9. An independent reviewer confirms each fact against source, build
+     configuration and the language specification, without consulting
+     evaluated indexer output.
+
+  An evaluator conforms when, for controlled datasets and controlled
+  indexes, it assigns every fact and observation the category this
+  specification defines, including `conflated`, `context-mismatch`,
+  `stale`, `unsupported`, `out-of-profile` and each disposition rule, and
+  its reports contain no cross-category aggregate score.
