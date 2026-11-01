@@ -329,7 +329,9 @@ proposed-design:
     ### TypeScript: versioned types condition and resolution mode
 
     `package-publishing-ecosystem/packages/exports-map/package.json` maps
-    `.` with `types@>=5.0` before `types`. With compiler 5.9.3,
+    `.` with `types@>=5.0` before `types`. Every context of the project uses
+    `moduleResolution` `nodenext` or `bundler`, so `exports` applies. With
+    compiler 5.9.3,
     `src/package-exports/import-consumer.ts` 8:10–8:18, `readMain`, targets
     `"packages/exports-map/dist-types/index.v5.d.ts"#readMain`, not the
     declaration in `index.d.ts`. The subpath `./bundle` selects
