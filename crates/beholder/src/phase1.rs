@@ -300,7 +300,7 @@ fn collect_occurrences(
         let mut name = None;
         let mut qualifier = None;
 
-        for capture in m.captures {
+        for capture in m.captures() {
             match query.capture_names()[capture.index as usize] {
                 "reference" => node = Some(capture.node),
                 "name" => name = Some(capture.node),
@@ -368,7 +368,7 @@ fn collect_imports(
         match language.import_style {
             // One nested tree names everything; expand it.
             lang::ImportStyle::TreePath => {
-                for capture in m.captures {
+                for capture in m.captures() {
                     if query.capture_names()[capture.index as usize] != "import" {
                         continue;
                     }
@@ -407,7 +407,7 @@ fn read_named_import(
     let mut alias = None;
     let mut names = Vec::new();
 
-    for capture in m.captures {
+    for capture in m.captures() {
         let Ok(text) = capture.node.utf8_text(source) else {
             continue;
         };
@@ -645,7 +645,7 @@ fn collect_labels(
         let mut node = None;
         let mut variables = HashMap::new();
 
-        for capture in m.captures {
+        for capture in m.captures() {
             let name = &query.capture_names()[capture.index as usize];
             if *name == anchor {
                 node = Some(capture.node);
@@ -722,7 +722,7 @@ fn collect_symbols(
         let mut name_node = None;
         let mut variables = HashMap::new();
 
-        for capture in m.captures {
+        for capture in m.captures() {
             let name = &query.capture_names()[capture.index as usize];
             if *name == "symbol" {
                 node = Some(capture.node);
@@ -796,7 +796,7 @@ fn collect_symbols(
 /// `skip` excludes one subtree, used to leave the symbol's own name out of the
 /// body fingerprint so a rename is recognizable as a rename.
 fn tokens<'a>(
-    node: Node<'_>,
+    node: Node<'a>,
     source: &'a [u8],
     skip: Option<Node<'_>>,
     language: &LanguageDef,
@@ -807,7 +807,7 @@ fn tokens<'a>(
 }
 
 fn collect_tokens<'a>(
-    node: Node<'_>,
+    node: Node<'a>,
     source: &'a [u8],
     skip: Option<usize>,
     language: &LanguageDef,
@@ -900,7 +900,7 @@ fn complexity_by_symbol(
     let mut matches = cursor.matches(query, root, source);
 
     while let Some(m) = matches.next() {
-        for capture in m.captures {
+        for capture in m.captures() {
             let id = capture.node.id();
             match query.capture_names()[capture.index as usize] {
                 "increment" => contributions.increment.insert(id),
