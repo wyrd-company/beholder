@@ -8,6 +8,10 @@ Beholder stores generated analysis in `refs/beholder/index`, an ordinary custom
 Git ref outside `refs/heads/*`. The results are not workspace files, and no
 service or hosted artifact store is required.
 
+Content addresses and symbol fingerprints use SHA-256 encoded as 64 lowercase
+hexadecimal characters, including leading zeroes. File addresses hash the Git
+blob framing (`blob <byte length>\0`) followed by the file bytes.
+
 ## Transport the ref
 
 Move the ref between clones with Git:
