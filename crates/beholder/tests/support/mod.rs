@@ -216,6 +216,7 @@ pub fn publish_index(repo: &gix::Repository) -> usize {
                 "fetch",
                 "--quiet",
                 "--no-tags",
+                "--refmap=",
                 "origin",
                 "refs/beholder/index",
             ],
