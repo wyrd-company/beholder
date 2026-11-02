@@ -382,8 +382,8 @@ proposed-design:
     Constant, enum and default values have one form: `null`; integers in decimal;
     booleans; strings and chars as JSON strings; floats as the shortest round-trip
     decimal; C# `decimal` as its exact decimal; an enum value as `@{id}`; and all Go
-    numeric constants as `go/constant` exact strings, such as `1/3` or
-    `(5/2 + 3i)`. C# `default` is written as the value it denotes for the type, and
+    numeric constants as their normalized values, which the Go profile defines, such
+    as `1/3` or `(5/2 + 3i)`. C# `default` is written as the value it denotes for the type, and
     a Dart optional parameter with no default has `default: null`. A constant of any
     other type has no `value` slot.
 

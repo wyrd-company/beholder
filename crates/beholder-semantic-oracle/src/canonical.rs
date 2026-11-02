@@ -1358,7 +1358,35 @@ fn is_reduced_ratio(top: &str, bottom: &str) -> bool {
         return false;
     };
     let one = BigUint::from(1u8);
-    bottom > one && top.gcd(&bottom) == one
+    bottom > one && top.gcd(&bottom) == one && within_go_ratios(&top, &bottom)
+}
+
+/// A decimal integer that the normalized Go value spells as an integer. A larger one
+/// is a big float.
+fn is_go_integer(text: &str) -> bool {
+    is_decimal_integer(text)
+        && text
+            .trim_start_matches('-')
+            .parse::<BigUint>()
+            .is_ok_and(|value| within_go_ratios(&value, &BigUint::from(1u8)))
+}
+
+/// Whether `top / bottom` has a binary exponent below the big float threshold, so its
+/// normalized Go value is an integer or a ratio. The exponent is `e` with the value in
+/// `[2^(e-1), 2^e)`, the same as `big.Float.MantExp`.
+fn within_go_ratios(top: &BigUint, bottom: &BigUint) -> bool {
+    if top.bits() == 0 {
+        return true;
+    }
+    let difference = i128::from(top.bits()) - i128::from(bottom.bits());
+    let shift = difference.unsigned_abs() as u64;
+    let at_least_power = if difference >= 0 {
+        *top >= bottom << shift
+    } else {
+        top << shift >= *bottom
+    };
+    let exponent = difference + i128::from(at_least_power);
+    exponent.unsigned_abs() < GO_FLOAT_MIN_EXPONENT as u128
 }
 
 /// Bits of `go/constant`'s floats, so hex digits of its longest mantissa.
@@ -1367,8 +1395,8 @@ const GO_FLOAT_MANTISSA_DIGITS: usize = 512 / 4;
 /// not as a ratio: `0x1p4095` prints `0x.8p+4096`, and `0x1p4094` prints an integer.
 const GO_FLOAT_MIN_EXPONENT: usize = 4096;
 
-/// `go/constant`'s text for a float too large or too small for a ratio, as a probe
-/// of `ExactString` prints it: `0x.c788p+16610`. The mantissa is normalized, so its
+/// The normalized Go value's text for a float too large or too small for a ratio, as
+/// a probe of `ExactString` prints it: `0x.c788p+16610`. The mantissa is normalized, so its
 /// first digit has its top bit set, and it has no trailing zero. Its digits are lower
 /// case, and its exponent has a sign and no leading zero.
 fn is_go_big_float(text: &str) -> bool {
@@ -1398,12 +1426,12 @@ fn is_go_big_float(text: &str) -> bool {
     normalized && spelled && outside_ratios
 }
 
-/// `go/constant`'s exact string: an integer, a reduced ratio, a big float, or
-/// `(re + imi)` of those.
+/// A normalized Go numeric value: an integer, a reduced ratio, a big float past the
+/// threshold, or `(re + imi)` of those. Each value has one of these spellings.
 fn is_go_exact(text: &str) -> bool {
     let exact = |part: &str| match part.split_once('/') {
         Some((top, bottom)) => is_reduced_ratio(top, bottom),
-        None => is_decimal_integer(part) || is_go_big_float(part),
+        None => is_go_integer(part) || is_go_big_float(part),
     };
     match text
         .strip_prefix('(')
@@ -1890,6 +1918,40 @@ mod tests {
     #[test]
     fn an_observation_form_in_a_fact_is_an_issue() {
         assert_eq!(canonicalize("rust", "@?{Beta}", &Paths).issues.len(), 1);
+    }
+
+    #[test]
+    fn a_go_value_has_one_spelling_at_the_big_float_threshold() {
+        let two = BigUint::from(2u8);
+        let power = |exponent: u32| two.pow(exponent).to_string();
+        // From a probe of the normalized value of `0x1p4094`, `0x1p4095`, `0x1p-4096`
+        // and `0x1p-4097`: each side of the threshold has its form, not the other's.
+        for accepted in [
+            power(4094),
+            format!("-{}", power(4094)),
+            (two.pow(4095) - 1u8).to_string(),
+            format!("1/{}", power(4096)),
+            format!("{}/3", power(4096)),
+            format!("(1 + 1/{}i)", power(4096)),
+            "0x.8p+4096".to_owned(),
+            "0x.8p-4096".to_owned(),
+        ] {
+            assert_eq!(value_form_issue("go", &accepted, false), None, "{accepted}");
+        }
+        for rejected in [
+            power(4095),
+            format!("-{}", power(4095)),
+            format!("1/{}", power(4097)),
+            format!("-1/{}", power(4097)),
+            format!("{}/3", power(4097)),
+            format!("({} + 1i)", power(4095)),
+            format!("(1 + 1/{}i)", power(4097)),
+        ] {
+            assert!(
+                value_form_issue("go", &rejected, false).is_some(),
+                "{rejected}"
+            );
+        }
     }
 
     #[test]

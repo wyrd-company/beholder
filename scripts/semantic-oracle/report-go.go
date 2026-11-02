@@ -24,6 +24,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -232,7 +233,30 @@ func constantValue(value constant.Value) string {
 	case constant.Bool:
 		return fmt.Sprint(constant.BoolVal(value))
 	}
-	return value.ExactString()
+	return normalizedNumber(value)
+}
+
+// bigFloatExponent is the binary exponent from which a float keeps go/constant's big
+// float form: 0x1p4095 prints 0x.8p+4096, and 0x1p4094 prints an integer.
+const bigFloatExponent = 4096
+
+// normalizedNumber gives each numeric value one spelling. ExactString prints the same
+// value as 1 or as 0x.8p+1, by how the constant expression computed it. The ratio is
+// the exact value: constant.ToInt rounds a nearly integral float to an integer, which
+// gives an equal value two spellings.
+func normalizedNumber(value constant.Value) string {
+	if value.Kind() == constant.Complex {
+		return fmt.Sprintf("(%s + %si)", normalizedNumber(constant.Real(value)), normalizedNumber(constant.Imag(value)))
+	}
+	float, isFloat := constant.Val(value).(*big.Float)
+	if !isFloat {
+		return value.ExactString()
+	}
+	if exponent := float.MantExp(nil); exponent <= -bigFloatExponent || exponent >= bigFloatExponent {
+		return value.ExactString()
+	}
+	ratio, _ := float.Rat(nil)
+	return ratio.RatString()
 }
 
 func structSlots(path string, shape *types.Struct) {

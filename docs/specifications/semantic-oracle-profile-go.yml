@@ -210,7 +210,14 @@ description: |
   Inference: a constant's `type` is its declared type or its kind: `untyped bool`,
   `untyped rune`, `untyped int`, `untyped float`, `untyped complex` or
   `untyped string`. `value` is exact for typed and untyped constants, with `iota` and
-  implicit repetition applied. `var X = expr` has `{inferred: ...}`, the expression's
+  implicit repetition applied. A numeric constant's `value` is its normalized value:
+  an integer in decimal when the value is integral, otherwise a reduced `a/b`, and
+  the `0x.…p±…` form of `go/constant`'s `ExactString` only when the value's binary
+  exponent, as `big.Float.MantExp` gives it, is at least 4096 or at most -4096. A
+  complex value is `(re + imi)` of those. `1e5000 * 1e-5000` is `1`. The value is the
+  exact result that `go/constant` computes at 512 bits, with no rounding to a nearby
+  integer, so `1e5000 / 5 * 5e-5000` is the same `a/b` as `1 + 1.0/(1<<511)`.
+  `var X = expr` has `{inferred: ...}`, the expression's
   type or its kind's default type. Function signatures are always declared. An author
   derives these from the Go specification's Constants, Iota and Variable declarations
   sections, and a `go/types` probe outside the tree confirms them.

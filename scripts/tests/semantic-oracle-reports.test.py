@@ -438,6 +438,16 @@ const NotLarge = 0x1p4094
 const Small = 0x1p-4097
 const Mixed = 0x1.8p5000
 const Negative = -0x1p4095
+const ComputedOne = 1e5000 * 1e-5000
+const ComputedMinusOne = -(1e5000 * 1e-5000)
+const ComputedZero = 1e5000 - 1e5000
+const ComputedRatio = 1e5000 * 1.5e-5000
+const ComputedLarge = 1e5000 * 1e-5000 * 0x1p4095
+const ComputedNotLarge = 1e5000 * 1e-5000 * 0x1p4094
+const ComputedComplex = 1e5000*1e-5000 + 1i
+const ComputedImaginary = (1e5000 * 1.5e-5000) * 1i
+const NearlyOne = 1e5000 / 5 * 5e-5000
+const SameAsNearlyOne = 1 + 1.0/(1<<511)
 var Table = map[string]int{}
 func Greet(names ...string) string { return "" }
 func Two(x, y int) (int, error) { return 0, nil }
@@ -460,6 +470,19 @@ type Num interface{ ~string | ~int }
     expect(found, path + "Mixed", "value", "0x.cp+5001")
     expect(found, path + "Negative", "value", "-0x.8p+4096")
     assert found[path + "NotLarge"]["slots"]["value"].isdigit(), found[path + "NotLarge"]
+    # A computed value has the spelling of the same value written as a literal.
+    expect(found, path + "ComputedOne", "value", "1")
+    expect(found, path + "ComputedMinusOne", "value", "-1")
+    expect(found, path + "ComputedZero", "value", "0")
+    expect(found, path + "ComputedRatio", "value", "3/2")
+    expect(found, path + "ComputedLarge", "value", "0x.8p+4096")
+    expect(found, path + "ComputedComplex", "value", "(1 + 1i)")
+    expect(found, path + "ComputedImaginary", "value", "(0 + 3/2i)")
+    expect(found, path + "ComputedNotLarge", "value", found[path + "NotLarge"]["slots"]["value"])
+    # An equal value computed two ways, and not rounded to the integer next to it.
+    nearly_one = found[path + "NearlyOne"]["slots"]["value"]
+    assert "/" in nearly_one, nearly_one
+    expect(found, path + "SameAsNearlyOne", "value", nearly_one)
     expect(found, path + "Table", "type", "map[string]int")
     expect(found, path + "Greet", "parameters[0].type", "...string")
     expect(found, path + "Two", "returns", "(int, error)")
