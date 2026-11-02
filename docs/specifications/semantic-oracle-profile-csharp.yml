@@ -253,7 +253,9 @@ description: |
   `Invoke`, has `{inferred: ...}` by the synthesis rule, with a synthetic `parameter`
   entity for each parameter. A delegate's constructor has parameters `object` and `method`,
   `BeginInvoke` adds `callback` and `object` to the delegate's parameters and returns
-  `@{IAsyncResult}`, and `EndInvoke` has `result` and returns the delegate's return. These
+  `@{IAsyncResult}`, and `EndInvoke` keeps the delegate's by-reference parameters in order, adds `result`, and
+  returns the delegate's return with its `return-mode`. A compiler-supplied parameter name
+  that collides with a delegate's parameter name takes the name the compiler gives it. These
   compiler-supplied reference types are oblivious, as `object~`. `value` and `default` are the
   constant's value under the specification's constant expression rules. C# `default` is
   written as the value it denotes for the type. A `decimal` is its exact decimal. An

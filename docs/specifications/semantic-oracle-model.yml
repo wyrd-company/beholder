@@ -697,7 +697,7 @@ description: |
   | Signature group entry (`constructors`, `call-signatures`, `construct-signatures`, `index-signatures`) | The callable slots of one signature, and `access` when it restricts construction. |
   | Base (`bases`) | `type`, the type text with its arguments; `position`; `type-parameters`, `self-type`, `where` and `bindings` for an implementation |
   | Implementation (`implementations`) | The slots of a base, with `self-type` always |
-  | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value` or `auto-traits` |
+  | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value`, or `returns` and `auto-traits` for a method |
   | Alternative (`alternatives`) | `at`, the definition site of one possible definition, and the slots of that definition |
 
   The profile states which slots each `language-kind` has and when each is

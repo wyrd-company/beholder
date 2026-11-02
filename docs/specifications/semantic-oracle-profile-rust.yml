@@ -301,7 +301,12 @@ description: |
     method with no body has no hidden type, and generic dispatch sees only its bounds.
   - A trait implementation's method is no member. Its opaque return is on the `bases` or
     `implementations` entry of that implementation, as a binding with the method's name:
-    `{name: make, auto-traits: [Send, Sync]}`. Its elements follow these same rules.
+    `{name: make, auto-traits: [Send, Sync]}`. Its elements follow these same rules. A
+    method that writes a return other than the trait's refines it, and a consumer of the
+    concrete type sees that return, so the binding states it in `returns`:
+    `{name: make, returns: u8, auto-traits: [...]}`. A binding has `returns` only for a
+    return that differs from the trait's, and `auto-traits` only when that return is opaque
+    or contains an opaque type: `{name: make, returns: u8}` for `fn make() -> u8`.
   - An element is the trait's name when the type holds the trait with no condition.
   - An element is `<trait> when <conditions>` when the type holds the trait only under
     a condition on its generic parameters: `Send when T: Send`. Conditions are the

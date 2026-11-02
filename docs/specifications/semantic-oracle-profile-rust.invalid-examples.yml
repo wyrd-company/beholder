@@ -283,3 +283,9 @@ cases:
     patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0/auto-traits/0, value: Copy}]
     fails-at: /public-api/signatures/7/bases/0/bindings/0/auto-traits/0
     keyword: pattern
+  - name: binding-returns-with-type
+    reason: A binding sets an associated type, or states a method's return; never both.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0, value: {name: describe, type: u8, returns: u8}}]
+    fails-at: /public-api/signatures/7/bases/0/bindings/0
+    keyword: oneOf

@@ -133,6 +133,9 @@ reg('trait-impl-opaque-send','rust','a trait implementation\'s opaque return los
 reg('provided-opaque-send','rust','a trait method\'s default body loses Send on its opaque return',
  'pub trait Tr{fn make()->impl Clone{1u8}}\npub struct Item;\nimpl Tr for Item{}\n','pub trait Tr{fn make()->impl Clone{std::rc::Rc::new(())}}\npub struct Item;\nimpl Tr for Item{}\n',
  'use lib::Tr;\nfn s<T:Send>(_:T){}\nfn main(){s(lib::Item::make());}',{'auto-traits':['RefUnwindSafe', 'Send', 'Sync', 'Unpin', 'UnwindSafe']},{'auto-traits':['RefUnwindSafe', 'Unpin', 'UnwindSafe']})
+reg('refined-return','rust','a trait implementation refines a return to another written type',
+ 'pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->u8{1}}\n','pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->u16{1}}\n',
+ 'use lib::Tr;\nfn main(){let _:u8=lib::Item::make();}',{'bindings':[('make','u8')]},{'bindings':[('make','u16')]})
 def build(c,src):
     d=tempfile.mkdtemp(); l=c['lang']
     if l=='rust':

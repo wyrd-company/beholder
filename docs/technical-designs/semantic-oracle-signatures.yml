@@ -206,13 +206,14 @@ proposed-design:
       follows a private name in Python, and a Python return with no annotation. The
       inference table below states them.
 
-    The same script holds 14 slot regressions: consumer breaks in a trait
+    The same script holds 15 slot regressions: consumer breaks in a trait
     implementation's associated type, an inherent implementation's bound, a
     constructor, a call signature, a setter, an optional member, the order of a
     type literal's call signatures, a Go array length, a Go constraint's terms, a
     private field that removes `Send` from a public struct, and `Send` lost by a tuple's
     opaque component, an async function's opaque output, a trait implementation's opaque
-    return and a trait method's default body.
+    return and a trait method's default body, and a trait implementation that refines a
+    return to another written type.
     Each one breaks a real consumer and changes a slot. They stay out of the table,
     because the script's text extractor reads declaration headers and these changes
     are in bodies.
@@ -250,7 +251,7 @@ proposed-design:
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
     | Base (`bases`) | `type`, the type text with its arguments; `position` for a Python base or a Dart mixin application; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
     | Implementation (`implementations`) | The slots of a base, with `self-type` always, for a Rust implementation whose self type no relation can start from |
-    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value` or `auto-traits` |
+    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value`, or `returns` and `auto-traits` for a method |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
     `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
@@ -333,7 +334,9 @@ proposed-design:
     has `#0` for the future and `#1` for the output, because a consumer can use each
     alone and a whole-return fact does not show one losing `Send`. A trait implementation's
     method is no member, so its opaque return is a binding of that implementation's
-    `bases` or `implementations` entry: `{name: make, auto-traits: [Send, Sync]}`.
+    `bases` or `implementations` entry: `{name: make, auto-traits: [Send, Sync]}`. A method
+    that refines the trait's return states it in `returns` on that binding:
+    `{name: make, returns: u8}`.
 
     The slot compares as a set of units like `modifiers`, keyed by the text before
     ` when `: `auto-traits[#1 Send]`. A changed condition is a `wrong-value`.
