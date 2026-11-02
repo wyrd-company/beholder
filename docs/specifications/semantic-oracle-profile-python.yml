@@ -62,10 +62,13 @@ description: |
   no project module and defines none. The `typing` context's `command` is
   `none` when no project command runs a type checker.
 
-  The import root is the directory that holds the project's top-level
-  packages and modules: the package directory the build configuration
-  declares, such as `src` for a src layout, and otherwise the project root,
-  written `.`.
+  The import root is the directory that the project's task commands put
+  first on `sys.path` when they run project code: the working directory for
+  `python -m` and `python -c`, and the script's directory for a script.
+  When no task command runs project code, the import root is the package
+  directory the build configuration declares, such as `src` for a src
+  layout, and otherwise the project root; this is the path an installed
+  distribution gives. The project root is written `.`.
 
   A search path that a function body changes at run time, through
   `sys.path`, `site.addsitedir` or a package's `__path__`, is outside every
@@ -108,8 +111,12 @@ description: |
   for a flat layout with several top-level packages, the distribution has no
   units.
 
-  Every directory below a `search-path` root that has no `__init__.py` and
-  holds a Python module at some depth is a portion of a namespace package.
+  A dotted name is a namespace package when the path-based finder, scanning
+  every entry of the parent's path, finds a directory of that name with no
+  `__init__.py` that holds a Python module at some depth, and finds no
+  regular package or module of that name in any entry; each such directory
+  is a portion. A regular package or module of that name in any entry takes
+  precedence, and its directory-only siblings contribute nothing.
   A namespace package's `units` lists its own unit and the units of the
   modules, packages and namespace packages directly inside its portions. A
   module entity is the root of its unit and has no `parent`; its module

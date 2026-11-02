@@ -58,7 +58,7 @@ $defs:
     required: [mode, selection, manifest, packages, target, cfg, features, profile]
     additionalProperties: false
     properties:
-      mode: {enum: [build, test, doc]}
+      mode: {enum: &mode [build, test, doc, doctest]}
       selection: {type: array, minItems: 1, uniqueItems: true, items: {$ref: '#/$defs/unit-kind'}}
       manifest: {$ref: '#/$defs/canonical-path'}
       packages:
@@ -89,6 +89,12 @@ $defs:
           - $ref: '#/$defs/text-list'
           - $ref: '#/$defs/context-variant-list'
             items: {properties: {value: {$ref: '#/$defs/text-list'}}}
+      # The unit's compilation mode, when it differs from its context's.
+      mode:
+        anyOf:
+          - enum: *mode
+          - $ref: '#/$defs/context-variant-list'
+            items: {properties: {value: {enum: *mode}}}
     unevaluatedProperties: false
 
   text-attribute:

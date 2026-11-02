@@ -41,7 +41,7 @@ description: |
 
   | Parameter | Value |
   | --- | --- |
-  | `mode` | `build`, `test` or `doc`: whether the context's compilations are ordinary compilations, test-harness compilations (`--test`, which sets `cfg(test)`), or rustdoc compilations (which set `cfg(doc)`). |
+  | `mode` | `build`, `test`, `doc` or `doctest`: whether the command's selected targets compile as ordinary compilations, test-harness compilations (`--test`, which sets `cfg(test)`), rustdoc compilations (which set `cfg(doc)`), or rustdoc's doctest collection over crate source (`rustdoc --test`, which sets `cfg(doctest)`). |
   | `selection` | The sorted unit kinds Cargo compiles in this mode for the command, after target-selection flags such as `--lib`, `--bins`, `--examples`, `--tests`, `--benches` and `--all-targets`. |
   | `manifest` | The project-relative path of the manifest Cargo is invoked on. |
   | `packages` | The selected packages, or `workspace`. |
@@ -58,13 +58,16 @@ description: |
   in mode `build` and test, bench and unit-test targets in mode `test`.
   `cargo test` compiles unit-test and integration-test targets in mode
   `test` and examples in mode `build`. `cargo doc` compiles in mode `doc`.
-  Formatting commands define no context. A compilation that a command
-  performs only as a dependency of the targets it selects, such as the
-  check compilation of a library that `cargo doc --no-deps` documents
-  against, defines no context; its unit is a unit of the command's context.
-  Doctest compilations define no context, because doc comments are
-  out-of-profile. When a command omits `--target`, `target` is the host
-  triple of the corpus toolchain, `x86_64-unknown-linux-gnu`.
+  `cargo test` also performs the doctest collection of each `lib` target it
+  tests, in mode `doctest`. Formatting commands define no context. A
+  compilation that a command performs only as a dependency of the targets it
+  selects, such as the check compilation of a library that
+  `cargo doc --no-deps` documents against, defines no context of its own;
+  its unit is a unit of the command's context with the unit attribute
+  `mode` set to the mode it compiles in, normally `build`. The code inside
+  doc comments, which doctests compile, is out-of-profile. When a command
+  omits `--target`, `target` is the host triple of the corpus toolchain,
+  `x86_64-unknown-linux-gnu`.
 
   ## Units and distributions
 
@@ -95,9 +98,10 @@ description: |
   A unit's `name` is its crate name. A unit record carries the Rust
   attributes `package` and `package-version`, the package name and version
   from its manifest, `target-name`, the Cargo target name, `edition`,
-  `platform` and `features`, the sorted features Cargo's feature resolver
-  enables for that unit; `features` is context-variant in the model's
-  attribute form.
+  `platform`, `features`, the sorted features Cargo's feature resolver
+  enables for that unit, and `mode`, the unit's compilation mode where it
+  differs from its context's `mode`, absent otherwise. `features` and
+  `mode` are context-variant in the model's attribute form.
   The unit key is `package`, `package-version`, the unit kind,
   `target-name` and `platform`.
 
@@ -243,14 +247,16 @@ description: |
   targets that crate's root module. The keyword segments `crate`, `self`,
   `super` and `Self` are references to the crate root, the current module,
   the parent module and the implementing or declared type, with the role of
-  their position. A path that names a trait item through a type, such as
+  their position; `self` inside a `use` group, as in `use a::b::{self, C}`,
+  targets the group's parent path, `a::b`. A path that names a trait item through a type, such as
   `String::from` or `<T as Trait>::f`, targets the trait item, and the
   equivalence rule below applies.
 
   Primitive types are not entities, and their tokens have no reference.
-  Their inherent associated items are externals of distribution `core` with
-  the primitive type as the first path segment, such as `f64::EPSILON` and
-  `str::len`. Built-in and tool attributes, such as `inline`, `cfg`, `doc`,
+  Their inherent associated items are externals with the primitive type as
+  the first path segment, such as `f64::EPSILON` and `str::len`, and the
+  defining crate as distribution: `core` for most, `std` for items the
+  standard library defines, such as `f64::sqrt`. Built-in and tool attributes, such as `inline`, `cfg`, `doc`,
   `path` and `rustfmt::skip`, name no entity. Built-in macros are externals
   at their definitions: `derive` is `core::macros::builtin::derive` with
   `language-kind` `proc-macro-attribute`, and `include`, `assert_eq` and
