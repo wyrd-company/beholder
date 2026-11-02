@@ -74,8 +74,9 @@ description: |
   directories as portions of the package in `runtime` contexts.
 
   A branch whose test the typing specification evaluates statically, a
-  comparison of `sys.platform` or `sys.version_info`, `TYPE_CHECKING`, or
-  the literal `True` or `False`, holds only in the contexts whose
+  comparison of `sys.platform` or `sys.version_info`, a
+  `sys.platform.startswith` call, `TYPE_CHECKING`, or the literal `True`
+  or `False`, holds only in the contexts whose
   `platform`, `python` or `mode` take it. Facts whose sites lie in a branch
   that a context does not take do not hold in that context. Other
   conditional code holds in every context.
