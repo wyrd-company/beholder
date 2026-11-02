@@ -99,6 +99,8 @@ pub type Projected = <Plain as Assoc>::Out;
 pub mod both { pub struct Inner; }
 pub fn both() -> u32 { 1 }
 pub struct Crossed;
+pub enum Payload { Unit, Tuple(pub_type::Inner, u8), Named { field: u16 } }
+pub mod pub_type { pub struct Inner; }
 """,
     })
     before = listing(project)
@@ -140,6 +142,11 @@ pub struct Crossed;
     expect(found, "sample::Plain::radius", "type", "f64")
     expect(found, "sample::Projected", "type", "<@{sample::Plain} as @{sample::Assoc}>::@{sample::Assoc::Out}")
     expect(found, "sample::both@callable", "returns", "u32")
+    expect(found, "sample::Payload::Tuple::0", "type", "@{sample::pub_type::Inner}")
+    expect(found, "sample::Payload::Tuple::1", "type", "u8")
+    expect(found, "sample::Payload::Named::field", "type", "u16")
+    # The key holds the crate's version, so that another version's slot never answers.
+    assert found["sample::Plain"]["unit"] == {"package": "sample", "package-version": "0.1.0"}, found["sample::Plain"]
     # A field has no `auto-traits`, so it does not read as a member the probe skipped.
     assert found["sample::Plain::radius"]["unstated"] == []
 

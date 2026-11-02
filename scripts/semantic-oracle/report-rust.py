@@ -403,6 +403,11 @@ class Walker:
             if isinstance(shape, dict) and "struct" in shape:
                 for field in shape["struct"]["fields"]:
                     self.field(field, variant_path)
+            if isinstance(shape, dict) and "tuple" in shape:
+                for index, field in enumerate(shape["tuple"]):
+                    found = self.crate.index.get(str(field)) if field is not None else None
+                    if found:
+                        self.add(f"{variant_path}::{index}", {"type": self.crate.ty(found["inner"]["struct_field"])}, "field")
         self.inherent(inner, path)
 
     def attributes(self, item):

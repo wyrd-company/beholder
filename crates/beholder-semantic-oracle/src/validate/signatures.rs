@@ -922,7 +922,7 @@ impl<'a> Checker<'a> {
             })
             .collect();
         let structural = self.structural_bases(record.id);
-        let body_local = self.body_local_bases(record, &references);
+        let without_a_block = self.bases_without_a_block(record);
         let mut problems = Vec::new();
         for slot in slots(record.record) {
             if slot.class != SlotClass::DeclaredType || record_is_synthetic(record.entity) {
@@ -936,7 +936,7 @@ impl<'a> Checker<'a> {
                     .map(|written| named_ids(language, written))
                     .and_then(|ids| ids.into_iter().next());
                 if head.is_some_and(|id| {
-                    structural.contains(id.as_str()) || body_local.contains(id.as_str())
+                    structural.contains(id.as_str()) || without_a_block.contains(id.as_str())
                 }) {
                     continue;
                 }
@@ -1012,39 +1012,79 @@ impl<'a> Checker<'a> {
         }
     }
 
-    /// Rust: targets of a member's `implements` relations whose implementation has
-    /// no block in the dataset. A block inside a function body is out-of-profile, and
-    /// the profile records its relation, so its base has no source declaration to read.
-    fn body_local_bases(&self, record: &Record<'a>, references: &[&'a Value]) -> BTreeSet<&'a str> {
+    /// Rust: targets of a member's `implements` relations that a source block does
+    /// not state, each audited against what does.
+    ///
+    /// - A derive generates its block, so that its base has no `type` token. Its
+    ///   relation's `at` is the derive's token, which an `attribute` or
+    ///   `macro-invocation` reference names, and a `rust:macro-expansion` fact gives
+    ///   a generated `extension` that macro and that invocation.
+    /// - A block inside a function body is out-of-profile, so that it has no entity.
+    ///   Its relation's `at` holds a `type` reference to the base, whose `from` is the
+    ///   enclosing callable.
+    fn bases_without_a_block(&self, record: &Record<'a>) -> BTreeSet<&'a str> {
         if self.rules.language != "rust" {
             return BTreeSet::new();
         }
-        let has_block = |target: &str| {
-            references.iter().any(|reference| {
-                text(reference, "target") == Some(target)
-                    && text(reference, "from").is_some_and(|from| {
-                        self.ids.get(from).is_some_and(|(_, entity)| {
-                            self.language_kinds(entity).contains(&"trait-impl")
-                        }) || self
-                            .ids
-                            .get(from)
-                            .and_then(|(_, entity)| text(entity, "parent"))
-                            .and_then(|parent| self.ids.get(parent))
-                            .is_some_and(|(_, entity)| {
-                                self.language_kinds(entity).contains(&"trait-impl")
-                            })
-                    })
-            })
-        };
         self.list("relations")
             .iter()
             .filter(|relation| {
                 text(relation, "kind") == Some("implements")
                     && text(relation, "from") == Some(record.id)
             })
+            .filter(|relation| {
+                relation.get("at").is_some_and(|at| {
+                    let target = text(relation, "to").unwrap_or_default();
+                    self.is_generated_at(at) || self.is_body_local_at(at, target)
+                })
+            })
             .filter_map(|relation| text(relation, "to"))
-            .filter(|target| !has_block(target))
             .collect()
+    }
+
+    /// Whether a site is a macro's token, whose expansion generated an `extension`.
+    fn is_generated_at(&self, at: &Value) -> bool {
+        let site = site_key(at);
+        let macros: BTreeSet<&str> = self
+            .list("references")
+            .iter()
+            .filter(|reference| {
+                matches!(
+                    text(reference, "role"),
+                    Some("attribute" | "macro-invocation")
+                ) && reference.get("at").is_some_and(|at| site_key(at) == site)
+            })
+            .filter_map(|reference| text(reference, "target"))
+            .collect();
+        let facts = self
+            .dataset
+            .get("extensions")
+            .map(|extensions| list(extensions, "rust:macro-expansion"))
+            .unwrap_or(&[]);
+        facts.iter().any(|fact| {
+            fact.get("invocation")
+                .is_some_and(|invocation| site_key(invocation) == site)
+                && text(fact, "macro").is_some_and(|name| macros.contains(name))
+                && text(fact, "entity")
+                    .and_then(|entity| self.ids.get(entity))
+                    .is_some_and(|(_, entity)| {
+                        text(entity, "kind") == Some("extension")
+                            && text(entity, "origin") == Some("generated")
+                    })
+        })
+    }
+
+    /// Whether a site holds a `type` reference to `target` from a callable.
+    fn is_body_local_at(&self, at: &Value, target: &str) -> bool {
+        let site = site_key(at);
+        self.list("references").iter().any(|reference| {
+            text(reference, "role") == Some("type")
+                && text(reference, "target") == Some(target)
+                && reference.get("at").is_some_and(|at| site_key(at) == site)
+                && text(reference, "from")
+                    .and_then(|from| self.ids.get(from))
+                    .is_some_and(|(_, entity)| text(entity, "kind") == Some("callable"))
+        })
     }
 
     /// Whether a canonical form writes this target's token bare or removes it.
@@ -1062,24 +1102,15 @@ impl<'a> Checker<'a> {
             || (self.rules.language == "csharp" && path.starts_with("System."))
     }
 
-    /// Targets of a member's relations that no type token establishes: a structural
-    /// relation has no `at`, and a derive's `at` is the derive's name.
+    /// Targets of a member's relations that the language's structural rule gives,
+    /// with no establishing token.
     fn structural_bases(&self, id: &str) -> BTreeSet<&'a str> {
-        let type_sites: BTreeSet<SiteKey<'a>> = self
-            .list("references")
-            .iter()
-            .filter(|reference| text(reference, "role") == Some("type"))
-            .filter_map(|reference| reference.get("at"))
-            .map(site_key)
-            .collect();
         self.list("relations")
             .iter()
             .filter(|relation| {
                 matches!(text(relation, "kind"), Some("inherits" | "implements"))
                     && text(relation, "from") == Some(id)
-                    && relation
-                        .get("at")
-                        .is_none_or(|at| !type_sites.contains(&site_key(at)))
+                    && relation.get("at").is_none()
             })
             .filter_map(|relation| text(relation, "to"))
             .collect()

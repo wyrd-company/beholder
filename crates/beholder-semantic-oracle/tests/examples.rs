@@ -1551,47 +1551,147 @@ fn a_group_entry_has_sorted_modifiers() {
     );
 }
 
-/// A block inside a function body is out-of-profile, so its relation's base has no
-/// source declaration, and a member's other implementation still does.
-#[test]
-fn a_body_local_implementation_has_no_block_to_read() {
+/// A Rust example with an `implements` relation at `at` and a base for it, whose
+/// block no source declaration holds. Returns the dataset and the relation's site.
+fn base_with_no_block(token: &str) -> (Value, Value) {
     let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    let at = json!({"path": "src/shapes.rs", "start": [40, 10], "end": [40, 10 + token.len() as u64], "text": token});
     push(
         &mut dataset,
         "/relations",
-        json!({"kind": "implements", "from": "geometry.shapes.Circle", "to": "geometry.shapes.Solid",
-               "at": {"path": "src/shapes.rs", "start": [40, 10], "end": [40, 15], "text": "Solid"}}),
+        json!({"kind": "implements", "from": "geometry.shapes.Circle", "to": "geometry.shapes.Solid", "at": at}),
     );
-    let at = record_of(&dataset, "geometry.shapes.Circle");
+    let index = record_of(&dataset, "geometry.shapes.Circle");
     push(
         &mut dataset,
-        &format!("/public-api/signatures/{at}/bases"),
+        &format!("/public-api/signatures/{index}/bases"),
         json!({"type": "@{geometry.shapes.Solid}"}),
     );
-    push(
-        &mut dataset,
-        "/references",
+    (dataset, at)
+}
+
+const BASE_REFERENCE: &str = "`@{geometry.shapes.Solid}` has no `type` reference";
+
+/// A block inside a function body has no entity. Its base reads the `type` reference
+/// at the relation's site, whose `from` is the enclosing function.
+#[test]
+fn a_body_local_base_reads_the_reference_at_its_relation() {
+    let (base, _) = base_with_no_block("Solid");
+    let found = rule_messages(&base, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains(BASE_REFERENCE)),
+        "with no reference: {found:#?}"
+    );
+    let reference = |line, from: &str| {
         type_reference(
             "src/shapes.rs",
-            40,
+            line,
             10,
             "Solid",
-            "geometry.shapes",
+            from,
             "geometry.shapes.Solid",
-        ),
+        )
+    };
+    let mut own = base.clone();
+    push(
+        &mut own,
+        "/references",
+        reference(40, "geometry.make_hidden"),
     );
-    assert_eq!(rule_messages(&dataset, REFERENCES), Vec::<String>::new());
-    // With a block in the dataset, its base reads that block.
-    let mut block = load("semantic-oracle-profile-rust.example.yml");
-    let at = record_of(&block, "geometry.shapes.Circle");
-    set_at(
-        &mut block,
-        &format!("/public-api/signatures/{at}/bases/0/where"),
-        json!("@{geometry.shapes.Solid}: @{geometry.shapes.Area}"),
+    assert_eq!(rule_messages(&own, REFERENCES), Vec::<String>::new());
+    // At another site, or from something other than the enclosing function, it is not.
+    let mut elsewhere = base.clone();
+    push(
+        &mut elsewhere,
+        "/references",
+        reference(41, "geometry.make_hidden"),
     );
-    let found = rule_messages(&block, REFERENCES);
+    let found = rule_messages(&elsewhere, REFERENCES);
     assert!(
-        found.iter().any(|m| m.contains("bases/0/where")),
+        found.iter().any(|m| m.contains(BASE_REFERENCE)),
+        "another site: {found:#?}"
+    );
+    let mut module = base.clone();
+    push(&mut module, "/references", reference(40, "geometry.shapes"));
+    let found = rule_messages(&module, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains(BASE_REFERENCE)),
+        "from a module: {found:#?}"
+    );
+}
+
+/// A derive's base has no `type` token. It is audited against the derive's token and
+/// the generation rule, and a `type` reference is not fabricated for it.
+#[test]
+fn a_derived_base_reads_the_derive_token_and_the_generation_rule() {
+    const MACRO: &str = "ext.core.fmt.macros.Debug";
+    let derived = |macro_of_fact: &str, role: &str, origin: &str| {
+        let (mut dataset, at) = base_with_no_block("Debug");
+        push(
+            &mut dataset,
+            "/references",
+            json!({"at": at, "from": "geometry.shapes", "target": MACRO, "role": role}),
+        );
+        let block = json!({"id": "geometry.shapes.Circle.impl-Debug", "kind": "extension",
+            "language-kind": "trait-impl", "path": "geometry::shapes::impl Debug for Circle#1",
+            "unit": "geometry-lib", "parent": "geometry.shapes", "origin": origin,
+            "definitions": [], "anchor": at,
+            "generated-by": {"generator": MACRO, "at": at},
+            "declared-visibility": {"value": "private", "explicit": false},
+            "effective-visibility": {"unit": {"access": "scoped", "scope": ["geometry.shapes"]},
+                                     "project": "none", "external": "none"}});
+        let mut block = block;
+        if origin != "generated" {
+            // The schema gives `generated-by` to a generated entity only.
+            block.as_object_mut().unwrap().remove("generated-by");
+        }
+        push(&mut dataset, "/entities", block);
+        push(
+            &mut dataset,
+            "/extensions/rust:macro-expansion",
+            json!({"entity": "geometry.shapes.Circle.impl-Debug", "macro": macro_of_fact, "invocation": at}),
+        );
+        dataset
+    };
+    assert_eq!(
+        rule_messages(&derived(MACRO, "attribute", "generated"), REFERENCES),
+        Vec::<String>::new()
+    );
+    // A macro invocation generates a block the same way.
+    assert_eq!(
+        rule_messages(&derived(MACRO, "macro-invocation", "generated"), REFERENCES),
+        Vec::<String>::new()
+    );
+    for (dataset, why) in [
+        (
+            derived("ext.std", "attribute", "generated"),
+            "the fact names another macro",
+        ),
+        (
+            derived(MACRO, "read", "generated"),
+            "no token names the macro",
+        ),
+        (
+            derived(MACRO, "attribute", "source"),
+            "the block is not generated",
+        ),
+    ] {
+        let found = rule_messages(&dataset, REFERENCES);
+        assert!(
+            found.iter().any(|m| m.contains(BASE_REFERENCE)),
+            "{why}: {found:#?}"
+        );
+    }
+    // With no generated block at all, the derive's token alone states nothing.
+    let (mut bare, at) = base_with_no_block("Debug");
+    push(
+        &mut bare,
+        "/references",
+        json!({"at": at, "from": "geometry.shapes", "target": MACRO, "role": "attribute"}),
+    );
+    let found = rule_messages(&bare, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains(BASE_REFERENCE)),
         "{found:#?}"
     );
 }

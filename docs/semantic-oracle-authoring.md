@@ -177,6 +177,8 @@ These stay `unchecked`:
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
 - each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
 - Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;
+- every slot of a Rust `#[doc(hidden)]` item, because rustdoc JSON omits it. It stays a member, and a compile check outside the tree can confirm its facts;
+- a Rust path dependency outside the workspace, in a context whose report does not document it. A report's key holds the crate's version, so another version's slot never answers for it. Report the dependency's own context from its manifest's directory, and a workspace member's context from the workspace root, because the script copies the directory it is given;
 - a Python module that fails to import, which the report lists under `failed` as a warning, because a project can intend it;
 - Python's typing contexts, because `inspect.signature` states the runtime's view only.
 
