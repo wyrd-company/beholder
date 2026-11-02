@@ -92,7 +92,7 @@ description: |
     `<declaration>.<<name>>`.
   - A consumer path is `package:<package>/<path>::<name>` followed by member
     names, using the public library through which the consumer imports the
-    name.
+    name. A public library's own consumer path is `package:<package>/<path>`.
 
   ## Entities
 
@@ -134,9 +134,10 @@ description: |
 
   ## Public API
 
-  A distribution's public API consists of the export namespaces of its
-  public libraries. A public library is a library under `lib/` whose path
-  has no `src` directory component directly under `lib/`. The export
+  A distribution's public API consists of its public libraries and their
+  export namespaces. A public library is a library under `lib/` whose path
+  has no `src` directory component directly under `lib/`. It is a member
+  because a consumer can name it, even when it has no public names. The export
   namespace is the library's public declarations plus every name its
   `export` directives add after `show` and `hide` combinators and
   configuration selection in the context. Members of exported classes,
@@ -219,7 +220,7 @@ description: |
   | --- | --- | --- | --- |
   | `dart:visibility-annotation` | `entity`, `annotation`: `protected`, `visibleForTesting`, `visibleForOverriding`, `internal` or `nonVirtual` | `entity`, `annotation` | none |
   | `dart:mixin-application` | `relation`: the id of an `inherits` relation from a `with` clause | `relation` | none |
-  | `dart:deferred-import` | `unit`, `prefix`, `library`: the deferred library | `unit`, `prefix` | `library` |
+  | `dart:deferred-import` | `unit`, `prefix`, `library`: the root entity of the deferred library's unit | `unit`, `prefix` | `library` |
 
   All three extensions are required.
 

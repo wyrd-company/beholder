@@ -14,7 +14,7 @@ use std::path::Path;
 use beholder_semantic_oracle::{
     audit, parse_yaml,
     project::{sha256_hex, MemoryProject},
-    validate, Report, Severity,
+    validate, Finding, Report, Severity,
 };
 use serde_json::{json, Value};
 
@@ -58,11 +58,24 @@ fn push(dataset: &mut Value, pointer: &str, value: Value) {
         .push(value);
 }
 
-/// `(severity, rule, at)` of every finding.
+/// The rule of public API recomputation. A test of another rule ignores
+/// its findings, which restate the mutation's effect on public API; the
+/// recomputation tests check them with [`expect_recomputed`].
+const RECOMPUTED: &str = "model:public-api-recomputed";
+
+/// `(severity, rule, at)` of every finding except public API recomputation.
 fn found(report: &Report) -> Vec<(&'static str, String, String)> {
+    found_where(report, |rule| rule != RECOMPUTED)
+}
+
+fn found_where(
+    report: &Report,
+    keep: impl Fn(&str) -> bool,
+) -> Vec<(&'static str, String, String)> {
     report
         .findings
         .iter()
+        .filter(|f| keep(&f.rule))
         .map(|f| {
             let severity = match f.severity {
                 Severity::Error => "error",
@@ -81,6 +94,25 @@ fn expect(report: &Report, expected: &[(&'static str, &str, &str)]) {
     assert_eq!(found(report), expected, "{:#?}", report.findings);
 }
 
+/// Expects exactly these public API recomputation findings, as
+/// `(at, message fragment)`.
+fn expect_recomputed(report: &Report, expected: &[(&str, &str)]) {
+    let found: Vec<&Finding> = report
+        .findings
+        .iter()
+        .filter(|f| f.rule == RECOMPUTED)
+        .collect();
+    assert_eq!(found.len(), expected.len(), "{:#?}", report.findings);
+    for (finding, (at, fragment)) in found.iter().zip(expected) {
+        assert_eq!(finding.at, *at, "{:#?}", report.findings);
+        assert!(
+            finding.message.contains(fragment),
+            "`{}` lacks `{fragment}`",
+            finding.message
+        );
+    }
+}
+
 fn validate_with(dataset: &Value, files: &MemoryProject) -> Report {
     validate(dataset, Some(files))
 }
@@ -88,9 +120,13 @@ fn validate_with(dataset: &Value, files: &MemoryProject) -> Report {
 #[test]
 fn the_fixture_passes_validation_and_audit() {
     let dataset = dataset();
-    expect(&validate_with(&dataset, &files()), &[]);
-    expect(&audit(&dataset, Some(&files())), &[]);
-    expect(&validate(&dataset, None), &[]);
+    for report in [
+        validate_with(&dataset, &files()),
+        audit(&dataset, Some(&files())),
+        validate(&dataset, None),
+    ] {
+        assert_eq!(found_where(&report, |_| true), [], "{:#?}", report.findings);
+    }
 }
 
 #[test]
@@ -163,6 +199,7 @@ fn ids_are_unique_across_the_dataset() {
             ("error", "model:id-unique", "/distributions/0/id"),
             ("error", "model:id-reference", "/public-api/0/distribution"),
             ("error", "model:id-reference", "/public-api/1/distribution"),
+            ("error", "model:id-reference", "/public-api/2/distribution"),
             ("error", "model:id-reference", "/units/0/distribution"),
         ],
     );
@@ -633,10 +670,10 @@ fn scope_members_name_entities_units_or_documents() {
     set(
         &mut dataset,
         "/entities/2/effective-visibility",
-        json!({"unit": {"access": "scoped", "scope": ["tally.crate", "src/lib.rs", "elsewhere"]},
+        json!({"unit": {"access": "scoped", "scope": ["tally.Counter", "src/lib.rs", "elsewhere"]},
                "project": "none", "external": "none"}),
     );
-    dataset["public-api"].as_array_mut().unwrap().pop();
+    dataset["public-api"].as_array_mut().unwrap().remove(1);
     expect(
         &validate_with(&dataset, &files()),
         &[(
@@ -662,7 +699,7 @@ fn a_relation_is_stated_once_per_context() {
 }
 
 #[test]
-fn a_public_api_member_is_externally_accessible_in_its_distribution() {
+fn a_public_api_member_is_externally_accessible() {
     let mut dataset = dataset();
     set(
         &mut dataset,
@@ -670,6 +707,18 @@ fn a_public_api_member_is_externally_accessible_in_its_distribution() {
         json!("none"),
     );
     set(&mut dataset, "/public-api/0/access", json!("subtypes"));
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            ("error", "model:public-api-access", "/public-api/0/access"),
+            ("error", "model:public-api-access", "/public-api/1/access"),
+        ],
+    );
+}
+
+#[test]
+fn a_member_of_another_distribution_is_one_the_rule_reaches() {
+    let mut dataset = dataset();
     push(
         &mut dataset,
         "/distributions",
@@ -677,19 +726,13 @@ fn a_public_api_member_is_externally_accessible_in_its_distribution() {
     );
     let mut copy = dataset["public-api"][0].clone();
     copy["distribution"] = json!("other");
-    copy["access"] = json!("all");
     push(&mut dataset, "/public-api", copy);
-    expect(
+    expect_recomputed(
         &validate_with(&dataset, &files()),
-        &[
-            ("error", "model:public-api-access", "/public-api/0/access"),
-            ("error", "model:public-api-access", "/public-api/1/access"),
-            (
-                "error",
-                "model:public-api-distribution",
-                "/public-api/2/distribution",
-            ),
-        ],
+        &[(
+            "/public-api/3",
+            "gives `tally.Counter` no consumer path in `other`",
+        )],
     );
 }
 
@@ -700,7 +743,7 @@ fn a_public_api_member_is_stated_once_per_context() {
     push(&mut dataset, "/public-api", copy);
     expect(
         &validate_with(&dataset, &files()),
-        &[("error", "model:public-api-duplicate", "/public-api/2")],
+        &[("error", "model:public-api-duplicate", "/public-api/3")],
     );
 }
 
@@ -715,7 +758,7 @@ fn extension_facts_resolve_and_have_unique_keys() {
         &mut dataset,
         "/extensions",
         json!({"rust:macro-expansion": [fact.clone(), fact],
-               "rust:reachable-unnameable": [{"entity": "tally.Counter", "distribution": "tally-lib", "via": "tally.make"}]}),
+               "rust:reachable-unnameable": [{"entity": "tally.Counter", "distribution": "tally-lib", "via": ["tally.make"]}]}),
     );
     expect(
         &validate_with(&dataset, &files()),
@@ -1180,5 +1223,110 @@ fn equal_coordinates_are_one_site_whatever_their_number_form() {
     expect(
         &validate_with(&dataset, &files()),
         &[("error", "model:locator-ambiguous", "/references/2/at")],
+    );
+}
+
+// ------------------------------------------------- public API recomputation
+
+#[test]
+fn a_member_the_profile_rule_finds_has_an_entry() {
+    let mut dataset = dataset();
+    dataset["public-api"].as_array_mut().unwrap().remove(1);
+    expect_recomputed(
+        &validate_with(&dataset, &files()),
+        &[(
+            "/public-api",
+            "makes `tally.make` a member of `tally` with paths [`tally::make`]",
+        )],
+    );
+}
+
+#[test]
+fn an_entry_lists_exactly_the_consumer_paths() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/public-api/0/paths",
+        json!(["tally::Counter", "tally::Count"]),
+    );
+    expect_recomputed(
+        &validate_with(&dataset, &files()),
+        &[("/public-api/0/paths", "not consumer paths [`tally::Count`]")],
+    );
+}
+
+#[test]
+fn only_a_pub_re_export_adds_a_consumer_path() {
+    let mut dataset = dataset();
+    let re_export = json!({
+        "kind": "exports", "from": "tally.crate", "to": "tally.Counter",
+        "name": "Tally", "visibility": "pub(crate)",
+    });
+    push(&mut dataset, "/relations", re_export.clone());
+    expect_recomputed(&validate_with(&dataset, &files()), &[]);
+    set(&mut dataset, "/relations/0/visibility", json!("pub"));
+    expect_recomputed(
+        &validate_with(&dataset, &files()),
+        &[("/public-api/0/paths", "missing [`tally::Tally`]")],
+    );
+}
+
+#[test]
+fn a_private_item_has_no_consumer_path() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/entities/2/declared-visibility",
+        json!({"value": "private", "explicit": false}),
+    );
+    expect_recomputed(
+        &validate_with(&dataset, &files()),
+        &[
+            ("/entities/2/effective-visibility", "`external` is `none`"),
+            ("/entities/2/effective-visibility", "`project` is `none`"),
+            ("/public-api/1", "gives `tally.make` no consumer path"),
+        ],
+    );
+}
+
+#[test]
+fn a_definition_site_holds_in_contexts_of_its_entity() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/contexts",
+        json!(["default"]),
+    );
+    expect(&validate_with(&dataset, &files()), &[]);
+    set(
+        &mut dataset,
+        "/entities/1/definitions/0/contexts",
+        json!(["release"]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:context-declared",
+            "/entities/1/definitions/0/contexts/0",
+        )],
+    );
+}
+
+#[test]
+fn a_scope_that_covers_the_unit_is_written_all() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/entities/2/effective-visibility/unit",
+        json!({"access": "scoped", "scope": ["tally.crate"]}),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:effective-visibility",
+            "/entities/2/effective-visibility/unit",
+        )],
     );
 }

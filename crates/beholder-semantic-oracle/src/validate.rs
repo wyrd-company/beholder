@@ -22,6 +22,8 @@ use std::{
 
 use serde_json::{json, Value};
 
+mod public_api;
+
 use crate::{
     dataset_validator,
     locator::{Locator, LocatorError, Position, SourceText},
@@ -438,6 +440,7 @@ impl<'a> Checker<'a> {
         self.check_references();
         self.check_relations();
         self.check_public_api();
+        self.check_public_api_recomputed();
         self.check_extensions();
         self.check_unused_externals();
     }
@@ -1105,6 +1108,7 @@ impl<'a> Checker<'a> {
             }
             if let Some(visibility) = entity.get("effective-visibility") {
                 self.check_scopes(&format!("{at}/effective-visibility"), visibility);
+                self.check_whole_unit_scope(&at, entity, visibility);
                 self.check_undistributed(&at, entity, visibility, &contexts);
             }
 
@@ -1150,7 +1154,16 @@ impl<'a> Checker<'a> {
                         "an entity defined in a generated document has `origin: generated`".into(),
                     );
                 }
-                self.check_locator(site_at, site, &contexts);
+                // A site may hold in fewer contexts than its entity: a
+                // document compiled only in some contexts.
+                let site_contexts = self.fact_contexts(
+                    &format!("{at}/definitions/{k}"),
+                    definition,
+                    contexts.clone(),
+                    &contexts,
+                    "the entity",
+                );
+                self.check_locator(site_at, site, &site_contexts);
             }
             if let Some(anchor) = entity.get("anchor") {
                 self.check_locator(format!("{at}/anchor"), anchor, &contexts);
@@ -1182,6 +1195,51 @@ impl<'a> Checker<'a> {
                 );
             }
             records.push((id, contexts));
+        }
+    }
+
+    /// At the `unit` boundary, a scope that holds the entity's unit or its
+    /// unit root covers the whole unit, so the value is written `all`.
+    fn check_whole_unit_scope(&mut self, at: &str, entity: &'a Value, visibility: &'a Value) {
+        let mut whole: BTreeSet<&'a str> = BTreeSet::new();
+        for unit in self.units_of(entity) {
+            whole.insert(unit);
+            if let Some((Class::Unit, record)) = self.ids.get(unit) {
+                if let Some(root) = text(record, "root") {
+                    whole.insert(root);
+                }
+            }
+        }
+        let values: Vec<(String, &'a Value)> = match variant_list(visibility) {
+            Some(entries) => entries
+                .iter()
+                .enumerate()
+                .filter_map(|(k, e)| e.get("value").map(|v| (format!("/{k}/value"), v)))
+                .collect(),
+            None => vec![(String::new(), visibility)],
+        };
+        for (suffix, value) in values {
+            let Some(access) = value.get("unit") else {
+                continue;
+            };
+            let accesses: Vec<&Value> = match access.as_array() {
+                Some(items) => items.iter().collect(),
+                None => vec![access],
+            };
+            let covers = accesses.iter().any(|access| {
+                text(access, "access") == Some("scoped")
+                    && list(access, "scope")
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .any(|member| whole.contains(member))
+            });
+            if covers {
+                self.error(
+                    "model:effective-visibility",
+                    format!("{at}/effective-visibility{suffix}/unit"),
+                    "the scope covers the whole unit; the value is `all`".into(),
+                );
+            }
         }
     }
 
@@ -1271,13 +1329,17 @@ impl<'a> Checker<'a> {
                             let resolves = matches!(
                                 self.ids.get(member),
                                 Some((Class::Entity | Class::Unit, _))
-                            ) || self.documents.contains_key(member);
+                            ) || self.documents.contains_key(member)
+                                || member
+                                    .strip_prefix("external:")
+                                    .is_some_and(|key| !key.is_empty());
                             if !resolves {
                                 self.error(
                                     "model:id-reference",
                                     format!("{access_at}/{qualifier}/{k}"),
                                     format!(
-                                        "`{member}` names no entity, unit or inventory document"
+                                        "`{member}` names no entity, unit, inventory document \
+                                         or external unit"
                                     ),
                                 );
                             }
@@ -1473,20 +1535,6 @@ impl<'a> Checker<'a> {
                 continue;
             };
 
-            let distributions: BTreeSet<&str> = self
-                .units_of(entity)
-                .into_iter()
-                .filter_map(|unit| self.ids.get(unit))
-                .filter_map(|(_, unit)| text(unit, "distribution"))
-                .collect();
-            if !distributions.contains(distribution) {
-                self.error(
-                    "model:public-api-distribution",
-                    format!("{at}/distribution"),
-                    format!("entity `{id}` is not in a unit of distribution `{distribution}`"),
-                );
-            }
-
             let access = text(membership, "access").unwrap_or_default();
             let Some(visibility) = entity.get("effective-visibility") else {
                 continue;
@@ -1645,18 +1693,6 @@ impl<'a> Checker<'a> {
             (Names::Unit, Some(id)) => {
                 self.expect(at, id, &[Class::Unit]);
             }
-            (Names::UnitOrEntity, Some(id)) => {
-                if self
-                    .expect(
-                        at.clone(),
-                        id,
-                        &[Class::Unit, Class::Entity, Class::External],
-                    )
-                    .is_some()
-                {
-                    self.check_exists(at, id, contexts);
-                }
-            }
             // A unit id, or else an external assembly name, which may equal
             // the id of a record of another kind.
             (Names::UnitOrName, _) => {}
@@ -1683,6 +1719,16 @@ impl<'a> Checker<'a> {
                 }
             }
             (Names::SortedList, _) => self.check_sorted(at, Some(value)),
+            (Names::Entities, _) => {
+                for (k, item) in value.as_array().into_iter().flatten().enumerate() {
+                    let Some(id) = item.as_str() else { continue };
+                    let item_at = format!("{at}/{k}");
+                    if self.expect(item_at.clone(), id, &[Class::Entity]).is_some() {
+                        self.check_exists(item_at, id, contexts);
+                    }
+                }
+                self.check_sorted(at, Some(value));
+            }
             _ => {}
         }
     }

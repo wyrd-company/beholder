@@ -32,6 +32,8 @@ properties:
     items:
       properties:
         kind: {enum: [inherits, implements, overrides, aliases, exports]}
+        # The profile gives export bindings no visibility.
+        visibility: false
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -72,8 +74,9 @@ $defs:
       - if: {properties: {kind: {const: namespace}, path: {const: global}}}
         then: {required: [units]}
         else: {properties: {units: false}}
-      # The synthetic constructor is anchored on its class name.
-      - if: {properties: {origin: {const: synthetic}}}
+      # The synthetic constructor is anchored on its class name. The global
+      # namespace, which spans units, has no anchor.
+      - if: {properties: {origin: {const: synthetic}}, required: [unit]}
         then: {required: [anchor]}
 
   kind-and-language-kind:
@@ -88,11 +91,11 @@ $defs:
         then: {properties: {language-kind: {anyOf: [{enum: &type-alias [type]}, {type: array, items: {properties: {value: {enum: *type-alias}}}}]}}}
       # `static` is the language kind the profile records for static members.
       - if: {properties: {kind: {const: callable}}}
-        then: {properties: {language-kind: {anyOf: [{enum: &callable [function, method, constructor, index-signature, call-signature, construct-signature, static]}, {type: array, items: {properties: {value: {enum: *callable}}}}]}}}
+        then: {properties: {language-kind: {anyOf: [{enum: &callable [function, method, constructor, index-signature, call-signature, construct-signature, static-method]}, {type: array, items: {properties: {value: {enum: *callable}}}}]}}}
       - if: {properties: {kind: {const: field}}}
-        then: {properties: {language-kind: {anyOf: [{enum: &field [field, parameter-property, property-signature, object-member, static]}, {type: array, items: {properties: {value: {enum: *field}}}}]}}}
+        then: {properties: {language-kind: {anyOf: [{enum: &field [field, parameter-property, property-signature, object-member, static-field]}, {type: array, items: {properties: {value: {enum: *field}}}}]}}}
       - if: {properties: {kind: {const: property}}}
-        then: {properties: {language-kind: {anyOf: [{enum: &property [accessor, static]}, {type: array, items: {properties: {value: {enum: *property}}}}]}}}
+        then: {properties: {language-kind: {anyOf: [{enum: &property [accessor, static-accessor]}, {type: array, items: {properties: {value: {enum: *property}}}}]}}}
       - if: {properties: {kind: {const: variable}}}
         then: {properties: {language-kind: {anyOf: [{enum: &variable [let, var, const]}, {type: array, items: {properties: {value: {enum: *variable}}}}]}}}
       - if: {properties: {kind: {const: enum-member}}}
@@ -137,6 +140,18 @@ $defs:
           required: [reference]
           properties:
             reference: {$ref: '#/$defs/id'}
+          unevaluatedProperties: false
+      typescript:entry:
+        type: array
+        items:
+          $ref: '#/$defs/extension-fact'
+          required: [distribution, mode, subpath, module]
+          properties:
+            distribution: {$ref: '#/$defs/id'}
+            mode: {enum: [import, require]}
+            subpath: {type: string, pattern: '^\.(/.+)?$'}
+            specifier: {$ref: '#/$defs/text'}
+            module: {$ref: '#/$defs/id'}
           unevaluatedProperties: false
       typescript:augments:
         type: array

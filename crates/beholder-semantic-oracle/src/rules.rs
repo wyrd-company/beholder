@@ -7,12 +7,12 @@
 pub enum Names {
     /// A project entity.
     Entity,
+    /// A sorted list of project entities.
+    Entities,
     /// A project entity or an external entity.
     EntityOrExternal,
     /// A unit.
     Unit,
-    /// A unit, a project entity or an external entity.
-    UnitOrEntity,
     /// A unit by id, or an external assembly by name.
     UnitOrName,
     /// A distribution.
@@ -35,6 +35,17 @@ pub struct Extension {
     pub kind: &'static str,
     pub members: &'static [(&'static str, Names)],
     pub key: &'static [&'static str],
+}
+
+/// The profile's public API rule, which the validator recomputes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PublicApiRule {
+    CSharp,
+    Dart,
+    Go,
+    Python,
+    Rust,
+    TypeScript,
 }
 
 /// One profile's rules.
@@ -64,6 +75,8 @@ pub struct ProfileRules {
     /// File name patterns the profile classifies as configuration. `*`
     /// matches any run of characters within the file name.
     pub configuration: &'static [&'static str],
+    /// The public API membership rule.
+    pub public_api: PublicApiRule,
 }
 
 use Names::*;
@@ -85,7 +98,7 @@ const RUST: ProfileRules = ProfileRules {
             members: &[
                 ("entity", Entity),
                 ("distribution", Distribution),
-                ("via", Entity),
+                ("via", Entities),
             ],
             key: &["entity", "distribution"],
         },
@@ -105,6 +118,7 @@ const RUST: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: false,
     configuration: &["Cargo.toml", "rust-toolchain.toml", ".cargo/config.toml"],
+    public_api: PublicApiRule::Rust,
 };
 
 const CSHARP: ProfileRules = ProfileRules {
@@ -148,6 +162,7 @@ const CSHARP: ProfileRules = ProfileRules {
         ".editorconfig",
         "NuGet.config",
     ],
+    public_api: PublicApiRule::CSharp,
 };
 
 const DART: ProfileRules = ProfileRules {
@@ -168,7 +183,7 @@ const DART: ProfileRules = ProfileRules {
         },
         Extension {
             kind: "dart:deferred-import",
-            members: &[("unit", Unit), ("library", UnitOrEntity)],
+            members: &[("unit", Unit), ("library", Entity)],
             key: &["unit", "prefix"],
         },
     ],
@@ -183,6 +198,7 @@ const DART: ProfileRules = ProfileRules {
         "build.yaml",
         "pubspec_overrides.yaml",
     ],
+    public_api: PublicApiRule::Dart,
 };
 
 const GO: ProfileRules = ProfileRules {
@@ -226,6 +242,7 @@ const GO: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: false,
     configuration: &["go.mod", "go.work", "go.sum"],
+    public_api: PublicApiRule::Go,
 };
 
 const PYTHON: ProfileRules = ProfileRules {
@@ -256,6 +273,7 @@ const PYTHON: ProfileRules = ProfileRules {
     source_configuration: &["setup.py"],
     augmentation: false,
     configuration: &["pyproject.toml", "setup.cfg", "*.pth", "py.typed"],
+    public_api: PublicApiRule::Python,
 };
 
 const TYPESCRIPT: ProfileRules = ProfileRules {
@@ -275,6 +293,11 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
             key: &["reference"],
         },
         Extension {
+            kind: "typescript:entry",
+            members: &[("distribution", Distribution), ("module", Entity)],
+            key: &["distribution", "mode", "subpath", "specifier"],
+        },
+        Extension {
             kind: "typescript:augments",
             members: &[
                 ("entity", Entity),
@@ -290,6 +313,7 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
     source_configuration: &[],
     augmentation: true,
     configuration: &["package.json", "tsconfig*.json", "jsconfig*.json"],
+    public_api: PublicApiRule::TypeScript,
 };
 
 /// The rules of every profile of model version 1.

@@ -28,6 +28,18 @@ tasks:
     cmds:
       - cargo test -p beholder-semantic-oracle -p beholder-semantic-oracle-cli --locked
 
+  fixtures:init:
+    desc: Check out the private fixture corpus submodule at fixtures/
+    summary: |
+      The fixture projects and their semantic-oracle datasets live in the
+      private repository wyrd-company/beholder-fixtures. A normal clone does
+      not check it out (`update = none` in .gitmodules); this task does, at
+      the commit this repository pins. It needs read access to that
+      repository.
+    cmds:
+      - git submodule sync -- fixtures
+      - git -c submodule.fixtures.update=checkout submodule update --init --depth 1 -- fixtures
+
   semantic-oracle:locate:
     desc: Print the locator of a span of source text in a semantic-oracle project
     summary: |

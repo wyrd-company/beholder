@@ -43,11 +43,11 @@ description: |
   | `mode` | `build` or `test`. |
   | `goos` | `GOOS`. |
   | `goarch` | `GOARCH`. |
-  | `arch-level` | The architecture level variable for `goarch`, such as `GOAMD64`. |
+  | `arch-level` | The value of the architecture level variable for `goarch`, such as `v1` for `GOAMD64`, or `none` when `goarch` has no level variable. |
   | `cgo` | `CGO_ENABLED` as `true` or `false`. |
   | `tags` | The sorted `-tags` list. |
   | `compiler` | `gc` or `gccgo`. |
-  | `module-root` | The project-relative directory of the main module or `go.work` the command uses. |
+  | `module-root` | The project-relative directory of the main module or `go.work` the command uses; `.` for the project root. |
   | `go-version` | The language version the module's `go` directive selects. |
   | `patterns` | The package patterns the command names. |
 
@@ -144,8 +144,10 @@ description: |
 
   ## Public API
 
-  A distribution's public API in a context is every entity of its `package`
-  units outside `internal` directories that is `exported` and is a
+  A distribution's public API in a context is every `package` unit's package
+  outside `internal` directories, because a consumer can name it, even when
+  it has no exported names, with its import path as consumer path, and every
+  entity of those units that is `exported` and is a
   package-level declaration, or an exported field or method of an exported
   type, or an exported field or method promoted into an exported struct type
   through an embedded field. A promoted member's consumer path is
@@ -206,7 +208,12 @@ description: |
   - External key path: the entity path at the defining package.
     `distribution` is the module path; `version` is present when the build
     list contains two major versions of one module path. Standard library
-    packages use distribution `std`.
+    packages use distribution `std`. A predeclared identifier is an external
+    of distribution `std` with path `builtin.<name>`, and the kind and
+    `language-kind` of its declaration in the `builtin` package source:
+    `int` is a `defined` type, `byte`, `rune` and `any` are aliases,
+    `error` and `comparable` are interfaces, `len` is a `func`, `true`,
+    `false` and `iota` are `const`, and `nil` is a `var`.
 
   ## Dispositions
 

@@ -112,7 +112,6 @@ units:
     package-version: 1.0.0
     target-name: geometry
     edition: '2021'
-    crate-name: geometry
     platform: target
     features:
       - {contexts: [build], value: []}
@@ -125,7 +124,6 @@ units:
     package-version: 1.0.0
     target-name: atlas
     edition: '2021'
-    crate-name: atlas
     platform: target
     features: []
 
@@ -163,7 +161,7 @@ entities:
       - at: {path: src/lib.rs, start: [2, 5], end: [2, 11], text: detail}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.extras
@@ -274,15 +272,15 @@ entities:
   - id: geometry.shapes.Pair.0
     kind: field
     language-kind: field
+    name: '0'
     path: geometry::shapes::Pair::0
     unit: geometry-lib
     parent: geometry.shapes.Pair
     origin: source
-    definitions:
-      - at: {path: src/shapes.rs, start: [11, 24], end: [11, 25], text: T}
+    definitions: []
     declared-visibility: {value: 'pub(super)', explicit: true}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.shapes.Kind
@@ -413,7 +411,7 @@ entities:
       - at: {path: src/lib.rs, start: [12, 16], end: [12, 23], text: COUNTER}
     declared-visibility: {value: 'pub(self)', explicit: true}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.square
@@ -440,7 +438,7 @@ entities:
       - at: {path: src/lib.rs, start: [18, 14], end: [18, 20], text: marker}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.Pin
@@ -507,7 +505,7 @@ entities:
       - at: {path: src/bin/atlas.rs, start: [3, 4], end: [3, 8], text: main}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [atlas.crate]}
+      unit: all
       project: none
       external: none
 
@@ -648,10 +646,20 @@ relations:
     from: geometry.crate
     to: geometry.detail.Grid
     name: Lattice
+    visibility: pub
     at: {path: src/lib.rs, start: [6, 33], end: [6, 37], text: Grid}
     contexts: [build-extras]
 
 public-api:
+  - {distribution: geometry, entity: geometry.crate, paths: [geometry], access: all}
+  - {distribution: geometry, entity: geometry.ORIGIN, paths: ['geometry::ORIGIN'], access: all}
+  - {distribution: geometry, entity: geometry.Pin, paths: ['geometry::Pin'], access: all}
+  - {distribution: geometry, entity: geometry.Registry, paths: ['geometry::Registry'], access: all}
+  - {distribution: geometry, entity: geometry.make_hidden, paths: ['geometry::make_hidden'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Kind, paths: ['geometry::shapes::Kind'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Kind.Round, paths: ['geometry::shapes::Kind::Round'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Pair, paths: ['geometry::shapes::Pair'], access: all}
+  - {distribution: geometry, entity: geometry.shapes.Solid, paths: ['geometry::shapes::Solid'], access: all}
   - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
   - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
   - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
@@ -669,7 +677,7 @@ extensions:
   rust:reachable-unnameable:
     - entity: geometry.detail.Hidden
       distribution: geometry
-      via: geometry.make_hidden
+      via: [geometry.make_hidden]
   rust:macro-expansion:
     - entity: geometry.Pin
       macro: geometry.marker

@@ -116,6 +116,9 @@ description: |
   list of context ids. An omitted `contexts` member means every context in
   which the fact's unit is built. A fact holds in exactly its contexts.
 
+  A list that this specification or a profile states is sorted is in
+  ascending order of Unicode code points.
+
   ## Documents
 
   `documents` lists every file under the project root that the version
@@ -205,11 +208,15 @@ description: |
   ```
 
   - `parameters` assigns a value to every context parameter the profile
-    defines. Two contexts differ in at least one parameter value.
+    defines. Two contexts differ in at least one parameter value. A
+    parameter value that is a project-relative directory is a canonical
+    path, and the project root is written `.`.
   - `command` names the project's declared build or analysis invocation that
     realizes the context. Contexts come from the project's own build
     declarations and the profile's derivation rule; an author does not invent
-    a context the project does not declare.
+    a context the project does not declare. A context that the profile
+    requires for every project and no project command realizes has
+    `command: none`.
 
   A context fixes which documents are compiled, into which units, and under
   which language options. Every fact is evaluated within one context at a
@@ -281,9 +288,9 @@ description: |
   | `name` | The declared name as the language defines it, without lexical prefixes. Absent for unnamed entities. |
   | `path` | The profile's canonical path of the entity in its unit. |
   | `unit` | The defining unit. |
-  | `parent` | The innermost in-profile entity that contains this entity, absent for a unit root. |
+  | `parent` | The innermost in-profile project entity that contains this entity. Absent for a unit root, and for an entity that no in-profile project entity contains, such as a top-level declaration of a language without a unit root entity or a member that an augmentation adds to an external entity. |
   | `origin` | `source`, `generated` or `synthetic`. |
-  | `definitions` | The definition sites. |
+  | `definitions` | The definition sites: a list of `{at, contexts}` entries. `contexts` is present when the site is a definition site in fewer contexts than the entity exists in. |
   | `anchor` | For an entity with no definition site: the site of the construct that generates or implies it. |
   | `generated-by` | For `origin: generated`: `generator`, the generator or macro, and `at`, the site that invokes it. |
   | `contexts` | The contexts in which the entity exists. |
@@ -303,9 +310,9 @@ description: |
       value: {unit: all, project: all, external: all}
   ```
 
-  Every other entity member holds in all of the entity's contexts. A
-  difference in unit, path, kind, parent or definition sites is a different
-  record, by the identity rules below.
+  Every other entity member holds in all of the entity's contexts, except a
+  definition site that lists its own `contexts`. A difference in unit,
+  path, kind or parent is a different record, by the identity rules below.
 
   ### Common entity kinds
 
@@ -356,13 +363,18 @@ description: |
     that an augmentation adds to an external entity is a project entity of
     the augmenting unit, and the profile states its path.
   - An entity that exists in several contexts with the same unit, path and
-    sites is one record with several contexts. When contexts select
-    different definition sites for one unit, path and kind, the dataset has
-    one record per distinct site set; those records hold in disjoint
-    contexts.
+    kind is one record with several contexts. When contexts select different
+    definition sites for it, such as a package clause in a file that a build
+    constraint excludes from some contexts, each site that is not a
+    definition site in every context of the entity lists its own
+    `contexts`.
   - The canonical path is the path at the entity's definition. Paths through
     re-exports and aliases are consumer paths and appear in public API
     membership, not in identity.
+  - An entity that the language declares without a name token has no
+    definition site and no `anchor`: a unit root, a source-file module, and
+    each unnamed form the profile names, such as an implementation block.
+    Its key identifies it.
 
   ### Origins
 
@@ -423,7 +435,7 @@ description: |
   | Member | Meaning |
   | --- | --- |
   | `at` | The reference site. |
-  | `from` | The innermost in-profile entity whose declaration contains the site; the unit root for a site outside every other in-profile entity. |
+  | `from` | The innermost in-profile entity whose declaration contains the site; the unit root for a site outside every other in-profile entity. Outer attributes, decorators and visibility modifiers written before a declaration lie in the enclosing entity's declaration. |
   | `target` | The id of an entity or external entity, for disposition `resolved` or `external`. |
   | `disposition` | `resolved` by default when `target` names a project entity and `external` when it names an external entity; otherwise one of the values under Target dispositions. |
   | `role` | One common reference role. |
@@ -435,13 +447,20 @@ description: |
   that is not itself an entity in the language is never a target. A profile
   names the binding forms that are entities in its language.
 
+  The name that an import or export statement introduces for a binding, such
+  as `b` in `a as b`, a default import's name or a namespace import's name,
+  declares the binding and is not a reference site. The name that denotes
+  the target in its source, `a`, is. Later uses of the binding are
+  references to its target.
+
   One site in one context has at most one reference fact for each `from`
   entity. A document compiled into several units, or mounted at several
   module positions, has one reference per enclosing entity at each site.
   A profile may
   define a token form that denotes two targets at once, such as a shorthand
   that both reads a binding and names a member; the two references then
-  differ in role, and matching selects by role. A site may be both a
+  differ in role, and matching selects by role. No two references share a
+  site, a `from` and a role in one context. A site may be both a
   definition site and a reference site where the profile names the form,
   such as an embedded field whose name is a type name. A site whose target
   differs by context has one reference per distinct target, each with its
@@ -493,11 +512,17 @@ description: |
 
   - `at` is the site that establishes the relation, when one exists: the
     base-type token, the implemented-interface token, the re-exported name.
-    Structural relations with no establishing token have no `at`.
+    When several tokens establish one relation, `at` is the first in source
+    order. A relation that a glob or wildcard re-export establishes has `at`
+    on the wildcard token. Structural relations with no establishing token have no `at`.
   - `exports` has a `name` member: the name under which consumers of the
     container see the target. A container's own declarations are members of
     its namespace through `parent`; `exports` records every other member
     that a re-export, export directive or glob adds.
+  - `exports` has a `visibility` member where the profile gives export
+    bindings a visibility: the binding's visibility in the profile's
+    vocabulary. Public API recomputation reads it. Other relations have no
+    `visibility`.
   - `to` may name an external entity.
   - Relations carry `contexts`.
 
@@ -526,7 +551,7 @@ description: |
   | --- | --- |
   | `all` | All code at the boundary can access the entity. |
   | `none` | No code at the boundary can access the entity. |
-  | `scoped` | Only code inside the entities, units or documents listed in `scope` can access the entity. A `scope` member is an entity id, a unit id or a canonical document path. |
+  | `scoped` | Only code inside the entities, units or documents listed in `scope` can access the entity. A `scope` member is an entity id, a unit id, a canonical document path, or `external:<unit key>` for a unit outside the project that the profile allows a declaration to name, such as a friend assembly. |
   | `subtypes` | Only code inside types derived from the entity's declaring type can access the entity, by the language's rule for such members. With `within`, only such code that also lies inside a listed scope member. |
 
   `scoped` and `subtypes` carry their qualifier:
@@ -562,6 +587,10 @@ description: |
 
   For an entity in a unit with no distribution, `external` is `none`.
 
+  A value has one spelling: at the `unit` boundary, a `scope` that contains
+  the entity's unit or its unit root covers the whole unit and is written
+  `all`.
+
   ### Public API membership
 
   A public API membership states that an external consumer of a distribution
@@ -576,19 +605,32 @@ description: |
       contexts: [default]
   ```
 
+  - `entity` is a project entity of the distribution's units, or an entity
+    of another unit or an external entity that a re-export or a type forward
+    makes a member.
   - `paths` lists every consumer path by which a consumer names the entity,
     by the profile's path grammar for consumer paths. The list is complete.
+    A consumer path passes through each container at most once, so a cycle
+    of re-exports adds no path.
   - `access` is `all` or `subtypes`. A member that only derived types of an
     external consumer can access is a member with `access: subtypes`.
   - An entity is a member when at least one consumer path exists in the
     context. An entity a consumer can reach only as the type of a value,
     with no path that names it, is not a member.
+  - Every importable container of a distribution is a member, because a
+    consumer can name it, whether or not it has public names. The profile
+    states which containers these are and their consumer paths.
   - The profile defines consumer paths: which units and modules a
     distribution exposes, which export maps or layout conventions apply, and
     which entity kinds can be members.
   - Every `public-api` entry is consistent with `exports`, `parent`,
-    effective visibility and the profile's rule. A validator recomputes the
-    membership from those facts and rejects a disagreement.
+    declared and effective visibility and the profile's rule. A validator
+    recomputes the membership from those facts and rejects a disagreement:
+    a member it finds that no entry states, an entry it does not find, a
+    path list that differs, and an access that differs. A profile whose
+    rule depends on a fact that structure alone does not fix, such as the
+    entry module that a package's configuration selects, records that fact
+    as an extension fact, and the recomputation reads it.
 
   ## Target dispositions
 
@@ -600,7 +642,7 @@ description: |
   | `external` | The language fixes exactly one external entity. | `target` |
   | `candidates` | The language selects the target at run time from a finite set that project source and contexts determine. | `candidates`, `reason` |
   | `nonexistent` | The language semantics establish that no entity is denoted, and the program handles that outcome. | `reason` |
-  | `indeterminate` | The target depends on input that neither project source nor any context determines. | `reason` |
+  | `indeterminate` | The target depends on input that neither project source nor any context determines, or on run-time state that the profile names as outside every context, such as a search path that a function body changes. | `reason` |
 
   A difference between contexts is never a disposition: it is expressed as
   context-qualified facts. Valid source does not contain a reference whose
@@ -738,7 +780,7 @@ description: |
   | --- | --- |
   | `document` | `path`, `sha256` when the index records it. |
   | `membership` | `path`, unit key. |
-  | `definition` | `at`, entity key. |
+  | `definition` | `at`, entity key; no `at` for an entity with neither a definition site nor an anchor. |
   | `reference` | `at`, target key, `role` when known, `from` key when known. |
   | `relation` | `kind`, `from` key, `to` key, `name` for `exports`. |
   | `visibility` | entity key, boundary and access, or the declared value. |
@@ -771,7 +813,7 @@ description: |
   | Unit | Identity of the unit |
   | --- | --- |
   | document membership | `(path, unit)` for each member of an indexed document |
-  | definition | `(entity, site)` for each definition site; `(entity, anchor)` for an entity without definition sites |
+  | definition | `(entity, site)` for each definition site; `(entity, anchor)` for an entity without definition sites; `(entity)` for an entity with neither |
   | reference | one reference fact: `(site, from, role)` |
   | relation | one relation fact: `(kind, from, to, name)` |
   | declared visibility | `(entity)` |
@@ -817,7 +859,7 @@ description: |
   | Form | Pairing key | Compared members |
   | --- | --- | --- |
   | membership | `path` | unit |
-  | definition | site | entity key, then kind |
+  | definition | site; the entity key for a fact unit with neither site nor anchor | entity key, then kind |
   | reference | site; where several unpaired facts remain at the site, the one whose `from` equals the observation's `from` | target, then role, then `from` |
   | relation | `(kind, from)`; `(kind, from, name)` for `exports` | `to` |
   | declared visibility | entity | value |
@@ -1100,7 +1142,8 @@ validation-criteria: |
   6. Every reference has exactly one disposition with the members that
      disposition requires.
   7. Every `public-api` entry agrees with the membership recomputed from
-     `exports`, `parent`, effective visibility and the profile rule.
+     `exports`, `parent`, declared and effective visibility, the profile's
+     entry facts and the profile rule.
   8. The profile audit passes: every required category of the profile is
      present for every indexed document and context, and no out-of-profile
      fact is present.

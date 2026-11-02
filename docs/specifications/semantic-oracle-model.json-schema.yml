@@ -261,6 +261,9 @@ $defs:
     additionalProperties: false
     properties:
       at: {$ref: '#/$defs/locator'}
+      # The contexts in which this site is one of the entity's sites, when
+      # that is fewer than the entity's contexts.
+      contexts: {$ref: '#/$defs/context-list'}
 
   entity:
     type: object
@@ -451,10 +454,12 @@ $defs:
       to: {$ref: '#/$defs/id'}
       at: {$ref: '#/$defs/locator'}
       name: {$ref: '#/$defs/text'}
+      # The export binding's visibility in the profile's vocabulary.
+      visibility: {$ref: '#/$defs/text'}
       contexts: {$ref: '#/$defs/context-list'}
     if: {properties: {kind: {const: exports}}}
     then: {required: [name]}
-    else: {properties: {name: false}}
+    else: {properties: {name: false, visibility: false}}
 
   # ------------------------------------------------------------- public API
   public-api-membership:

@@ -442,8 +442,8 @@ cases:
   - name: scoped-with-empty-scope
     reason: A `scope` list is non-empty.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /entities/2/effective-visibility/unit/scope, value: []}]
-    fails-at: /entities/2/effective-visibility
+    patch: [{op: replace, path: /entities/15/effective-visibility/unit/scope, value: []}]
+    fails-at: /entities/15/effective-visibility
     keyword: anyOf
   - name: subtypes-with-scope
     reason: '`subtypes` is qualified by `within`, not by `scope`.'
@@ -460,8 +460,8 @@ cases:
   - name: scope-member-malformed
     reason: A scope member is an id or a canonical document path.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /entities/2/effective-visibility/unit/scope/0, value: ../outside.rs}]
-    fails-at: /entities/2/effective-visibility
+    patch: [{op: replace, path: /entities/15/effective-visibility/unit/scope/0, value: ../outside.rs}]
+    fails-at: /entities/15/effective-visibility
     keyword: anyOf
 
   # ------------------------------------------------------------- references

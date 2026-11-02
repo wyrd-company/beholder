@@ -139,7 +139,6 @@ entities:
     name: shapes
     path: atlas.shapes
     unit: shapes-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -328,7 +327,6 @@ entities:
     name: shapes
     path: atlas.shapes
     unit: shapes-stub
-    parent: atlas
     origin: source
     contexts: [typing]
     definitions: []
@@ -366,7 +364,6 @@ entities:
     name: loader
     path: atlas.loader
     unit: loader-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -377,7 +374,6 @@ entities:
     name: fast
     path: atlas.fast
     unit: fast-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -400,7 +396,6 @@ entities:
     name: portable
     path: atlas.portable
     unit: portable-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -433,7 +428,6 @@ entities:
     name: extra
     path: plugins.extra
     unit: extra-mod
-    parent: plugins
     origin: generated
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -572,26 +566,48 @@ relations:
     from: atlas.loader
     to: atlas.fast
     name: backend
+    visibility: import
     at: {path: src/atlas/loader.py, start: [2, 23], end: [2, 27], text: fast}
     contexts: [runtime]
   - kind: exports
     from: atlas
     to: ext.atlas._speedups
     name: _speedups
+    visibility: re-export
     at: {path: src/atlas/__init__.py, start: [1, 15], end: [1, 24], text: _speedups}
 
 public-api:
+  - {distribution: atlas-dist, entity: atlas, paths: [atlas], access: all}
+  - {distribution: atlas-dist, entity: atlas.fast, paths: [atlas.fast], access: all}
+  - {distribution: atlas-dist, entity: atlas.fast.run, paths: [atlas.fast.run], access: all}
+  - {distribution: atlas-dist, entity: atlas.loader, paths: [atlas.loader], access: all}
+  - {distribution: atlas-dist, entity: atlas.portable, paths: [atlas.portable], access: all}
+  - {distribution: atlas-dist, entity: atlas.portable.run, paths: [atlas.portable.run], access: all}
+  - distribution: atlas-dist
+    entity: atlas.shapes
+    paths: [atlas.shapes]
+    access: all
+    contexts: [runtime]
   - distribution: atlas-dist
     entity: atlas.shapes.Circle
     paths: [atlas.shapes.Circle]
     access: all
     contexts: [runtime]
+  - {distribution: atlas-dist, entity: atlas.shapes.Circle.__init__, paths: [atlas.shapes.Circle.__init__], access: all, contexts: [runtime]}
+  - {distribution: atlas-dist, entity: atlas.shapes.Circle.area, paths: [atlas.shapes.Circle.area], access: all, contexts: [runtime]}
+  - {distribution: atlas-dist, entity: atlas.shapes.Circle.radius, paths: [atlas.shapes.Circle.radius], access: all, contexts: [runtime]}
+  - {distribution: atlas-dist, entity: atlas.shapes.Circle.refresh, paths: [atlas.shapes.Circle.refresh], access: all, contexts: [runtime]}
+  - distribution: atlas-dist
+    entity: stub.atlas.shapes
+    paths: [atlas.shapes]
+    access: all
+    contexts: [typing]
   - distribution: atlas-dist
     entity: stub.atlas.shapes.Shape
     paths: [atlas.shapes.Shape]
     access: all
     contexts: [typing]
-  - {distribution: atlas-dist, entity: atlas.fast.run, paths: [atlas.fast.run], access: all}
+  - {distribution: atlas-dist, entity: stub.atlas.shapes.Shape.describe, paths: [atlas.shapes.Shape.describe], access: all, contexts: [typing]}
 
 extensions:
   python:stub-of:
