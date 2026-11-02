@@ -70,9 +70,9 @@ description: |
   layout, and otherwise the project root; this is the path an installed
   distribution gives. The project root is written `.`.
 
-  A search path that a function body changes at run time, through
-  `sys.path`, `site.addsitedir` or a package's `__path__`, is outside every
-  context. Code that a module runs when it is imported is not: a package
+  A search path that a function body in project or library code changes at
+  run time, through `sys.path`, `site.addsitedir` or a package's `__path__`,
+  is outside every context. Code that a module runs when it is imported is not: a package
   `__init__` that extends its own `__path__` at module level adds those
   directories as portions of the package in `runtime` contexts.
 
@@ -86,6 +86,10 @@ description: |
 
   `runtime` facts state what the import system and execution model do when
   the project's modules are imported and its declared entry points run.
+  A module is importable when the import system locates it from `search-path`.
+  Whether its initialization then succeeds does not change its document
+  disposition, its facts or its public API membership: facts state source
+  declarations, and a statement that a raise leaves unexecuted keeps its facts.
   `typing` facts state what the typing specification determines: stub files
   take precedence over implementation modules, `typing.TYPE_CHECKING` is
   true, and annotated declarations fix the types of their receivers.
