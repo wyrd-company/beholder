@@ -12,6 +12,14 @@ an indexer or read index output: a dataset states what the author derived
 from source, build configuration and the language specification, and the
 tools only compute coordinates and digests and check the result.
 
+## The fixture corpus
+
+The fixture projects and their datasets live in the private repository
+`wyrd-company/beholder-fixtures`, linked as the submodule `fixtures/`. A
+normal clone does not check it out; `task fixtures:init` does, at the
+commit this repository pins, for anyone with read access. Its projects are
+under `fixtures/fixtures/<language>/projects/<project>/`.
+
 ## Commands
 
 The binary is `semantic-oracle`, from the `beholder-semantic-oracle-cli`

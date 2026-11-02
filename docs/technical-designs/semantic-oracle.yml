@@ -24,8 +24,10 @@ background:
 
     The per-language fixture corpus holds 84 projects: C# 14, Dart 12, Go 8,
     Python 14, Rust 17 and TypeScript 19. Each project is valid source with
-    its own build configuration and declared build contexts. The corpus lives
-    on `incubator/per-language-fixtures`.
+    its own build configuration and declared build contexts. The corpus and
+    its datasets live in the private repository `wyrd-company/beholder-fixtures`,
+    which this repository links as the submodule `fixtures/`; a normal clone
+    does not check it out, and `task fixtures:init` does.
 
     Compiler-backed graph research on `spike/compiler-native-semantic-providers`
     records evidence states (`resolved`, `ambiguous`, `external`, `unknown`),
@@ -266,7 +268,7 @@ proposed-design:
     every required category is present for every indexed document and
     context. Each check names the rule it enforces in the model or profile.
   cross-language-walkthrough: |
-    The examples below use fixture projects on `incubator/per-language-fixtures`
+    The examples below use fixture projects of `wyrd-company/beholder-fixtures`
     at commit `ba01bbfcb3e3f919a72039722f6ec6465b882b0c`. Sites are exact; each
     claim is checkable against that source and the named build declarations.
 
@@ -361,8 +363,10 @@ proposed-design:
 
     `content_library/facade.pyi` declares `Widget.extra_stub_only` at 12:9;
     the runtime module `content_library/facade.py` does not. The method
-    exists in the `typing` context's stub unit and in no `runtime` context;
-    `python:stub-of` relates the stub `Widget` to the runtime `Widget`.
+    exists in the `typing` context's stub unit and in no `runtime` context.
+    `facade.py` binds `Widget` by import, and an import binding is not an
+    entity, so the stub `Widget`'s `python:stub-of` fact has no `runtime`
+    member.
 
     ### Go: test variant unit and context-selected files
 
@@ -447,7 +451,9 @@ proposed-design:
       the validator and profile audit with deterministic, machine-readable
       output and Taskfile commands.
     - Calibration applies pilot findings to the model, profiles and schema as
-      one contract.
+      one contract. The pilots are the datasets of Rust
+      `modules-visibility-and-resolution`, TypeScript
+      `package-publishing-ecosystem` and Python `plugin-content-library`.
     - The evaluator and SCIP adapter implement observations, matching,
       categories and reports.
     - Each language corpus authors and audits its datasets against its
