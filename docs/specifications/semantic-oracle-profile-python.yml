@@ -230,7 +230,9 @@ description: |
   public name is a member with the consumer path of the module and name;
   the entity is the binding's target: the module's own entity of that name,
   the target of the import binding, or, for a name `__all__` lists that the
-  module does not bind, the submodule of that name. A name `__all__` lists
+  module does not bind, the submodule of that name. A name bound by several
+  statements denotes its last binding in statement order, as at run time: each
+  import statement keeps its relation, and the member is the last binding's target. A name `__all__` lists
   that resolves to nothing adds no member. In a `typing` context a module
   with a stub contributes through the stub unit, and a module without one
   through its implementation unit.

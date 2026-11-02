@@ -2028,6 +2028,17 @@ fn every_context_needs_a_report_for_a_slot_to_agree() {
         .iter()
         .find(|u| u.slot == "returns")
         .unwrap();
+    // Per slot and context: agreed where a report states it, and unchecked where none
+    // does, with both in the output and no pass summed.
+    assert_eq!(unchecked.agreed_in, ["default"]);
+    assert_eq!(unchecked.unchecked_in, ["release"]);
+    assert_eq!(audited.contexts["default"].agreed, 1);
+    assert!(audited.contexts["release"].unchecked >= 1);
+    assert_eq!(audited.contexts["release"].agreed, 0);
+    assert_eq!(audited.summary()["agreed"], 0);
+    assert_eq!(audited.summary()["contexts"]["default"]["agreed"], 1);
+    assert_eq!(unchecked.to_json()["agreed-in"], json!(["default"]));
+    assert_eq!(unchecked.to_json()["unchecked-in"], json!(["release"]));
     assert!(
         unchecked.reason.contains("no compiler report for context"),
         "{unchecked:?}"

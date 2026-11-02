@@ -32,7 +32,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
-use super::{list, text, Checker, Class, Contexts, Unchecked};
+use super::{list, text, Checker, Class, ContextCounts, Contexts, Unchecked};
 use crate::{
     canonical::{canonical_auto_trait, canonicalize, canonicalize_bounds, PathsAreIds},
     signature::{slots, SlotClass},
@@ -64,6 +64,21 @@ fn shape_of(path: &str) -> String {
         }
     }
     out
+}
+
+/// What the comparison found, for the report.
+#[derive(Default)]
+pub(super) struct Comparison {
+    pub(super) unchecked: Vec<Unchecked>,
+    pub(super) agreed: usize,
+    pub(super) contexts: BTreeMap<String, ContextCounts>,
+}
+
+/// One slot in one context.
+enum Outcome {
+    Agreed,
+    Unchecked(String),
+    Disagrees(String),
 }
 
 struct Reported<'r> {
@@ -179,11 +194,10 @@ impl<'a> Checker<'a> {
         by_context
     }
 
-    /// Compares every signature slot with the reports: `(unchecked, agreed)`.
-    pub(super) fn compare_with_reports(&mut self, reports: &[Value]) -> (Vec<Unchecked>, usize) {
+    /// Compares every signature slot with the reports, one context at a time.
+    pub(super) fn compare_with_reports(&mut self, reports: &[Value]) -> Comparison {
         let by_context = self.reports_by_context(reports);
-        let mut unchecked = Vec::new();
-        let mut agreed = 0;
+        let mut comparison = Comparison::default();
         let records = self
             .dataset
             .get("public-api")
@@ -204,21 +218,46 @@ impl<'a> Checker<'a> {
                 .unwrap_or_else(|| self.built_contexts(id));
             let at = format!("/public-api/signatures/{index}");
             for slot in slots(record) {
-                let (reasons, disagreements) =
-                    self.compare_slot(&slot, (path, kind, unit), &contexts, &by_context);
+                let (mut agreed_in, mut unchecked_in) = (Vec::new(), Vec::new());
+                let (mut reasons, mut disagreements) = (Vec::new(), Vec::new());
+                for context in &contexts {
+                    let counts = comparison
+                        .contexts
+                        .entry((*context).to_owned())
+                        .or_default();
+                    match self.compare_in_context(&slot, (path, kind, unit), context, &by_context) {
+                        Outcome::Agreed => {
+                            counts.agreed += 1;
+                            agreed_in.push((*context).to_owned());
+                        }
+                        Outcome::Unchecked(reason) => {
+                            counts.unchecked += 1;
+                            unchecked_in.push((*context).to_owned());
+                            if !reasons.contains(&reason) {
+                                reasons.push(reason);
+                            }
+                        }
+                        Outcome::Disagrees(message) => {
+                            counts.errors += 1;
+                            disagreements.push(message);
+                        }
+                    }
+                }
                 let pointer = format!("{at}{}", slot.pointer);
                 if !disagreements.is_empty() {
                     for message in disagreements {
                         self.error(RULE, pointer.clone(), message);
                     }
-                } else if reasons.is_empty() {
-                    agreed += 1;
+                } else if unchecked_in.is_empty() {
+                    comparison.agreed += 1;
                 } else {
-                    unchecked.push(Unchecked {
+                    comparison.unchecked.push(Unchecked {
                         at: pointer,
                         slot: slot.path.clone(),
                         class: slot.class.as_str(),
                         reason: reasons.join("; "),
+                        agreed_in,
+                        unchecked_in,
                     });
                 }
             }
@@ -231,60 +270,54 @@ impl<'a> Checker<'a> {
             );
         }
         self.check_reported_members(&by_context);
-        (unchecked, agreed)
+        comparison
     }
 
-    fn compare_slot(
+    fn compare_in_context(
         &self,
         slot: &crate::signature::Slot<'_>,
         (path, kind, unit): (&str, &str, Option<&Value>),
-        contexts: &Contexts<'a>,
+        context: &str,
         by_context: &BTreeMap<&str, Reported<'_>>,
-    ) -> (Vec<String>, Vec<String>) {
-        let mut reasons = Vec::new();
-        let mut disagreements = Vec::new();
+    ) -> Outcome {
         if slot.alternative.is_some() {
-            reasons.push("a report states one definition, not its alternatives".to_owned());
-            return (reasons, disagreements);
+            return Outcome::Unchecked(
+                "a report states one definition, not its alternatives".to_owned(),
+            );
         }
+        let Some(report) = by_context.get(context) else {
+            return Outcome::Unchecked(format!("no compiler report for context `{context}`"));
+        };
+        let Some(member) = report.member(path, kind, unit) else {
+            return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
+        };
         let shape = shape_of(&slot.path);
-        for context in contexts {
-            let Some(report) = by_context.get(context) else {
-                reasons.push(format!("no compiler report for context `{context}`"));
-                continue;
-            };
-            let Some(member) = report.member(path, kind, unit) else {
-                reasons.push(format!("{} does not state `{path}`", report.tool));
-                continue;
-            };
-            let unstated = list(member, "unstated")
-                .iter()
-                .filter_map(Value::as_str)
-                .any(|unstated| shape.starts_with(unstated) || slot.path == unstated);
-            if unstated || !report.covers.contains(shape.as_str()) {
-                reasons.push(format!("{} cannot state this slot", report.tool));
-                continue;
-            }
-            let reported = member
-                .get("slots")
-                .and_then(|slots| slots.get(&slot.path))
-                .and_then(Value::as_str);
-            let Some(reported) = reported else {
-                disagreements.push(format!(
-                    "`{}` is `{}`; {} states no such slot in `{context}`",
-                    slot.path, slot.text, report.tool
-                ));
-                continue;
-            };
-            let (fact, seen) = self.comparable(slot, reported);
-            if fact != seen {
-                disagreements.push(format!(
-                    "`{}` is `{fact}`; {} states `{seen}` in `{context}`",
-                    slot.path, report.tool
-                ));
-            }
+        let unstated = list(member, "unstated")
+            .iter()
+            .filter_map(Value::as_str)
+            .any(|unstated| shape.starts_with(unstated) || slot.path == unstated);
+        if unstated || !report.covers.contains(shape.as_str()) {
+            return Outcome::Unchecked(format!("{} cannot state this slot", report.tool));
         }
-        (reasons, disagreements)
+        let reported = member
+            .get("slots")
+            .and_then(|slots| slots.get(&slot.path))
+            .and_then(Value::as_str);
+        let Some(reported) = reported else {
+            return Outcome::Disagrees(format!(
+                "`{}` is `{}`; {} states no such slot in `{context}`",
+                slot.path, slot.text, report.tool
+            ));
+        };
+        let (fact, seen) = self.comparable(slot, reported);
+        if fact == seen {
+            Outcome::Agreed
+        } else {
+            Outcome::Disagrees(format!(
+                "`{}` is `{fact}`; {} states `{seen}` in `{context}`",
+                slot.path, report.tool
+            ))
+        }
     }
 
     /// A fact and a reported value, in one spelling with paths for names.

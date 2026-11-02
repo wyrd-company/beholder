@@ -717,6 +717,15 @@ impl<'a> Checker<'a> {
             .filter(in_range)
             .filter_map(|entity| text(entity, "name"))
             .collect();
+        // An accessor record has no parameter list, so a property with parameter
+        // entities states them there, and only an indexer's list is read.
+        let owner_is_property = self
+            .ids
+            .get(owner)
+            .is_some_and(|(_, entity)| text(entity, "kind") == Some("property"));
+        if owner_is_property && written.is_empty() {
+            return;
+        }
         // A generated callable's parameters can have no entities.
         if expected.is_empty() && origin != "source" {
             return;

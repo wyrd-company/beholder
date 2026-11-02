@@ -364,21 +364,67 @@ impl<'c, 'a> Walk<'c, 'a> {
                 continue;
             }
             if let (Some(id), Some(binding)) = (text(child, "id"), text(child, "name")) {
-                if !binding.starts_with('_') {
+                if !binding.starts_with('_')
+                    && self.python_last_export(module, binding, child).is_none()
+                {
                     self.python_member(id, format!("{name}.{binding}"));
                 }
             }
         }
-        for relation in self.exports(module) {
-            if text(relation, "visibility") != Some("re-export") {
+        // A name bound several times denotes its last binding in statement order. Each
+        // statement keeps its relation.
+        let bound: BTreeSet<&'a str> = self
+            .exports(module)
+            .into_iter()
+            .filter_map(|relation| text(relation, "name"))
+            .collect();
+        for binding in bound {
+            let Some(relation) = self.python_last_relation(module, binding) else {
+                continue;
+            };
+            let declared = self
+                .children(module)
+                .into_iter()
+                .find(|child| text(child, "name") == Some(binding));
+            let wins = declared
+                .is_none_or(|child| self.python_last_export(module, binding, child).is_some());
+            if !wins || text(relation, "visibility") != Some("re-export") {
                 continue;
             }
-            if let (Some(to), Some(binding)) = (text(relation, "to"), text(relation, "name")) {
+            if let Some(to) = text(relation, "to") {
                 if !binding.starts_with('_') {
                     self.python_member(to, format!("{name}.{binding}"));
                 }
             }
         }
+    }
+
+    /// The import statement that binds a name last, in statement order.
+    fn python_last_relation(&self, module: &'a str, binding: &str) -> Option<&'a Value> {
+        self.exports(module)
+            .into_iter()
+            .filter(|relation| text(relation, "name") == Some(binding))
+            .max_by_key(|relation| relation.get("at").map(site_order))
+    }
+
+    /// The relation of an import that binds a name after each of `child`'s own
+    /// definitions, so that the name denotes its target.
+    fn python_last_export(
+        &self,
+        module: &'a str,
+        binding: &str,
+        child: &'a Value,
+    ) -> Option<&'a Value> {
+        let relation = self.python_last_relation(module, binding)?;
+        let imported = relation.get("at").map(site_order)?;
+        let declared = list(child, "definitions")
+            .iter()
+            .filter_map(|definition| definition.get("at"))
+            .map(site_order)
+            .max();
+        declared
+            .is_none_or(|declared| imported > declared)
+            .then_some(relation)
     }
 
     /// The entity a module-level name denotes: a binding the module
@@ -391,9 +437,7 @@ impl<'c, 'a> Walk<'c, 'a> {
             .find(|child| text(child, "name") == Some(binding))
             .and_then(|child| text(child, "id"));
         let imported = || {
-            self.exports(module)
-                .into_iter()
-                .find(|relation| text(relation, "name") == Some(binding))
+            self.python_last_relation(module, binding)
                 .and_then(|relation| text(relation, "to"))
         };
         let submodule = || {
@@ -420,6 +464,10 @@ impl<'c, 'a> Walk<'c, 'a> {
                 implementation
             }
         };
+        let declared = declared.filter(|id| {
+            self.entity(id)
+                .is_none_or(|child| self.python_last_export(module, binding, child).is_none())
+        });
         declared.or_else(imported).or_else(submodule)
     }
 
@@ -1233,6 +1281,21 @@ enum Entry<'a> {
 
 /// A class member name the library interface rules make public: no leading
 /// underscore, or a dunder name.
+/// A site's place in statement order: its document, line and column.
+fn site_order(site: &Value) -> (&str, u64, u64) {
+    let position = |index: usize| {
+        site.get("start")
+            .and_then(|start| start.get(index))
+            .and_then(Value::as_u64)
+            .unwrap_or(0)
+    };
+    (
+        text(site, "path").unwrap_or_default(),
+        position(0),
+        position(1),
+    )
+}
+
 fn python_class_member(name: &str) -> bool {
     let dunder = name.len() > 4 && name.starts_with("__") && name.ends_with("__");
     !name.starts_with('_') || dunder

@@ -1695,3 +1695,114 @@ fn a_derived_base_reads_the_derive_token_and_the_generation_rule() {
         "{found:#?}"
     );
 }
+
+// ------------------------------------------------------- Python bindings
+
+/// `atlas.fast` with two star imports that bind `shared`, in statement order.
+fn two_star_imports(first: &str, second: &str) -> Value {
+    let mut dataset = load("semantic-oracle-profile-python.example.yml");
+    for (line, target) in [(10, first), (11, second)] {
+        push(
+            &mut dataset,
+            "/relations",
+            json!({"kind": "exports", "from": "atlas.fast", "to": target, "name": "shared",
+                   "visibility": "re-export",
+                   "at": {"path": "src/atlas/fast.py", "start": [line, 20], "end": [line, 21], "text": "*"}}),
+        );
+    }
+    dataset
+}
+
+/// At run time the last star import wins, and both statements keep their relations.
+#[test]
+fn a_name_two_star_imports_bind_is_its_last_binding() {
+    let findings = recomputed(&two_star_imports("atlas.portable.run", "atlas.fast.run"));
+    let joined = findings.join("\n");
+    assert!(
+        joined.contains("`atlas.fast.shared`") && joined.contains("`atlas.fast.run`"),
+        "{joined}"
+    );
+    assert!(
+        !joined
+            .lines()
+            .any(|line| line.contains("`atlas.portable.run`")
+                && line.contains("`atlas.fast.shared`")),
+        "the earlier star import gives no path: {joined}"
+    );
+    // In the other statement order, the other entity is the member.
+    let findings = recomputed(&two_star_imports("atlas.fast.run", "atlas.portable.run"));
+    let joined = findings.join("\n");
+    assert!(
+        joined.contains("`atlas.portable.run`") && joined.contains("`atlas.fast.shared`"),
+        "{joined}"
+    );
+    assert!(
+        !joined
+            .lines()
+            .any(|line| line.contains("`atlas.fast.run`") && line.contains("`atlas.fast.shared`")),
+        "the earlier star import gives no path: {joined}"
+    );
+}
+
+/// A declaration after an import binds the name last, and an import after a
+/// declaration replaces it.
+#[test]
+fn a_declaration_and_an_import_of_one_name_read_statement_order() {
+    // `atlas.fast.run` is declared at line 3.
+    let import_at = |line: u64| {
+        let mut dataset = load("semantic-oracle-profile-python.example.yml");
+        push(
+            &mut dataset,
+            "/relations",
+            json!({"kind": "exports", "from": "atlas.fast", "to": "atlas.portable.run", "name": "run",
+                   "visibility": "re-export",
+                   "at": {"path": "src/atlas/fast.py", "start": [line, 20], "end": [line, 23], "text": "run"}}),
+        );
+        recomputed(&dataset).join("\n")
+    };
+    // The declaration binds last, so the example's membership stands as it is.
+    assert_eq!(import_at(1), "");
+    // The import binds last, so the name now denotes its target.
+    let after = import_at(9);
+    assert!(
+        after.contains("`atlas.portable.run`") && after.contains("`atlas.fast.run`"),
+        "{after}"
+    );
+}
+
+/// A non-public import as the last binding hides an earlier re-export.
+#[test]
+fn a_last_binding_that_is_no_re_export_is_no_member() {
+    let mut dataset = two_star_imports("atlas.portable.run", "atlas.portable.run");
+    let relations = dataset["relations"].as_array_mut().unwrap();
+    relations.last_mut().unwrap()["visibility"] = json!("import");
+    let joined = recomputed(&dataset).join("\n");
+    assert!(!joined.contains("`atlas.fast.shared`"), "{joined}");
+}
+
+/// A property can have parameter entities, and its accessors hold no list to read.
+#[test]
+fn a_property_with_parameter_entities_has_no_list_to_compare() {
+    let mut dataset = load("semantic-oracle-profile-python.example.yml");
+    let parameter = json!({"id": "atlas.shapes.Circle.area.self", "kind": "parameter",
+        "language-kind": "param", "name": "self", "path": "atlas.shapes.Circle.area.(self)",
+        "unit": "shapes-mod", "parent": "atlas.shapes.Circle.area", "origin": "source",
+        "definitions": [{"at": {"path": "src/atlas/shapes.py", "start": [19, 14], "end": [19, 18], "text": "self"}}]});
+    push(&mut dataset, "/entities", parameter);
+    assert_eq!(
+        rule_messages(&dataset, "model:signature-parameters"),
+        Vec::<String>::new()
+    );
+    // A list that a property does state, as an indexer's is, is still read.
+    let at = record_of(&dataset, "atlas.shapes.Circle.area");
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/parameters"),
+        json!([{"name": "other"}]),
+    );
+    let found = rule_messages(&dataset, "model:signature-parameters");
+    assert!(
+        found.iter().any(|m| m.contains("the parameter list is")),
+        "{found:#?}"
+    );
+}

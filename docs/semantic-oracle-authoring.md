@@ -111,9 +111,9 @@ $ semantic-oracle validate fixtures/tally
 | `at` | The JSON Pointer of the dataset location. |
 | `message` | One line. |
 
-`audit` adds a line for each signature slot that no compiler report states, with
-`severity` `unchecked`, `slot` and `slot-class`, and its summary adds `agreed` and
-`unchecked`.
+`audit` adds a line for each signature slot that no compiler report states in at
+least one of its contexts, with `severity` `unchecked`, `slot`, `slot-class`,
+`agreed-in` and `unchecked-in`. Its summary adds `agreed`, `unchecked` and `contexts`.
 
 Findings are sorted by location, then rule, so the same dataset and files
 give the same output. The exit status is 0 when there is no error, 1 when
@@ -167,9 +167,15 @@ states for each entity path, with each `@{...}` holding a canonical path:
 
 | Result | Meaning |
 | --- | --- |
-| Agreed | Reports for every context the slot holds in state the same value, after canonical spelling. |
+| Agreed | A report for that context states the same value, after canonical spelling. This is per slot and context. |
 | `profile:signature-compiler` error | A report that covers the slot states another value or none, or states a slot the record lacks. Settle it against the language's rule, and never by copying the compiler's value. |
-| `unchecked` | No report states the slot. It has not passed. |
+| `unchecked` | No report states the slot in that context. It has not passed there. |
+
+A slot that holds in `runtime` and `typing` can be agreed for `runtime` and unchecked
+for `typing`: its line lists both, and `contexts` in the summary counts it once under
+each. The summary's `agreed` counts only a slot agreed in every context it holds in, and
+its `unchecked` counts each slot unchecked in any, so that no slot is summed as passed
+while a context is unchecked.
 
 These stay `unchecked`:
 
@@ -180,7 +186,8 @@ These stay `unchecked`:
 - every slot of a Rust `#[doc(hidden)]` item, because rustdoc JSON omits it. It stays a member, and a compile check outside the tree can confirm its facts;
 - a Rust path dependency outside the workspace, in a context whose report does not document it. A report's key holds the crate's version, so another version's slot never answers for it. Report the dependency's own context from its manifest's directory, and a workspace member's context from the workspace root, because the script copies the directory it is given;
 - a Python module that fails to import, which the report lists under `failed` as a warning, because a project can intend it;
-- Python's typing contexts, because `inspect.signature` states the runtime's view only.
+- Python's typing contexts, because `inspect.signature` states the runtime's view only;
+- a Python annotation whose source the runtime has lost: the report states an annotation's written text where the interpreter can return it, and resolves its names, and otherwise marks a slot whose value a module binds as `unstated`, because the runtime expanded an alias it cannot see. This is never an error, and never agreed.
 
 Write declared slots before you run a report, and do not read a report while you
 write them, so that a disagreement shows.

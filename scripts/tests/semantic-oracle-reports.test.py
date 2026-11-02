@@ -469,6 +469,10 @@ from typing import Literal
 Status = Literal["open", "closed"]
 def uses_alias(a: Status) -> Status:
     return a
+def quoted(a: "Status", b: 'Literal["a"]') -> None:
+    pass
+def unresolvable(a: "NotDefinedAnywhere") -> None:
+    pass
 def plain(a: int, b: "str" = "x", *args: int, c: Optional[int] = None, **kw: float) -> list[int]:
     return []
 def unannotated(a, b=1 + 1):
@@ -488,13 +492,21 @@ class Point:
     out = os.path.join(tmp, "python.json")
     _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out], tmp, out)
     tree_unchanged(project, before)
+    # The written name, resolved: the runtime's expansion is not the slot's text.
     expect(found, "pkg.mod.uses_alias", "parameters[0].type", "@{pkg.mod.Status}")
+    expect(found, "pkg.mod.uses_alias", "returns", "@{pkg.mod.Status}")
+    expect(found, "pkg.mod.quoted", "parameters[0].type", "@{pkg.mod.Status}")
+    expect(found, "pkg.mod.quoted", "parameters[1].type", "@{typing.Literal}[\"a\"]")
+    expect(found, "pkg.mod.unresolvable", "parameters[0].name", "a")
+    assert "parameters[0].type" not in found["pkg.mod.unresolvable"]["slots"]
+    assert found["pkg.mod.unresolvable"]["unstated"] == ["parameters[0].type"], found["pkg.mod.unresolvable"]
+    python_without_written_text(project)
     expect(found, "pkg.mod.plain", "parameters[0].type", "int")
     expect(found, "pkg.mod.plain", "parameters[1].type", "str")
     expect(found, "pkg.mod.plain", "parameters[1].default", '"x"')
     expect(found, "pkg.mod.plain", "parameters[2].mode", "var-positional")
     expect(found, "pkg.mod.plain", "parameters[3].mode", "keyword-only")
-    expect(found, "pkg.mod.plain", "parameters[3].type", "int | None")
+    expect(found, "pkg.mod.plain", "parameters[3].type", "@{typing.Optional}[int]")
     expect(found, "pkg.mod.plain", "parameters[3].default", "None")
     expect(found, "pkg.mod.plain", "returns", "list[int]")
     assert "returns" not in found["pkg.mod.unannotated"]["slots"]
@@ -502,6 +514,30 @@ class Point:
     expect(found, "pkg.mod.Color.RED", "value", "1")
     expect(found, "pkg.mod.Point.__init__", "parameters[1].type", "int")
     expect(found, "pkg.mod.Point.norm", "get.type", "float")
+
+
+def python_without_written_text(project):
+    """An interpreter that returns only the evaluated annotation has lost the alias's
+    name: the slot is unstated, and is neither an error nor agreed."""
+    specification = importlib.util.spec_from_file_location("report_python", os.path.join(SCRIPTS, "report-python.py"))
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    module.STRING_FORMAT = None
+    sys.path.insert(0, project)
+    try:
+        imported = importlib.import_module("pkg.mod")
+        module.remember_aliases(imported)
+        report = module.Report()
+        report.module(imported)
+        member = report.members["pkg.mod.uses_alias"]
+        assert "parameters[0].type" not in member["slots"], member
+        assert member["unstated"] == ["parameters[0].type", "returns"], member
+        # A form with no alias is still stated.
+        assert report.members["pkg.mod.plain"]["slots"]["parameters[0].type"] == "int"
+    finally:
+        sys.path.remove(project)
+        for name in [name for name in sys.modules if name == "pkg" or name.startswith("pkg.")]:
+            del sys.modules[name]
 
 
 def typescript(tmp):

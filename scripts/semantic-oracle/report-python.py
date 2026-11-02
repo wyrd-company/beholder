@@ -19,6 +19,7 @@ import is listed under `failed`, as its project may intend, and its slots stay
 `unchecked`.
 """
 import argparse
+import builtins
 import enum
 import importlib
 import inspect
@@ -26,6 +27,7 @@ import json
 import os
 import pkgutil
 import platform
+import re
 import sys
 import types
 import typing
@@ -52,8 +54,15 @@ BARE = {"bool", "bytearray", "bytes", "complex", "dict", "float", "frozenset", "
 
 
 # The runtime expands an alias to its value, and the profile writes the alias. Each
-# value a module binds that is not a class names its alias, by identity.
+# value a module binds that is not a class is one, by identity.
 ALIASES = {}
+
+try:
+    import annotationlib
+
+    STRING_FORMAT = annotationlib.Format.STRING
+except ImportError:
+    STRING_FORMAT = None
 
 
 def remember_aliases(module):
@@ -62,12 +71,73 @@ def remember_aliases(module):
             ALIASES.setdefault(id(value), f"{module.__name__}.{name}")
 
 
+class Expanded(Exception):
+    """The runtime replaced an annotation's name by its value, so its text is lost."""
+
+
+def resolved_name(dotted, namespace):
+    """A written name, as type text. Returns None for a name it cannot find."""
+    head, *rest = dotted.split(".")
+    if head == "None":
+        return "None"
+    if head in namespace:
+        value = namespace[head]
+    elif hasattr(builtins, head):
+        value = getattr(builtins, head)
+    else:
+        return None
+    for part in rest:
+        value = getattr(value, part, None)
+        if value is None:
+            return None
+    if id(value) in ALIASES:
+        return f"@{{{ALIASES[id(value)]}}}"
+    if isinstance(value, typing.TypeVar) or type(value).__name__ in ("ParamSpec", "TypeVarTuple"):
+        return value.__name__
+    module = getattr(value, "__module__", None)
+    name = getattr(value, "__qualname__", None) or getattr(value, "__name__", None) or getattr(value, "_name", None)
+    if module == "builtins" and name in BARE:
+        return name
+    if module and name:
+        return f"@{{{module}.{name}}}"
+    return None
+
+
+NAME = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([A-Za-z_][A-Za-z0-9_.]*)""")
+
+
+def written_text(annotation, namespace):
+    """An annotation's written text, with each name resolved. Returns None for a name
+    it cannot find."""
+    failed = []
+
+    def replace(match):
+        if match.group(1):
+            return match.group(1)
+        found = resolved_name(match.group(2), namespace)
+        if found is None:
+            failed.append(match.group(2))
+            return match.group(2)
+        return found
+
+    spelled = NAME.sub(replace, annotation.strip())
+    return None if failed else spelled
+
+
+def annotation_text(annotation, namespace):
+    """A slot's text: an annotation's written text when it is a string, and otherwise
+    the evaluated annotation. An evaluated alias stops, because its name is lost."""
+    if isinstance(annotation, str):
+        return written_text(annotation, namespace)
+    return type_text(annotation)
+
+
 def type_text(annotation):
     """An annotation as type text. Returns None for one this cannot spell."""
     if annotation is inspect.Signature.empty:
         return None
     if id(annotation) in ALIASES:
-        return f"@{{{ALIASES[id(annotation)]}}}"
+        raise Expanded
     if annotation is None or annotation is type(None):
         return "None"
     if annotation is Ellipsis:
@@ -133,33 +203,44 @@ class Report:
         self.add(path, {})
         self.members[path]["unstated"].append(shape)
 
-    def callable(self, path, function):
+    def text_or_unstated(self, path, slot, annotation, namespace):
+        """A slot's text, or None. A form it cannot spell and an alias the runtime
+        expanded are unstated, so that they are neither an error nor agreed."""
         try:
-            signature = inspect.signature(function, eval_str=True)
+            text = annotation_text(annotation, namespace)
+        except Expanded:
+            text = None
+        if text is None:
+            self.unstated(path, slot)
+        return text
+
+    def callable(self, path, function):
+        namespace = getattr(function, "__globals__", {})
+        try:
+            signature = (
+                inspect.signature(function, annotation_format=STRING_FORMAT)
+                if STRING_FORMAT is not None
+                else inspect.signature(function)
+            )
         except (ValueError, TypeError, NameError, AttributeError, SyntaxError):
-            try:
-                signature = inspect.signature(function)
-            except (ValueError, TypeError):
-                self.unstated(path, "parameters")
-                self.unstated(path, "returns")
-                return
+            self.unstated(path, "parameters")
+            self.unstated(path, "returns")
+            return
         slots = {}
         for i, parameter in enumerate(signature.parameters.values()):
             slots[f"parameters[{i}].name"] = parameter.name
             if parameter.kind in MODES:
                 slots[f"parameters[{i}].mode"] = MODES[parameter.kind]
-            text = type_text(parameter.annotation)
-            if text is not None:
-                slots[f"parameters[{i}].type"] = text
-            elif parameter.annotation is not inspect.Parameter.empty:
-                self.unstated(path, f"parameters[].type")
+            if parameter.annotation is not inspect.Parameter.empty:
+                text = self.text_or_unstated(path, f"parameters[{i}].type", parameter.annotation, namespace)
+                if text is not None:
+                    slots[f"parameters[{i}].type"] = text
             if parameter.default is not inspect.Parameter.empty:
                 slots[f"parameters[{i}].default"] = default_text(parameter.default)
-        text = type_text(signature.return_annotation)
-        if text is not None:
-            slots["returns"] = text
-        elif signature.return_annotation is not inspect.Signature.empty:
-            self.unstated(path, "returns")
+        if signature.return_annotation is not inspect.Signature.empty:
+            text = self.text_or_unstated(path, "returns", signature.return_annotation, namespace)
+            if text is not None:
+                slots["returns"] = text
         self.add(path, slots)
 
     def property(self, path, prop):
@@ -167,16 +248,24 @@ class Report:
         for key, function, target in (("get", prop.fget, "return"), ("set", prop.fset, None)):
             if function is None:
                 continue
+            namespace = getattr(function, "__globals__", {})
             try:
-                hints = inspect.get_annotations(function, eval_str=True)
+                hints = (
+                    inspect.get_annotations(function, format=STRING_FORMAT)
+                    if STRING_FORMAT is not None
+                    else inspect.get_annotations(function)
+                )
             except Exception:
-                hints = getattr(function, "__annotations__", {})
+                self.unstated(path, f"{key}.type")
+                continue
             if target == "return":
                 annotation = hints.get("return", inspect.Signature.empty)
             else:
                 names = [name for name in hints if name != "return"]
                 annotation = hints[names[0]] if names else inspect.Signature.empty
-            text = type_text(annotation)
+            if annotation is inspect.Signature.empty:
+                continue
+            text = self.text_or_unstated(path, f"{key}.type", annotation, namespace)
             if text is not None:
                 slots[f"{key}.type"] = text
         self.add(path, slots)
@@ -230,13 +319,17 @@ def main():
     sys.path[:0] = search_path
     report = Report()
     failed = []
+    modules = []
     for name in sorted(set(modules_under(search_path))):
         try:
             module = importlib.import_module(name)
             remember_aliases(module)
-            report.module(module)
+            modules.append(module)
         except BaseException as cause:  # A project module can raise anything on import.
             failed.append(f"{name}: {type(cause).__name__}: {cause}")
+    # Every alias is known before any annotation is read.
+    for module in modules:
+        report.module(module)
     with open(out, "w") as written:
         json.dump(
             {

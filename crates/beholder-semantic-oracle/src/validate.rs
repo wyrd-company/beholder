@@ -81,13 +81,23 @@ pub struct Report {
     /// of these has passed. Empty, with `compared` false, outside an audit.
     pub unchecked: Vec<Unchecked>,
     /// How many signature slots agree with a compiler report in every context
-    /// they hold in.
+    /// they hold in. A slot unchecked in any context is not one of these.
     pub agreed: usize,
+    /// For each context, what its reports did for the slots that hold in it.
+    pub contexts: BTreeMap<String, ContextCounts>,
     /// Whether `profile:signature-compiler` ran.
     pub compared: bool,
 }
 
-/// One signature slot that no compiler report states.
+/// What a context's reports did for the slots that hold in it, one count per slot.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ContextCounts {
+    pub agreed: usize,
+    pub unchecked: usize,
+    pub errors: usize,
+}
+
+/// One signature slot that no compiler report states in at least one context.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Unchecked {
     /// The JSON Pointer of the slot in the dataset.
@@ -98,6 +108,10 @@ pub struct Unchecked {
     pub class: &'static str,
     /// Why no report states it.
     pub reason: String,
+    /// The contexts in which a report states it and agrees.
+    pub agreed_in: Vec<String>,
+    /// The contexts in which no report states it.
+    pub unchecked_in: Vec<String>,
 }
 
 impl Unchecked {
@@ -108,6 +122,8 @@ impl Unchecked {
             "at": self.at,
             "slot": self.slot,
             "slot-class": self.class,
+            "agreed-in": self.agreed_in,
+            "unchecked-in": self.unchecked_in,
             "message": self.reason,
         })
     }
@@ -158,6 +174,13 @@ impl Report {
                 "warnings": self.warnings(),
                 "agreed": self.agreed,
                 "unchecked": self.unchecked.len(),
+                "contexts": self.contexts.iter().map(|(context, counts)| {
+                    (context.clone(), json!({
+                        "agreed": counts.agreed,
+                        "unchecked": counts.unchecked,
+                        "errors": counts.errors,
+                    }))
+                }).collect::<serde_json::Map<_, _>>(),
             })
         } else {
             json!({ "errors": self.errors(), "warnings": self.warnings() })
@@ -239,9 +262,10 @@ fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: Option<&[Value]
     });
     findings.extend(checker.finish());
     let mut report = Report::new(findings);
-    if let Some((unchecked, agreed)) = comparison {
-        report.unchecked = unchecked;
-        report.agreed = agreed;
+    if let Some(comparison) = comparison {
+        report.unchecked = comparison.unchecked;
+        report.agreed = comparison.agreed;
+        report.contexts = comparison.contexts;
         report.compared = true;
     }
     report

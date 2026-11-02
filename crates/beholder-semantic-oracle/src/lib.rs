@@ -25,7 +25,9 @@ pub mod rules;
 pub mod signature;
 mod validate;
 
-pub use validate::{audit, audit_with_reports, validate, Finding, Report, Severity, Unchecked};
+pub use validate::{
+    audit, audit_with_reports, validate, ContextCounts, Finding, Report, Severity, Unchecked,
+};
 
 use anyhow::{anyhow, Context, Result};
 use jsonschema::{Draft, Registry, Validator};
