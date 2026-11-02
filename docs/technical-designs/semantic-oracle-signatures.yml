@@ -228,7 +228,7 @@ proposed-design:
     | Member kind | Slots |
     | --- | --- |
     | `callable` | `type-parameters`, `where`, `impl`, `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`; `overloads` holding these slots when one entity has several signatures |
-    | `type` | `type-parameters`, `where`, `underlying`, `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
+    | `type` | `type-parameters`, `where`, `bases`, `underlying`, `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
     | `type-alias` | `type-parameters`, `where`, `type`; for a Rust associated type, `bounds` and `type` as its default |
     | `field` | `type`, `tag` (Go), `modifiers` |
     | `property` | `get`, `set`, `init` (C#), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
@@ -244,11 +244,13 @@ proposed-design:
     | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` (TypeScript `const`) |
     | Accessor (`get`, `set`, `init`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
-    | Relation addition | `type`, `type-parameters`, `self-type`, `where`, `bindings` |
+    | Base (`bases`) | `type`, the type text with its arguments; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
+    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
     `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
-    set. A profile lists its modifiers, and a modifier is listed when it changes
+    set. `index-signatures` are sorted by key type, `bases` by `type` and then
+    `self-type`, and `bindings` by `name`. A profile lists its modifiers, and a modifier is listed when it changes
     what a consumer can do:
 
     | Language | Modifiers |
@@ -265,54 +267,63 @@ proposed-design:
     because a required member can have that type.
     | TypeScript | `abstract`, `optional`, `readonly`, `static` |
 
-    Base types stay relations. An `inherits` or `implements` relation whose `from`
-    is a member gains `type`, the type text with its arguments, such as
-    `@{Trait}<u8>`. A Rust trait implementation also gains `type-parameters`,
-    `self-type`, `where` and `bindings`, the associated types and constants the
-    implementation sets:
+    `inherits` and `implements` relations stay as they are, one fact from a type to
+    a base. A member type's `bases` slot states what a relation cannot: the type
+    arguments, and for a Rust trait implementation the binders, self type, bounds
+    and the associated types and constants the implementation sets. Validation
+    checks that the `bases` targets of a member equal its relations' targets.
 
     ```yaml
-    - kind: implements
-      from: api.Entry
-      to: api.Record
-      type: "@{api.Record}"
-      bindings:
-        - {name: Key, type: u32}
+    - entity: api.Entry
+      bases:
+        - type: "@{api.Record}"
+          bindings:
+            - {name: Key, type: u32}
     ```
 
-    `type` and `self-type` join the relation's identity, so that
-    `impl Trait<u8> for X` and `impl Trait<u16> for X` are two facts.
+    `impl Trait<u8> for X` and `impl Trait<u16> for X` are one relation and two
+    `bases` entries.
 
     A member of an inherent Rust implementation has the `impl` slot when the block
     has binders or a specialized self type, because the block decides when a
     consumer can call the member: `impl<T: Clone> Container<T>` is
     `impl: {type-parameters: [{name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}], self-type: "@{Container}<T>"}`.
 
-    `underlying` states the type a declaration is defined over, when no other slot
-    states it: the full underlying type of a Go defined type, with struct field
-    order, unexported fields, tags and interface type sets, such as `[2]int` or
-    `interface { ~int | ~string }`; a C# enum's integral type; and a Dart extension
-    type's representation.
+    `underlying` states the type a declaration is defined over: a Go defined type's
+    full underlying type, always, with struct field order, unexported fields, tags
+    and interface type sets, such as `[2]int` or `interface { ~int | ~string }`,
+    even where field slots repeat part of it; a C# enum's integral type; and a Dart
+    extension type's representation. In a Go struct's text, field labels stay as
+    names and are never `@{id}`, and a tag is its decoded value as a JSON string.
 
     TypeScript constructors and unnamed members are not public API members. Their
-    signatures are slots of the owning type, in effective order, with `access` for
-    a `protected` constructor.
+    signatures are slots of the owning type, in effective order. A constructor has
+    `access` when it is `protected` or `private`, so that restricted construction
+    stays visible. A class that declares no constructor has one `constructors`
+    entry for its synthetic constructor, with its inherited parameters as
+    `{inferred}` slots.
 
     Rust bounds have one form: a bound on a bare parameter, inline or in a `where`
     clause, is in that parameter's sorted `bounds`, and `where` holds other
     predicates only.
 
     C# type text states the effective nullable annotation of each reference type
-    occurrence: `string?` annotated, `string` not annotated, and `string~` oblivious,
-    the form Roslyn's public API files use. `#nullable` warning state is not
-    recorded. Tuple element names stay in the type text.
+    occurrence: `string?` annotated, `string` not annotated, and `string~` oblivious.
+    `~` is an oracle extension to C# type syntax, placed on each oblivious occurrence,
+    including nested ones. `#nullable` warning state is not recorded. Tuple element
+    names stay in the type text. `return-mode` is `ref` or `ref readonly`, and is
+    absent for a return by value.
 
     Go tags are compared by decoded value. A promoted member's signature stays the
     declaration's signature, with its type parameters, and the embedding type's
     `underlying` states how they bind. Promotion creates no record.
 
-    For a partial C# member, the defining declaration supplies the parameter names
-    and order.
+    For a partial C# member, the defining declaration supplies the parameter names,
+    order and defaults, and the parameter audit reads its sites.
+
+    A Python `TypedDict` key's `type` has no `Required` or `NotRequired` wrapper,
+    because the modifier states it. The wrapper tokens keep their `references`
+    facts, and the reference audit does not expect them in a slot.
 
     A synthetic member has slots by the language rule that implies it: a default
     constructor, a Python dataclass `__init__`, a C# record's positional members.
@@ -367,13 +378,18 @@ proposed-design:
     Alternatives follow the model's rule for several definition sites: every
     alternative is expected, and each slot is a unit. An observation with `at` pairs
     with that alternative. An observation without `at` pairs in the exact pass with
-    the first alternative in canonical order that has its value, and otherwise
-    stays unpaired when several alternatives remain.
+    the first unpaired alternative in canonical order that has its value, and
+    otherwise stays unpaired when several alternatives remain. It is a `duplicate`
+    only when no unpaired alternative has its value, so that two identical
+    observations match two alternatives with equal values. Each slot pairs on its
+    own, so one observation's slots can match different alternatives.
 
-    The relation additions are compared members of the existing relation unit, and
-    a difference in them is `wrong-value`. `bindings`, `where`, `self-type` and
-    `type-parameters` report under `signature-shape` or `signature-declared-type`
-    by what they hold.
+    A `bases` entry is keyed by its `type` and `self-type`, written in the slot path:
+    `bases[@{Trait}<u8>].where`. A wrong `where` or binding is `wrong-value` on that
+    slot. A wrong `type` is a different key, so it is `unexpected` and the expected
+    entry's slots are `missing`. Relation units are unchanged, so an adapter that
+    reports relations and no signatures is graded on relations as before, and its
+    `bases` slots are `unsupported`.
 
     An adapter declares four capabilities: `signature-shape` (names, order,
     modes, modifiers, accessors), `signature-declared-type`,
@@ -381,7 +397,7 @@ proposed-design:
 
     | Adapter | Result |
     | --- | --- |
-    | Reports no signatures, which includes the SCIP adapter, because `signature_documentation` is display text | Every signature unit is `unsupported`. Rates for the group are undefined, the report lists the count, and no other group changes. |
+    | Reports no signatures, which includes the SCIP adapter, because `signature_documentation` is display text | Every signature unit is `unsupported`, including `bases`. Rates for the group are undefined, the report lists the count, and no other group changes. |
     | Reports declared types but no inference | Declared units are graded. `{inferred}` units are `unsupported`. |
     | Declares inference and omits a slot | `missing`. |
     | Reports a type for a Python parameter with no annotation | `out-of-profile`. |
@@ -404,6 +420,11 @@ proposed-design:
     | alternatives A `returns: int`, B `returns: str` | `returns: int` at A, `returns: str` at B | two `matched` |
     | alternatives A `returns: int`, B `returns: str` | `returns: bytes`, no `at` | one `unexpected`; A and B `missing` |
     | alternatives A `returns: int`, B `returns: str` | `returns: int` at A, twice | one `matched`, one `duplicate`; B `missing` |
+    | alternatives A and B, both `returns: int` | `returns: int`, no `at`, twice | two `matched` |
+    | alternatives A and B, both `returns: int` | `returns: int`, no `at`, three times | two `matched`, one `duplicate` |
+    | `bases` `@{T}<u8>` and `@{T}<u16>`, each `where: W` | both types, each `where: Z` | two `wrong-value` |
+    | `bases` `@{T}<u8>` | `@{T}<u16>` | `type` `unexpected`; `@{T}<u8>` `type` `missing` |
+    | `implements X→T`, `bases` `@{T}<u8>`, adapter with relations only | `implements X→T` | relation `matched`; `bases` slot `unsupported` |
 
     Validation and audit check:
 
@@ -411,13 +432,31 @@ proposed-design:
       require, and no other.
     - `model:signature-canonical`: a type text is in canonical spelling, and
       each `@{id}` resolves.
-    - `model:signature-parameters`: parameter `name` values and their order equal
-      the member's `parameter` entities by site.
+    - `model:signature-parameters`: the `name` values and order of a parameter list
+      equal the `parameter` entities of its source declaration, by site.
     - `model:signature-references`: each `@{id}` in a declared type text has a
-      `type` reference fact from the member or one of its parameters, and each
-      such reference inside a parameter has its `@{id}`. `{inferred}` slots and
-      synthetic members have no source token, so the audit checks them against the
-      member's `anchor` and its synthesis rule instead.
+      `type` reference fact whose `from` is the slot's source
+      declaration or an entity inside it by `parent`, and each such reference inside
+      a parameter has its `@{id}`.
+    - `model:signature-inference`: an `{inferred}` slot on a source entity has no such
+      reference requirement, and is audited at its definition site against the
+      inference rule by `profile:signature-probe`. An `{inferred}` slot on a synthetic
+      entity is audited against its `anchor` and synthesis rule.
+    - `model:signature-bases`: the targets of `bases` equal the member's `inherits`
+      and `implements` relations.
+
+    The source declaration of a slot is:
+
+    | Slot | Source declaration |
+    | --- | --- |
+    | A member's own slot | The member entity |
+    | `overloads[n]` | The member's nth signature site |
+    | `constructors[n]`, `call-signatures[n]`, `construct-signatures[n]`, `index-signatures[n]` | That constructor or unnamed callable entity |
+    | `impl` | The `extension` entity, with its `type-parameter` entities |
+    | `bases[k]` | The `extension` entity for a Rust implementation; the member for other languages |
+    | `underlying` | The member and its field entities |
+    | `get`, `set`, `init`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
+
     - `profile:signature-probe`: an optional audit step compares facts with the
       reference toolchain, where the corpus toolchains are installed: rustdoc
       JSON, `tsc --declaration`, `go/types`, `inspect.signature`, Roslyn and the
@@ -428,8 +467,7 @@ proposed-design:
     ```rust
     pub struct ApiSnapshot { pub revision: String, pub context: ContextId, pub distributions: Vec<DistributionApi> }
     pub struct DistributionApi { pub key: DistributionKey, pub members: Vec<ApiMember> }
-    pub struct ApiMember { pub entity: EntityKey, pub kind: EntityKind, pub paths: Vec<String>, pub access: Access, pub signatures: Vec<Signature>, pub relations: Vec<ApiRelation> }
-    pub struct ApiRelation { pub kind: RelationKind, pub target: EntityKey, pub slots: Vec<Slot> }
+    pub struct ApiMember { pub entity: EntityKey, pub kind: EntityKind, pub paths: Vec<String>, pub access: Access, pub signatures: Vec<Signature> }
 
     pub fn snapshot(analysis: &Analysis, context: &ContextSpec) -> ApiSnapshot;
     pub fn compare(before: &ApiSnapshot, after: &ApiSnapshot) -> ApiDelta;
@@ -441,8 +479,6 @@ proposed-design:
         PathRemoved { member: EntityKey, path: String },
         AccessChanged { member: EntityKey, before: Access, after: Access },
         SlotChanged { member: EntityKey, slot: SlotPath, before: Option<Value>, after: Option<Value> },
-        RelationAdded { member: EntityKey, relation: ApiRelation },
-        RelationRemoved { member: EntityKey, relation: ApiRelation },
         SlotUnknown { member: EntityKey, slot: SlotPath },
     }
     ```
@@ -452,21 +488,23 @@ proposed-design:
     - Members pair by shared consumer path and kind, not by `symbol_id`. A move
       behind an unchanged re-export is no change. A member with no shared path pairs
       by canonical path.
-    - `compare` first pairs every entity across the snapshots this way, and an
-      `@{id}` compares through that pairing. Adding a re-export is a `PathAdded` and
-      changes no signature that names the target.
-    - When paths split or merge, so that a member's paths are shared with more than
-      one member of the other snapshot, the pair with the most shared paths wins,
-      ties go to the first shared path in sorted order, and the others are
-      `MemberAdded` and `MemberRemoved`. A signature that names a target with no
-      pair reports `SlotChanged`.
+    - `compare` first pairs every entity across the snapshots, and an `@{id}` compares
+      through that pairing. Adding a re-export is a `PathAdded` and changes no
+      signature that names the target.
+    - The pairing is one global pass. The candidates are all pairs of the same kind
+      with at least one shared consumer path, ordered by the most shared paths, then
+      the first shared path, then the two canonical paths. Each candidate in order
+      pairs when neither side has a pair. Entities with no pair then pair by equal
+      canonical path and kind, and the rest are `MemberAdded` and `MemberRemoved`.
+      For A {a,b,c}, B {d,e}, X {a,b,d,e}, Y {c}: A pairs with X, B is removed, and Y
+      is added. A signature that names a target with no pair reports `SlotChanged`.
     - A type parameter compares by position, so that a rename of `T` is no change.
     - Each slot value carries its evidence as `EdgeRecord` does: `resolved`,
       `syntactic` or `unknown`. A slot that the library cannot state is
       `SlotUnknown`, never a change.
-    - `ApiSnapshot::observations()` yields `public-api-member`, `signature` and
-      `relation` observations, so that the Beholder adapter grades the data a
-      consumer gets.
+    - `ApiSnapshot::observations()` yields `public-api-member` and `signature`
+      observations, so that the Beholder adapter grades the data a consumer gets. A
+      removed base is a `SlotChanged` on `bases`.
     - `compare` reports facts. A consumer classifies them, such as breaking or
       harmless.
     - The 84 answer keys measure snapshot accuracy on one revision. `compare` is a
@@ -554,6 +592,7 @@ proposed-design:
       830 lines on 8337, 10 percent. TypeScript pilot: 91 members, about 270
       lines on 10398, 3 percent. Python `diagnostics-toolkit`: 165 members, about
       500 lines.
+    - `bases`, `impl` and `underlying` add lines the sample does not measure.
     - Corpus: a rough estimate is 13,500 member declarations (Python 3,335 by syntax
       tree; Rust 1,846, C# 3,205, Dart 1,943, TypeScript 2,393 and Go 761 by pattern).
       It is not a bound. The Rust pattern gives 299 on the pilot against 276 in its
