@@ -464,12 +464,55 @@ def python(tmp):
     project = os.path.join(tmp, "python")
     write(project, {
         "pkg/__init__.py": "",
+        "pkg/aliases.py": """
+from typing import TypeAlias
+FLAG = True
+Imported: TypeAlias = int
+Chain: TypeAlias = Imported
+""",
         "pkg/mod.py": """
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 from typing import Literal
 Status = Literal["open", "closed"]
+from typing import TypeAlias, List, Text, TypeVar
+from .aliases import Imported as Renamed, Chain
+from . import aliases
+Scalar: TypeAlias = int
+First: TypeAlias = list[int]
+Second: TypeAlias = First
+Implicit = int
+T = TypeVar("T")
+type Modern = int
+if aliases.FLAG:
+    Conditional = int
+else:
+    Conditional = str
+def scalar(x: Scalar) -> Scalar:
+    return x
+def second(x: Second) -> Second:
+    return x
+def first(x: First) -> First:
+    return x
+def implicit(x: Implicit) -> Implicit:
+    return x
+def modern(x: Modern) -> Modern:
+    return x
+def imported(x: Renamed, y: Chain, z: aliases.Imported) -> aliases.Chain:
+    return x
+def standard(x: List[int], y: T) -> T:
+    return y
+def renamed_external(x: Text) -> None:
+    pass
+def conditional(x: Conditional) -> None:
+    pass
+try:
+    from .aliases import Imported as Either
+except ImportError:
+    Either = str
+def either(x: Either) -> None:
+    pass
 def uses_alias(a: Status) -> Status:
     return a
 def quoted(a: "Status", b: 'Literal["a"]') -> None:
@@ -495,6 +538,29 @@ class Point:
     out = os.path.join(tmp, "python.json")
     _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out, "--python", RUNNING], tmp, out)
     tree_unchanged(project, before)
+    # A declared alias keeps the name written, not its value and not another alias
+    # of the same value.
+    for slot in ("parameters[0].type", "returns"):
+        expect(found, "pkg.mod.scalar", slot, "@{pkg.mod.Scalar}")
+        expect(found, "pkg.mod.second", slot, "@{pkg.mod.Second}")
+        expect(found, "pkg.mod.first", slot, "@{pkg.mod.First}")
+        expect(found, "pkg.mod.implicit", slot, "@{pkg.mod.Implicit}")
+        expect(found, "pkg.mod.modern", slot, "@{pkg.mod.Modern}")
+    # An import resolves to the statement that binds the alias, under any name.
+    expect(found, "pkg.mod.imported", "parameters[0].type", "@{pkg.aliases.Imported}")
+    expect(found, "pkg.mod.imported", "parameters[1].type", "@{pkg.aliases.Chain}")
+    expect(found, "pkg.mod.imported", "parameters[2].type", "@{pkg.aliases.Imported}")
+    expect(found, "pkg.mod.imported", "returns", "@{pkg.aliases.Chain}")
+    # A standard name and a type variable are not aliases.
+    expect(found, "pkg.mod.standard", "parameters[0].type", "@{typing.List}[int]")
+    expect(found, "pkg.mod.standard", "parameters[1].type", "T")
+    # An external name that does not answer to its own name is unknown.
+    assert "parameters[0].type" not in found["pkg.mod.renamed_external"]["slots"]
+    assert found["pkg.mod.renamed_external"]["unstated"] == ["parameters[0].type"], found["pkg.mod.renamed_external"]
+    # Two assignments of one name are one alias, whichever runs.
+    expect(found, "pkg.mod.conditional", "parameters[0].type", "@{pkg.mod.Conditional}")
+    # An import and an assignment of one name: the source does not fix which it is.
+    assert found["pkg.mod.either"]["unstated"] == ["parameters[0].type"], found["pkg.mod.either"]
     # The written name, resolved: the runtime's expansion is not the slot's text.
     expect(found, "pkg.mod.uses_alias", "parameters[0].type", "@{pkg.mod.Status}")
     expect(found, "pkg.mod.uses_alias", "returns", "@{pkg.mod.Status}")
@@ -546,6 +612,7 @@ def python_without_written_text(project):
     module = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(module)
     module.STRING_FORMAT = None
+    module.PROJECT_ROOTS.append(project)
     sys.path.insert(0, project)
     try:
         imported = importlib.import_module("pkg.mod")
@@ -555,8 +622,13 @@ def python_without_written_text(project):
         member = report.members["pkg.mod.uses_alias"]
         assert "parameters[0].type" not in member["slots"], member
         assert member["unstated"] == ["parameters[0].type", "returns"], member
-        # A form with no alias is still stated.
-        assert report.members["pkg.mod.plain"]["slots"]["parameters[0].type"] == "int"
+        # A declared alias of a class too: its value cannot be told from its name.
+        member = report.members["pkg.mod.scalar"]
+        assert "returns" not in member["slots"] and "returns" in member["unstated"], member
+        # A form an assignment binds nowhere is still stated.
+        assert report.members["pkg.mod.plain"]["slots"]["parameters[1].default"] == '"x"'
+        # An evaluated `int` cannot be told from an alias of it, inside a form too.
+        assert "returns" in report.members["pkg.mod.plain"]["unstated"]
     finally:
         sys.path.remove(project)
         for name in [name for name in sys.modules if name == "pkg" or name.startswith("pkg.")]:

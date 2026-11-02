@@ -199,6 +199,8 @@ dependencies = [
  "json-patch",
  "jsonschema",
  "logos",
+ "num-bigint",
+ "num-integer",
  "serde-saphyr",
  "serde_json",
  "sha2",

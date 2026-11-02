@@ -18,15 +18,21 @@ VERSION is the context's interpreter, such as `3.14`. The script runs under
 so that a report never states one version's view for another's context. The report
 states what it ran under.
 
+A written alias keeps its name: the module's source says which statement binds it,
+through its imports. Where the source does not fix one statement, or an interpreter
+returns only an evaluated value that an assignment also binds, the slot is unstated.
+
 Python has no reference type checker, so this covers the runtime's view only, and is
 for a `runtime` context. A slot it cannot state is `unchecked` in the audit. A module that fails to
 import is listed under `failed`, as its project may intend, and its slots stay
 `unchecked`.
 """
 import argparse
+import ast
 import builtins
 import enum
 import importlib
+import importlib.util
 import inspect
 import json
 import os
@@ -72,8 +78,12 @@ except ImportError:
 
 
 def remember_aliases(module):
+    """Every value a statement assigns to a name, which an evaluated annotation can
+    no longer tell from that name."""
+    assigned = {name for name, found in module_bindings(module.__name__).items() if ("assigned",) in found} if is_project_module(module.__name__) else set()
     for name, value in vars(module).items():
-        if not inspect.isclass(value) and (typing.get_origin(value) is not None or isinstance(value, types.UnionType)):
+        written_as_type = inspect.isclass(value) or typing.get_origin(value) is not None or isinstance(value, types.UnionType)
+        if name in assigned and written_as_type:
             ALIASES.setdefault(id(value), f"{module.__name__}.{name}")
 
 
@@ -81,8 +91,92 @@ class Expanded(Exception):
     """The runtime replaced an annotation's name by its value, so its text is lost."""
 
 
+# The search path, whose modules' source states which statement binds a name.
+PROJECT_ROOTS = []
+BINDINGS = {}
+
+
+def is_project_module(name):
+    file = getattr(sys.modules.get(name), "__file__", None)
+    return bool(file) and any(os.path.abspath(file).startswith(root + os.sep) for root in PROJECT_ROOTS)
+
+
+def module_bindings(name):
+    """What each statement at a project module's top level binds, from its source:
+    `{name: [binding]}`, with star imports under `*`. A binding is `("declared",)`
+    for a class or function, `("assigned",)` for a value or alias, `("imported",
+    module, name)`, or `("module",)`."""
+    if name in BINDINGS:
+        return BINDINGS[name]
+    found = {}
+
+    def bind(target, binding):
+        found.setdefault(target, []).append(binding)
+
+    def walk(statements, package):
+        for statement in statements:
+            if isinstance(statement, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                bind(statement.name, ("declared",))
+            elif isinstance(statement, ast.Assign):
+                for target in statement.targets:
+                    if isinstance(target, ast.Name):
+                        bind(target.id, ("assigned",))
+            elif isinstance(statement, ast.AnnAssign):
+                if statement.value is not None and isinstance(statement.target, ast.Name):
+                    bind(statement.target.id, ("assigned",))
+            elif type(statement).__name__ == "TypeAlias":
+                bind(statement.name.id, ("assigned",))
+            elif isinstance(statement, ast.Import):
+                for alias in statement.names:
+                    bind(alias.asname or alias.name.split(".")[0], ("module",))
+            elif isinstance(statement, ast.ImportFrom):
+                source = importlib.util.resolve_name("." * statement.level + (statement.module or ""), package) if statement.level else statement.module
+                for alias in statement.names:
+                    if alias.name == "*":
+                        bind("*", ("imported", source, "*"))
+                    else:
+                        bind(alias.asname or alias.name, ("imported", source, alias.name))
+            else:
+                for field in ("body", "orelse", "finalbody"):
+                    walk(getattr(statement, field, []) or [], package)
+                for handler in getattr(statement, "handlers", []) or []:
+                    walk(handler.body, package)
+
+    module = sys.modules[name]
+    with open(module.__file__, encoding="utf-8") as source:
+        walk(ast.parse(source.read()).body, module.__package__ or name)
+    BINDINGS[name] = found
+    return found
+
+
+def binding_of(module_name, name, seen=()):
+    """Follows a written name to the statement that binds it. Returns `("alias",
+    path)`, `("value", written)` for a class, function or external name read by value,
+    or None where the source does not fix one statement."""
+    if (module_name, name) in seen or not is_project_module(module_name):
+        return ("value", name)
+    seen = (*seen, (module_name, name))
+    bindings = module_bindings(module_name)
+    found = bindings.get(name)
+    if not found:
+        for star in reversed(bindings.get("*", [])):
+            if is_project_module(star[1]) and name in module_bindings(star[1]):
+                return binding_of(star[1], name, seen)
+        return ("value", name)
+    if len(set(found)) > 1:
+        return None
+    binding = found[0]
+    if binding[0] == "assigned":
+        return ("alias", f"{module_name}.{name}")
+    if binding[0] == "imported":
+        return binding_of(binding[1], binding[2], seen) if is_project_module(binding[1]) else ("value", binding[2])
+    return ("value", name)
+
+
 def resolved_name(dotted, namespace):
-    """A written name, as type text. Returns None for a name it cannot find."""
+    """A written name, as type text: an alias by the statement that binds it, and any
+    other name by its value. Returns None for a name it cannot find, and where a value
+    does not answer to the name written, because its alias is then unknown."""
     head, *rest = dotted.split(".")
     if head == "None":
         return "None"
@@ -92,19 +186,33 @@ def resolved_name(dotted, namespace):
         value = getattr(builtins, head)
     else:
         return None
+    owner = namespace.get("__name__")
+    final = head
     for part in rest:
+        if inspect.ismodule(value):
+            owner, final = value.__name__, part
+        else:
+            owner, final = None, part
         value = getattr(value, part, None)
         if value is None:
             return None
-    if id(value) in ALIASES:
-        return f"@{{{ALIASES[id(value)]}}}"
     if isinstance(value, typing.TypeVar) or type(value).__name__ in ("ParamSpec", "TypeVarTuple"):
         return value.__name__
+    binding = binding_of(owner, final) if owner else ("value", final)
+    if binding is None:
+        return None
+    if binding[0] == "alias":
+        return f"@{{{binding[1]}}}"
+    written = binding[1]
+    if inspect.ismodule(value):
+        return None
     module = getattr(value, "__module__", None)
     name = getattr(value, "__qualname__", None) or getattr(value, "__name__", None) or getattr(value, "_name", None)
+    if not name or name.split(".")[-1] != written:
+        return None
     if module == "builtins" and name in BARE:
         return name
-    if module and name:
+    if module:
         return f"@{{{module}.{name}}}"
     return None
 
@@ -337,6 +445,7 @@ def main():
     if os.path.exists(out):
         os.remove(out)
     sys.path[:0] = search_path
+    PROJECT_ROOTS.extend(search_path)
     report = Report()
     failed = []
     modules = []

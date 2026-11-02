@@ -13,6 +13,8 @@
 //! text it reports.
 
 use logos::Logos;
+use num_bigint::BigUint;
+use num_integer::Integer;
 
 /// What a text's `@{id}` names, for the rules that rewrite a spelling by its
 /// target, such as TypeScript's `Array<string>`.
@@ -1345,13 +1347,40 @@ fn is_shortest_float(text: &str) -> bool {
     digits_of(significand) == digits_of(mantissa)
 }
 
-/// `go/constant`'s exact string: an integer, a ratio, or `(re + imi)`.
+/// A reduced ratio with a denominator above one: `go/constant` prints `4/2` as `2`,
+/// `2/4` as `1/2`, and has no `1/0`.
+fn is_reduced_ratio(top: &str, bottom: &str) -> bool {
+    let digits = top.strip_prefix('-').unwrap_or(top);
+    if !is_decimal_integer(top) || !is_decimal_integer(bottom) || bottom.starts_with('-') {
+        return false;
+    }
+    let (Ok(top), Ok(bottom)) = (digits.parse::<BigUint>(), bottom.parse::<BigUint>()) else {
+        return false;
+    };
+    let one = BigUint::from(1u8);
+    bottom > one && top.gcd(&bottom) == one
+}
+
+/// `go/constant`'s text for a float too large for a ratio: `0x.c788p+16610`.
+fn is_go_big_float(text: &str) -> bool {
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    digits.strip_prefix("0x.").is_some_and(|rest| {
+        rest.split_once('p').is_some_and(|(mantissa, exponent)| {
+            !mantissa.is_empty()
+                && mantissa.chars().all(|c| c.is_ascii_hexdigit())
+                && exponent.starts_with(['+', '-'])
+                && exponent.len() > 1
+                && exponent[1..].chars().all(|c| c.is_ascii_digit())
+        })
+    })
+}
+
+/// `go/constant`'s exact string: an integer, a reduced ratio, a big float, or
+/// `(re + imi)` of those.
 fn is_go_exact(text: &str) -> bool {
-    let rational = |part: &str| match part.split_once('/') {
-        Some((top, bottom)) => {
-            is_decimal_integer(top) && is_decimal_integer(bottom) && !bottom.starts_with('-')
-        }
-        None => is_decimal_integer(part),
+    let exact = |part: &str| match part.split_once('/') {
+        Some((top, bottom)) => is_reduced_ratio(top, bottom),
+        None => is_decimal_integer(part) || is_go_big_float(part),
     };
     match text
         .strip_prefix('(')
@@ -1359,8 +1388,8 @@ fn is_go_exact(text: &str) -> bool {
     {
         Some(inner) => inner
             .split_once(" + ")
-            .is_some_and(|(real, imaginary)| rational(real) && rational(imaginary)),
-        None => rational(text),
+            .is_some_and(|(real, imaginary)| exact(real) && exact(imaginary)),
+        None => exact(text),
     }
 }
 
@@ -1872,9 +1901,21 @@ mod tests {
             ("rust", "0.30000000000000004000"),
             // Parses to 0.1, whose shortest spelling is shorter.
             ("rust", "0.1000000000000000055"),
+            ("go", "340282366920938463463374607431768211458/2"),
             ("go", "+"),
             ("go", "1.5"),
             ("go", "(1/2 + i)"),
+            ("go", "1/0"),
+            ("go", "0/5"),
+            ("go", "2/4"),
+            ("go", "4/2"),
+            ("go", "3/1"),
+            ("go", "1/-3"),
+            ("go", "(1/0 + 1i)"),
+            ("go", "(2/4 + 1i)"),
+            ("go", "(1 + 2/4i)"),
+            ("go", "0x.p+1"),
+            ("go", "0x.8"),
             ("go", "1/"),
             ("python", "1.00"),
         ] {
@@ -1892,6 +1933,15 @@ mod tests {
             ("csharp", "1.50"),
             ("go", "(1 + -2i)"),
             ("go", "-1/3"),
+            ("go", "1/2"),
+            ("go", "5"),
+            ("go", "0"),
+            ("go", "(5/2 + -3i)"),
+            ("go", "(0 + 0i)"),
+            // Above u128, the rule still reads the whole number.
+            ("go", "340282366920938463463374607431768211457/2"),
+            ("go", "0x.c78820040d9443cfp+16610"),
+            ("go", "-0x.a43978d5p-16609"),
         ] {
             assert_eq!(
                 value_form_issue(language, value, false),

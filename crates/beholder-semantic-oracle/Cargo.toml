@@ -22,6 +22,8 @@ sha2.workspace = true
 serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }
 # Tokenizes type text for the canonical spelling rules; `@{id}` is not any language's syntax.
 logos = "0.16"
+num-bigint = { version = "0.4", default-features = false }
+num-integer = { version = "0.1", default-features = false }
 
 [dev-dependencies]
 json-patch = "4"
