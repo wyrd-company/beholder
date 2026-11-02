@@ -1108,6 +1108,7 @@ impl<'a> Checker<'a> {
             }
             if let Some(visibility) = entity.get("effective-visibility") {
                 self.check_scopes(&format!("{at}/effective-visibility"), visibility);
+                self.check_whole_unit_scope(&at, entity, visibility);
                 self.check_undistributed(&at, entity, visibility, &contexts);
             }
 
@@ -1194,6 +1195,51 @@ impl<'a> Checker<'a> {
                 );
             }
             records.push((id, contexts));
+        }
+    }
+
+    /// At the `unit` boundary, a scope that holds the entity's unit or its
+    /// unit root covers the whole unit, so the value is written `all`.
+    fn check_whole_unit_scope(&mut self, at: &str, entity: &'a Value, visibility: &'a Value) {
+        let mut whole: BTreeSet<&'a str> = BTreeSet::new();
+        for unit in self.units_of(entity) {
+            whole.insert(unit);
+            if let Some((Class::Unit, record)) = self.ids.get(unit) {
+                if let Some(root) = text(record, "root") {
+                    whole.insert(root);
+                }
+            }
+        }
+        let values: Vec<(String, &'a Value)> = match variant_list(visibility) {
+            Some(entries) => entries
+                .iter()
+                .enumerate()
+                .filter_map(|(k, e)| e.get("value").map(|v| (format!("/{k}/value"), v)))
+                .collect(),
+            None => vec![(String::new(), visibility)],
+        };
+        for (suffix, value) in values {
+            let Some(access) = value.get("unit") else {
+                continue;
+            };
+            let accesses: Vec<&Value> = match access.as_array() {
+                Some(items) => items.iter().collect(),
+                None => vec![access],
+            };
+            let covers = accesses.iter().any(|access| {
+                text(access, "access") == Some("scoped")
+                    && list(access, "scope")
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .any(|member| whole.contains(member))
+            });
+            if covers {
+                self.error(
+                    "model:effective-visibility",
+                    format!("{at}/effective-visibility{suffix}/unit"),
+                    "the scope covers the whole unit; the value is `all`".into(),
+                );
+            }
         }
     }
 

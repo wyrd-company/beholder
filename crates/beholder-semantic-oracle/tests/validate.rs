@@ -1312,3 +1312,21 @@ fn a_definition_site_holds_in_contexts_of_its_entity() {
         )],
     );
 }
+
+#[test]
+fn a_scope_that_covers_the_unit_is_written_all() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/entities/2/effective-visibility/unit",
+        json!({"access": "scoped", "scope": ["tally.crate"]}),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:effective-visibility",
+            "/entities/2/effective-visibility/unit",
+        )],
+    );
+}

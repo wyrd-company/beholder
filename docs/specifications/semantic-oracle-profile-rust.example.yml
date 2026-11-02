@@ -161,7 +161,7 @@ entities:
       - at: {path: src/lib.rs, start: [2, 5], end: [2, 11], text: detail}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.extras
@@ -280,7 +280,7 @@ entities:
     definitions: []
     declared-visibility: {value: 'pub(super)', explicit: true}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.shapes.Kind
@@ -411,7 +411,7 @@ entities:
       - at: {path: src/lib.rs, start: [12, 16], end: [12, 23], text: COUNTER}
     declared-visibility: {value: 'pub(self)', explicit: true}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.square
@@ -438,7 +438,7 @@ entities:
       - at: {path: src/lib.rs, start: [18, 14], end: [18, 20], text: marker}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [geometry.crate]}
+      unit: all
       project: none
       external: none
   - id: geometry.Pin
@@ -505,7 +505,7 @@ entities:
       - at: {path: src/bin/atlas.rs, start: [3, 4], end: [3, 8], text: main}
     declared-visibility: {value: private, explicit: false}
     effective-visibility:
-      unit: {access: scoped, scope: [atlas.crate]}
+      unit: all
       project: none
       external: none
 
