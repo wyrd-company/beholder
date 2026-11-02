@@ -700,6 +700,12 @@ impl<'a> Checker<'a> {
                             access: Access::All,
                         },
                     );
+                // The namespaces of a project type a consumer reaches through
+                // the forward. An external type's namespace is outside the
+                // project.
+                if let Some((Class::Entity, record)) = self.ids.get(forwarded) {
+                    self.csharp_namespaces(record, distribution, context, membership);
+                }
             }
         }
     }

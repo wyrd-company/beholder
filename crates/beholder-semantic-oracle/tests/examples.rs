@@ -829,3 +829,59 @@ fn a_csharp_namespace_is_a_member_through_a_public_type() {
     );
     assert!(!findings.contains("Geometry.Hidden"), "{findings}");
 }
+
+#[test]
+fn a_forwarded_project_type_brings_its_namespaces() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    let mut distribution = dataset["distributions"][0].clone();
+    distribution["id"] = json!("other");
+    distribution["name"] = json!("Other");
+    push(&mut dataset, "/distributions", distribution);
+    let mut unit = dataset["units"][0].clone();
+    unit["id"] = json!("other-lib");
+    unit["name"] = json!("Other");
+    unit["distribution"] = json!("other");
+    unit["project"] = json!("src/Other/Other.csproj");
+    push(&mut dataset, "/units", unit);
+    let mut namespace = entity(
+        "Other.Ns",
+        "namespace",
+        "namespace",
+        "Other.Ns",
+        "x",
+        "other-lib",
+    );
+    namespace.as_object_mut().unwrap().remove("parent");
+    namespace.as_object_mut().unwrap().remove("unit");
+    namespace["units"] = json!(["other-lib"]);
+    namespace["declared-visibility"] = json!({"value": "public", "explicit": false});
+    push(&mut dataset, "/entities", namespace);
+    let mut thing = entity(
+        "Other.Ns.Thing",
+        "type",
+        "class",
+        "Other.Ns.Thing",
+        "Other.Ns",
+        "other-lib",
+    );
+    thing["declared-visibility"] = json!({"value": "public", "explicit": true});
+    push(&mut dataset, "/entities", thing);
+    let site = json!({"path": "src/Geometry/Shapes.cs", "start": [1, 11], "end": [1, 19], "text": "Geometry"});
+    push(
+        &mut dataset,
+        "/extensions/csharp:type-forward",
+        json!({"unit": "geometry-lib", "type": "Other.Ns.Thing", "at": site}),
+    );
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("makes `Other.Ns` a member of `geometry`"),
+        "{findings}"
+    );
+    assert!(
+        findings.contains("makes `Other.Ns.Thing` a member of `geometry`"),
+        "{findings}"
+    );
+    // The forwarded external type `Legacy.Point` adds no namespace.
+    let example = load("semantic-oracle-profile-csharp.example.yml");
+    assert_eq!(recomputed(&example), Vec::<String>::new());
+}
