@@ -16,7 +16,7 @@ A build that fails is an error: this script exits 2 and writes no report. A repo
 never states what a failed build did not check.
 
   report-rust.py --project DIR --context ID --out FILE
-      [--features a,b] [--no-default-features] [--all-features]
+      [--features a,b] [--no-default-features] [--all-features] [--cfg NAME]...
 
 All of these use one toolchain, the one the project selects.
 
@@ -104,12 +104,16 @@ def rustdoc_json(project, target_dir, selection):
         command.append("--all-features")
     env = {
         "RUSTC_BOOTSTRAP": "1",
-        "RUSTDOCFLAGS": "-Z unstable-options --output-format json --document-private-items -A warnings",
+        "RUSTDOCFLAGS": f"-Z unstable-options --output-format json --document-private-items -A warnings {cfg_flags(selection)}",
     }
     built = run(command, project, env)
     if built.returncode:
         fail(f"rustdoc failed:\n{built.stderr}")
     return os.path.join(target_dir, "doc")
+
+
+def cfg_flags(selection):
+    return " ".join(f"--cfg {name}" for name in selection.cfg)
 
 
 def dependency_line(package, selection):
@@ -952,6 +956,7 @@ def main():
     parser.add_argument("--features", default="")
     parser.add_argument("--no-default-features", action="store_true")
     parser.add_argument("--all-features", action="store_true")
+    parser.add_argument("--cfg", action="append", default=[])
     arguments = parser.parse_args()
     original = os.path.abspath(arguments.project)
     out = os.path.abspath(arguments.out)
@@ -966,6 +971,9 @@ def main():
         shutil.copytree(original, project, symlinks=True, ignore=shutil.ignore_patterns("target", ".git"))
         target_dir = os.path.join(work, "target")
         select_toolchain(project)
+        # A context's `cfg` reaches rustdoc and the probe's dependencies alike.
+        if arguments.cfg:
+            TOOLCHAIN["RUSTFLAGS"] = cfg_flags(arguments)
         metadata = cargo_metadata(project)
         doc_dir = rustdoc_json(project, target_dir, arguments)
         doc_seconds = time.monotonic() - started

@@ -179,6 +179,35 @@ pub fn make() -> impl Clone { std::rc::Rc::new(()) }
     _, found = members(out)
     assert "auto-traits[Send]" not in found["sample::make"]["slots"]
 
+    # A context's `cfg` selects what rustdoc and the probe read.
+    configured = os.path.join(tmp, "rust-cfg")
+    write(configured, {
+        "Cargo.toml": '[package]\nname = "sample"\nversion = "0.1.0"\nedition = "2021"\n[lib]\n[workspace]\n[lints.rust]\nunexpected_cfgs = "allow"\n',
+        "src/lib.rs": """
+#[cfg(chosen)]
+pub const VALUE: u32 = 1;
+#[cfg(not(chosen))]
+pub const VALUE: u32 = 2;
+#[cfg(chosen)]
+pub fn make() -> impl Clone { 1u8 }
+#[cfg(not(chosen))]
+pub fn make() -> impl Clone { std::rc::Rc::new(()) }
+""",
+    })
+    command = [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", configured, "--context", "default"]
+    out = os.path.join(tmp, "cfg-on.json")
+    done = subprocess.run(command + ["--out", out, "--cfg", "chosen"], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    _, found = members(out)
+    expect(found, "sample::VALUE", "value", "1")
+    expect(found, "sample::make", "auto-traits[Send]", "Send")
+    out = os.path.join(tmp, "cfg-off.json")
+    done = subprocess.run(command + ["--out", out], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    _, found = members(out)
+    expect(found, "sample::VALUE", "value", "2")
+    assert "auto-traits[Send]" not in found["sample::make"]["slots"]
+
     # A dependency that does not build certifies nothing.
     broken = os.path.join(tmp, "rust-broken")
     write(broken, {
