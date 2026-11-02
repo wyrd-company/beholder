@@ -281,7 +281,12 @@ description: |
   `basis: dynamic`. When the assigned object is one that the project
   creates at run time, such as a `types.ModuleType` instance, it is not an
   entity and the import has no reference. An import that only a search
-  path changed by a function body can satisfy is `indeterminate`.
+  path changed by a function body can satisfy is `indeterminate`, in
+  `typing` contexts as well, because no context models that change; in
+  `runtime`, an import that provably fails at its site inside a handler for
+  the failure is `nonexistent`. An import of a module that a project or
+  external entity represents targets that module, even when executing the
+  module raises.
 
   ## Relations
 
