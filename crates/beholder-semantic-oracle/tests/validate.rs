@@ -12,7 +12,7 @@
 use std::path::Path;
 
 use beholder_semantic_oracle::{
-    audit, parse_yaml,
+    audit, audit_with_reports, parse_yaml,
     project::{sha256_hex, MemoryProject},
     validate, Finding, Report, Severity,
 };
@@ -61,12 +61,7 @@ fn push(dataset: &mut Value, pointer: &str, value: Value) {
 /// The rule of public API recomputation. A test of another rule ignores
 /// its findings, which restate the mutation's effect on public API; the
 /// recomputation tests check them with [`expect_recomputed`].
-const RECOMPUTED: &str = "model:public-api-recomputed";
-
-/// `(severity, rule, at)` of every finding except public API recomputation.
-fn found(report: &Report) -> Vec<(&'static str, String, String)> {
-    found_where(report, |rule| rule != RECOMPUTED)
-}
+const RECOMPUTED: &str = "model:public-api-membership-recomputed";
 
 fn found_where(
     report: &Report,
@@ -91,7 +86,17 @@ fn expect(report: &Report, expected: &[(&'static str, &str, &str)]) {
         .iter()
         .map(|(s, r, a)| (*s, r.to_string(), a.to_string()))
         .collect();
-    assert_eq!(found(report), expected, "{:#?}", report.findings);
+    // A mutation aimed at another rule can also disturb a signature check, which
+    // has its own tests below; a test that names a signature rule sees them all.
+    let names_signature_rule = expected.iter().any(|(_, rule, _)| is_signature_rule(rule));
+    let found = found_where(report, |rule| {
+        rule != RECOMPUTED && (names_signature_rule || !is_signature_rule(rule))
+    });
+    assert_eq!(found, expected, "{:#?}", report.findings);
+}
+
+fn is_signature_rule(rule: &str) -> bool {
+    rule.starts_with("model:signature-") || rule == "rust:reachable-unnameable"
 }
 
 /// Expects exactly these public API recomputation findings, as
@@ -197,9 +202,21 @@ fn ids_are_unique_across_the_dataset() {
         &validate_with(&dataset, &files()),
         &[
             ("error", "model:id-unique", "/distributions/0/id"),
-            ("error", "model:id-reference", "/public-api/0/distribution"),
-            ("error", "model:id-reference", "/public-api/1/distribution"),
-            ("error", "model:id-reference", "/public-api/2/distribution"),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/0/distribution",
+            ),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/1/distribution",
+            ),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/2/distribution",
+            ),
             ("error", "model:id-reference", "/units/0/distribution"),
         ],
     );
@@ -673,7 +690,10 @@ fn scope_members_name_entities_units_or_documents() {
         json!({"unit": {"access": "scoped", "scope": ["tally.Counter", "src/lib.rs", "elsewhere"]},
                "project": "none", "external": "none"}),
     );
-    dataset["public-api"].as_array_mut().unwrap().remove(1);
+    dataset["public-api"]["members"]
+        .as_array_mut()
+        .unwrap()
+        .remove(1);
     expect(
         &validate_with(&dataset, &files()),
         &[(
@@ -706,12 +726,24 @@ fn a_public_api_member_is_externally_accessible() {
         "/entities/2/effective-visibility/external",
         json!("none"),
     );
-    set(&mut dataset, "/public-api/0/access", json!("subtypes"));
+    set(
+        &mut dataset,
+        "/public-api/members/0/access",
+        json!("subtypes"),
+    );
     expect(
         &validate_with(&dataset, &files()),
         &[
-            ("error", "model:public-api-access", "/public-api/0/access"),
-            ("error", "model:public-api-access", "/public-api/1/access"),
+            (
+                "error",
+                "model:public-api-access",
+                "/public-api/members/0/access",
+            ),
+            (
+                "error",
+                "model:public-api-access",
+                "/public-api/members/1/access",
+            ),
         ],
     );
 }
@@ -724,13 +756,13 @@ fn a_member_of_another_distribution_is_one_the_rule_reaches() {
         "/distributions",
         json!({"id": "other", "kind": "crate", "name": "other", "version": "1.0.0"}),
     );
-    let mut copy = dataset["public-api"][0].clone();
+    let mut copy = dataset["public-api"]["members"][0].clone();
     copy["distribution"] = json!("other");
-    push(&mut dataset, "/public-api", copy);
+    push(&mut dataset, "/public-api/members", copy);
     expect_recomputed(
         &validate_with(&dataset, &files()),
         &[(
-            "/public-api/3",
+            "/public-api/members/3",
             "gives `tally.Counter` no consumer path in `other`",
         )],
     );
@@ -739,12 +771,128 @@ fn a_member_of_another_distribution_is_one_the_rule_reaches() {
 #[test]
 fn a_public_api_member_is_stated_once_per_context() {
     let mut dataset = dataset();
-    let copy = dataset["public-api"][0].clone();
-    push(&mut dataset, "/public-api", copy);
+    let copy = dataset["public-api"]["members"][0].clone();
+    push(&mut dataset, "/public-api/members", copy);
     expect(
         &validate_with(&dataset, &files()),
-        &[("error", "model:public-api-duplicate", "/public-api/3")],
+        &[(
+            "error",
+            "model:public-api-duplicate",
+            "/public-api/members/3",
+        )],
     );
+}
+
+#[test]
+fn a_signature_names_a_project_entity_in_its_contexts() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/entity",
+        json!("tally.absent"),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:id-reference",
+            "/public-api/signatures/0/entity",
+        )],
+    );
+
+    let mut dataset = self::dataset();
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["other"]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:context-declared",
+            "/public-api/signatures/0/contexts/0",
+        )],
+    );
+}
+
+#[test]
+fn an_external_that_only_a_signature_names_is_used() {
+    let mut dataset = dataset();
+    let external = json!({"id": "ext.core.Marker", "kind": "type", "language-kind": "trait",
+                          "distribution": "core", "path": "core::Marker"});
+    push(&mut dataset, "/externals", external);
+    expect(
+        &validate_with(&dataset, &files()),
+        &[("error", "model:external-unused", "/externals/0")],
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/returns",
+        json!({"inferred": "impl @{ext.core.Marker}"}),
+    );
+    let report = validate_with(&dataset, &files());
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|f| f.rule == "model:external-unused"),
+        "{:#?}",
+        report.findings
+    );
+}
+
+#[test]
+fn a_string_literal_names_no_external() {
+    let mut dataset = dataset();
+    let external = json!({"id": "ext.core.Marker", "kind": "type", "language-kind": "trait",
+                          "distribution": "core", "path": "core::Marker"});
+    push(&mut dataset, "/externals", external);
+    for slot in [
+        json!({"entity": "tally.make", "returns": "Literal<\"@{ext.core.Marker}\">"}),
+        json!({"entity": "tally.make", "returns": "Literal<\"\\\"@{ext.core.Marker}\">"}),
+        json!({"entity": "tally.make", "value": "\"@{ext.core.Marker}\""}),
+        json!({"entity": "tally.make", "abi": "@{ext.core.Marker}"}),
+        // A lifetime is no char literal, and it does not open a string either.
+        json!({"entity": "tally.make", "returns": "&'a Tag<\"@{ext.core.Marker}\">"}),
+    ] {
+        set(&mut dataset, "/public-api/signatures/0", slot);
+        expect(
+            &validate_with(&dataset, &files()),
+            &[("error", "model:external-unused", "/externals/0")],
+        );
+    }
+}
+
+/// A char literal's quote opens no string, so a name after it counts.
+#[test]
+fn a_char_literal_does_not_hide_a_later_external() {
+    let mut dataset = dataset();
+    let external = json!({"id": "ext.core.Marker", "kind": "type", "language-kind": "trait",
+                          "distribution": "core", "path": "core::Marker"});
+    push(&mut dataset, "/externals", external);
+    for returns in [
+        "@{tally.Counter}<'\"', @{ext.core.Marker}>",
+        "@{tally.Counter}<'\\\"', @{ext.core.Marker}>",
+        "@{tally.Counter}<'\\u{22}', @{ext.core.Marker}>",
+        "@{tally.Counter}<'a', @{ext.core.Marker}>",
+        "&'a @{tally.Counter}<@{ext.core.Marker}>",
+    ] {
+        set(
+            &mut dataset,
+            "/public-api/signatures/0/returns",
+            json!(returns),
+        );
+        let report = validate_with(&dataset, &files());
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.rule == "model:external-unused"),
+            "{returns}: {:#?}",
+            report.findings
+        );
+    }
 }
 
 // ----------------------------------------------------------- extensions
@@ -970,7 +1118,7 @@ fn an_entity_without_a_distribution_has_no_external_access() {
         .as_object_mut()
         .unwrap()
         .remove("distribution");
-    set(&mut dataset, "/public-api", json!([]));
+    set(&mut dataset, "/public-api/members", json!([]));
     expect(
         &validate_with(&dataset, &files()),
         &[
@@ -997,7 +1145,16 @@ fn an_entity_without_a_distribution_has_no_external_access() {
 fn an_omitted_fact_context_list_means_every_context_of_the_unit() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/2/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/1/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/1/contexts",
+        json!(["default"]),
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["default"]),
+    );
     expect(
         &validate_with(&dataset, &files()),
         &[
@@ -1014,7 +1171,16 @@ fn an_omitted_fact_context_list_means_every_context_of_the_unit() {
 fn a_target_exists_in_every_context_of_its_fact() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/1/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/0/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/0/contexts",
+        json!(["default"]),
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/1/contexts",
+        json!(["default"]),
+    );
     push(
         &mut dataset,
         "/relations",
@@ -1033,10 +1199,18 @@ fn a_target_exists_in_every_context_of_its_fact() {
 #[test]
 fn an_unknown_distribution_is_one_finding() {
     let mut dataset = dataset();
-    set(&mut dataset, "/public-api/0/distribution", json!("missing"));
+    set(
+        &mut dataset,
+        "/public-api/members/0/distribution",
+        json!("missing"),
+    );
     expect(
         &validate_with(&dataset, &files()),
-        &[("error", "model:id-reference", "/public-api/0/distribution")],
+        &[(
+            "error",
+            "model:id-reference",
+            "/public-api/members/0/distribution",
+        )],
     );
 }
 
@@ -1112,7 +1286,16 @@ fn integral_float_coordinates_are_checked_like_integers() {
 fn an_extension_target_exists_in_every_context_of_its_fact() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/2/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/1/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/1/contexts",
+        json!(["default"]),
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["default"]),
+    );
     set(&mut dataset, "/references/0/contexts", json!(["default"]));
     set(&mut dataset, "/references/1/contexts", json!(["default"]));
     set(
@@ -1231,11 +1414,14 @@ fn equal_coordinates_are_one_site_whatever_their_number_form() {
 #[test]
 fn a_member_the_profile_rule_finds_has_an_entry() {
     let mut dataset = dataset();
-    dataset["public-api"].as_array_mut().unwrap().remove(1);
+    dataset["public-api"]["members"]
+        .as_array_mut()
+        .unwrap()
+        .remove(1);
     expect_recomputed(
         &validate_with(&dataset, &files()),
         &[(
-            "/public-api",
+            "/public-api/members",
             "makes `tally.make` a member of `tally` with paths [`tally::make`]",
         )],
     );
@@ -1246,12 +1432,15 @@ fn an_entry_lists_exactly_the_consumer_paths() {
     let mut dataset = dataset();
     set(
         &mut dataset,
-        "/public-api/0/paths",
+        "/public-api/members/0/paths",
         json!(["tally::Counter", "tally::Count"]),
     );
     expect_recomputed(
         &validate_with(&dataset, &files()),
-        &[("/public-api/0/paths", "not consumer paths [`tally::Count`]")],
+        &[(
+            "/public-api/members/0/paths",
+            "not consumer paths [`tally::Count`]",
+        )],
     );
 }
 
@@ -1267,7 +1456,7 @@ fn only_a_pub_re_export_adds_a_consumer_path() {
     set(&mut dataset, "/relations/0/visibility", json!("pub"));
     expect_recomputed(
         &validate_with(&dataset, &files()),
-        &[("/public-api/0/paths", "missing [`tally::Tally`]")],
+        &[("/public-api/members/0/paths", "missing [`tally::Tally`]")],
     );
 }
 
@@ -1284,7 +1473,10 @@ fn a_private_item_has_no_consumer_path() {
         &[
             ("/entities/2/effective-visibility", "`external` is `none`"),
             ("/entities/2/effective-visibility", "`project` is `none`"),
-            ("/public-api/1", "gives `tally.make` no consumer path"),
+            (
+                "/public-api/members/1",
+                "gives `tally.make` no consumer path",
+            ),
         ],
     );
 }
@@ -1328,5 +1520,572 @@ fn a_scope_that_covers_the_unit_is_written_all() {
             "model:effective-visibility",
             "/entities/2/effective-visibility/unit",
         )],
+    );
+}
+
+// ------------------------------------------------------------ signatures
+
+/// The findings of one signature rule.
+fn rule_findings(dataset: &Value, rule: &str) -> Vec<String> {
+    validate_with(dataset, &files())
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == rule)
+        .map(|f| format!("{} {}", f.at, f.message))
+        .collect()
+}
+
+/// Asserts a rule finds nothing in the valid dataset, and one finding naming
+/// `expect` after the mutation, so that a check that passes everything fails.
+fn fails_rule(rule: &str, expect: &str, mutate: impl FnOnce(&mut Value)) {
+    assert_eq!(
+        rule_findings(&dataset(), rule),
+        Vec::<String>::new(),
+        "{rule}: the control"
+    );
+    let mut changed = dataset();
+    mutate(&mut changed);
+    let found = rule_findings(&changed, rule);
+    assert!(
+        found.iter().any(|message| message.contains(expect)),
+        "{rule}: expected `{expect}` in {found:#?}"
+    );
+}
+
+#[test]
+fn signature_slots_rejects_a_slot_the_kind_does_not_have() {
+    fails_rule("model:signature-slots", "has no `value` slot", |d| {
+        set(d, "/public-api/signatures/0/value", json!("1"));
+    });
+}
+
+#[test]
+fn signature_slots_rejects_a_record_for_a_non_member() {
+    fails_rule("model:signature-slots", "is no public API member", |d| {
+        d["public-api"]["members"].as_array_mut().unwrap().remove(1);
+    });
+}
+
+#[test]
+fn signature_slots_rejects_two_records_in_one_context() {
+    fails_rule("model:signature-slots", "another record states", |d| {
+        let copy = d["public-api"]["signatures"][0].clone();
+        push(d, "/public-api/signatures", copy);
+    });
+}
+
+#[test]
+fn signature_slots_requires_what_the_kind_always_has() {
+    // A Rust field always has `type`.
+    fails_rule("model:signature-slots", "which has type", |d| {
+        let field = json!({"id": "tally.Counter.n", "kind": "field", "language-kind": "field",
+            "name": "n", "path": "tally::Counter::n", "unit": "tally-lib", "parent": "tally.Counter",
+            "origin": "source", "definitions": [],
+            "declared-visibility": {"value": "pub", "explicit": true},
+            "effective-visibility": {"unit": "all", "project": "all", "external": "all"}});
+        push(d, "/entities", field);
+        push(
+            d,
+            "/public-api/members",
+            json!({"distribution": "tally", "entity": "tally.Counter.n",
+                   "paths": ["tally::Counter::n"], "access": "all"}),
+        );
+    });
+}
+
+/// A record that exists and lacks the slot, not a member with no record: a constant
+/// can hold `value` alone by the schema, and always has `type`.
+#[test]
+fn signature_slots_requires_a_record_to_hold_what_the_kind_always_has() {
+    let constant = |d: &mut Value| {
+        let entity = json!({"id": "tally.LIMIT", "kind": "constant", "language-kind": "const",
+            "name": "LIMIT", "path": "tally::LIMIT", "unit": "tally-lib", "parent": "tally.crate",
+            "origin": "source", "definitions": [],
+            "declared-visibility": {"value": "pub", "explicit": true},
+            "effective-visibility": {"unit": "all", "project": "all", "external": "all"}});
+        push(d, "/entities", entity);
+        push(
+            d,
+            "/public-api/members",
+            json!({"distribution": "tally", "entity": "tally.LIMIT",
+                   "paths": ["tally::LIMIT"], "access": "all"}),
+        );
+    };
+    let mut control = dataset();
+    constant(&mut control);
+    push(
+        &mut control,
+        "/public-api/signatures",
+        json!({"entity": "tally.LIMIT", "type": "u8", "value": "1"}),
+    );
+    assert_eq!(
+        rule_findings(&control, "model:signature-slots"),
+        Vec::<String>::new()
+    );
+    let mut lacking = dataset();
+    constant(&mut lacking);
+    push(
+        &mut lacking,
+        "/public-api/signatures",
+        json!({"entity": "tally.LIMIT", "value": "1"}),
+    );
+    let found = rule_findings(&lacking, "model:signature-slots");
+    assert!(
+        found.iter().any(|m| m.contains("always has `type`")),
+        "{found:#?}"
+    );
+}
+
+#[test]
+fn signature_slots_checks_auto_trait_ordinals() {
+    let pair = json!("(impl @{tally.Counter}, impl @{tally.Counter})");
+    fails_rule("model:signature-slots", "holds no opaque type", |d| {
+        set(d, "/public-api/signatures/0/auto-traits", json!(["Send"]));
+    });
+    fails_rule("model:signature-slots", "has plain elements", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/returns",
+            json!("impl @{tally.Counter}"),
+        );
+        set(
+            d,
+            "/public-api/signatures/0/auto-traits",
+            json!(["#0 Send"]),
+        );
+    });
+    fails_rule("model:signature-slots", "names one by `#<n> `", |d| {
+        set(d, "/public-api/signatures/0/returns", pair.clone());
+        set(d, "/public-api/signatures/0/auto-traits", json!(["Send"]));
+    });
+    fails_rule("model:signature-slots", "past its 2 occurrence", |d| {
+        set(d, "/public-api/signatures/0/returns", pair.clone());
+        set(
+            d,
+            "/public-api/signatures/0/auto-traits",
+            json!(["#2 Send"]),
+        );
+    });
+    // A type's elements are plain.
+    fails_rule("model:signature-slots", "has plain elements", |d| {
+        set(
+            d,
+            "/public-api/signatures/1/auto-traits",
+            json!(["#0 Send"]),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_a_second_spelling() {
+    fails_rule("model:signature-canonical", "its one spelling is", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/returns",
+            json!("( @{tally.Counter} )"),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_an_id_that_resolves_to_nothing() {
+    fails_rule("model:signature-canonical", "resolves to no entity", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/returns",
+            json!("@{tally.Absent}"),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_a_bare_entity_name() {
+    fails_rule(
+        "model:signature-canonical",
+        "neither predeclared nor a type parameter",
+        |d| {
+            set(d, "/public-api/signatures/0/returns", json!("Counter"));
+        },
+    );
+}
+
+#[test]
+fn signature_canonical_rejects_an_unresolved_name() {
+    fails_rule("model:signature-canonical", "observation form", |d| {
+        set(d, "/public-api/signatures/0/returns", json!("@?{Counter}"));
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_a_value_outside_the_forms() {
+    fails_rule("model:signature-canonical", "is not a value form", |d| {
+        set(
+            d,
+            "/public-api/signatures/0",
+            json!({"entity": "tally.make", "value": "1 + 1"}),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_an_unsorted_set() {
+    fails_rule(
+        "model:signature-canonical",
+        "`auto-traits` is sorted",
+        |d| {
+            set(
+                d,
+                "/public-api/signatures/1/auto-traits",
+                json!(["Send", "RefUnwindSafe"]),
+            );
+        },
+    );
+    fails_rule("model:signature-canonical", "its one spelling is", |d| {
+        set(
+            d,
+            "/public-api/signatures/1/auto-traits",
+            json!(["Send when U: Send, T: Send"]),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_an_unsorted_set_below_the_record() {
+    fails_rule(
+        "model:signature-canonical",
+        "/bindings/0/auto-traits",
+        |d| {
+            set(
+                d,
+                "/public-api/signatures/1/bases",
+                json!([{"type": "@{tally.make}", "bindings": [
+                {"name": "m", "auto-traits": ["Send", "RefUnwindSafe"]}]}]),
+            );
+        },
+    );
+    fails_rule("model:signature-canonical", "/bases/0/bindings", |d| {
+        set(
+            d,
+            "/public-api/signatures/1/bases",
+            json!([{"type": "@{tally.make}", "bindings": [
+                {"name": "z", "type": "u8"}, {"name": "a", "type": "u8"}]}]),
+        );
+    });
+}
+
+/// A C# `bounds` slot sorts by the language's rule, not by its text.
+#[test]
+fn signature_canonical_reads_a_bounds_slot_by_its_rule() {
+    fails_rule("model:signature-canonical", "its one spelling is", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/type-parameters",
+            json!([{"name": "T", "kind": "type", "bounds": "@{tally.make} + @{tally.Counter}"}]),
+        );
+    });
+}
+
+#[test]
+fn signature_parameters_rejects_a_list_that_differs_from_the_entities() {
+    fails_rule("model:signature-parameters", "the parameter list is", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/parameters",
+            json!([{"name": "other", "type": "u8"}]),
+        );
+    });
+}
+
+#[test]
+fn signature_parameters_rejects_an_entity_no_list_names() {
+    fails_rule("model:signature-parameters", "the parameter list is", |d| {
+        let parameter = json!({"id": "tally.make.n", "kind": "parameter", "language-kind": "param",
+            "name": "n", "path": "tally::make::(n)", "unit": "tally-lib", "parent": "tally.make",
+            "origin": "source",
+            "definitions": [{"at": {"path": "src/lib.rs", "start": [3, 8], "end": [3, 12], "text": "make"}}]});
+        push(d, "/entities", parameter);
+    });
+}
+
+#[test]
+fn signature_references_rejects_an_id_with_no_reference() {
+    fails_rule(
+        "model:signature-references",
+        "has no `type` reference",
+        |d| {
+            d["references"].as_array_mut().unwrap().remove(0);
+        },
+    );
+}
+
+#[test]
+fn signature_references_rejects_a_reference_from_outside_the_declaration() {
+    fails_rule(
+        "model:signature-references",
+        "has no `type` reference",
+        |d| {
+            set(d, "/references/0/from", json!("tally.crate"));
+        },
+    );
+}
+
+#[test]
+fn signature_inference_rejects_inferred_on_a_rust_source_entity() {
+    fails_rule("model:signature-inference", "{inferred} is for what", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/returns",
+            json!({"inferred": "@{tally.Counter}"}),
+        );
+    });
+}
+
+#[test]
+fn signature_bases_rejects_a_base_with_no_relation_and_a_relation_with_no_base() {
+    fails_rule("model:signature-bases", "no relation targets it", |d| {
+        set(
+            d,
+            "/public-api/signatures/1/bases",
+            json!([{"type": "@{tally.make}"}]),
+        );
+    });
+    fails_rule("model:signature-bases", "has no `bases` entry", |d| {
+        push(
+            d,
+            "/relations",
+            json!({"kind": "implements", "from": "tally.make", "to": "tally.Counter"}),
+        );
+    });
+    fails_rule(
+        "model:signature-bases",
+        "no record states its `bases`",
+        |d| {
+            d["public-api"]["signatures"]
+                .as_array_mut()
+                .unwrap()
+                .remove(1);
+            push(
+                d,
+                "/relations",
+                json!({"kind": "implements", "from": "tally.Counter", "to": "tally.make"}),
+            );
+        },
+    );
+}
+
+#[test]
+fn reachable_unnameable_via_is_recomputed() {
+    let rule = "rust:reachable-unnameable";
+    // `make` exposes `Counter`, which has no consumer path once it is no member.
+    fails_rule(rule, "no fact states it", |d| {
+        let members = d["public-api"]["members"].as_array_mut().unwrap();
+        members.retain(|m| m["entity"] != "tally.Counter");
+        d["public-api"]["signatures"]
+            .as_array_mut()
+            .unwrap()
+            .remove(1);
+    });
+    let fact =
+        json!({"entity": "tally.Counter", "distribution": "tally", "via": ["tally.Counter"]});
+    fails_rule(rule, "`via` is", |d| {
+        set(
+            d,
+            "/extensions",
+            json!({"rust:reachable-unnameable": [fact]}),
+        );
+    });
+}
+
+// ------------------------------------------------------- compiler reports
+
+fn report(slots: Value, covers: Value) -> Value {
+    json!({
+        "format": "semantic-oracle-compiler-report/1",
+        "language": "rust",
+        "context": "default",
+        "tool": {"name": "rustdoc", "version": "test"},
+        "covers": covers,
+        "members": [{"path": "tally::make", "slots": slots, "unstated": []}],
+    })
+}
+
+const COMPILER: &str = "profile:signature-compiler";
+
+fn compiler_findings(report: &Report) -> Vec<String> {
+    report
+        .findings
+        .iter()
+        .filter(|f| f.rule == COMPILER)
+        .map(|f| f.message.clone())
+        .collect()
+}
+
+#[test]
+fn a_slot_with_no_report_is_unchecked_and_has_not_passed() {
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[]);
+    assert_eq!(audited.agreed, 0);
+    assert!(!audited.unchecked.is_empty());
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+    assert_eq!(audited.summary()["unchecked"], audited.unchecked.len());
+}
+
+#[test]
+fn a_report_that_agrees_counts_the_slot_as_agreed() {
+    let reported = report(json!({"returns": "@{tally::Counter}"}), json!(["returns"]));
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 1);
+    assert!(!audited.unchecked.iter().any(|u| u.slot == "returns"));
+}
+
+#[test]
+fn a_report_compares_after_canonical_spelling() {
+    let reported = report(
+        json!({"returns": "( @{tally::Counter} )"}),
+        json!(["returns"]),
+    );
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 1);
+}
+
+#[test]
+fn a_disagreement_names_the_rule() {
+    let reported = report(json!({"returns": "u32"}), json!(["returns"]));
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    let found = compiler_findings(&audited);
+    assert_eq!(found.len(), 1, "{found:#?}");
+    assert!(found[0].contains("states `u32`"), "{found:#?}");
+    assert_eq!(audited.agreed, 0);
+}
+
+#[test]
+fn a_covered_slot_the_report_lacks_is_a_disagreement() {
+    let reported = report(json!({}), json!(["returns"]));
+    let found = compiler_findings(&audit_with_reports(&dataset(), Some(&files()), &[reported]));
+    assert!(found[0].contains("states no such slot"), "{found:#?}");
+}
+
+#[test]
+fn a_slot_the_report_states_and_the_record_lacks_is_a_disagreement() {
+    let reported = report(
+        json!({"returns": "@{tally::Counter}", "abi": "C"}),
+        json!(["returns", "abi"]),
+    );
+    let found = compiler_findings(&audit_with_reports(&dataset(), Some(&files()), &[reported]));
+    assert!(
+        found.iter().any(|m| m.contains("the record lacks it")),
+        "{found:#?}"
+    );
+}
+
+#[test]
+fn a_slot_a_report_does_not_cover_stays_unchecked() {
+    let reported = report(json!({}), json!(["parameters[].type"]));
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 0);
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+}
+
+#[test]
+fn a_member_a_report_marks_unstated_stays_unchecked() {
+    let mut reported = report(json!({}), json!(["returns"]));
+    reported["members"][0]["unstated"] = json!(["returns"]);
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+}
+
+#[test]
+fn a_report_of_another_language_or_context_is_rejected() {
+    let mut other_language = report(json!({}), json!([]));
+    other_language["language"] = json!("go");
+    let found = compiler_findings(&audit_with_reports(
+        &dataset(),
+        Some(&files()),
+        &[other_language],
+    ));
+    assert!(found[0].contains("is for `go`"), "{found:#?}");
+    let mut other_context = report(json!({}), json!([]));
+    other_context["context"] = json!("absent");
+    let found = compiler_findings(&audit_with_reports(
+        &dataset(),
+        Some(&files()),
+        &[other_context],
+    ));
+    assert!(found[0].contains("is not declared"), "{found:#?}");
+}
+
+#[test]
+fn every_context_needs_a_report_for_a_slot_to_agree() {
+    let dataset = two_contexts();
+    let reported = report(json!({"returns": "@{tally::Counter}"}), json!(["returns"]));
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(audited.agreed, 0);
+    let unchecked = audited
+        .unchecked
+        .iter()
+        .find(|u| u.slot == "returns")
+        .unwrap();
+    // Per slot and context: agreed where a report states it, and unchecked where none
+    // does, with both in the output and no pass summed.
+    assert_eq!(unchecked.agreed_in, ["default"]);
+    assert_eq!(unchecked.unchecked_in, ["release"]);
+    assert_eq!(audited.contexts["default"].agreed, 1);
+    assert!(audited.contexts["release"].unchecked >= 1);
+    assert_eq!(audited.contexts["release"].agreed, 0);
+    assert_eq!(audited.summary()["agreed"], 0);
+    assert_eq!(audited.summary()["contexts"]["default"]["agreed"], 1);
+    assert_eq!(unchecked.to_json()["agreed-in"], json!(["default"]));
+    assert_eq!(unchecked.to_json()["unchecked-in"], json!(["release"]));
+    assert!(
+        unchecked.reason.contains("no compiler report for context"),
+        "{unchecked:?}"
+    );
+}
+
+/// One path can name several kinds, each with its own member in a report.
+#[test]
+fn a_report_reads_a_member_by_its_kind() {
+    let mut reported = report(json!({"returns": "@{tally::Counter}"}), json!(["returns"]));
+    reported["members"][0]["kind"] = json!("callable");
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported.clone()]);
+    assert_eq!(audited.agreed, 1);
+    // A member of another kind at this path says nothing about this one.
+    reported["members"][0]["kind"] = json!("module");
+    reported["members"][0]["slots"] = json!({"returns": "u32"});
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 0);
+}
+
+/// A report lists what it could not read, and that does not count as agreement.
+#[test]
+fn a_report_that_could_not_read_a_module_warns() {
+    let mut reported = report(json!({}), json!([]));
+    reported["failed"] = json!(["pkg.broken: ImportError"]);
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert!(audited
+        .findings
+        .iter()
+        .any(|f| f.rule == COMPILER && f.message.contains("pkg.broken")));
+    assert_eq!(audited.agreed, 0);
+}
+
+/// Two units can hold one path, such as two versions of one crate.
+#[test]
+fn a_report_of_another_unit_says_nothing_about_this_one() {
+    let mut reported = report(json!({"returns": "u32"}), json!(["returns"]));
+    reported["members"][0]["unit"] = json!({"package-version": "9.9.9"});
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported.clone()]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+    let version = dataset()["units"][0]["package-version"].clone();
+    reported["members"][0]["unit"] = json!({"package-version": version});
+    let found = compiler_findings(&audit_with_reports(&dataset(), Some(&files()), &[reported]));
+    assert!(
+        found.iter().any(|m| m.contains("states `u32`")),
+        "{found:#?}"
     );
 }

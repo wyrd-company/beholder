@@ -164,7 +164,11 @@ description: |
 
   ## Public API
 
-  A distribution's public API in a context is every entity of its unit whose
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  A distribution's members in a context are every entity of its unit whose
   `external` access is `all` or includes `subtypes`, together with every
   type the unit forwards with `TypeForwardedTo`. A forwarded type is a member
   with the consumer path of the forwarded type, and the
@@ -173,6 +177,93 @@ description: |
   the distribution or a project type the distribution forwards, because a
   consumer can name it. The namespace of a forwarded external type is outside
   the project and is no member. Other namespaces are not members. An extension block is not a member; its members are.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `method` | `type-parameters`, `parameters`, `returns`, `return-mode`, `modifiers` |
+  | `operator`, `conversion` | `parameters`, `returns`, `modifiers` |
+  | `constructor` | `parameters`, `modifiers` |
+  | `static-constructor`, `finalizer` | None |
+  | `class`, `record`, `struct`, `record-struct`, `ref-struct`, `interface` | `type-parameters`, `bases`, `modifiers` |
+  | `delegate` | `type-parameters`, `modifiers`. Its `Invoke` member states its signature. |
+  | `enum` | `underlying`, always |
+  | `field`, `fixed-buffer` | `type`, `modifiers` |
+  | `const` | `type`, `value` |
+  | `property`, `indexer` | `get`, `set`, `init`, `return-mode`, `modifiers`; `parameters` for an indexer |
+  | `event` | `add`, `remove`, `modifiers` |
+  | `enum-member` | `value` |
+
+  An event's `add` and `remove` are accessors: each holds the delegate type in `type`,
+  as `add: {type: "@{ext.System.EventHandler}?"}`.
+
+  A `fixed-buffer`'s `type` is its element type with its length, `char[24]` for
+  `public fixed char Name[24]`. This is the oracle's spelling, because C# has no type
+  syntax for the length, and it states the layout that the length gives. The bracket holds
+  the evaluated positive decimal length, so `Name[6 * 4]`, `Name[0x18]` and `Name[24]` are
+  all `char[24]`.
+
+  Parameter modes: `ref`, `out`, `in`, `ref readonly` and `params`; `scoped`, `scoped ref`,
+  `scoped in` and `scoped ref readonly`; and for an extension method's first parameter
+  `this`, `this ref`, `this in`, `this ref readonly`, `this scoped` or `this scoped ref`.
+  A mode is the effective one: `scoped out` is `out`, because an `out` parameter is
+  always scoped. `return-mode`
+  is `ref` or `ref readonly`, and is absent for a return by value; `returns` holds the
+  type without `ref`.
+
+  Modifiers: `abstract`, `sealed`, `static`, `virtual`, `override`, `readonly` and
+  `required`. `async` is not a modifier, because the return type states its effect on a
+  caller. An accessor has `access`, `internal`, `private`, `private protected`, `protected`
+  or `protected internal`, when narrower than the member's, and `modifiers`, `readonly`.
+
+  Every constraint is on a type parameter, so a type parameter's `bounds` holds its
+  `where` clause, and the profile has no `where` slot. The language fixes a primary
+  constraint first, then `new()`, then `allows ref struct` last, and the interface and type
+  parameter constraints between the primary constraint and those are sorted:
+  `class, @{IA}, @{IB}, new()`. A type parameter has `variance`, `in` or `out`, when it
+  states one.
+
+  `bases` holds the targets of the type's `inherits` and `implements` relations, with
+  their type arguments. An interface that a base inherits has no source token.
+
+  For a partial member, the defining declaration supplies the parameter names, order and
+  defaults, and the parameter audit reads its sites.
+
+  Canonical spelling:
+
+  - Type keywords are written bare: `bool`, `byte`, `char`, `decimal`, `double`,
+    `dynamic`, `float`, `int`, `long`, `nint`, `nuint`, `object`, `sbyte`, `short`,
+    `string`, `uint`, `ulong`, `ushort` and `void`. `int` for `System.Int32`, and the
+    same for each keyword with a metadata name.
+  - `int?` for `Nullable<int>`. The reference audit does not expect a token that a
+    canonical form removes.
+  - Type text states the effective nullable annotation of each reference type occurrence:
+    `string?` annotated, `string` not annotated, and `string~` oblivious. `~` is the
+    oracle's extension to C# type syntax, placed on each oblivious occurrence, including
+    nested ones. Effective state includes local `#nullable` directives. `#nullable`
+    warning state is not recorded.
+  - Tuple element names stay in the type text: `(int x, string? y)`.
+  - Text uses `, ` between arguments and no space before `<` or `[`.
+
+  Inference: a declared member has no inferred type. A synthetic member, such as a
+  record's copy constructor, `EqualityContract`, positional members or a delegate's
+  `Invoke`, has `{inferred: ...}` by the synthesis rule, with a synthetic `parameter`
+  entity for each parameter. A delegate's constructor has parameters `object` and `method`,
+  `BeginInvoke` adds `callback` and `object` to the delegate's parameters and returns
+  `@{IAsyncResult}`, and `EndInvoke` keeps the delegate's by-reference parameters in order, adds `result`, and
+  returns the delegate's return with its `return-mode`. A compiler-supplied parameter name
+  that collides with a delegate's parameter name takes the name the compiler gives it. These
+  compiler-supplied reference types are oblivious, as `object~`. `value` and `default` are the
+  constant's value under the specification's constant expression rules. C# `default` is
+  written as the value it denotes for the type. A `decimal` is its exact decimal. An
+  author derives these from the C# language specification, and a Roslyn compile probe
+  outside the tree confirms them.
+
+  The compiler report comes from Roslyn. Where that toolchain is absent, every slot is
+  `unchecked`.
 
   ## References
 
@@ -233,7 +324,7 @@ description: |
     (`Equals`, `GetHashCode`, `ToString`, `PrintMembers`, `Deconstruct`,
     `EqualityContract`, the copy constructor and positional properties) when
     the source does not declare them; the delegate members the compiler
-    declares (`Invoke`, `BeginInvoke`, `EndInvoke`). Each is anchored on the
+    declares (its constructor, `Invoke`, `BeginInvoke`, `EndInvoke`). Each is anchored on the
     declaring type's name.
   - External key path: the entity path at the defining assembly.
     `distribution` is the assembly name, such as `System.Runtime`; reference
@@ -275,6 +366,9 @@ description: |
      parameters, with friend units resolved.
   8. Record the public API of every distribution in every context, and every
      `csharp:type-forward` fact.
+  9. Write every signature from source and the C# language specification. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from Roslyn after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A C# dataset conforms when it conforms to `semantic-oracle-model`, every
   context derives from a `build` or `test` command by the framework rule,
@@ -283,3 +377,5 @@ validation-criteria: |
   domain rules and the declared `InternalsVisibleTo` attributes, and every
   public API membership agrees with this profile's rule. Independent review
   confirms facts against source, project files and the C# specification.
+  Every signature follows this profile's slots, modes, modifiers and canonical spelling,
+  and its slots agree with Roslyn or are listed as `unchecked`.

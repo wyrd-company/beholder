@@ -34,6 +34,7 @@ properties:
         visibility: {enum: [re-export, import]}
       if: {properties: {kind: {const: exports}}, required: [kind]}
       then: {required: [visibility]}
+  public-api: {properties: {signatures: {items: {$ref: '#/$defs/signature'}}}}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -149,3 +150,57 @@ $defs:
             name: {$ref: '#/$defs/text'}
             target: {$ref: '#/$defs/id'}
           unevaluatedProperties: false
+
+  # ------------------------------------------------------------- signatures
+  # The slots, modes and modifiers of this language over the model's records.
+  signature:
+    $ref: '#/$defs/signature-slots'
+    properties:
+      alternatives: {items: {$ref: '#/$defs/signature-slots'}}
+  callable-slots:
+    properties:
+      where: false
+      return-mode: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      parameters: {items: {$ref: '#/$defs/parameter'}}
+      modifiers: {items: {enum: [abstract, classvar, final, not-required]}}
+  signature-slots:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      auto-traits: false
+      abi: false
+      implementations: false
+      add: false
+      remove: false
+      impl: false
+      receiver: false
+      underlying: false
+      constructors: false
+      call-signatures: false
+      construct-signatures: false
+      index-signatures: false
+      bounds: false
+      tag: false
+      init: false
+      overloads: {items: {$ref: '#/$defs/callable-slots'}}
+      bases: {items: {$ref: '#/$defs/base'}}
+      get: {$ref: '#/$defs/accessor'}
+      set: {$ref: '#/$defs/accessor'}
+  type-parameter:
+    properties:
+      variance: {enum: [in, out]}
+      modifiers: false
+      kind: {const: type}
+  parameter:
+    properties:
+      mode: {enum: [keyword-only, positional-only, var-keyword, var-positional]}
+  base:
+    properties:
+      type-parameters: false
+      self-type: false
+      where: false
+      bindings: false
+  accessor:
+    properties:
+      access: false
+      modifiers: false

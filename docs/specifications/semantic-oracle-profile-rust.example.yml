@@ -7,6 +7,9 @@
 # and a binary. It exercises every Rust record form and extension of the
 # schema. Locators and digests describe notional source; schema validation
 # does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: rust/1
 project:
@@ -508,6 +511,111 @@ entities:
       unit: all
       project: none
       external: none
+  - id: geometry.shapes.Area.SCALE
+    kind: constant
+    language-kind: const
+    name: SCALE
+    path: geometry::shapes::Area::SCALE
+    unit: geometry-lib
+    parent: geometry.shapes.Area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [3, 11], end: [3, 16], text: SCALE}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.impl-Area-for-T
+    kind: extension
+    language-kind: trait-impl
+    path: geometry::shapes::impl geometry::shapes::Area for T#1
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions: []
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.shapes]}
+      project: none
+      external: none
+  - id: geometry.shapes.impl-Area-for-T.T
+    kind: type-parameter
+    language-kind: type-param
+    name: T
+    path: geometry::shapes::impl geometry::shapes::Area for T#1::<T>
+    unit: geometry-lib
+    parent: geometry.shapes.impl-Area-for-T
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [24, 6], end: [24, 7], text: T}
+  - id: geometry.make_label
+    kind: callable
+    language-kind: fn
+    name: make_label
+    path: geometry::make_label
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [12, 8], end: [12, 18], text: make_label}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.make_pair
+    kind: callable
+    language-kind: fn
+    name: make_pair
+    path: geometry::make_pair
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [13, 8], end: [13, 17], text: make_pair}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.fetch
+    kind: callable
+    language-kind: fn
+    name: fetch
+    path: geometry::fetch
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [14, 14], end: [14, 19], text: fetch}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.describe
+    kind: callable
+    language-kind: method
+    name: describe
+    path: geometry::shapes::Area::describe
+    unit: geometry-lib
+    parent: geometry.shapes.Area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [4, 8], end: [4, 16], text: describe}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.describe.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: geometry::shapes::Area::describe::(self)
+    unit: geometry-lib
+    parent: geometry.shapes.Area.describe
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [4, 18], end: [4, 22], text: self}
+  - id: geometry.shapes.Circle-as-Area.describe
+    kind: callable
+    language-kind: method
+    name: describe
+    path: <geometry::shapes::Circle as geometry::shapes::Area>::describe
+    unit: geometry-lib
+    parent: geometry.shapes.impl-Area-for-Circle
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [19, 8], end: [19, 16], text: describe}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
 
 externals:
   - id: ext.std
@@ -530,6 +638,16 @@ externals:
     language-kind: proc-macro-derive
     distribution: core
     path: core::fmt::macros::Debug
+  - id: ext.core.clone.Clone
+    kind: type
+    language-kind: trait
+    distribution: core
+    path: core::clone::Clone
+  - id: ext.alloc.vec.Vec
+    kind: type
+    language-kind: struct
+    distribution: alloc
+    path: alloc::vec::Vec
 
 references:
   - at: {path: src/shapes.rs, start: [20, 5], end: [20, 8], text: std}
@@ -625,6 +743,50 @@ references:
     from: geometry.shapes
     target: ext.core.fmt.macros.Debug
     role: attribute
+  - at: {path: src/lib.rs, start: [8, 24], end: [8, 30], text: Hidden}
+    from: geometry.make_hidden
+    target: geometry.detail.Hidden
+    role: type
+  - at: {path: src/shapes.rs, start: [11, 21], end: [11, 26], text: Clone}
+    from: geometry.shapes.Pair
+    target: ext.core.clone.Clone
+    role: type
+  - at: {path: src/shapes.rs, start: [11, 36], end: [11, 39], text: Vec}
+    from: geometry.shapes.Pair
+    target: ext.alloc.vec.Vec
+    role: type
+  - at: {path: src/shapes.rs, start: [11, 44], end: [11, 49], text: Clone}
+    from: geometry.shapes.Pair
+    target: ext.core.clone.Clone
+    role: type
+  - at: {path: src/shapes.rs, start: [24, 9], end: [24, 16], text: Display}
+    from: geometry.shapes.impl-Area-for-T
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/shapes.rs, start: [24, 18], end: [24, 22], text: Area}
+    from: geometry.shapes.impl-Area-for-T
+    target: geometry.shapes.Area
+    role: type
+  - at: {path: src/lib.rs, start: [12, 29], end: [12, 36], text: Display}
+    from: geometry.make_label
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/lib.rs, start: [13, 27], end: [13, 34], text: Display}
+    from: geometry.make_pair
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/lib.rs, start: [13, 41], end: [13, 48], text: Display}
+    from: geometry.make_pair
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/lib.rs, start: [14, 29], end: [14, 36], text: Display}
+    from: geometry.fetch
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/shapes.rs, start: [4, 32], end: [4, 39], text: Display}
+    from: geometry.shapes.Area.describe
+    target: ext.core.fmt.Display
+    role: type
 
 relations:
   - kind: implements
@@ -649,29 +811,108 @@ relations:
     visibility: pub
     at: {path: src/lib.rs, start: [6, 33], end: [6, 37], text: Grid}
     contexts: [build-extras]
+  - kind: overrides
+    from: geometry.shapes.Circle-as-Area.describe
+    to: geometry.shapes.Area.describe
 
 public-api:
-  - {distribution: geometry, entity: geometry.crate, paths: [geometry], access: all}
-  - {distribution: geometry, entity: geometry.ORIGIN, paths: ['geometry::ORIGIN'], access: all}
-  - {distribution: geometry, entity: geometry.Pin, paths: ['geometry::Pin'], access: all}
-  - {distribution: geometry, entity: geometry.Registry, paths: ['geometry::Registry'], access: all}
-  - {distribution: geometry, entity: geometry.make_hidden, paths: ['geometry::make_hidden'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Kind, paths: ['geometry::shapes::Kind'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Kind.Round, paths: ['geometry::shapes::Kind::Round'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Pair, paths: ['geometry::shapes::Pair'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Solid, paths: ['geometry::shapes::Solid'], access: all}
-  - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Circle, paths: ['geometry::shapes::Circle'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Circle.radius, paths: ['geometry::shapes::Circle::radius'], access: all}
-  - distribution: geometry
-    entity: geometry.detail.Grid
-    paths: ['geometry::Lattice']
-    access: all
-    contexts: [build-extras]
-  - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
-  - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+  members:
+    - {distribution: geometry, entity: geometry.crate, paths: [geometry], access: all}
+    - {distribution: geometry, entity: geometry.ORIGIN, paths: ['geometry::ORIGIN'], access: all}
+    - {distribution: geometry, entity: geometry.Pin, paths: ['geometry::Pin'], access: all}
+    - {distribution: geometry, entity: geometry.Registry, paths: ['geometry::Registry'], access: all}
+    - {distribution: geometry, entity: geometry.make_hidden, paths: ['geometry::make_hidden'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Kind, paths: ['geometry::shapes::Kind'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Kind.Round, paths: ['geometry::shapes::Kind::Round'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Pair, paths: ['geometry::shapes::Pair'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Solid, paths: ['geometry::shapes::Solid'], access: all}
+    - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Circle, paths: ['geometry::shapes::Circle'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Circle.radius, paths: ['geometry::shapes::Circle::radius'], access: all}
+    - distribution: geometry
+      entity: geometry.detail.Grid
+      paths: ['geometry::Lattice']
+      access: all
+      contexts: [build-extras]
+    - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
+    - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+    - {distribution: geometry, entity: 'geometry.shapes.Area.SCALE', paths: ['geometry::shapes::Area::SCALE'], access: all}
+    - {distribution: geometry, entity: 'geometry.make_label', paths: ['geometry::make_label'], access: all}
+    - {distribution: geometry, entity: 'geometry.make_pair', paths: ['geometry::make_pair'], access: all}
+    - {distribution: geometry, entity: 'geometry.fetch', paths: ['geometry::fetch'], access: all}
+    - {distribution: geometry, entity: 'geometry.shapes.Area.describe', paths: ['geometry::shapes::Area::describe'], access: all}
+  signatures:
+    - entity: geometry.ORIGIN
+      type: u32
+      value: "0"
+    - entity: geometry.make_hidden
+      returns: "@{geometry.detail.Hidden}"
+    - entity: geometry.shapes.Kind
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+      modifiers: [non_exhaustive]
+    - entity: geometry.shapes.Kind.Round
+      value: "0"
+    - entity: geometry.shapes.Pair
+      type-parameters:
+        - {name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}
+      where: "@{ext.alloc.vec.Vec}<T>: @{ext.core.clone.Clone}"
+      auto-traits:
+        - 'RefUnwindSafe when T: RefUnwindSafe'
+        - 'Send when T: Send'
+        - 'Sync when T: Sync'
+        - 'Unpin when T: Unpin'
+        - 'UnwindSafe when T: UnwindSafe'
+    - entity: geometry.shapes.Solid
+      bases:
+        - {type: "@{geometry.shapes.Area}"}
+    - entity: geometry.shapes.Area.area
+      abi: C
+      modifiers: [provided]
+      parameters:
+        - {name: self, mode: self-ref}
+      returns: f64
+    - entity: geometry.shapes.Circle
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+      bases:
+        - type: "@{geometry.shapes.Area}"
+          bindings:
+            - {name: describe, auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]}
+    - entity: geometry.shapes.Circle.radius
+      type: f64
+    - entity: geometry.Scale
+      type: "@{geometry.shapes.Circle}"
+    - entity: geometry.shapes.Area
+      implementations:
+        - type: "@{geometry.shapes.Area}"
+          type-parameters:
+            - {name: T, kind: type, bounds: "@{ext.core.fmt.Display}"}
+          self-type: T
+    - entity: geometry.Pin
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.Registry
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.detail.Grid
+      contexts: [build-extras]
+      auto-traits: [RefUnwindSafe, Unpin, UnwindSafe]
+    - entity: geometry.make_label
+      returns: "impl @{ext.core.fmt.Display}"
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.make_pair
+      returns: "(impl @{ext.core.fmt.Display}, impl @{ext.core.fmt.Display})"
+      auto-traits: ['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 Unpin', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Unpin', '#1 UnwindSafe']
+    - entity: geometry.fetch
+      modifiers: [async]
+      returns: "impl @{ext.core.fmt.Display}"
+      auto-traits: ['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Send', '#1 Sync', '#1 Unpin', '#1 UnwindSafe']
+    - entity: geometry.shapes.Area.describe
+      parameters:
+        - {name: self, mode: self-ref}
+      returns: "impl @{ext.core.fmt.Display}"
+    - entity: geometry.shapes.Area.SCALE
+      type: "(f64, f64)"
+      modifiers: [provided]
 
 extensions:
   rust:reachable-unnameable:

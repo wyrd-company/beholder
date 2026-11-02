@@ -84,7 +84,10 @@ tasks:
         -p beholder-semantic-oracle-cli -- validate {{shellQuote .PROJECT}}
 
   semantic-oracle:audit:
-    desc: Validate a semantic-oracle dataset and audit it against its language profile
+    desc: Validate a semantic-oracle dataset, audit it, and compare signatures with compiler reports
+    summary: |
+      REPORTS is a space-separated list of report files, one per context. A slot
+      no report states is listed as unchecked, and has not passed.
     dir: '{{.USER_WORKING_DIR}}'
     vars:
       PROJECT: '{{.PROJECT | default "."}}'
@@ -92,6 +95,90 @@ tasks:
       - >-
         cargo run -q --locked --manifest-path {{shellQuote (joinPath .ROOT_DIR "Cargo.toml")}}
         -p beholder-semantic-oracle-cli -- audit {{shellQuote .PROJECT}}
+        {{range $report := splitList " " (.REPORTS | default "")}}{{if $report}}--report {{shellQuote $report}} {{end}}{{end}}
+
+  semantic-oracle:report:rust:
+    desc: Write a Rust compiler report from rustdoc JSON and a generated auto-trait probe
+    summary: |
+      Needs a Rust toolchain. PROJECT, CONTEXT and OUT are required; OUT lies
+      outside the project tree. FEATURES, NO_DEFAULT_FEATURES, ALL_FEATURES and CFG, a
+      space-separated list, select the context. A build that fails exits nonzero and
+      writes no report.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [PROJECT, CONTEXT, OUT]
+    cmds:
+      - >-
+        python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-rust.py")}}
+        --project {{shellQuote .PROJECT}} --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+        {{if .FEATURES}}--features {{shellQuote .FEATURES}}{{end}}
+        {{if .NO_DEFAULT_FEATURES}}--no-default-features{{end}}
+        {{if .ALL_FEATURES}}--all-features{{end}}
+        {{range $name := splitList " " (.CFG | default "")}}{{if $name}}--cfg {{shellQuote $name}} {{end}}{{end}}
+
+  semantic-oracle:report:go:
+    desc: Write a Go compiler report from go/types
+    summary: |
+      Needs Go. PROJECT, CONTEXT and OUT are required. OUT is an absolute path
+      outside the project tree. TAGS, GOOS and GOARCH select the context.
+    dir: '{{.PROJECT}}'
+    requires:
+      vars: [PROJECT, CONTEXT, OUT]
+    cmds:
+      - >-
+        go run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}
+        -context {{shellQuote .CONTEXT}} -out {{shellQuote .OUT}}
+        {{if .TAGS}}-tags {{shellQuote .TAGS}}{{end}}
+
+  semantic-oracle:report:python:
+    desc: Write a Python compiler report from inspect.signature
+    summary: |
+      Imports the project's modules, which runs their module-level code. SEARCH_PATH
+      lists the context's search path, CONTEXT its id, PYTHON its `python` parameter,
+      and OUT lies outside the tree. It runs under that interpreter, and an absent one
+      exits nonzero and writes no report.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [SEARCH_PATH, CONTEXT, OUT, PYTHON]
+    cmds:
+      - >-
+        python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-python.py")}}
+        --search-path {{shellQuote .SEARCH_PATH}} --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+        --python {{shellQuote .PYTHON}}
+
+  semantic-oracle:report:typescript:
+    desc: Write a TypeScript compiler report from tsc --declaration
+    summary: |
+      Needs Node and the `typescript` module, from the project, from TYPESCRIPT or
+      from the global npm root. PROJECT, CONTEXT and OUT are required, and TSCONFIG
+      selects the context's options. OUT lies outside the project tree.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [PROJECT, CONTEXT, OUT]
+    vars:
+      TSCONFIG: '{{.TSCONFIG | default "tsconfig.json"}}'
+    cmds:
+      - >-
+        node {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-typescript.cjs")}}
+        --project {{shellQuote .PROJECT}} --tsconfig {{shellQuote .TSCONFIG}}
+        --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+
+  semantic-oracle:corpus:
+    desc: Validate and audit the fixture corpus's adopted datasets
+    summary: |
+      Needs the fixture corpus; `task fixtures:init` checks it out. It runs no
+      compiler report, so every signature slot is unchecked here.
+    cmds:
+      - cargo build -q --locked -p beholder-semantic-oracle-cli
+      - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
+
+  test:oracle-reports:
+    desc: Run each compiler report script on a small project
+    summary: |
+      Needs rustc and cargo, go, python3, node and the `typescript` module. A missing
+      toolchain fails this task. C# and Dart have no script until their toolchains exist.
+    cmds:
+      - python3 scripts/tests/semantic-oracle-reports.test.py
 
   test:action:
     desc: Exercise the shell the GitHub Action runs

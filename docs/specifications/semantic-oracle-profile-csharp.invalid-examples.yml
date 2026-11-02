@@ -132,3 +132,65 @@ cases:
     fails-at: /extensions
     keyword: additionalProperties
     member: csharp:global-using
+
+  # ------------------------------------------------------------- signatures
+  - name: unknown-signature-modifier
+    reason: '`async` is not a C# modifier; the return type states its effect.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /public-api/signatures/0/modifiers/0, value: async}]
+    fails-at: /public-api/signatures/0/modifiers/0
+    keyword: enum
+  - name: unknown-parameter-mode
+    reason: '`optional` is not a C# parameter mode; a default states it.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/parameters/0/mode, value: optional}]
+    fails-at: /public-api/signatures/1/parameters/0/mode
+    keyword: enum
+  - name: unknown-return-mode
+    reason: '`return-mode` is `ref` or `ref readonly`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/return-mode, value: out}]
+    fails-at: /public-api/signatures/1/return-mode
+    keyword: enum
+  - name: unknown-accessor-access
+    reason: '`public` is never narrower than a member.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/get/access, value: public}]
+    fails-at: /public-api/signatures/4/get/access
+    keyword: enum
+  - name: overloads-slot
+    reason: 'Each C# overload is its own entity.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/overloads, value: [{returns: int}, {returns: long}]}]
+    fails-at: /public-api/signatures/3/overloads
+    keyword: falseSchema
+  - name: where-slot
+    reason: 'Every C# constraint is on a type parameter, in `bounds`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/where, value: x}]
+    fails-at: /public-api/signatures/1/where
+    keyword: falseSchema
+  - name: delete-accessor
+    reason: '`delete` is a Python accessor.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/delete, value: present}]
+    fails-at: /public-api/signatures/4/delete
+    keyword: falseSchema
+  - name: implementations-slot
+    reason: '`implementations` is a Rust slot.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/implementations, value: [{type: 'x', self-type: 'y'}]}]
+    fails-at: /public-api/signatures/0/implementations
+    keyword: falseSchema
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/abi, value: C}]
+    fails-at: /public-api/signatures/1/abi
+    keyword: falseSchema
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/1/auto-traits
+    keyword: falseSchema

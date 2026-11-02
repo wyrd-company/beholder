@@ -8,6 +8,9 @@
 # Python record form and extension of the schema, and every non-resolved
 # reference disposition. Locators and digests describe notional source;
 # schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: python/1
 project:
@@ -432,6 +435,56 @@ entities:
     definitions: []
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: all, external: none}
+  - id: atlas.shapes.Circle.refresh.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: atlas.shapes.Circle.refresh.(self)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.refresh
+    origin: source
+    definitions:
+      - at: {path: src/atlas/shapes.py, start: [22, 23], end: [22, 27], text: self}
+  - id: stub.atlas.shapes.Shape.describe.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: atlas.shapes.Shape.describe.(self)
+    unit: shapes-stub
+    parent: stub.atlas.shapes.Shape.describe
+    origin: source
+    definitions:
+      - at: {path: src/atlas/shapes.pyi, start: [5, 18], end: [5, 22], text: self}
+  - id: atlas.shapes.Circle.refresh.value
+    kind: parameter
+    language-kind: param
+    name: value
+    path: atlas.shapes.Circle.refresh.(value)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.refresh
+    origin: source
+    definitions:
+      - at: {path: src/atlas/shapes.py, start: [22, 29], end: [22, 34], text: value}
+  - id: atlas.shapes.Circle.__init__.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: atlas.shapes.Circle.__init__.(self)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.__init__
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/atlas/shapes.py, start: [12, 7], end: [12, 13], text: Circle}
+  - id: atlas.shapes.Circle.__init__.radius
+    kind: parameter
+    language-kind: param
+    name: radius
+    path: atlas.shapes.Circle.__init__.(radius)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.__init__
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/atlas/shapes.py, start: [12, 7], end: [12, 13], text: Circle}
 
 externals:
   - id: ext.importlib
@@ -577,37 +630,70 @@ relations:
     at: {path: src/atlas/__init__.py, start: [1, 15], end: [1, 24], text: _speedups}
 
 public-api:
-  - {distribution: atlas-dist, entity: atlas, paths: [atlas], access: all}
-  - {distribution: atlas-dist, entity: atlas.fast, paths: [atlas.fast], access: all}
-  - {distribution: atlas-dist, entity: atlas.fast.run, paths: [atlas.fast.run], access: all}
-  - {distribution: atlas-dist, entity: atlas.loader, paths: [atlas.loader], access: all}
-  - {distribution: atlas-dist, entity: atlas.portable, paths: [atlas.portable], access: all}
-  - {distribution: atlas-dist, entity: atlas.portable.run, paths: [atlas.portable.run], access: all}
-  - distribution: atlas-dist
-    entity: atlas.shapes
-    paths: [atlas.shapes]
-    access: all
-    contexts: [runtime]
-  - distribution: atlas-dist
-    entity: atlas.shapes.Circle
-    paths: [atlas.shapes.Circle]
-    access: all
-    contexts: [runtime]
-  - {distribution: atlas-dist, entity: atlas.shapes.Circle.__init__, paths: [atlas.shapes.Circle.__init__], access: all, contexts: [runtime]}
-  - {distribution: atlas-dist, entity: atlas.shapes.Circle.area, paths: [atlas.shapes.Circle.area], access: all, contexts: [runtime]}
-  - {distribution: atlas-dist, entity: atlas.shapes.Circle.radius, paths: [atlas.shapes.Circle.radius], access: all, contexts: [runtime]}
-  - {distribution: atlas-dist, entity: atlas.shapes.Circle.refresh, paths: [atlas.shapes.Circle.refresh], access: all, contexts: [runtime]}
-  - distribution: atlas-dist
-    entity: stub.atlas.shapes
-    paths: [atlas.shapes]
-    access: all
-    contexts: [typing]
-  - distribution: atlas-dist
-    entity: stub.atlas.shapes.Shape
-    paths: [atlas.shapes.Shape]
-    access: all
-    contexts: [typing]
-  - {distribution: atlas-dist, entity: stub.atlas.shapes.Shape.describe, paths: [atlas.shapes.Shape.describe], access: all, contexts: [typing]}
+  members:
+    - {distribution: atlas-dist, entity: atlas, paths: [atlas], access: all}
+    - {distribution: atlas-dist, entity: atlas.fast, paths: [atlas.fast], access: all}
+    - {distribution: atlas-dist, entity: atlas.fast.run, paths: [atlas.fast.run], access: all}
+    - {distribution: atlas-dist, entity: atlas.loader, paths: [atlas.loader], access: all}
+    - {distribution: atlas-dist, entity: atlas.portable, paths: [atlas.portable], access: all}
+    - {distribution: atlas-dist, entity: atlas.portable.run, paths: [atlas.portable.run], access: all}
+    - distribution: atlas-dist
+      entity: atlas.shapes
+      paths: [atlas.shapes]
+      access: all
+      contexts: [runtime]
+    - distribution: atlas-dist
+      entity: atlas.shapes.Circle
+      paths: [atlas.shapes.Circle]
+      access: all
+      contexts: [runtime]
+    - {distribution: atlas-dist, entity: atlas.shapes.Circle.__init__, paths: [atlas.shapes.Circle.__init__], access: all, contexts: [runtime]}
+    - {distribution: atlas-dist, entity: atlas.shapes.Circle.area, paths: [atlas.shapes.Circle.area], access: all, contexts: [runtime]}
+    - {distribution: atlas-dist, entity: atlas.shapes.Circle.radius, paths: [atlas.shapes.Circle.radius], access: all, contexts: [runtime]}
+    - {distribution: atlas-dist, entity: atlas.shapes.Circle.refresh, paths: [atlas.shapes.Circle.refresh], access: all, contexts: [runtime]}
+    - distribution: atlas-dist
+      entity: stub.atlas.shapes
+      paths: [atlas.shapes]
+      access: all
+      contexts: [typing]
+    - distribution: atlas-dist
+      entity: stub.atlas.shapes.Shape
+      paths: [atlas.shapes.Shape]
+      access: all
+      contexts: [typing]
+    - {distribution: atlas-dist, entity: stub.atlas.shapes.Shape.describe, paths: [atlas.shapes.Shape.describe], access: all, contexts: [typing]}
+  signatures:
+    - entity: atlas.fast.run
+      returns: None
+    - entity: atlas.shapes.Circle
+      contexts: [runtime]
+      bases:
+        - {type: "@{atlas.shapes.Shape}", position: 0}
+    - entity: atlas.shapes.Circle.__init__
+      contexts: [runtime]
+      parameters:
+        - {name: self}
+        - {name: radius, type: {inferred: float}}
+      returns: {inferred: None}
+    - entity: atlas.shapes.Circle.area
+      contexts: [runtime]
+      get: {type: float}
+    - entity: atlas.shapes.Circle.radius
+      contexts: [runtime]
+      type: float
+    - entity: atlas.shapes.Circle.refresh
+      contexts: [runtime]
+      type-parameters:
+        - {name: T, kind: type, bounds: float, variance: out}
+      parameters:
+        - {name: self}
+        - {name: value, type: T}
+      returns: None
+    - entity: stub.atlas.shapes.Shape.describe
+      contexts: [typing]
+      parameters:
+        - {name: self}
+      returns: str
 
 extensions:
   python:stub-of:

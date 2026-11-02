@@ -39,6 +39,7 @@ properties:
             - {type: string, pattern: '^pub\(in \S+\)$'}
       if: {properties: {kind: {const: exports}}, required: [kind]}
       then: {required: [visibility]}
+  public-api: {properties: {signatures: {items: {$ref: '#/$defs/signature'}}}}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -181,3 +182,60 @@ $defs:
             macro: {$ref: '#/$defs/id'}
             invocation: {$ref: '#/$defs/locator'}
           unevaluatedProperties: false
+
+  # ------------------------------------------------------------- signatures
+  # The slots, modes and modifiers of this language over the model's records.
+  signature:
+    $ref: '#/$defs/signature-slots'
+    properties:
+      alternatives: false
+  callable-slots:
+    properties:
+      return-mode: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      parameters: {items: {$ref: '#/$defs/parameter'}}
+      modifiers: {items: {enum: [async, auto, const, non_exhaustive, provided, unsafe]}}
+  signature-slots:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      add: false
+      remove: false
+      receiver: false
+      overloads: false
+      underlying: false
+      constructors: false
+      call-signatures: false
+      construct-signatures: false
+      index-signatures: false
+      tag: false
+      get: false
+      set: false
+      init: false
+      delete: false
+      impl: {properties: {type-parameters: {items: {$ref: '#/$defs/type-parameter'}}}}
+      bases: {items: {$ref: '#/$defs/base'}}
+      implementations: {items: {$ref: '#/$defs/base'}}
+      auto-traits: {$ref: '#/$defs/auto-traits'}
+  type-parameter:
+    properties:
+      variance: false
+      modifiers: false
+  parameter:
+    properties:
+      default: false
+      mode: {enum: [c-variadic, self-mut-ref, self-ref]}
+  base:
+    properties:
+      position: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      bindings:
+        items:
+          properties:
+            type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+            auto-traits: {$ref: '#/$defs/auto-traits'}
+  # An auto trait, with its opaque occurrence's ordinal where the return needs one,
+  # and its condition when the type holds it conditionally.
+  auto-traits:
+    items:
+      type: string
+      pattern: '^(#(0|[1-9][0-9]*) )?(RefUnwindSafe|Send|Sync|Unpin|UnwindSafe)( when \S.*)?$'

@@ -70,9 +70,9 @@ description: |
   layout, and otherwise the project root; this is the path an installed
   distribution gives. The project root is written `.`.
 
-  A search path that a function body changes at run time, through
-  `sys.path`, `site.addsitedir` or a package's `__path__`, is outside every
-  context. Code that a module runs when it is imported is not: a package
+  A search path that a function body in project or library code changes at
+  run time, through `sys.path`, `site.addsitedir` or a package's `__path__`,
+  is outside every context. Code that a module runs when it is imported is not: a package
   `__init__` that extends its own `__path__` at module level adds those
   directories as portions of the package in `runtime` contexts.
 
@@ -86,6 +86,10 @@ description: |
 
   `runtime` facts state what the import system and execution model do when
   the project's modules are imported and its declared entry points run.
+  A module is importable when the import system locates it from `search-path`.
+  Whether its initialization then succeeds does not change its document
+  disposition, its facts or its public API membership: facts state source
+  declarations, and a statement that a raise leaves unexecuted keeps its facts.
   `typing` facts state what the typing specification determines: stub files
   take precedence over implementation modules, `typing.TYPE_CHECKING` is
   true, and annotated declarations fix the types of their receivers.
@@ -204,7 +208,11 @@ description: |
 
   ## Public API
 
-  A distribution's public API follows the typing specification's library
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  A distribution's membership follows the typing specification's library
   interface rules, applied to stub units in `typing` contexts and to
   implementation units in `runtime` contexts:
 
@@ -226,10 +234,108 @@ description: |
   public name is a member with the consumer path of the module and name;
   the entity is the binding's target: the module's own entity of that name,
   the target of the import binding, or, for a name `__all__` lists that the
-  module does not bind, the submodule of that name. A name `__all__` lists
+  module does not bind, the submodule of that name. A name bound by several
+  statements denotes its last binding in statement order, as at run time: each
+  import statement keeps its relation, and the member is the last binding's target. A name `__all__` lists
   that resolves to nothing adds no member. In a `typing` context a module
   with a stub contributes through the stub unit, and a module without one
   through its implementation unit.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `function`, `method`, `classmethod`, `staticmethod`, and their `async-` forms | `type-parameters`, `parameters`, `returns`, `modifiers`; `overloads` for several signatures |
+  | `class`, `protocol`, `enum`, `typed-dict`, `named-tuple`, `dataclass` | `type-parameters`, `bases`, `modifiers` |
+  | `type-statement`, `type-alias` | `type-parameters`, `type` |
+  | `property`, `descriptor` | `get`, `set`, `delete`, `modifiers` |
+  | `class-attribute`, `instance-attribute`, `variable`, `final` | `type`, `modifiers` |
+  | `enum-member` | `value` |
+
+  Parameter modes: `positional-only`, `keyword-only`, `var-positional` for `*args` and
+  `var-keyword` for `**kwargs`. A parameter that can be passed either way has no mode.
+  `self` and `cls` are entries of `parameters`.
+
+  Modifiers: `abstract`, `final`, `classvar`, and `not-required` for a `TypedDict` key
+  that is effectively not required, by `total` of its own class, `Required` and
+  `NotRequired`. `classmethod` and `staticmethod` are `language-kind` values. A
+  `TypedDict` key's `type` has no `Required` or `NotRequired` wrapper. The wrapper tokens
+  keep their `references` facts, and the reference audit does not expect them in a slot.
+
+  `bases` has one entry per base of the class, with `position`, its index in the base
+  list, which sets the method resolution order. Reversing `class C(A, B)` changes both
+  positions while the keys stay equal.
+
+  A `type-parameters` slot lists the parameters a `def`, `class` or `type` statement
+  declares, and the module-level `TypeVar`, `TypeVarTuple` and `ParamSpec` names its
+  signature uses, in order of first use. A type text writes each by its name. An entry
+  for a module-level name states its declaration's arguments, and that declaration is
+  the source declaration of the entry: `bound` is `bounds`, constraints are `bounds`
+  written `(int, str)` in sorted order, `covariant=True` is `variance: out`,
+  `contravariant=True` is `variance: in`, and `default` is `default`. So that a private
+  `_T` is stated, this repeats at each signature that uses the name:
+
+  ```yaml
+  - entity: atlas.convert
+    type-parameters:
+      - {name: T, kind: type, bounds: str}
+    parameters:
+      - {name: value, type: T}
+    returns: T
+  ```
+
+  A `TypeVarTuple` and a `ParamSpec` keep their sigil in `name`, `*Ts` and `**P`.
+
+  Canonical spelling:
+
+  - Built-in names are written bare: `bool`, `bytearray`, `bytes`, `complex`, `dict`,
+    `float`, `frozenset`, `int`, `list`, `object`, `set`, `str`, `tuple` and `type`,
+    with `None` and `...`.
+  - `int | None` for `Optional[int]`, `int | str` for `Union[int, str]`, and `list[int]`
+    for `List[int]`. The reference audit does not expect a token that a canonical form
+    removes. A string annotation is written as the type it spells.
+  - A union is flattened, its duplicates are removed and its members are sorted: `int`
+    for `int | int`. Text uses `, ` between arguments and ` | ` between union members.
+  - A string in `Literal` is double-quoted.
+
+  Inference: the profile records none. An unannotated parameter, return or variable has
+  no type slot, because the typing specification leaves inference to each checker. An
+  observation of a type for it is `out-of-profile`.
+
+  `default` is the literal in the model's value form, or `present` when the default is
+  not a literal. A default that follows a private name is `present`, and a change of
+  that name is not stated.
+
+  `@overload` stubs are `overloads` in `typing` contexts, and the implementation
+  signature is the record in `runtime` contexts. A redefined name has the signature of
+  the final binding. When control flow leaves several definitions possible, the record
+  has `alternatives`, each with its `at`, the definition site, and its slots:
+
+  ```yaml
+  - entity: atlas.select
+    alternatives:
+      - at: {path: src/atlas/select.py, start: [3, 9], end: [3, 15], text: select}
+        returns: int
+      - at: {path: src/atlas/select.py, start: [6, 9], end: [6, 15], text: select}
+        returns: str
+  ```
+
+  The decorators `property`, `classmethod`, `staticmethod`, `overload`, `abstractmethod`,
+  `final` and `dataclass` have the effects this section states. Every other decorator
+  leaves the signature as written.
+
+  A synthetic member has `{inferred}` slots by its synthesis rule, such as a dataclass
+  `__init__` with one parameter for each field, in field order, and a forwarded default
+  as `{inferred: ...}`.
+
+  An author derives these from the Language Reference and the typing specification
+  applied to source.
+
+  The compiler report comes from `inspect.signature`, run outside the tree, for names,
+  kinds, defaults and annotations. Python has no reference type checker, so the report
+  covers the runtime's view only, and a slot it cannot state is `unchecked`.
 
   ## References
 
@@ -360,6 +466,9 @@ description: |
      parameters.
   8. Record the public API of every distribution in every context, and every
      required extension fact.
+  9. Write every signature from source, the Language Reference and the typing specification. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from `inspect.signature` after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A Python dataset conforms when it conforms to `semantic-oracle-model`, its
   contexts follow the context rule above, every indexed document is
@@ -368,3 +477,5 @@ validation-criteria: |
   agrees with the library interface rules. Independent review confirms facts
   against source, configuration, the Language Reference and the typing
   specification.
+  Every signature follows this profile's slots, modes, modifiers and canonical spelling,
+  and its slots agree with `inspect.signature` or are listed as `unchecked`.

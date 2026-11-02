@@ -111,3 +111,59 @@ cases:
     patch: [{op: add, path: /relations/4/visibility, value: exported}]
     fails-at: /relations/4/visibility
     keyword: falseSchema
+
+  # ------------------------------------------------------------- signatures
+  - name: unknown-signature-modifier
+    reason: '`async` is not a TypeScript modifier; the return type states its effect.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: replace, path: /public-api/signatures/3/modifiers/0, value: async}]
+    fails-at: /public-api/signatures/3/modifiers/0
+    keyword: enum
+  - name: unknown-parameter-mode
+    reason: '`ref` is not a TypeScript parameter mode.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: replace, path: /public-api/signatures/4/parameters/0/mode, value: ref}]
+    fails-at: /public-api/signatures/4/parameters/0/mode
+    keyword: enum
+  - name: parameter-default
+    reason: 'A TypeScript declaration emit states no default value; `optional` states its effect.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/parameters/0/default, value: "1"}]
+    fails-at: /public-api/signatures/4/parameters/0/default
+    keyword: falseSchema
+  - name: where-slot
+    reason: 'TypeScript states constraints in `bounds`.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/where, value: x}]
+    fails-at: /public-api/signatures/4/where
+    keyword: falseSchema
+  - name: underlying-slot
+    reason: '`underlying` is for Go, C# and Dart.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/underlying, value: x}]
+    fails-at: /public-api/signatures/0/underlying
+    keyword: falseSchema
+  - name: unknown-constructor-access
+    reason: 'A constructor''s `access` is `protected` or `private`.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/constructors/0/access, value: internal}]
+    fails-at: /public-api/signatures/0/constructors/0/access
+    keyword: enum
+  - name: unknown-variance
+    reason: 'A TypeScript variance is `in`, `out` or `in out`.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/type-parameters/0/variance, value: both}]
+    fails-at: /public-api/signatures/4/type-parameters/0/variance
+    keyword: enum
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/abi, value: C}]
+    fails-at: /public-api/signatures/1/abi
+    keyword: falseSchema
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/1/auto-traits
+    keyword: falseSchema

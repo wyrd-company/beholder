@@ -1,14 +1,15 @@
 //! Dataset validation and the profile audit.
 //!
-//! Validation applies the model's validation criteria 1 to 6 and the
-//! model-level part of criterion 7: the dataset schema and versions, id
+//! Validation applies the model's validation criteria 1 to 6, the
+//! model-level part of criterion 7, and criterion 8: the dataset schema and versions, id
 //! uniqueness and resolution, the document inventory and digests, locators,
 //! fact contexts against unit and document membership, dispositions,
 //! extension facts, and the consistency of public API entries with
-//! effective visibility. The audit adds criterion 8 as far as the profile
+//! effective visibility. The audit adds criterion 9 as far as the profile
 //! rules are mechanical: document file classes, out-of-profile facts, and
 //! profile-specific value rules, with coverage notes for indexed documents
-//! that hold no fact in a context.
+//! that hold no fact in a context. Criterion 8, the signature checks, runs in
+//! validation, and the audit compares signatures with compiler reports.
 //!
 //! Every finding names the rule it enforces: `model:<rule>` for a rule of
 //! `semantic-oracle-model`, `<language>:<rule>` for a rule of a profile, and
@@ -22,7 +23,9 @@ use std::{
 
 use serde_json::{json, Value};
 
+mod compiler_report;
 mod public_api;
+mod signatures;
 
 use crate::{
     dataset_validator,
@@ -74,6 +77,56 @@ impl Finding {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Report {
     pub findings: Vec<Finding>,
+    /// The signature slots `profile:signature-compiler` could not compare; none
+    /// of these has passed. Empty, with `compared` false, outside an audit.
+    pub unchecked: Vec<Unchecked>,
+    /// How many signature slots agree with a compiler report in every context
+    /// they hold in. A slot unchecked in any context is not one of these.
+    pub agreed: usize,
+    /// For each context, what its reports did for the slots that hold in it.
+    pub contexts: BTreeMap<String, ContextCounts>,
+    /// Whether `profile:signature-compiler` ran.
+    pub compared: bool,
+}
+
+/// What a context's reports did for the slots that hold in it, one count per slot.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ContextCounts {
+    pub agreed: usize,
+    pub unchecked: usize,
+    pub errors: usize,
+}
+
+/// One signature slot that no compiler report states in at least one context.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Unchecked {
+    /// The JSON Pointer of the slot in the dataset.
+    pub at: String,
+    /// The model's slot path.
+    pub slot: String,
+    /// The slot's class, as a report's `slot-class` groups it.
+    pub class: &'static str,
+    /// Why no report states it.
+    pub reason: String,
+    /// The contexts in which a report states it and agrees.
+    pub agreed_in: Vec<String>,
+    /// The contexts in which no report states it.
+    pub unchecked_in: Vec<String>,
+}
+
+impl Unchecked {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "severity": "unchecked",
+            "rule": "profile:signature-compiler",
+            "at": self.at,
+            "slot": self.slot,
+            "slot-class": self.class,
+            "agreed-in": self.agreed_in,
+            "unchecked-in": self.unchecked_in,
+            "message": self.reason,
+        })
+    }
 }
 
 impl Report {
@@ -85,7 +138,10 @@ impl Report {
                 .then_with(|| a.severity.cmp(&b.severity))
         });
         findings.dedup();
-        Self { findings }
+        Self {
+            findings,
+            ..Self::default()
+        }
     }
 
     pub fn errors(&self) -> usize {
@@ -108,9 +164,27 @@ impl Report {
         self.errors() == 0
     }
 
-    /// The summary record: error and warning counts.
+    /// The summary record: error and warning counts, and for an audit, the
+    /// signature slots that agree with a compiler report and those no report
+    /// states.
     pub fn summary(&self) -> Value {
-        json!({ "errors": self.errors(), "warnings": self.warnings() })
+        if self.compared {
+            json!({
+                "errors": self.errors(),
+                "warnings": self.warnings(),
+                "agreed": self.agreed,
+                "unchecked": self.unchecked.len(),
+                "contexts": self.contexts.iter().map(|(context, counts)| {
+                    (context.clone(), json!({
+                        "agreed": counts.agreed,
+                        "unchecked": counts.unchecked,
+                        "errors": counts.errors,
+                    }))
+                }).collect::<serde_json::Map<_, _>>(),
+            })
+        } else {
+            json!({ "errors": self.errors(), "warnings": self.warnings() })
+        }
     }
 }
 
@@ -141,15 +215,27 @@ fn compare_pointers(a: &str, b: &str) -> Ordering {
 /// text are checked against the project; without, those checks are
 /// skipped.
 pub fn validate(dataset: &Value, files: Option<&dyn ProjectFiles>) -> Report {
-    run(dataset, files, false)
+    run(dataset, files, None)
 }
 
-/// Validates a dataset and audits it against its profile.
+/// Validates a dataset and audits it against its profile. No compiler report is
+/// given, so every signature slot is unchecked.
 pub fn audit(dataset: &Value, files: Option<&dyn ProjectFiles>) -> Report {
-    run(dataset, files, true)
+    audit_with_reports(dataset, files, &[])
 }
 
-fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report {
+/// Validates a dataset, audits it against its profile, and compares its
+/// signatures with compiler reports. This crate runs no compiler: each report is
+/// a JSON file that a per-language script produces outside the project tree.
+pub fn audit_with_reports(
+    dataset: &Value,
+    files: Option<&dyn ProjectFiles>,
+    reports: &[Value],
+) -> Report {
+    run(dataset, files, Some(reports))
+}
+
+fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: Option<&[Value]>) -> Report {
     let mut findings = Vec::new();
     let rules = versions(dataset, &mut findings);
     if !findings.is_empty() {
@@ -170,11 +256,19 @@ fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report
     };
     let mut checker = Checker::new(dataset, rules, files);
     checker.validate();
-    if audit {
+    let comparison = audit.map(|reports| {
         checker.audit();
-    }
+        checker.compare_with_reports(reports)
+    });
     findings.extend(checker.finish());
-    Report::new(findings)
+    let mut report = Report::new(findings);
+    if let Some(comparison) = comparison {
+        report.unchecked = comparison.unchecked;
+        report.agreed = comparison.agreed;
+        report.contexts = comparison.contexts;
+        report.compared = true;
+    }
+    report
 }
 
 /// Checks the model and profile versions first, so that a dataset of
@@ -323,6 +417,23 @@ fn list<'a>(value: &'a Value, key: &str) -> &'a [Value] {
         .unwrap_or(&[])
 }
 
+/// Signature members that hold no type or value text.
+const SLOTS_WITHOUT_NAMES: [&str; 13] = [
+    "abi",
+    "access",
+    "at",
+    "contexts",
+    "delete",
+    "entity",
+    "kind",
+    "mode",
+    "modifiers",
+    "name",
+    "position",
+    "tag",
+    "variance",
+];
+
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
 }
@@ -390,6 +501,14 @@ impl<'a> Checker<'a> {
         list(self.dataset, key)
     }
 
+    /// The membership entries of `public-api`.
+    fn public_api_members(&self) -> &'a [Value] {
+        self.dataset
+            .get("public-api")
+            .map(|public_api| list(public_api, "members"))
+            .unwrap_or(&[])
+    }
+
     fn error(&mut self, rule: &str, at: String, message: String) {
         self.findings.push(error(rule, at, message));
     }
@@ -441,6 +560,8 @@ impl<'a> Checker<'a> {
         self.check_relations();
         self.check_public_api();
         self.check_public_api_recomputed();
+        self.check_signature_ids();
+        self.check_signatures();
         self.check_extensions();
         self.check_unused_externals();
     }
@@ -1490,8 +1611,8 @@ impl<'a> Checker<'a> {
 
     fn check_public_api(&mut self) {
         let mut seen: BTreeMap<(&'a str, &'a str), Vec<Contexts<'a>>> = BTreeMap::new();
-        for (i, membership) in self.list("public-api").iter().enumerate() {
-            let at = format!("/public-api/{i}");
+        for (i, membership) in self.public_api_members().iter().enumerate() {
+            let at = format!("/public-api/members/{i}");
             let distribution = text(membership, "distribution").unwrap_or_default();
             let resolved = self
                 .expect(
@@ -1557,6 +1678,64 @@ impl<'a> Checker<'a> {
                     ),
                 );
             }
+        }
+    }
+
+    /// Criteria 2 and 5 for signature records: each names a project entity, in
+    /// contexts where it exists, and an external that a type text names is used.
+    fn check_signature_ids(&mut self) {
+        let signatures = self
+            .dataset
+            .get("public-api")
+            .map(|public_api| list(public_api, "signatures"))
+            .unwrap_or(&[]);
+        for (i, signature) in signatures.iter().enumerate() {
+            let at = format!("/public-api/signatures/{i}");
+            let id = text(signature, "entity").unwrap_or_default();
+            if self
+                .expect(format!("{at}/entity"), id, &[Class::Entity])
+                .is_some()
+            {
+                let built = self.built_contexts(id);
+                let contexts = self.fact_contexts(
+                    &at,
+                    signature,
+                    built.clone(),
+                    &built,
+                    &format!("the unit of `{id}`"),
+                );
+                self.check_exists(format!("{at}/entity"), id, &contexts);
+                self.site_owners = self.owner_units(id);
+                for (k, alternative) in list(signature, "alternatives").iter().enumerate() {
+                    if let Some(site) = alternative.get("at") {
+                        self.check_locator(format!("{at}/alternatives/{k}/at"), site, &contexts);
+                    }
+                }
+                self.site_owners.clear();
+            }
+            self.use_externals_named_in(signature);
+        }
+    }
+
+    /// Marks each external that a `@{id}` in a type or value slot of `value`
+    /// names.
+    fn use_externals_named_in(&mut self, value: &'a Value) {
+        match value {
+            Value::String(slot) => {
+                for id in crate::canonical::named_ids(self.rules.language, slot) {
+                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(id.as_str()) {
+                        self.used_externals.insert(id);
+                    }
+                }
+            }
+            Value::Array(items) => items
+                .iter()
+                .for_each(|item| self.use_externals_named_in(item)),
+            Value::Object(members) => members
+                .iter()
+                .filter(|(slot, _)| !SLOTS_WITHOUT_NAMES.contains(&slot.as_str()))
+                .for_each(|(_, member)| self.use_externals_named_in(member)),
+            _ => {}
         }
     }
 
@@ -1757,7 +1936,7 @@ impl<'a> Checker<'a> {
                 self.error(
                     "model:external-unused",
                     format!("/externals/{i}"),
-                    format!("no reference, relation or extension fact targets `{id}`"),
+                    format!("no reference, relation, extension fact or signature targets `{id}`"),
                 );
             }
         }

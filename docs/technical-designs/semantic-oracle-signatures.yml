@@ -47,8 +47,8 @@ design-challenges:
   no-missed-changes: >-
     A declaration whose text is unchanged can still change: the import selects
     another type of the same name, a private constant moves a public constant's
-    value, or a body edit moves an inferred return type. A comparison reports
-    these.
+    value, a body edit moves an inferred return type, or a private field removes an
+    auto trait. A comparison reports these.
   six-languages: >-
     The six languages have different type syntax, parameter forms and inference
     rules. One fact form carries them without a type grammar per language in
@@ -186,8 +186,8 @@ proposed-design:
     | --- | --- | --- |
     | Source text | 16 | 7 |
     | Source text without whitespace | 13 | 7 |
-    | Slots, type text as written with canonical target ids | 10 | 3 |
-    | Slots, type text under the canonical rules (this design) | 3 | 3 |
+    | Slots, type text as written with canonical target ids | 10 | 2 |
+    | Slots, type text under the canonical rules (this design) | 3 | 2 |
 
     What the test shows:
 
@@ -195,21 +195,25 @@ proposed-design:
       removing whitespace removes them. Formatting alone does not choose
       structure over text.
     - Resolved names and derived values choose structure: an import that selects
-      another type, a constant that follows a private constant, and an inferred
-      return are all invisible to text.
+      another type, a constant that follows a private constant, an inferred
+      return and an auto trait that `impl Trait` leaks are all invisible to text.
     - Structure alone is not enough. Without the canonical spelling rules and
       consumer-path identity, slots report 10 false changes. The rules remove 7.
     - The 3 remaining false changes are accepted: a parameter rename in Rust and
       two replacements of a transparent alias by its target. Each is a real
       source change that a consumer's own rules can classify as harmless.
-    - The 3 remaining missed changes are accepted boundaries: an auto trait that
-      `impl Trait` leaks, a default that follows a private name in Python, and a
-      Python return with no annotation. The inference table below states them.
+    - The 2 remaining missed changes are accepted boundaries: a default that
+      follows a private name in Python, and a Python return with no annotation. The
+      inference table below states them.
 
-    The same script holds 9 slot regressions: consumer breaks in a trait
+    The same script holds 15 slot regressions: consumer breaks in a trait
     implementation's associated type, an inherent implementation's bound, a
     constructor, a call signature, a setter, an optional member, the order of a
-    type literal's call signatures, a Go array length and a Go constraint's terms.
+    type literal's call signatures, a Go array length, a Go constraint's terms, a
+    private field that removes `Send` from a public struct, and `Send` lost by a tuple's
+    opaque component, an async function's opaque output, a trait implementation's opaque
+    return and a trait method's default body, and a trait implementation that refines a
+    return to another written type.
     Each one breaks a real consumer and changes a slot. They stay out of the table,
     because the script's text extractor reads declaration headers and these changes
     are in bodies.
@@ -227,30 +231,32 @@ proposed-design:
 
     | Member kind | Slots |
     | --- | --- |
-    | `callable` | `type-parameters`, `where`, `impl`, `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`; `overloads` holding these slots when one entity has several signatures |
-    | `type` | `type-parameters`, `where`, `bases`, `underlying`, `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
+    | `callable` | `type-parameters`, `where`, `impl`, `abi` (Rust), `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`, `auto-traits` (Rust); `overloads` holding these slots when one entity has several signatures |
+    | `type` | `type-parameters`, `where`, `bases`, `implementations` (Rust), `underlying`, `bounds` (a Dart mixin's `on`), `modifiers`, `auto-traits` (Rust); for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
     | `type-alias` | `type-parameters`, `where`, `type`; for a Rust associated type, `bounds` and `type` as its default |
     | `field` | `type`, `tag` (Go), `modifiers` |
-    | `property` | `get`, `set`, `init` (C#), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
+    | `property` | `get`, `set`, `init` (C#), `add` and `remove` (a C# event), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
     | `variable` | `type`, `modifiers` |
-    | `constant` | `type`, `value` |
-    | `enum-member` | `value` |
-    | `module`, `namespace`, `macro`, `extension` | No signature. Membership states them. |
+    | `constant` | `type`, `value`, `modifiers` (Rust `provided`) |
+    | `enum-member` | `value`; `type` for a value of a generic Dart enum |
+    | `extension` | For a named Dart extension, `type-parameters` and `receiver`, its `on` type. No signature otherwise. |
+    | `module`, `namespace`, `macro` | No signature. Membership states them. |
     | An external entity a re-export names | No signature, by the model's rule on the internal structure of external entities. |
 
     | Nested record | Slots |
     | --- | --- |
     | Parameter | `name`, `type`, `mode` (profile vocabulary: `optional`, `rest`, `ref`, `out`, `in`, `params`, `self-ref`, `keyword-only`, `positional-only`, `named`, `required-named`, and similar), `default` |
     | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` (TypeScript `const`) |
-    | Accessor (`get`, `set`, `init`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
+    | Accessor (`get`, `set`, `init`, `add`, `remove`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
     | Base (`bases`) | `type`, the type text with its arguments; `position` for a Python base or a Dart mixin application; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
-    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
+    | Implementation (`implementations`) | The slots of a base, with `self-type` always, for a Rust implementation whose self type no relation can start from |
+    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value`, or `returns` and `auto-traits` for a method |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
     `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
-    set. `index-signatures` are sorted by key type, `bases` by `type` and then
-    `self-type`, and `bindings` by `name`. A profile lists its modifiers, and a modifier is listed when it changes
+    set. `index-signatures` are sorted by key type, `bases` and `implementations` by
+    `type` and then `self-type`, and `bindings` by `name`. A profile lists its modifiers, and a modifier is listed when it changes
     what a consumer can do:
 
     | Language | Modifiers |
@@ -310,6 +316,44 @@ proposed-design:
     `{inferred}` slots. That entry's source declaration is the owning class, and the
     audit reads the class and the synthesis rule.
 
+    Rust records auto traits in one `auto-traits` slot, on every `struct`, `enum` and
+    `union` member and on every callable whose return contains `impl Trait` or is the
+    future of an `async fn`, with a trait method only when it has a default body, because losing an auto trait such as `Send` is a break that
+    no written signature shows, and a private field change can cause it on an ordinary
+    public struct. The traits are `Send`, `Sync`, `Unpin`, `UnwindSafe` and
+    `RefUnwindSafe`. The slot is a sorted list of the traits the type implements. A trait
+    it does not implement is absent, and a type that implements none has no slot. A trait
+    held under a condition is written `<trait> when <conditions>`, such as
+    `Send when T: Send` or `Sync when T: Sync, U: Send + Sync`, with sorted predicates
+    and bounds, and `Send when T = u8` for an implementation of one instantiation.
+
+    A return whose whole type is its only opaque type uses plain elements. Every other
+    return prefixes each element with its occurrence's ordinal, `#<n> `, counted from 0
+    in source order: the `async` keyword's future, then each `impl` token. So
+    `(impl A, impl B)` has `#0 Send` and `#1 Send`, and an `async fn` returning `impl A`
+    has `#0` for the future and `#1` for the output, because a consumer can use each
+    alone and a whole-return fact does not show one losing `Send`. A trait implementation's
+    method is no member, so its opaque return is a binding of that implementation's
+    `bases` or `implementations` entry: `{name: make, auto-traits: [Send, Sync]}`. A method
+    that refines the trait's return states it in `returns` on that binding:
+    `{name: make, returns: u8}`.
+
+    The slot compares as a set of units like `modifiers`, keyed by the text before
+    ` when `: `auto-traits[#1 Send]`. A changed condition is a `wrong-value`.
+
+    A Rust callable's `abi` is its ABI string, absent for the Rust ABI, and the tail
+    `...` of a C variadic function is a parameter `{mode: c-variadic}`. `provided` on an
+    associated constant states its default whether or not the default has a `value`
+    slot. `implementations` is a slot of a trait, for a blanket implementation and an
+    implementation for a type that is not a project type, which no `implements`
+    relation can start from.
+
+    A C# delegate's synthesized constructor, `Invoke`, `BeginInvoke` and `EndInvoke` are
+    its members. A C# event's `add` and `remove` accessors hold its delegate type. A fixed-size
+    buffer's `type` is `char[24]`, the oracle's spelling of its length. A Python
+    signature's `type-parameters` include the module-level `TypeVar` names it uses, with
+    their declared bound, constraints, variance and default.
+
     Rust bounds have one form: a bound on a bare parameter, inline or in a `where`
     clause, is in that parameter's sorted `bounds`, and `where` holds other
     predicates only.
@@ -338,8 +382,8 @@ proposed-design:
     Constant, enum and default values have one form: `null`; integers in decimal;
     booleans; strings and chars as JSON strings; floats as the shortest round-trip
     decimal; C# `decimal` as its exact decimal; an enum value as `@{id}`; and all Go
-    numeric constants as `go/constant` exact strings, such as `1/3` or
-    `(5/2 + 3i)`. C# `default` is written as the value it denotes for the type, and
+    numeric constants as their normalized values, which the Go profile defines, such
+    as `1/3` or `(5/2 + 3i)`. C# `default` is written as the value it denotes for the type, and
     a Dart optional parameter with no default has `default: null`. A constant of any
     other type has no `value` slot.
 
@@ -351,11 +395,13 @@ proposed-design:
     the named constructs below into its required categories by the model's
     existing rule. A slot whose type no source token states, because inference or
     a synthesis rule gives it, is written `{inferred: <type text>}`. An observation
-    of a type for an absent slot is `out-of-profile`.
+    of a type that the inference rule below leaves unstated is `out-of-profile`. The
+    slots of an extra parameter and a `bases` key that the record does not have stay
+    `unexpected`.
 
     | Profile | What it records | How an author derives it |
     | --- | --- | --- |
-    | `rust/1` | Nothing is inferred: item signatures must state their types. `impl Trait` is recorded as written, `impl @{Clone} + use<'a>`. The hidden type and the auto traits it leaks are not recorded. Lifetimes are as written, with no elision expansion. | Source and the Rust Reference (Items, Lifetime elision). `value` from the Reference's constant evaluation rules; a `const` assertion probe confirms it. |
+    | `rust/1` | Nothing is inferred: item signatures must state their types. `impl Trait` is recorded as written, `impl @{Clone} + use<'a>`. The hidden type is not recorded, and `auto-traits` states what it leaks. Lifetimes are as written, with no elision expansion. | Source and the Rust Reference (Items, Lifetime elision). `value` from the Reference's constant evaluation rules; a `const` assertion probe confirms it. `auto-traits` from the Reference's auto trait rules applied to the type's fields; a compile check confirms each. |
     | `typescript/1` | `{inferred: ...}` for an unannotated return, `const`, `let`, field or accessor of a member, with the type that `tsc --declaration` emits for the context's options and compiler version, in canonical spelling. `/*elided*/ any` in that emit is written as `any`. A `.d.ts` member is all declared. | The compiler supplies it: `tsc --declaration` outside the tree. TypeScript has no current language specification, and a consumer of a published package compiles against that emit, so the compiler defines the answer. |
     | `python/1` | No inference. An unannotated parameter, return or variable has no type slot, because the typing specification leaves inference to each checker. `default` is the literal in canonical form, or `present` when the default is not a literal. `@overload` stubs are `overloads` in `typing` contexts and the implementation signature is the record in `runtime` contexts. A redefined name has the signature of the final binding. When control flow leaves several definitions possible, the record has `alternatives`, each with its `at` and slots. A `TypedDict` key's requiredness is a modifier. Decorators other than the ones the profile names leave the signature as written. | The Language Reference and typing specification applied to source. `inspect.signature` run outside the tree confirms names, order, kinds, defaults and annotations. |
     | `go/1` | A constant's `type` is its declared type or its kind: `untyped bool`, `untyped rune`, `untyped int`, `untyped float`, `untyped complex`, `untyped string`. `value` is exact for typed and untyped constants, with `iota` and implicit repetition applied. `var X = expr` has `{inferred: ...}`, the expression's type or its kind's default type. Function signatures are always declared. Result names are not recorded. | The Go specification (Constants, Iota, Variable declarations). A `go/types` probe outside the tree confirms it. |
@@ -371,6 +417,7 @@ proposed-design:
     | --- | --- | --- | --- |
     | Declared slots | The author | Source, build configuration, the language specification | Slots, including types, modes, modifiers, defaults and values |
     | Inferred slots with a specification | The author | The specification's inference rule applied to source: Go and Dart | `{inferred: ...}` slots |
+    | Auto traits | The author | The Reference's auto trait rules applied to the type's fields, including private ones: Rust | `auto-traits` |
     | Inferred slots the compiler defines | The compiler | `tsc --declaration` for the context's options and version: TypeScript | `{inferred: ...}` slots, in canonical spelling |
     | Check | The compiler | The project, for each context | A compiler report that the audit compares with every slot it can state |
 
@@ -385,7 +432,7 @@ proposed-design:
 
     | Language | Compiler report comes from |
     | --- | --- |
-    | Rust | rustdoc JSON |
+    | Rust | rustdoc JSON, and a compile check for `auto-traits`: a consumer that requires a listed trait, assuming its conditions, compiles, and it fails with a condition dropped or for a trait the slot does not list |
     | TypeScript | `tsc --declaration` |
     | Go | `go/types` |
     | Python | `inspect.signature`, for names, kinds, defaults and annotations |
@@ -428,26 +475,31 @@ proposed-design:
     observations match two alternatives with equal values. Each slot pairs on its
     own, so one observation's slots can match different alternatives.
 
-    A `bases` entry is keyed by its `type` and `self-type`, written in the slot path:
+    A `bases` or `implementations` entry is keyed by its `type` and `self-type`, written
+    in the slot path:
     `bases[@{Trait}<u8>].where`. A wrong `where` or binding is `wrong-value` on that
     slot. A wrong `type` is a different key, so it is `unexpected` and the expected
     entry's slots are `missing`. Relation units are unchanged, so an adapter that
     reports relations and no signatures is graded on relations as before, and its
     `bases` slots are `unsupported`.
 
-    An adapter declares four capabilities: `signature-shape` (names, order,
+    An adapter declares five capabilities: `signature-shape` (names, order,
     modes, modifiers, accessors), `signature-declared-type`,
-    `signature-inferred-type` and `signature-value`.
+    `signature-inferred-type`, `signature-value` and `signature-auto-trait`.
+    `auto-traits` has its own capability, because a syntax tree states a declaration's
+    shape and does not solve its auto traits. An indexer that lacks the capability gets
+    `unsupported` on those units.
 
     | Adapter | Result |
     | --- | --- |
     | Reports no signatures, which includes the SCIP adapter, because `signature_documentation` is display text | Every signature unit is `unsupported`, including `bases`. Rates for the group are undefined, the report lists the count, and no other group changes. |
     | Reports declared types but no inference | Declared units are graded. `{inferred}` units are `unsupported`. |
     | Declares inference and omits a slot | `missing`. |
+    | Does not declare `signature-auto-trait` | `auto-traits` units are `unsupported`. |
     | Reports a type for a Python parameter with no annotation | `out-of-profile`. |
 
     Reports add the grouping `slot-class` (`shape`, `declared-type`,
-    `inferred-type`, `value`). The API boundary grouping holds every signature
+    `inferred-type`, `value`, `auto-trait`). The API boundary grouping holds every signature
     unit. No score combines them.
 
     Controlled cases added to the table:
@@ -469,6 +521,9 @@ proposed-design:
     | `bases` `@{T}<u8>` and `@{T}<u16>`, each `where: W` | both types, each `where: Z` | two `wrong-value` |
     | `bases` `@{T}<u8>` | `@{T}<u16>` | `type` `unexpected`; `@{T}<u8>` `type` `missing` |
     | `bases` `@{A}` position 0, `@{B}` position 1 | `@{A}` position 1, `@{B}` position 0 | two `wrong-value` |
+    | `auto-traits: [Send, Sync]` | `Send` only | `Send` `matched`; `Sync` `missing` |
+    | `auto-traits: ["Send when T: Send"]` | `Send` | one `wrong-value` |
+    | `auto-traits: [Send, Sync]`, adapter without `signature-auto-trait` | none | two `unsupported` |
     | `implements X→T`, `bases` `@{T}<u8>`, adapter with relations only | `implements X→T` | relation `matched`; `bases` slot `unsupported` |
 
     Validation and audit check:
@@ -501,8 +556,11 @@ proposed-design:
     | `constructors[n]`, `call-signatures[n]`, `construct-signatures[n]`, `index-signatures[n]` | That constructor or unnamed callable entity |
     | `impl` | The `extension` entity, with its `type-parameter` entities |
     | `bases[k]` | The `extension` entity for a Rust implementation; the member for other languages |
+    | `implementations[k]` | The `extension` entity |
     | `underlying` | The member and its field entities |
-    | `get`, `set`, `init`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
+    | A `type-parameters` entry for a name the declaration does not declare | That name's declaration, where the profile gives one: a Python `TypeVar` |
+    | `auto-traits` | The member. It is not a declared type text, and `profile:signature-compiler` audits it. |
+    | `get`, `set`, `init`, `add`, `remove`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
 
     - `profile:signature-compiler`: facts agree with the language's compiler report,
       as the Authoring section states. A language with no report is listed as
@@ -561,8 +619,8 @@ proposed-design:
     All of this surface is new: contexts, units, distributions, effective
     visibility, membership, signatures and `compare`. The library has grammars
     for three of the six languages, and a syntax tree does not state an inferred
-    type. Signature units for Python, C# and Dart, and inferred units in every
-    language, are `unsupported` until the library has a source for them.
+    type. Signature units for Python, C# and Dart, and inferred and auto trait units in
+    every language, are `unsupported` until the library has a source for them.
 
     Work is divided as follows:
 
@@ -591,7 +649,7 @@ proposed-design:
     The wall clock is agent time, excluding study of the contract. It does not
     predict human time. The sample's projects have few of the forms that the scope
     gained from review: generic implementations, constructors, accessor types,
-    `underlying`, and implementation bindings. It measures the common forms, and it
+    `underlying`, implementation bindings and `auto-traits`. It measures the common forms, and it
     has no C#, Go or Dart member.
 
     Difficulty: most members need one read of one declaration. The difficult
@@ -639,7 +697,9 @@ proposed-design:
       830 lines on 8337, 10 percent. TypeScript pilot: 91 members, about 270
       lines on 10398, 3 percent. Python `diagnostics-toolkit`: 165 members, about
       500 lines.
-    - `bases`, `impl` and `underlying` add lines the sample does not measure.
+    - `bases`, `impl`, `underlying` and `auto-traits` add lines the sample does not
+      measure. `auto-traits` adds one to six lines per Rust type, and its authoring cost
+      is reading each type's fields transitively.
     - Corpus: a rough estimate is 13,500 member declarations (Python 3,335 by syntax
       tree; Rust 1,846, C# 3,205, Dart 1,943, TypeScript 2,393 and Go 761 by pattern).
       It is not a bound. The Rust pattern gives 299 on the pilot against 276 in its
@@ -673,8 +733,6 @@ proposed-design:
       makes each signature large, depends on a type checker for each language, and
       does not terminate for a recursive type. An alias has its own fact, so a
       change to its target is reported once, at the alias.
-    - **Auto traits out of profile.** Recording `Send` and `Sync` for each Rust
-      member needs a compiler probe per type. The missed change is stated above.
     - **`present` for a non-literal Python default.** Comparing expression text
       brings back the problems of source text. The missed change is stated above.
     - **The author writes declared slots, not a compiler draft.** A draft from the

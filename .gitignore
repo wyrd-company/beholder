@@ -24,3 +24,6 @@ target
 /symbols.jsonl
 /files.jsonl
 /edges.jsonl
+
+# Python bytecode
+__pycache__/

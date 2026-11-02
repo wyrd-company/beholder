@@ -107,3 +107,59 @@ cases:
     fails-at: /extensions/go:pointer-receiver/0
     keyword: unevaluatedProperties
     member: method
+
+  # ------------------------------------------------------------- signatures
+  - name: modifiers-slot
+    reason: 'Go has no modifiers; a pointer receiver is the `receiver` slot.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/modifiers, value: [pointer]}]
+    fails-at: /public-api/signatures/6/modifiers
+    keyword: falseSchema
+  - name: parameter-mode
+    reason: 'A Go variadic parameter is written `...T` in its type.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/parameters/0/mode, value: rest}]
+    fails-at: /public-api/signatures/4/parameters/0/mode
+    keyword: falseSchema
+  - name: where-slot
+    reason: 'Go states constraints in `bounds`.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/9/where, value: x}]
+    fails-at: /public-api/signatures/9/where
+    keyword: falseSchema
+  - name: base-position
+    reason: 'Go base order has no meaning.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/bases/0/position, value: 0}]
+    fails-at: /public-api/signatures/1/bases/0/position
+    keyword: falseSchema
+  - name: accessor-slot
+    reason: 'Go has no accessors.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/get, value: {type: string}}]
+    fails-at: /public-api/signatures/3/get
+    keyword: falseSchema
+  - name: const-type-parameter
+    reason: 'A Go type parameter has kind `type`.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: replace, path: /public-api/signatures/9/type-parameters/0/kind, value: lifetime}]
+    fails-at: /public-api/signatures/9/type-parameters/0/kind
+    keyword: const
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/abi, value: C}]
+    fails-at: /public-api/signatures/3/abi
+    keyword: falseSchema
+  - name: implementations-slot
+    reason: '`implementations` is a Rust slot; Go `bases` holds implemented interfaces.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/implementations, value: [{type: 'x', self-type: 'y'}]}]
+    fails-at: /public-api/signatures/0/implementations
+    keyword: falseSchema
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/3/auto-traits
+    keyword: falseSchema

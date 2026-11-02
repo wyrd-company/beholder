@@ -12,16 +12,22 @@
 //! Schema validation is structural. [`validate`] adds the checks the schema
 //! cannot make: id resolution and uniqueness, the document inventory and
 //! digests, locators, context partitions and membership, dispositions,
-//! extension facts and public API consistency. [`audit`] adds the
-//! mechanical part of the profile audit. [`locator`] captures locators from
+//! extension facts, public API consistency and signature checks. [`audit`] adds
+//! the mechanical part of the profile audit, and [`audit_with_reports`] compares
+//! signatures with compiler reports. [`canonical`] holds each language's type
+//! text rules, and [`signature`] the slots of a record. [`locator`] captures locators from
 //! source text, and [`project`] reads a project's tracked files.
 
+pub mod canonical;
 pub mod locator;
 pub mod project;
 pub mod rules;
+pub mod signature;
 mod validate;
 
-pub use validate::{audit, validate, Finding, Report, Severity};
+pub use validate::{
+    audit, audit_with_reports, validate, ContextCounts, Finding, Report, Severity, Unchecked,
+};
 
 use anyhow::{anyhow, Context, Result};
 use jsonschema::{Draft, Registry, Validator};
@@ -81,9 +87,11 @@ pub const PROFILES: [Profile; 6] = [
     profile!("typescript"),
 ];
 
-/// Parses one YAML 1.2 document into a JSON value.
+/// Parses one YAML 1.2 document into a JSON value. Booleans follow YAML 1.2, so
+/// that a type parameter named `N` is a string.
 pub fn parse_yaml(text: &str) -> Result<Value> {
-    serde_saphyr::from_str(text).map_err(|error| anyhow!("{error}"))
+    let options = serde_saphyr::options! { strict_booleans: true };
+    serde_saphyr::from_str_with_options(text, options).map_err(|error| anyhow!("{error}"))
 }
 
 /// The model schema as a JSON value.

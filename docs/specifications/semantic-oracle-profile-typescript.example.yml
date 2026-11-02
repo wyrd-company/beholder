@@ -8,6 +8,9 @@
 # form and extension of the schema, including merged declarations, module
 # augmentation and the global scope. Locators and digests describe notional
 # source; schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: typescript/1
 project:
@@ -503,6 +506,16 @@ entities:
     definitions: []
     declared-visibility: {value: exported, explicit: false}
     effective-visibility: {unit: all, project: all, external: none}
+  - id: shapes.makeShape.value
+    kind: parameter
+    language-kind: param
+    name: value
+    path: '"src/shapes.ts"#default.(value)'
+    unit: shapes-ts
+    parent: shapes.makeShape
+    origin: source
+    definitions:
+      - at: {path: src/shapes.ts, start: [29, 38], end: [29, 43], text: value}
 
 externals:
   - id: ext.lib.es5.Array
@@ -601,6 +614,10 @@ references:
     from: augment
     target: ext.lib.es5.Array
     role: type
+  - at: {path: src/shapes.ts, start: [29, 48], end: [29, 53], text: Shape}
+    from: shapes.makeShape
+    target: shapes.Shape
+    role: type
 
 relations:
   - kind: inherits
@@ -629,28 +646,51 @@ relations:
     contexts: [esm]
 
 public-api:
-  - distribution: geometry
-    entity: shapes.Circle
-    paths: ['import:@acme/geometry#Circle', 'require:@acme/geometry#Circle']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.area
-    paths: ['import:@acme/geometry#Circle.area', 'require:@acme/geometry#Circle.area']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.diameter
-    paths: ['import:@acme/geometry#Circle.diameter', 'require:@acme/geometry#Circle.diameter']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.radius
-    paths: ['import:@acme/geometry#Circle.radius', 'require:@acme/geometry#Circle.radius']
-    access: all
-  - distribution: geometry
-    entity: shapes.makeShape
-    paths: ['import:@acme/geometry#default', 'require:@acme/geometry#default']
-    access: all
-    contexts: [esm]
-  - {distribution: geometry, entity: 'index', paths: ['import:@acme/geometry', 'require:@acme/geometry'], access: all}
+  members:
+    - distribution: geometry
+      entity: shapes.Circle
+      paths: ['import:@acme/geometry#Circle', 'require:@acme/geometry#Circle']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.area
+      paths: ['import:@acme/geometry#Circle.area', 'require:@acme/geometry#Circle.area']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.diameter
+      paths: ['import:@acme/geometry#Circle.diameter', 'require:@acme/geometry#Circle.diameter']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.radius
+      paths: ['import:@acme/geometry#Circle.radius', 'require:@acme/geometry#Circle.radius']
+      access: all
+    - distribution: geometry
+      entity: shapes.makeShape
+      paths: ['import:@acme/geometry#default', 'require:@acme/geometry#default']
+      access: all
+      contexts: [esm]
+    - {distribution: geometry, entity: 'index', paths: ['import:@acme/geometry', 'require:@acme/geometry'], access: all}
+  signatures:
+    - entity: shapes.Circle
+      bases:
+        - {type: "@{shapes.Base}"}
+        - {type: "@{shapes.Shape}"}
+      constructors:
+        - parameters:
+            - {name: radius, type: number}
+    - entity: shapes.Circle.area
+      returns: number
+    - entity: shapes.Circle.diameter
+      get: {type: {inferred: number}}
+    - entity: shapes.Circle.radius
+      modifiers: [readonly]
+      type: number
+    - entity: shapes.makeShape
+      contexts: [esm]
+      type-parameters:
+        - {name: T, kind: type, bounds: "@{shapes.Shape}"}
+      parameters:
+        - {name: value, type: T, mode: optional}
+      returns: {inferred: "@{shapes.Circle}"}
 
 extensions:
   typescript:module-format:

@@ -7,6 +7,9 @@
 # test assembly, and application `Atlas`. It exercises every C# record form
 # and extension of the schema. Locators and digests describe notional
 # source; schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: csharp/1
 project:
@@ -546,6 +549,148 @@ entities:
       - at: {path: tests/Geometry.Tests/ShapeTests.cs, start: [3, 14], end: [3, 24], text: ShapeTests}
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: all, external: none}
+  - id: Geometry.Visitor.Invoke
+    kind: callable
+    language-kind: method
+    name: Invoke
+    path: Geometry.Visitor.Invoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.Invoke.shape
+    kind: parameter
+    language-kind: param
+    name: shape
+    path: Geometry.Visitor.Invoke.shape
+    unit: geometry-lib
+    parent: Geometry.Visitor.Invoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Header
+    kind: type
+    language-kind: struct
+    name: Header
+    path: Geometry.Header
+    unit: geometry-lib
+    parent: Geometry
+    origin: source
+    definitions:
+      - at: {path: src/Geometry/Shapes.cs, start: [40, 22], end: [40, 28], text: Header}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Header.Name
+    kind: field
+    language-kind: fixed-buffer
+    name: Name
+    path: Geometry.Header.Name
+    unit: geometry-lib
+    parent: Geometry.Header
+    origin: source
+    definitions:
+      - at: {path: src/Geometry/Shapes.cs, start: [41, 23], end: [41, 27], text: Name}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor..ctor
+    kind: callable
+    language-kind: constructor
+    name: .ctor
+    path: Geometry.Visitor..ctor
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor..ctor.object
+    kind: parameter
+    language-kind: param
+    name: object
+    path: Geometry.Visitor..ctor.object
+    unit: geometry-lib
+    parent: Geometry.Visitor..ctor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor..ctor.method
+    kind: parameter
+    language-kind: param
+    name: method
+    path: Geometry.Visitor..ctor.method
+    unit: geometry-lib
+    parent: Geometry.Visitor..ctor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke
+    kind: callable
+    language-kind: method
+    name: BeginInvoke
+    path: Geometry.Visitor.BeginInvoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.BeginInvoke.shape
+    kind: parameter
+    language-kind: param
+    name: shape
+    path: Geometry.Visitor.BeginInvoke.shape
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke.callback
+    kind: parameter
+    language-kind: param
+    name: callback
+    path: Geometry.Visitor.BeginInvoke.callback
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke.object
+    kind: parameter
+    language-kind: param
+    name: object
+    path: Geometry.Visitor.BeginInvoke.object
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.EndInvoke
+    kind: callable
+    language-kind: method
+    name: EndInvoke
+    path: Geometry.Visitor.EndInvoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.EndInvoke.result
+    kind: parameter
+    language-kind: param
+    name: result
+    path: Geometry.Visitor.EndInvoke.result
+    unit: geometry-lib
+    parent: Geometry.Visitor.EndInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
 
 externals:
   - id: ext.System.Object.ToString
@@ -569,6 +714,21 @@ externals:
     distribution: Legacy.Geometry
     version: 2.0.0.0
     path: Legacy.Point
+  - id: ext.System.EventHandler
+    kind: type
+    language-kind: delegate
+    distribution: System.Runtime
+    path: System.EventHandler
+  - id: ext.System.AsyncCallback
+    kind: type
+    language-kind: delegate
+    distribution: System.Runtime
+    path: System.AsyncCallback
+  - id: ext.System.IAsyncResult
+    kind: type
+    language-kind: interface
+    distribution: System.Runtime
+    path: System.IAsyncResult
 
 references:
   - at: {path: src/Geometry/Shapes.cs, start: [8, 39], end: [8, 45], text: IShape}
@@ -628,6 +788,10 @@ references:
     from: Atlas.Program.Main
     target: ext.System.ObsoleteAttribute..ctor
     role: attribute
+  - at: {path: src/Geometry/Shapes.cs, start: [18, 25], end: [18, 37], text: EventHandler}
+    from: Geometry.Circle.Changed
+    target: ext.System.EventHandler
+    role: type
 
 relations:
   - kind: implements
@@ -652,25 +816,91 @@ relations:
     to: ext.System.Object.ToString
 
 public-api:
-  - {distribution: geometry, entity: Geometry.IShape, paths: [Geometry.IShape], access: all}
-  - {distribution: geometry, entity: Geometry.Shape, paths: [Geometry.Shape], access: all}
-  - {distribution: geometry, entity: Geometry.Shape.Scale, paths: [Geometry.Shape.Scale(System.Double)], access: subtypes}
-  - {distribution: geometry, entity: Geometry.Shape.Count, paths: [Geometry.Shape.Count], access: subtypes}
-  - {distribution: geometry, entity: Geometry.Circle, paths: [Geometry.Circle], access: all}
-  - {distribution: geometry, entity: Geometry.Circle.Area, paths: [Geometry.Circle.Area], access: all}
-  - {distribution: geometry, entity: ext.Legacy.Point, paths: [Legacy.Point], access: all}
-  - {distribution: geometry, entity: 'Geometry.Circle.Changed', paths: ['Geometry.Circle.Changed'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Circle.ToString', paths: ['Geometry.Circle.ToString'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Generated.Metrics', paths: ['Geometry.Metrics'], access: all}
-  - {distribution: geometry, entity: 'Geometry.IShape.Area', paths: ['Geometry.IShape.Area'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Kind.Round', paths: ['Geometry.Kind.Round'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Kind', paths: ['Geometry.Kind'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Shape..ctor', paths: ['Geometry.Shape..ctor'], access: subtypes}
-  - {distribution: geometry, entity: 'Geometry.Shape.Area', paths: ['Geometry.Shape.Area'], access: all}
-  - {distribution: geometry, entity: 'Geometry.ShapeExtensions.extension-IShape.Doubled', paths: ['Geometry.ShapeExtensions.extension(Geometry.IShape).Doubled'], access: all}
-  - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
-  - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
-  - {distribution: geometry, entity: 'Geometry', paths: ['Geometry'], access: all}
+  members:
+    - {distribution: geometry, entity: Geometry.IShape, paths: [Geometry.IShape], access: all}
+    - {distribution: geometry, entity: Geometry.Shape, paths: [Geometry.Shape], access: all}
+    - {distribution: geometry, entity: Geometry.Shape.Scale, paths: [Geometry.Shape.Scale(System.Double)], access: subtypes}
+    - {distribution: geometry, entity: Geometry.Shape.Count, paths: [Geometry.Shape.Count], access: subtypes}
+    - {distribution: geometry, entity: Geometry.Circle, paths: [Geometry.Circle], access: all}
+    - {distribution: geometry, entity: Geometry.Circle.Area, paths: [Geometry.Circle.Area], access: all}
+    - {distribution: geometry, entity: ext.Legacy.Point, paths: [Legacy.Point], access: all}
+    - {distribution: geometry, entity: 'Geometry.Circle.Changed', paths: ['Geometry.Circle.Changed'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Circle.ToString', paths: ['Geometry.Circle.ToString'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Generated.Metrics', paths: ['Geometry.Metrics'], access: all}
+    - {distribution: geometry, entity: 'Geometry.IShape.Area', paths: ['Geometry.IShape.Area'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Kind.Round', paths: ['Geometry.Kind.Round'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Kind', paths: ['Geometry.Kind'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Shape..ctor', paths: ['Geometry.Shape..ctor'], access: subtypes}
+    - {distribution: geometry, entity: 'Geometry.Shape.Area', paths: ['Geometry.Shape.Area'], access: all}
+    - {distribution: geometry, entity: 'Geometry.ShapeExtensions.extension-IShape.Doubled', paths: ['Geometry.ShapeExtensions.extension(Geometry.IShape).Doubled'], access: all}
+    - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
+    - {distribution: geometry, entity: 'Geometry', paths: ['Geometry'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.Invoke', paths: ['Geometry.Visitor.Invoke'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Header', paths: ['Geometry.Header'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Header.Name', paths: ['Geometry.Header.Name'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor..ctor', paths: ['Geometry.Visitor..ctor'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.BeginInvoke', paths: ['Geometry.Visitor.BeginInvoke'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.EndInvoke', paths: ['Geometry.Visitor.EndInvoke'], access: all}
+  signatures:
+    - entity: Geometry.Shape
+      modifiers: [abstract]
+      bases:
+        - {type: "@{Geometry.IShape}"}
+    - entity: Geometry.Shape.Scale
+      modifiers: [virtual]
+      parameters:
+        - {name: factor, type: double}
+      returns: double
+    - entity: Geometry.Shape.Count
+      modifiers: [static]
+      type: int
+    - entity: Geometry.Circle
+      bases:
+        - {type: "@{Geometry.IShape}"}
+        - {type: "@{Geometry.Shape}"}
+    - entity: Geometry.Circle.Area
+      modifiers: [override]
+      get: {type: double}
+    - entity: Geometry.Circle.Changed
+      add: {type: "@{ext.System.EventHandler}?"}
+      remove: {type: "@{ext.System.EventHandler}?"}
+    - entity: Geometry.Circle.ToString
+      modifiers: [override]
+      returns: {inferred: string}
+    - entity: Geometry.IShape.Area
+      get: {type: double}
+    - entity: Geometry.Kind
+      underlying: int
+    - entity: Geometry.Kind.Round
+      value: "0"
+    - entity: Geometry.Shape.Area
+      modifiers: [abstract]
+      get: {type: double}
+    - entity: Geometry.ShapeExtensions.extension-IShape.Doubled
+      returns: double
+    - entity: Geometry.ShapeExtensions
+      modifiers: [static]
+    - entity: Geometry.Visitor.Invoke
+      parameters:
+        - {name: shape, type: {inferred: "@{Geometry.Shape}"}}
+      returns: {inferred: void}
+    - entity: Geometry.Header.Name
+      type: char[24]
+    - entity: Geometry.Visitor..ctor
+      parameters:
+        - {name: object, type: {inferred: object~}}
+        - {name: method, type: {inferred: nint}}
+    - entity: Geometry.Visitor.BeginInvoke
+      parameters:
+        - {name: shape, type: {inferred: "@{Geometry.Shape}"}}
+        - {name: callback, type: {inferred: "@{ext.System.AsyncCallback}~"}}
+        - {name: object, type: {inferred: object~}}
+      returns: {inferred: "@{ext.System.IAsyncResult}~"}
+    - entity: Geometry.Visitor.EndInvoke
+      parameters:
+        - {name: result, type: {inferred: "@{ext.System.IAsyncResult}~"}}
+      returns: {inferred: void}
 
 extensions:
   csharp:type-forward:

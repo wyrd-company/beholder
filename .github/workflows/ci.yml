@@ -33,6 +33,18 @@ jobs:
         with:
           tool: shellcheck
       - run: task ci
+  corpus:
+    name: Semantic-oracle corpus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      # The corpus is a public repository, at the commit this repository pins.
+      - run: git -c submodule.fixtures.update=checkout submodule update --init --depth 1 -- fixtures
+      - run: cargo build --locked -p beholder-semantic-oracle-cli
+      - run: python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
   platforms:
     name: Rust 1.90 (${{ matrix.os }})
     strategy:

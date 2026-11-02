@@ -85,7 +85,7 @@ proposed-design:
           │                            required categories, evaluation
           ▼
     semantic-oracle-profile-<lang> ─── language mapping, contexts, paths,
-          │                            visibility rules, public API rule,
+          │                            visibility rules, public API rules,
           │                            extensions, authoring obligation
           ▼
     dataset JSON Schema ────────────── structural encoding of model + profile
@@ -100,7 +100,7 @@ proposed-design:
           │
           ▼
     report: categories by project, context, fact kind, role,
-            disposition, origin, basis, API boundary
+            disposition, origin, basis, API boundary, slot class
     ```
 
     A dataset states, for one project: every document with a disposition;
@@ -109,8 +109,9 @@ proposed-design:
     effective visibility at the `unit`, `project` and `external` boundaries;
     every in-profile reference site with its target, role, enclosing entity
     and disposition; inheritance, implementation, override, alias and export
-    relations; and public API membership with consumer paths. Every fact is
-    qualified by the contexts in which it holds.
+    relations; and the public API: membership with consumer paths, and the
+    signature of each member as named slots. Every fact is qualified by the
+    contexts in which it holds.
 
     An adapter turns an index into observations keyed by site, unit key and
     canonical path, and declares its capabilities. The evaluator matches
@@ -156,10 +157,17 @@ proposed-design:
     Datasets are exhaustive for the model's required categories. The
     out-of-profile set holds body-local declarations and references to
     parameters, documentation comments, implicit references, macro definition
-    bodies, inferred types, dispatch and flow. That boundary keeps every
-    remaining fact checkable from source by a reviewer, and it covers what
-    code-graph consumers depend on: declarations, cross-entity references,
+    bodies, inferred types, dispatch and flow. A profile moves the inferred types
+    of public API members into its required categories by name. That boundary
+    keeps every remaining fact checkable from source by a reviewer, and it covers
+    what code-graph consumers depend on: declarations, cross-entity references,
     type relations, visibility and public surface.
+
+    An author writes what the source states, and a compiler checks all of it. A
+    compiler supplies an inferred type only where it defines the answer, which is
+    TypeScript's `tsc --declaration`. The technical design
+    `semantic-oracle-signatures` states the slots, the type text and the reasons
+    for them.
   identity-and-locators: |
     An entity's identity is its unit, canonical path and kind within a
     context. Definition sites anchor it to source. The unit key is
@@ -214,6 +222,11 @@ proposed-design:
     Validators recompute public API membership from exports, containment,
     effective visibility and the profile rule, so the three facts cannot
     drift apart within a dataset.
+
+    The public API also states a signature for each project member: a set of
+    named slots, each holding a name, a mode, a value or a type text. A type text
+    is the language's own type syntax in one canonical spelling, with `@{id}` for
+    each name that denotes an entity, so that equal facts are equal strings.
   dispositions: |
     Every reference has one disposition. `resolved` and `external` cover
     statically bound languages almost completely. `candidates` records a
@@ -228,8 +241,8 @@ proposed-design:
     ambiguity.
   evaluation-pipeline: |
     The evaluator is format-neutral. It consumes observations: document,
-    definition, reference, relation, visibility, public API and extension
-    forms, each keyed by site, unit key and path or by external key. Each
+    definition, reference, relation, visibility, public API member, signature
+    and extension forms, each keyed by site, unit key and path or by external key. Each
     adapter declares the forms, fact kinds, roles, boundaries and extensions
     it produces. Facts outside an adapter's capabilities are `unsupported`,
     not `missing`.
@@ -243,7 +256,8 @@ proposed-design:
     adapter's output can change a dataset.
 
     Facts are compared as atomic units: one definition site, one
-    reference, one relation, one boundary value, one public API path. Each
+    reference, one relation, one boundary value, one public API path, one
+    signature slot. Each
     unit and each observation pairs at most once, first exactly, then by a
     form-specific pairing key when exactly one candidate remains, so that an
     observation with the wrong base type is one `wrong-target` rather than a
@@ -254,8 +268,8 @@ proposed-design:
     documents are reported and excluded; then definitions by unit key, path
     and site, with conflated entities reported when an index collapses
     several entities onto one site; then references by site, then target,
-    role and enclosing entity; then relations, visibility, public API and
-    extensions by key. Profile equivalence rules accept named alternative
+    role and enclosing entity; then relations, visibility, public API members,
+    signature slots and extensions by key. Profile equivalence rules accept named alternative
     targets and are counted as `equivalent`, so a C# index that targets an
     override instead of the original virtual declaration is accepted and
     visible.
@@ -264,9 +278,12 @@ proposed-design:
     machine-readable output: schema and version; id uniqueness and reference
     resolution; complete document inventory with digests and canonical paths;
     locator validity; fact contexts against unit and document membership;
-    disposition members; public API consistency; and the profile audit that
-    every required category is present for every indexed document and
-    context. Each check names the rule it enforces in the model or profile.
+    disposition members; public API membership consistency; signature slots,
+    spelling, parameters, references, inference and bases; and the profile audit
+    that every required category is present for every indexed document and
+    context, with signatures compared to a compiler report that a per-language
+    script produces outside the project tree. The crate runs no compiler. Each
+    check names the rule it enforces in the model or profile.
   cross-language-walkthrough: |
     The examples below use fixture projects of `wyrd-company/beholder-fixtures`
     at commit `ba01bbfcb3e3f919a72039722f6ec6465b882b0c`. Sites are exact; each
@@ -453,7 +470,9 @@ proposed-design:
     - Calibration applies pilot findings to the model, profiles and schema as
       one contract. The pilots are the datasets of Rust
       `modules-visibility-and-resolution`, TypeScript
-      `package-publishing-ecosystem` and Python `plugin-content-library`.
+      `package-publishing-ecosystem`, and Python `plugin-content-library` and
+      `diagnostics-toolkit`, because the public API of `plugin-content-library`
+      is empty.
     - The evaluator and SCIP adapter implement observations, matching,
       categories and reports.
     - Each language corpus authors and audits its datasets against its

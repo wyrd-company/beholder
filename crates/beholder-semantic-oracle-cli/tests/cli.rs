@@ -8,6 +8,7 @@
 //! also cover a project root that is not the working tree root.
 
 use std::{
+    fs,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
@@ -87,14 +88,12 @@ fn lines(output: &Output) -> Vec<Value> {
 #[test]
 fn a_valid_dataset_passes_with_one_summary_line() {
     let repo = Repo::new();
-    for command in ["validate", "audit"] {
-        let output = repo.run(&[command, "projects/tally"]);
-        assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
-        assert_eq!(
-            stdout(&output),
-            "{\"summary\":{\"errors\":0,\"warnings\":0}}\n"
-        );
-    }
+    let output = repo.run(&["validate", "projects/tally"]);
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    assert_eq!(
+        stdout(&output),
+        "{\"summary\":{\"errors\":0,\"warnings\":0}}\n"
+    );
     let output = repo.run(&["validate", "projects/tally/semantic-oracle.yml"]);
     assert_eq!(output.status.code(), Some(0));
 }
@@ -277,4 +276,68 @@ fn inventory_opens_a_project_whose_directory_name_is_not_utf8() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(stdout(&output).contains("  - path: a\n"));
+}
+
+/// `audit` lists each slot no report states as unchecked, passes, and never
+/// counts it as agreed; a report moves a slot to agreed or to an error.
+#[test]
+fn audit_reads_compiler_reports_and_lists_unchecked_slots() {
+    let repo = Repo::new();
+    let lines = |output: &std::process::Output| -> Vec<Value> {
+        stdout(output)
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    };
+    let output = repo.run(&["audit", "projects/tally"]);
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    let found = lines(&output);
+    let unchecked = found
+        .iter()
+        .filter(|l| l["severity"] == "unchecked")
+        .count();
+    assert!(unchecked > 0);
+    let summary = &found.last().unwrap()["summary"];
+    assert_eq!(summary["agreed"], 0);
+    assert_eq!(summary["unchecked"], unchecked);
+
+    let report = |returns: &str| {
+        let path = repo.dir.path().join("report.json");
+        let body = serde_json::json!({
+            "format": "semantic-oracle-compiler-report/1",
+            "language": "rust",
+            "context": "default",
+            "tool": {"name": "rustdoc", "version": "test"},
+            "covers": ["returns"],
+            "members": [{"path": "tally::make", "slots": {"returns": returns}, "unstated": []}],
+        });
+        fs::write(&path, body.to_string()).unwrap();
+        path.display().to_string()
+    };
+    let path = report("@{tally::Counter}");
+    let output = repo.run(&["audit", "projects/tally", "--report", &path]);
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    assert_eq!(lines(&output).last().unwrap()["summary"]["agreed"], 1);
+
+    let path = report("u32");
+    let output = repo.run(&["audit", "projects/tally", "--report", &path]);
+    assert_eq!(output.status.code(), Some(1), "{}", stdout(&output));
+    assert!(lines(&output)
+        .iter()
+        .any(|l| l["rule"] == "profile:signature-compiler" && l["severity"] == "error"));
+}
+
+/// A report that is not JSON stops the command.
+#[test]
+fn audit_rejects_an_unreadable_report() {
+    let repo = Repo::new();
+    let path = repo.dir.path().join("report.json");
+    fs::write(&path, "not json").unwrap();
+    let output = repo.run(&[
+        "audit",
+        "projects/tally",
+        "--report",
+        path.to_str().unwrap(),
+    ]);
+    assert_eq!(output.status.code(), Some(2));
 }

@@ -144,7 +144,11 @@ description: |
 
   ## Public API
 
-  A distribution's public API in a context is every `package` unit's package
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  A distribution's members in a context are every `package` unit's package
   outside `internal` directories, because a consumer can name it, even when
   it has no exported names, with its import path as consumer path, and every
   entity of those units that is `exported` and is a
@@ -152,6 +156,73 @@ description: |
   type, or an exported field or method promoted into an exported struct type
   through an embedded field. A promoted member's consumer path is
   `<exported type path>.<name>`; its entity is the member's declaration.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `func`, `interface-method` | `type-parameters`, `parameters`, `returns` |
+  | `method`, `pointer-method` | `receiver`, `parameters`, `returns` |
+  | `struct`, `interface`, `defined` | `type-parameters`, `bases`, `underlying` |
+  | `alias` | `type-parameters`, `type` |
+  | `field`, `embedded` | `type`, `tag` |
+  | `var` | `type` |
+  | `const` | `type`, `value` |
+
+  Go has no modifiers and no parameter modes. `receiver` is the receiver's type
+  text, such as `*@{geometry.Circle}` for a pointer receiver; its name is not
+  recorded. A variadic parameter writes `...T` in its `type`. Each name of a grouped
+  parameter `a, b int` is its own record. An unnamed parameter, and a parameter
+  named `_`, has no `name`. `parameters` lists the entities with `language-kind`
+  `param`. `returns` is one type, `(int, error)` for several, and absent for none;
+  result names are not recorded.
+
+  `bases` holds the targets of the type's `inherits` and `implements` relations. A
+  structural `implements` base has no source token, and the audit reads its method
+  sets.
+
+  `underlying` is always the full underlying type of a defined type, with struct
+  field order, unexported fields, tags and interface type sets, even where field
+  slots repeat part of it: `[2]int`, or `interface { ~int | ~string }`. In a struct's
+  text, field labels stay as names and are never `@{id}`, and a tag is its decoded
+  value as a JSON string. `tag` is compared by decoded value and written the same way.
+
+  A promoted member's signature stays the declaration's signature, with its type
+  parameters, and the embedding type's `underlying` states how they bind. Promotion
+  creates no record.
+
+  Canonical spelling:
+
+  - Predeclared names are written bare: `any`, `bool`, `comparable`, `complex64`,
+    `complex128`, `error`, `float32`, `float64`, the `int` and `uint` types,
+    `string` and `uintptr`.
+  - `any` for `interface{}`, `uint8` for `byte` and `int32` for `rune`.
+  - A parameter label in a nested function type or an interface method is omitted:
+    `func(int) int` for `func(x int) int`, and `interface { M(int) int }`. Field labels
+    of a struct stay.
+  - Text follows `gofmt` spacing. A struct is `struct { A int; B string }` in field
+    order. An interface is `interface { M() int; ~int | ~string }`, with methods
+    sorted and then its embedded elements sorted. The terms of a union are sorted.
+  - A type parameter's `bounds` is its constraint, and `any` when it states no other.
+
+  Inference: a constant's `type` is its declared type or its kind: `untyped bool`,
+  `untyped rune`, `untyped int`, `untyped float`, `untyped complex` or
+  `untyped string`. `value` is exact for typed and untyped constants, with `iota` and
+  implicit repetition applied. A numeric constant's `value` is its normalized value:
+  an integer in decimal when the value is integral, otherwise a reduced `a/b`, and
+  the `0x.…p±…` form of `go/constant`'s `ExactString` only when the value's binary
+  exponent, as `big.Float.MantExp` gives it, is at least 4096 or at most -4096. A
+  complex value is `(re + imi)` of those. `1e5000 * 1e-5000` is `1`. The value is the
+  exact result that `go/constant` computes at 512 bits, with no rounding to a nearby
+  integer, so `1e5000 / 5 * 5e-5000` is the same `a/b` as `1 + 1.0/(1<<511)`.
+  `var X = expr` has `{inferred: ...}`, the expression's
+  type or its kind's default type. Function signatures are always declared. An author
+  derives these from the Go specification's Constants, Iota and Variable declarations
+  sections, and a `go/types` probe outside the tree confirms them.
+
+  The compiler report comes from `go/types`.
 
   ## References
 
@@ -250,6 +321,9 @@ description: |
      parameters.
   8. Record the public API of every distribution in every context, and every
      required extension fact.
+  9. Write every signature from source and the Go specification, applying its inference rules yourself. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from `go/types` after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A Go dataset conforms when it conforms to `semantic-oracle-model`, every
   context derives from a `build` or `test` task command, every indexed
@@ -258,3 +332,5 @@ validation-criteria: |
   every public API membership agrees with this profile's rule. Independent
   review confirms facts against source, module files and the Go
   specification.
+  Every signature follows this profile's slots and canonical spelling, and its slots
+  agree with `go/types` or are listed as `unchecked`.

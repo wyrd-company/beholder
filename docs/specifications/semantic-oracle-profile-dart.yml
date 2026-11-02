@@ -134,7 +134,11 @@ description: |
 
   ## Public API
 
-  A distribution's public API consists of its public libraries and their
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  A distribution's members are its public libraries and the names of their
   export namespaces. A public library is a library under `lib/` whose path
   has no `src` directory component directly under `lib/`. It is a member
   because a consumer can name it, even when it has no public names. The export
@@ -144,6 +148,78 @@ description: |
   mixins, enums, extensions and extension types whose names are public are
   members of the public API. An entity is a member once per public library
   that exports it; each such library contributes one consumer path.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `function`, `method`, `operator` | `type-parameters`, `parameters`, `returns`, `modifiers` |
+  | `constructor`, `factory` | `parameters`, `modifiers` |
+  | `class`, `mixin-class`, `enum` | `type-parameters`, `bases`, `modifiers` |
+  | `mixin` | `type-parameters`, `bases`, `bounds`, `modifiers` |
+  | `extension` | `type-parameters`, `receiver` |
+  | `extension-type` | `type-parameters`, `bases`, `underlying`, `modifiers` |
+  | `typedef` | `type-parameters`, `type` |
+  | `field`, `variable`, `final`, `late` | `type`, `modifiers` |
+  | `accessor` | `get`, `set`, `modifiers` |
+  | `const` | `type`, `value` |
+  | `enum-value` | `type`, for a value of a generic enum |
+
+  Parameter modes: `optional` for an optional positional parameter, `named` for an
+  optional named parameter and `required-named` for a `required` one. A required
+  positional parameter has no mode. An optional parameter with no default has
+  `default: "null"`.
+
+  Modifiers: `abstract`, `base`, `const`, `covariant`, `external`, `final`, `interface`,
+  `late`, `mixin`, `sealed` and `static`. An accessor has `modifiers`, `covariant`.
+
+  `bases` holds the targets of the type's `inherits` and `implements` relations, with
+  their type arguments. A mixin application has `position`, its index in the `with`
+  clause, and reversing that clause changes both positions while the keys stay equal.
+
+  `underlying` of an extension type is its representation type.
+
+  `bounds` of a mixin holds its `on` clause, sorted and separated by `, `, with type
+  arguments, because `on` limits which classes can apply the mixin. An `on` clause is
+  no relation, and `model:signature-bases` does not read `bounds`.
+
+  `receiver` of a named extension is its `on` type, and its `type-parameters` are the
+  extension's own:
+
+  ```yaml
+  - entity: ops.BoundedOps
+    type-parameters:
+      - {name: T, kind: type, bounds: num}
+    receiver: "@{ext.dart.core.List}<T>"
+  ```
+
+  `type` of a value of a generic enum is its instantiated type, because a consumer reads
+  the value's members at that type: `@{Wrapped}<int>` for `intWrapper<int>(0)`, and
+  `{inferred: "@{Wrapped}<int>"}` for `intWrapper(0)`.
+
+  Canonical spelling:
+
+  - Core names are written bare: `bool`, `double`, `dynamic`, `int`, `Never`, `Null`,
+    `num`, `Object`, `String` and `void`.
+  - `T?` for a nullable type. A function type is `int Function(String)`: a positional
+    parameter's label is omitted and a named parameter's label stays, as
+    `int Function(String, {int width})`. Type aliases stay as written.
+  - Text uses `, ` between arguments and no space before `<`.
+
+  Inference: an unannotated top-level variable, field, return, parameter or accessor is
+  `{inferred: ...}`, including types inherited from an overridden member. `this.` and
+  `super.` parameters have `{inferred: ...}` for their type, and a forwarded default has
+  `{inferred: ...}` for its value. Each accessor half has its own type, including a half
+  inherited from another supertype. A synthetic constructor has `{inferred}` slots by the
+  language rule. `value` and `default` follow the model's value forms. An author derives
+  these from the Dart specification and its type inference document, and a compile-only
+  probe outside the tree, which assigns the member to a declared function or variable
+  type, confirms them.
+
+  The compiler report comes from the Dart front end. Where that toolchain is absent, every
+  slot is `unchecked`.
 
   ## References
 
@@ -240,6 +316,9 @@ description: |
   7. Record declared and effective visibility for every entity other than
      parameters, and every required extension fact.
   8. Record the public API of every distribution in every context.
+  9. Write every signature from source and the Dart specification, applying its inference rules yourself. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from the Dart front end after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A Dart dataset conforms when it conforms to `semantic-oracle-model`, every
   context derives from a `build` or `test` task command, every configurable
@@ -247,3 +326,5 @@ validation-criteria: |
   public API membership agrees with this profile's public-library rule.
   Independent review confirms facts against source, `pubspec.yaml` and the
   Dart specification.
+  Every signature follows this profile's slots, modes, modifiers and canonical spelling,
+  and its slots agree with the Dart front end or are listed as `unchecked`.

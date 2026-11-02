@@ -556,20 +556,20 @@ cases:
   - name: public-api-access-none
     reason: Public API access is `all` or `subtypes`.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/access, value: none}]
-    fails-at: /public-api/0/access
+    patch: [{op: replace, path: /public-api/members/0/access, value: none}]
+    fails-at: /public-api/members/0/access
     keyword: enum
   - name: public-api-without-paths
     reason: A public API membership has at least one consumer path.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/paths, value: []}]
-    fails-at: /public-api/0/paths
+    patch: [{op: replace, path: /public-api/members/0/paths, value: []}]
+    fails-at: /public-api/members/0/paths
     keyword: minItems
   - name: public-api-single-path-string
     reason: '`paths` is a list.'
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/paths, value: 'geometry::shapes'}]
-    fails-at: /public-api/0/paths
+    patch: [{op: replace, path: /public-api/members/0/paths, value: 'geometry::shapes'}]
+    fails-at: /public-api/members/0/paths
     keyword: type
 
   # ------------------------------------------------------------- extensions
@@ -590,3 +590,213 @@ cases:
         value: {entity: geometry.detail.Hidden, distribution: geometry, via: geometry.make_hidden}
     fails-at: /extensions/rust:reachable-unnameable
     keyword: type
+
+  # ------------------------------------------------------------- signatures
+  - name: public-api-flat-list
+    reason: '`public-api` holds `members` and `signatures`.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api, value: []}]
+    fails-at: /public-api
+    keyword: type
+  - name: public-api-without-signatures
+    reason: '`public-api` always has `signatures`, even when the list is empty.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures}]
+    fails-at: /public-api
+    keyword: required
+    member: signatures
+  - name: signature-without-entity
+    reason: A signature names its member.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures/2/entity}]
+    fails-at: /public-api/signatures/2
+    keyword: required
+    member: entity
+  - name: signature-without-slot
+    reason: A member has a record when it has at least one slot.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures/1/returns}]
+    fails-at: /public-api/signatures/1
+    keyword: minProperties
+  - name: signature-with-contexts-and-no-slot
+    reason: '`contexts` is not a slot.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch:
+      - {op: remove, path: /public-api/signatures/1/returns}
+      - {op: add, path: /public-api/signatures/1/contexts, value: [build]}
+    fails-at: /public-api/signatures/1
+    keyword: minProperties
+  - name: signature-unknown-slot
+    reason: The model defines no slot `throws`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/throws, value: u32}]
+    fails-at: /public-api/signatures/1
+    keyword: unevaluatedProperties
+    member: throws
+  - name: type-slot-number
+    reason: A type slot holds a type text or `{inferred}`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1/returns, value: 7}]
+    fails-at: /public-api/signatures/1/returns
+    keyword: anyOf
+  - name: inferred-slot-with-another-member
+    reason: '`{inferred}` holds one type text and nothing else.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1/returns, value: {inferred: u32, source: rustc}}]
+    fails-at: /public-api/signatures/1/returns
+    keyword: anyOf
+  - name: value-slot-number
+    reason: A value is one string, so that equal values are equal strings.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/0/value, value: 0}]
+    fails-at: /public-api/signatures/0/value
+    keyword: anyOf
+  - name: empty-parameter-list
+    reason: A callable with no parameters has no `parameters` slot.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/6/parameters, value: []}]
+    fails-at: /public-api/signatures/6/parameters
+    keyword: minItems
+  - name: empty-parameter
+    reason: A parameter has at least one slot.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/6/parameters/0, value: {}}]
+    fails-at: /public-api/signatures/6/parameters/0
+    keyword: minProperties
+  - name: parameter-unknown-slot
+    reason: The model defines no parameter slot `position`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/parameters/0/position, value: 0}]
+    fails-at: /public-api/signatures/6/parameters/0
+    keyword: additionalProperties
+    member: position
+  - name: type-parameter-without-kind
+    reason: A type parameter states its kind.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures/4/type-parameters/0/kind}]
+    fails-at: /public-api/signatures/4/type-parameters/0
+    keyword: required
+    member: kind
+  - name: type-parameter-unknown-kind
+    reason: A type parameter's kind is `type`, `lifetime` or `const`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/4/type-parameters/0/kind, value: region}]
+    fails-at: /public-api/signatures/4/type-parameters/0/kind
+    keyword: enum
+  - name: const-parameter-without-type
+    reason: A const parameter states its type.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/4/type-parameters/0, value: {name: LIMIT, kind: const}}]
+    fails-at: /public-api/signatures/4/type-parameters/0
+    keyword: required
+    member: type
+  - name: type-on-a-type-parameter
+    reason: Only a const parameter has `type`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/type-parameters/0/type, value: usize}]
+    fails-at: /public-api/signatures/4/type-parameters/0/type
+    keyword: falseSchema
+  - name: duplicate-modifier
+    reason: '`modifiers` is a set.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/modifiers, value: [non_exhaustive, non_exhaustive]}]
+    fails-at: /public-api/signatures/2/modifiers
+    keyword: uniqueItems
+  - name: base-without-type
+    reason: A base entry is keyed by its `type`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/7/bases/0, value: {self-type: 'X'}}]
+    fails-at: /public-api/signatures/7/bases/0
+    keyword: required
+    member: type
+  - name: binding-with-type-and-value
+    reason: A binding sets a type or a value.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/7/bases/0/bindings, value: [{name: Key, type: u32, value: '1'}]}]
+    fails-at: /public-api/signatures/7/bases/0/bindings/0
+    keyword: oneOf
+  - name: implementation-without-self-type
+    reason: An `impl` slot states its self type.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/impl, value: {where: 'T: Sized'}}]
+    fails-at: /public-api/signatures/6/impl
+    keyword: required
+    member: self-type
+  - name: single-overload
+    reason: '`overloads` is for an entity with several signatures.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1, value: {entity: shapes.Circle.area, overloads: [{returns: number}]}}]
+    fails-at: /public-api/signatures/1/overloads
+    keyword: minItems
+  - name: overloads-beside-a-signature
+    reason: A record with `overloads` holds its signatures there.
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/overloads, value: [{returns: number}, {returns: string}]}]
+    fails-at: /public-api/signatures/1/returns
+    keyword: falseSchema
+  - name: negative-base-position
+    reason: A base's `position` is an index.
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1/bases/0/position, value: -1}]
+    fails-at: /public-api/signatures/1/bases/0/position
+    keyword: minimum
+  - name: single-alternative
+    reason: '`alternatives` is for several possible definitions.'
+    base: semantic-oracle-profile-python.example.yml
+    patch:
+      - op: replace
+        path: /public-api/signatures/0
+        value: {entity: atlas.fast.run, alternatives: [{at: {path: src/atlas/fast.py, start: [3, 5], end: [3, 8], text: run}, returns: None}]}
+    fails-at: /public-api/signatures/0/alternatives
+    keyword: minItems
+  - name: alternative-without-site
+    reason: An alternative is identified by its `at`.
+    base: semantic-oracle-profile-python.example.yml
+    patch:
+      - op: replace
+        path: /public-api/signatures/0
+        value: {entity: atlas.fast.run, alternatives: [{returns: None}, {returns: int}]}
+    fails-at: /public-api/signatures/0/alternatives/0
+    keyword: required
+    member: at
+    also:
+      - {at: /public-api/signatures/0/alternatives/1, keyword: required, member: at}
+  - name: alternatives-beside-a-slot
+    reason: The slots of a record with `alternatives` are on its alternatives.
+    base: semantic-oracle-profile-python.example.yml
+    patch:
+      - op: add
+        path: /public-api/signatures/0/alternatives
+        value:
+          - {at: {path: src/atlas/fast.py, start: [3, 5], end: [3, 8], text: run}, returns: None}
+          - {at: {path: src/atlas/fast.py, start: [5, 5], end: [5, 8], text: run}, returns: int}
+    fails-at: /public-api/signatures/0
+    keyword: propertyNames
+  - name: delete-with-a-type
+    reason: '`delete` is the value `present`.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/delete, value: {type: None}}]
+    fails-at: /public-api/signatures/4/delete
+    keyword: const
+  - name: modifiers-beside-overloads
+    reason: The modifiers of an overloaded callable are on each of its signatures.
+    base: semantic-oracle-profile-typescript.example.yml
+    patch:
+      - op: replace
+        path: /public-api/signatures/1
+        value: {entity: shapes.Circle.area, modifiers: [static], overloads: [{returns: number}, {returns: string}]}
+    fails-at: /public-api/signatures/1/modifiers
+    keyword: falseSchema
+  - name: implementation-entry-without-self-type
+    reason: An `implementations` entry is keyed by its `type` and `self-type`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures/10/implementations/0/self-type}]
+    fails-at: /public-api/signatures/10/implementations/0
+    keyword: required
+    member: self-type
+  - name: binding-without-a-fact
+    reason: A binding sets a type or a value, or states a method's auto traits.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0, value: {name: describe}}]
+    fails-at: /public-api/signatures/7/bases/0/bindings/0
+    keyword: oneOf

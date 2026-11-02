@@ -149,3 +149,59 @@ cases:
     patch: [{op: replace, path: /relations/3/visibility, value: public}]
     fails-at: /relations/3/visibility
     keyword: enum
+
+  # ------------------------------------------------------------- signatures
+  - name: unknown-signature-modifier
+    reason: '`classmethod` is a `language-kind` value, not a modifier.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/modifiers, value: [classmethod]}]
+    fails-at: /public-api/signatures/4/modifiers/0
+    keyword: enum
+  - name: unknown-parameter-mode
+    reason: '`rest` is not a Python parameter mode; `*args` is `var-positional`.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/5/parameters/0/mode, value: rest}]
+    fails-at: /public-api/signatures/5/parameters/0/mode
+    keyword: enum
+  - name: where-slot
+    reason: 'Python states constraints in `bounds`.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/where, value: x}]
+    fails-at: /public-api/signatures/0/where
+    keyword: falseSchema
+  - name: init-accessor
+    reason: '`init` is a C# accessor.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/init, value: {type: int}}]
+    fails-at: /public-api/signatures/3/init
+    keyword: falseSchema
+  - name: constructors-slot
+    reason: 'A Python constructor is the callable `__init__`.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/constructors, value: [{returns: int}]}]
+    fails-at: /public-api/signatures/1/constructors
+    keyword: falseSchema
+  - name: base-self-type
+    reason: '`self-type` is for a Rust implementation.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/bases/0/self-type, value: x}]
+    fails-at: /public-api/signatures/1/bases/0/self-type
+    keyword: falseSchema
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/abi, value: C}]
+    fails-at: /public-api/signatures/0/abi
+    keyword: falseSchema
+  - name: unknown-variance
+    reason: A `TypeVar` variance is `in` or `out`.
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: replace, path: /public-api/signatures/5/type-parameters/0/variance, value: both}]
+    fails-at: /public-api/signatures/5/type-parameters/0/variance
+    keyword: enum
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/0/auto-traits
+    keyword: falseSchema

@@ -44,7 +44,7 @@ case('impl-hidden','rust','the hidden type of impl Trait changes; bounds do not'
  {'returns':'impl {core.Clone}'},{'returns':'impl {core.Clone}'})
 case('auto-trait-leak','rust','impl Trait leaks an auto trait of the hidden type',
  'pub fn f()->impl Clone{1u32}\n','pub fn f()->impl Clone{std::rc::Rc::new(1u32)}\n','fn s<T:Send>(_:T){}\nfn main(){s(lib::f());}',
- {'returns':'impl {core.Clone}'},{'returns':'impl {core.Clone}'})
+ {'returns':'impl {core.Clone}','auto-traits':['RefUnwindSafe','Send','Sync','Unpin','UnwindSafe']},{'returns':'impl {core.Clone}','auto-traits':['RefUnwindSafe','Unpin','UnwindSafe']})
 case('reformat','ts','line breaks in the parameter list',
  'export function read(path:string,limit:number):number{return limit}\n','export function read(\n  path: string,\n  limit: number,\n): number {\n  return limit;\n}\n',
  'import {read} from "./lib.js";const n:number=read("a",1);export {n};',{'params':[('path','string'),('limit','number')],'returns':'number'},{'params':[('path','string'),('limit','number')],'returns':'number'})
@@ -118,6 +118,24 @@ reg('array-length','go','a defined array type changes length',
  'package lib\ntype P [2]int\n','package lib\ntype P [3]int\n','package main\nimport "m/lib"\nvar _ lib.P = [2]int{}\nfunc main(){}\n',{'underlying':'[2]int'},{'underlying':'[3]int'})
 reg('constraint-terms','go','a named constraint loses a term',
  'package lib\ntype N interface{ ~int | ~string }\nfunc F[T N](x T){}\n','package lib\ntype N interface{ ~int }\nfunc F[T N](x T){}\n','package main\nimport "m/lib"\nfunc main(){lib.F("a")}\n',{'underlying':'interface { ~int | ~string }'},{'underlying':'interface { ~int }'})
+reg('private-field-send','rust','a private field change removes Send from a public struct',
+ 'pub struct S{x:u32}\n','pub struct S{x:std::rc::Rc<u32>}\n',
+ 'fn s<T:Send>(){}\nfn main(){s::<lib::S>();}',{'auto-traits':['RefUnwindSafe','Send','Sync','Unpin','UnwindSafe']},{'auto-traits':['RefUnwindSafe','Unpin','UnwindSafe']})
+reg('tuple-component-send','rust','one opaque component of a tuple loses Send; the whole tuple does not change',
+ 'pub fn make()->(impl Clone,impl Clone){(1u8,std::rc::Rc::new(()))}\n','pub fn make()->(impl Clone,impl Clone){(std::rc::Rc::new(()),std::rc::Rc::new(()))}\n',
+ 'fn s<T:Send>(_:T){}\nfn main(){s(lib::make().0);}',{'auto-traits':['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 Unpin', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Unpin', '#1 UnwindSafe']},{'auto-traits':['#0 RefUnwindSafe', '#0 Unpin', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Unpin', '#1 UnwindSafe']})
+reg('async-output-send','rust','an async function\'s opaque output loses Send; its future does not change',
+ 'pub async fn make()->impl Clone{1u8}\n','pub async fn make()->impl Clone{std::rc::Rc::new(())}\n',
+ 'fn s<T:Send>(_:T){}\nasync fn c(){s(lib::make().await);}\nfn main(){let _=c();}',{'auto-traits':['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Send', '#1 Sync', '#1 Unpin', '#1 UnwindSafe']},{'auto-traits':['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Unpin', '#1 UnwindSafe']})
+reg('trait-impl-opaque-send','rust','a trait implementation\'s opaque return loses Send; the trait does not change',
+ 'pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->impl Clone{1u8}}\n','pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->impl Clone{std::rc::Rc::new(())}}\n',
+ 'use lib::Tr;\nfn s<T:Send>(_:T){}\nfn main(){s(lib::Item::make());}',{'bindings':[('make',['RefUnwindSafe', 'Send', 'Sync', 'Unpin', 'UnwindSafe'])]},{'bindings':[('make',['RefUnwindSafe', 'Unpin', 'UnwindSafe'])]})
+reg('provided-opaque-send','rust','a trait method\'s default body loses Send on its opaque return',
+ 'pub trait Tr{fn make()->impl Clone{1u8}}\npub struct Item;\nimpl Tr for Item{}\n','pub trait Tr{fn make()->impl Clone{std::rc::Rc::new(())}}\npub struct Item;\nimpl Tr for Item{}\n',
+ 'use lib::Tr;\nfn s<T:Send>(_:T){}\nfn main(){s(lib::Item::make());}',{'auto-traits':['RefUnwindSafe', 'Send', 'Sync', 'Unpin', 'UnwindSafe']},{'auto-traits':['RefUnwindSafe', 'Unpin', 'UnwindSafe']})
+reg('refined-return','rust','a trait implementation refines a return to another written type',
+ 'pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->u8{1}}\n','pub trait Tr{fn make()->impl Clone;}\npub struct Item;\nimpl Tr for Item{fn make()->u16{1}}\n',
+ 'use lib::Tr;\nfn main(){let _:u8=lib::Item::make();}',{'bindings':[('make','u8')]},{'bindings':[('make','u16')]})
 def build(c,src):
     d=tempfile.mkdtemp(); l=c['lang']
     if l=='rust':

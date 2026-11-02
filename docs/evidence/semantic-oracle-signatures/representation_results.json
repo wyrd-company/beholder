@@ -116,8 +116,8 @@
   "breaks": true,
   "text": false,
   "normalized": false,
-  "structured": false,
-  "as_written": false,
+  "structured": true,
+  "as_written": true,
   "v1ok": true
  },
  {
