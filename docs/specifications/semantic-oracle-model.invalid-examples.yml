@@ -612,8 +612,6 @@ cases:
     fails-at: /public-api/signatures/2
     keyword: required
     member: entity
-    also:
-      - {at: /public-api/signatures/2, keyword: minProperties}
   - name: signature-without-slot
     reason: A member has a record when it has at least one slot.
     base: semantic-oracle-profile-rust.example.yml

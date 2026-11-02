@@ -643,6 +643,7 @@ $defs:
     $ref: '#/$defs/callable-slots'
     properties:
       abi: {$ref: '#/$defs/text'}
+      auto-traits: {$ref: '#/$defs/modifiers'}
       impl: {$ref: '#/$defs/implementation'}
       receiver: {$ref: '#/$defs/type-text'}
       overloads: {type: array, minItems: 2, items: {$ref: '#/$defs/overload'}}

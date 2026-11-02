@@ -1130,6 +1130,11 @@ fn a_target_exists_in_every_context_of_its_fact() {
         "/public-api/members/0/contexts",
         json!(["default"]),
     );
+    set(
+        &mut dataset,
+        "/public-api/signatures/1/contexts",
+        json!(["default"]),
+    );
     push(
         &mut dataset,
         "/relations",

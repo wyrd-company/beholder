@@ -677,8 +677,8 @@ description: |
 
   | Member kind | Slots |
   | --- | --- |
-  | `callable` | `type-parameters`, `where`, `impl`, `abi`, `receiver`, `parameters`, `returns`, `return-mode`, `modifiers`; `overloads`, holding the slots of one signature, when one entity has several signatures |
-  | `type` | `type-parameters`, `where`, `bases`, `implementations`, `underlying`, `bounds`, `modifiers`; `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` where the profile gives them |
+  | `callable` | `type-parameters`, `where`, `impl`, `abi`, `receiver`, `parameters`, `returns`, `return-mode`, `modifiers`, `auto-traits`; `overloads`, holding the slots of one signature, when one entity has several signatures |
+  | `type` | `type-parameters`, `where`, `bases`, `implementations`, `underlying`, `bounds`, `modifiers`, `auto-traits`; `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` where the profile gives them |
   | `type-alias` | `type-parameters`, `where`, `type`, `bounds` |
   | `field` | `type`, `tag`, `modifiers` |
   | `property` | `get`, `set`, `init`, `add`, `remove`, `delete`, `parameters` for an indexer, `return-mode`, `modifiers` |
@@ -724,6 +724,12 @@ description: |
   that is not a project type. A relation states no such fact, so
   `model:signature-bases` does not read this slot.
 
+  `auto-traits` states the auto traits of a type that a consumer can move, share or
+  pin, which the type's fields decide and no declaration states. It is a set, written
+  sorted. A trait the type does not implement is absent. The profile names the auto
+  traits and the spelling of a trait held under a condition, and it is the slot of the
+  `auto-trait` class.
+
   A record with `overloads` holds each signature's slots there, including
   `modifiers`, and has none of those slots of its own.
 
@@ -757,8 +763,8 @@ description: |
   inference or a synthesis rule gives it, is written `{inferred: <type text>}`. A
   value that the language forwards from another declaration is written the same
   way, `{inferred: <value>}`. Every other slot of the member is written plainly:
-  names, modes and modifiers have no inferred form, and a `bases` or `bindings`
-  `type` is a key.
+  names, modes, modifiers and `auto-traits` have no inferred form, and a `bases` or
+  `bindings` `type` is a key.
 
   Inferred types are in the v1 out-of-profile set. A profile moves the named
   constructs it lists into its required categories by the rule of that set. Where
@@ -816,7 +822,8 @@ description: |
   - `model:signature-references`: each `@{id}` in a declared type text has a `type`
     reference fact whose `from` is the slot's source declaration or an entity
     inside it by `parent`, and each such reference inside a parameter has its
-    `@{id}`.
+    `@{id}`. `auto-traits` is not a declared type text, and `profile:signature-compiler`
+    audits it.
   - `model:signature-inference`: an `{inferred}` slot on a source entity has no such
     reference requirement, and `profile:signature-compiler` audits it at its
     definition site against the inference rule. An `{inferred}` slot on a synthetic
@@ -972,6 +979,7 @@ description: |
   | --- | --- | --- | --- |
   | Declared slots | The author | Source, build configuration, the language specification | Slots, including types, modes, modifiers, defaults and values |
   | Inferred slots with a specification | The author | The specification's inference rule applied to source | `{inferred}` slots |
+  | Auto traits | The author | The language's auto trait rules applied to the type's fields | `auto-traits`, checked by a compile check |
   | Inferred slots the compiler defines | The compiler | The compiler the profile names, for the context's options and version | `{inferred}` slots, in canonical spelling |
   | Check | The compiler | The project, for each context | A compiler report that the audit compares with every slot it can state |
 
@@ -1023,9 +1031,12 @@ description: |
   Coordinates are converted to this specification's locator coordinates
   from the encoding the index declares, using the document bytes. An
   adapter declares its capabilities: the observation forms, fact kinds,
-  roles, boundaries and extensions it can produce, and four signature
+  roles, boundaries and extensions it can produce, and five signature
   capabilities: `signature-shape` (names, order, modes, modifiers, accessors),
-  `signature-declared-type`, `signature-inferred-type` and `signature-value`.
+  `signature-declared-type`, `signature-inferred-type`, `signature-value` and
+  `signature-auto-trait`. `auto-traits` has its own capability, so that an indexer that
+  reports a declaration's shape from syntax and cannot solve its auto traits gets
+  `unsupported` on those units and is not graded on them.
 
   An index is produced under exactly one context. The evaluation run binds
   each index to a context id of the dataset. Evaluation runs once per bound
@@ -1045,7 +1056,7 @@ description: |
   | declared visibility | `(entity)` |
   | effective visibility | `(entity, boundary)` |
   | public API member | `(distribution, entity, path)` for each consumer path |
-  | signature | `(entity, alternative, slot path)` for each slot; `alternative` is the `at` of an alternative |
+  | signature | `(entity, alternative, slot path)` for each slot; `alternative` is the `at` of an alternative. Each element of a set slot is one unit: `modifiers[static]`, `auto-traits[Send]`. |
   | extension | one extension fact, identified by its key members |
 
   Observations are normalized the same way: one observation is one unit of
@@ -1113,6 +1124,10 @@ description: |
 
   #### Signature pairing
 
+  - An element of a set slot pairs by its key: the element itself in `modifiers`, and
+    the trait name in `auto-traits`, whose value is the whole element. An expected
+    element with no observation is `missing`, an observed element with no expectation is
+    `unexpected`, and a pair whose condition differs is `wrong-value`.
   - A parameter pairs by position. A missing parameter is `missing` on each of its
     slots, and an extra parameter is `unexpected` on each of its slots.
   - A pair whose value differs is `wrong-value`. A value with an unresolved name,
@@ -1139,6 +1154,7 @@ description: |
   | Reports no signatures | Every signature unit is `unsupported`, including `bases`. Rates for the group are undefined, the report lists the count, and no other group changes. |
   | Reports declared types and no inference | Declared units are graded. `{inferred}` units are `unsupported`. |
   | Declares inference and omits a slot | `missing`. |
+  | Does not declare `signature-auto-trait` | Every `auto-traits` unit is `unsupported`. |
   | Reports a type that the profile's inference rule leaves unstated | `out-of-profile`. |
 
   ### Dispositions
@@ -1219,6 +1235,10 @@ description: |
   | `bases` `@{T}<u8>` and `@{T}<u16>`, each `where: W` | both types, each `where: Z` | two `wrong-value` |
   | `bases` `@{T}<u8>` | `@{T}<u16>` | `type` `unexpected`; `@{T}<u8>` `type` `missing` |
   | `bases` `@{A}` position 0, `@{B}` position 1 | `@{A}` position 1, `@{B}` position 0 | two `wrong-value` |
+  | `auto-traits: [Send, Sync]` | `Send` only | `Send` `matched`; `Sync` `missing` |
+  | `auto-traits: [Send]` | `Send`, `Sync` | `Send` `matched`; `Sync` `unexpected` |
+  | `auto-traits: ["Send when T: Send"]` | `Send` | one `wrong-value` |
+  | `auto-traits: [Send, Sync]`, adapter without `signature-auto-trait` | none | two `unsupported` |
   | `implements X→T`, `bases` `@{T}<u8>`, adapter with relations only | `implements X→T` | relation `matched`; `bases` slot `unsupported` |
 
   ### Reports
@@ -1228,7 +1248,8 @@ description: |
   grouped by project, context, fact kind, role, disposition, origin, basis,
   API boundary and slot class. API boundary separates units about public API
   members, which include every signature unit, from all other units. Slot class
-  groups signature units as `shape`, `declared-type`, `inferred-type` and `value`.
+  groups signature units as `shape`, `declared-type`, `inferred-type`, `value` and
+  `auto-trait`.
   It lists every unit not in `matched` with its site or key.
 
   For each grouping a report gives micro counts and macro values:

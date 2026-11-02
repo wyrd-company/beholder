@@ -215,6 +215,11 @@ $defs:
       impl: {properties: {type-parameters: {items: {$ref: '#/$defs/type-parameter'}}}}
       bases: {items: {$ref: '#/$defs/base'}}
       implementations: {items: {$ref: '#/$defs/base'}}
+      # An auto trait, with its condition when the type holds it conditionally.
+      auto-traits:
+        items:
+          type: string
+          pattern: '^(RefUnwindSafe|Send|Sync|Unpin|UnwindSafe)( when \S.*)?$'
   type-parameter:
     properties:
       variance: false

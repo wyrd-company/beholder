@@ -902,10 +902,7 @@ fn every_example_states_signatures_for_its_members() {
         "enum-member",
     ];
     // Plain declarations of these members state nothing beyond their names.
-    const NOTHING_TO_STATE: [&str; 11] = [
-        "geometry.Pin",
-        "geometry.Registry",
-        "geometry.detail.Grid",
+    const NOTHING_TO_STATE: [&str; 8] = [
         "atlas.portable.run",
         "stub.atlas.shapes.Shape",
         "Geometry.IShape",
@@ -1130,4 +1127,22 @@ fn an_alternative_site_is_an_ordinary_locator() {
             ),
         ]
     );
+}
+
+/// A conditional auto trait is one string, so that a changed condition is one
+/// `wrong-value` on the key `auto-traits[Send]`.
+#[test]
+fn an_auto_traits_entry_may_state_a_condition() {
+    let validator = dataset_validator().expect("build the validator");
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    dataset["public-api"]["signatures"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"entity": "x", "auto-traits": [
+            "RefUnwindSafe when T: RefUnwindSafe, U: RefUnwindSafe",
+            "Send when T: @{ext.core.clone.Clone}",
+            "Sync when <T as @{Tr}>::Item: Sync",
+            "Unpin"]}));
+    let found = errors(&validator, &dataset);
+    assert!(found.is_empty(), "{}", describe(&found));
 }

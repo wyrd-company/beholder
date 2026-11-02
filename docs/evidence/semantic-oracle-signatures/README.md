@@ -11,7 +11,7 @@ evidence, not answer keys, and no tool reads them.
 
 | File | Content |
 | --- | --- |
-| `representation_test.py` | 30 before-and-after pairs, and 9 slot regressions outside the comparison. Compiles or runs a consumer against both versions, then asks each representation whether it reports a change. Needs `rustc`, `tsc`, `go` and `python3`. |
+| `representation_test.py` | 30 before-and-after pairs, and 10 slot regressions outside the comparison. Compiles or runs a consumer against both versions, then asks each representation whether it reports a change. Needs `rustc`, `tsc`, `go` and `python3`. |
 | `representation_results.json` | The output of that test. |
 | `sample/` | Signature facts written by hand: 88 records for 87 members. The notation matches the design. Ids of hard forms outside the pilots are placeholders. |
 | `select_sample.py` | Selects the seeded random part of the sample. |

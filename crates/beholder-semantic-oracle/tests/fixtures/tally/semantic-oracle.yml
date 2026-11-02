@@ -97,4 +97,6 @@ public-api:
   signatures:
     - entity: tally.make
       returns: "@{tally.Counter}"
+    - entity: tally.Counter
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
 extensions: {}

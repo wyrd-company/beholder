@@ -157,3 +157,9 @@ cases:
     patch: [{op: add, path: /public-api/signatures/0/implementations, value: [{type: 'x', self-type: 'y'}]}]
     fails-at: /public-api/signatures/0/implementations
     keyword: falseSchema
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-go.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/3/auto-traits
+    keyword: falseSchema

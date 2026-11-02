@@ -241,3 +241,33 @@ cases:
     patch: [{op: add, path: /public-api/signatures/6/add, value: {type: u8}}]
     fails-at: /public-api/signatures/6/add
     keyword: falseSchema
+  - name: auto-traits-other-trait
+    reason: '`Copy` is not an auto trait.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits/0, value: Copy}]
+    fails-at: /public-api/signatures/2/auto-traits/0
+    keyword: pattern
+  - name: auto-traits-negative-entry
+    reason: A trait the type does not implement is absent, not negated.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits/0, value: '!Send'}]
+    fails-at: /public-api/signatures/2/auto-traits/0
+    keyword: pattern
+  - name: auto-traits-empty-condition
+    reason: '`when` states a condition.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits/0, value: 'Send when '}]
+    fails-at: /public-api/signatures/2/auto-traits/0
+    keyword: pattern
+  - name: auto-traits-empty-list
+    reason: A type that implements no auto trait has no slot.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits, value: []}]
+    fails-at: /public-api/signatures/2/auto-traits
+    keyword: minItems
+  - name: auto-traits-repeated
+    reason: '`auto-traits` is a set.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits, value: [Send, Send]}]
+    fails-at: /public-api/signatures/2/auto-traits
+    keyword: uniqueItems

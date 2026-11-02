@@ -181,6 +181,7 @@ $defs:
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      auto-traits: false
       abi: false
       implementations: false
       add: false

@@ -143,3 +143,9 @@ cases:
     patch: [{op: add, path: /public-api/signatures/2/remove, value: {type: int}}]
     fails-at: /public-api/signatures/2/remove
     keyword: falseSchema
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/3/auto-traits
+    keyword: falseSchema

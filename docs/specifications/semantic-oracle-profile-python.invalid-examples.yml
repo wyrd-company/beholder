@@ -199,3 +199,9 @@ cases:
     patch: [{op: replace, path: /public-api/signatures/5/type-parameters/0/variance, value: both}]
     fails-at: /public-api/signatures/5/type-parameters/0/variance
     keyword: enum
+  - name: auto-traits-slot
+    reason: '`auto-traits` is a Rust slot.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/auto-traits, value: [Send]}]
+    fails-at: /public-api/signatures/0/auto-traits
+    keyword: falseSchema

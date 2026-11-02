@@ -546,6 +546,18 @@ entities:
     origin: source
     definitions:
       - at: {path: src/shapes.rs, start: [24, 6], end: [24, 7], text: T}
+  - id: geometry.make_label
+    kind: callable
+    language-kind: fn
+    name: make_label
+    path: geometry::make_label
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [12, 8], end: [12, 18], text: make_label}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
 
 externals:
   - id: ext.std
@@ -697,6 +709,10 @@ references:
     from: geometry.shapes.impl-Area-for-T
     target: geometry.shapes.Area
     role: type
+  - at: {path: src/lib.rs, start: [12, 29], end: [12, 36], text: Display}
+    from: geometry.make_label
+    target: ext.core.fmt.Display
+    role: type
 
 relations:
   - kind: implements
@@ -746,6 +762,7 @@ public-api:
     - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
     - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
     - {distribution: geometry, entity: 'geometry.shapes.Area.SCALE', paths: ['geometry::shapes::Area::SCALE'], access: all}
+    - {distribution: geometry, entity: 'geometry.make_label', paths: ['geometry::make_label'], access: all}
   signatures:
     - entity: geometry.ORIGIN
       type: u32
@@ -753,6 +770,7 @@ public-api:
     - entity: geometry.make_hidden
       returns: "@{geometry.detail.Hidden}"
     - entity: geometry.shapes.Kind
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
       modifiers: [non_exhaustive]
     - entity: geometry.shapes.Kind.Round
       value: "0"
@@ -760,6 +778,12 @@ public-api:
       type-parameters:
         - {name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}
       where: "@{ext.alloc.vec.Vec}<T>: @{ext.core.clone.Clone}"
+      auto-traits:
+        - 'RefUnwindSafe when T: RefUnwindSafe'
+        - 'Send when T: Send'
+        - 'Sync when T: Sync'
+        - 'Unpin when T: Unpin'
+        - 'UnwindSafe when T: UnwindSafe'
     - entity: geometry.shapes.Solid
       bases:
         - {type: "@{geometry.shapes.Area}"}
@@ -770,6 +794,7 @@ public-api:
         - {name: self, mode: self-ref}
       returns: f64
     - entity: geometry.shapes.Circle
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
       bases:
         - {type: "@{geometry.shapes.Area}"}
     - entity: geometry.shapes.Circle.radius
@@ -782,6 +807,16 @@ public-api:
           type-parameters:
             - {name: T, kind: type, bounds: "@{ext.core.fmt.Display}"}
           self-type: T
+    - entity: geometry.Pin
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.Registry
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.detail.Grid
+      contexts: [build-extras]
+      auto-traits: [RefUnwindSafe, Unpin, UnwindSafe]
+    - entity: geometry.make_label
+      returns: "impl @{ext.core.fmt.Display}"
+      auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
     - entity: geometry.shapes.Area.SCALE
       type: "(f64, f64)"
       modifiers: [provided]

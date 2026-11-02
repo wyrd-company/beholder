@@ -166,8 +166,9 @@ YAML would read another type, such as `"null"`, `"True"` or `"1"`.
 | --- | --- | --- |
 | Declared slots | The author, from source and the language specification | Types, modes, modifiers, defaults and values |
 | Inferred slots with a specification | The author, applying the specification's rule: Go and Dart | `{inferred: <type text>}` |
+| Auto traits | The author, from the Rust Reference's auto trait rules applied to a type's fields | `auto-traits` |
 | Inferred slots the compiler defines | `tsc --declaration`, outside the project tree: TypeScript | `{inferred: <type text>}`, in canonical spelling |
-| Check | A compiler report from a per-language script | Findings to settle against the language's rule |
+| Check | A compiler report from a per-language script, and a compile check for `auto-traits` | Findings to settle against the language's rule |
 
 Do not read a compiler report or a compiler draft of a declared slot while
 writing it, so that a disagreement shows. Settle each disagreement against the
