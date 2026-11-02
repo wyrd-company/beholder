@@ -1361,18 +1361,41 @@ fn is_reduced_ratio(top: &str, bottom: &str) -> bool {
     bottom > one && top.gcd(&bottom) == one
 }
 
-/// `go/constant`'s text for a float too large for a ratio: `0x.c788p+16610`.
+/// Bits of `go/constant`'s floats, so hex digits of its longest mantissa.
+const GO_FLOAT_MANTISSA_DIGITS: usize = 512 / 4;
+/// The binary exponent from which `go/constant` holds a float as a `big.Float` and
+/// not as a ratio: `0x1p4095` prints `0x.8p+4096`, and `0x1p4094` prints an integer.
+const GO_FLOAT_MIN_EXPONENT: usize = 4096;
+
+/// `go/constant`'s text for a float too large or too small for a ratio, as a probe
+/// of `ExactString` prints it: `0x.c788p+16610`. The mantissa is normalized, so its
+/// first digit has its top bit set, and it has no trailing zero. Its digits are lower
+/// case, and its exponent has a sign and no leading zero.
 fn is_go_big_float(text: &str) -> bool {
     let digits = text.strip_prefix('-').unwrap_or(text);
-    digits.strip_prefix("0x.").is_some_and(|rest| {
-        rest.split_once('p').is_some_and(|(mantissa, exponent)| {
-            !mantissa.is_empty()
-                && mantissa.chars().all(|c| c.is_ascii_hexdigit())
-                && exponent.starts_with(['+', '-'])
-                && exponent.len() > 1
-                && exponent[1..].chars().all(|c| c.is_ascii_digit())
-        })
-    })
+    let Some((mantissa, exponent)) = digits
+        .strip_prefix("0x.")
+        .and_then(|rest| rest.split_once('p'))
+    else {
+        return false;
+    };
+    let normalized = mantissa.starts_with(['8', '9', 'a', 'b', 'c', 'd', 'e', 'f'])
+        && !mantissa.ends_with('0')
+        && mantissa.len() <= GO_FLOAT_MANTISSA_DIGITS
+        && mantissa
+            .chars()
+            .all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c));
+    let Some(magnitude) = exponent.strip_prefix(['+', '-']) else {
+        return false;
+    };
+    let spelled = !magnitude.starts_with('0') && magnitude.chars().all(|c| c.is_ascii_digit());
+    // A larger exponent than usize holds is still past the threshold.
+    let outside_ratios = magnitude
+        .parse::<usize>()
+        .map_or(!magnitude.is_empty(), |value| {
+            value >= GO_FLOAT_MIN_EXPONENT
+        });
+    normalized && spelled && outside_ratios
 }
 
 /// `go/constant`'s exact string: an integer, a reduced ratio, a big float, or
@@ -1916,6 +1939,21 @@ mod tests {
             ("go", "(1 + 2/4i)"),
             ("go", "0x.p+1"),
             ("go", "0x.8"),
+            // Each form `go/constant` does not print, from a probe of `ExactString`.
+            ("go", "0x.0p+1"),
+            ("go", "0x.8p+1"),
+            ("go", "0x.C788p+16610"),
+            ("go", "0x.cA88p+16610"),
+            ("go", "0x.08p+16614"),
+            ("go", "0x.c7880p+16610"),
+            ("go", "0x.8p+04096"),
+            ("go", "0x.8p4096"),
+            ("go", "0x.8p+4095"),
+            ("go", "0x.8p-4095"),
+            ("go", "0x.8p+"),
+            ("go", "-0x.0p+5000"),
+            ("go", "(0x.8p+1 + 1i)"),
+            ("go", "0x.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap+5000"),
             ("go", "1/"),
             ("python", "1.00"),
         ] {
@@ -1940,8 +1978,16 @@ mod tests {
             ("go", "(0 + 0i)"),
             // Above u128, the rule still reads the whole number.
             ("go", "340282366920938463463374607431768211457/2"),
+            // Each printed by a probe of `ExactString`.
+            ("go", "0x.8p+4096"),
+            ("go", "0x.8p+4097"),
+            ("go", "0x.8p-4096"),
+            ("go", "0x.cp+5001"),
+            ("go", "0x.fffffffff8p+5001"),
             ("go", "0x.c78820040d9443cfp+16610"),
             ("go", "-0x.a43978d5p-16609"),
+            ("go", "(1/2 + 0x.a43978d5p-16609i)"),
+            ("go", "0x.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabp+4999"),
         ] {
             assert_eq!(
                 value_form_issue(language, value, false),

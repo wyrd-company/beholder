@@ -433,6 +433,11 @@ type Meters = float64
 const A = 1
 const Pi = 3.14159
 const Name string = "x"
+const Large = 0x1p4095
+const NotLarge = 0x1p4094
+const Small = 0x1p-4097
+const Mixed = 0x1.8p5000
+const Negative = -0x1p4095
 var Table = map[string]int{}
 func Greet(names ...string) string { return "" }
 func Two(x, y int) (int, error) { return 0, nil }
@@ -449,6 +454,12 @@ type Num interface{ ~string | ~int }
     expect(found, path + "A", "value", "1")
     expect(found, path + "Pi", "value", "314159/100000")
     expect(found, path + "Name", "value", '"x"')
+    # The big float form the value check accepts, as `go/constant` prints it.
+    expect(found, path + "Large", "value", "0x.8p+4096")
+    expect(found, path + "Small", "value", "0x.8p-4096")
+    expect(found, path + "Mixed", "value", "0x.cp+5001")
+    expect(found, path + "Negative", "value", "-0x.8p+4096")
+    assert found[path + "NotLarge"]["slots"]["value"].isdigit(), found[path + "NotLarge"]
     expect(found, path + "Table", "type", "map[string]int")
     expect(found, path + "Greet", "parameters[0].type", "...string")
     expect(found, path + "Two", "returns", "(int, error)")
