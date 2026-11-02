@@ -670,7 +670,7 @@ fn scope_members_name_entities_units_or_documents() {
     set(
         &mut dataset,
         "/entities/2/effective-visibility",
-        json!({"unit": {"access": "scoped", "scope": ["tally.crate", "src/lib.rs", "elsewhere"]},
+        json!({"unit": {"access": "scoped", "scope": ["tally.Counter", "src/lib.rs", "elsewhere"]},
                "project": "none", "external": "none"}),
     );
     dataset["public-api"].as_array_mut().unwrap().remove(1);
