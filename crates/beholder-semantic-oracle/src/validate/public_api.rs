@@ -58,6 +58,8 @@ type Stated<'a> = BTreeMap<(&'a str, &'a str), BTreeMap<&'a str, (usize, Member)
 struct Index<'a> {
     children: BTreeMap<&'a str, Vec<&'a Value>>,
     exports: BTreeMap<&'a str, Vec<(&'a Value, Contexts<'a>)>>,
+    /// `aliases` relations: alias → (aliased entity, contexts).
+    aliases: BTreeMap<&'a str, Vec<(&'a str, Contexts<'a>)>>,
     by_path: BTreeMap<&'a str, Vec<&'a Value>>,
 }
 
@@ -184,20 +186,44 @@ impl<'c, 'a> Walk<'c, 'a> {
         };
         match text(entity, "kind").unwrap_or_default() {
             "module" => self.rust_module(id, &path),
-            "type" | "enum-member" => self.rust_type(id, entity, &path),
+            "type" | "enum-member" => self.rust_type(id, entity, &path, false),
+            // A type alias of a nominal type names that type's members.
+            "type-alias" => {
+                let aliased: Vec<&'a str> = self
+                    .index
+                    .aliases
+                    .get(id)
+                    .into_iter()
+                    .flatten()
+                    .filter(|(_, contexts)| contexts.contains(self.context))
+                    .map(|(to, _)| *to)
+                    .collect();
+                for to in aliased {
+                    if let Some(target) = self.entity(to) {
+                        if text(target, "kind") == Some("type") && self.enter(id) {
+                            self.rust_type(to, target, &path, true);
+                            self.stack.pop();
+                        }
+                    }
+                }
+            }
             _ => {}
         }
     }
 
     /// The members of a member type: enum variants and their fields, `pub`
-    /// fields, trait items, and `pub` inherent associated items.
-    fn rust_type(&mut self, id: &'a str, entity: &'a Value, path: &str) {
+    /// fields, trait items, and `pub` inherent associated items. Through a
+    /// type alias, only the members a path names: variants and inherent
+    /// associated items.
+    fn rust_type(&mut self, id: &'a str, entity: &'a Value, path: &str, alias: bool) {
         if !self.enter(id) {
             return;
         }
         for child in self.children(id) {
             let kind = text(child, "kind").unwrap_or_default();
-            if matches!(kind, "parameter" | "type-parameter" | "extension") {
+            if matches!(kind, "parameter" | "type-parameter" | "extension")
+                || (alias && kind == "field")
+            {
                 continue;
             }
             if !matches!(self.declared(child), Some("pub" | "inherited")) {
@@ -712,21 +738,26 @@ impl<'a> Checker<'a> {
             }
         }
         let mut exports: BTreeMap<&'a str, Vec<(&'a Value, Contexts<'a>)>> = BTreeMap::new();
+        let mut aliases: BTreeMap<&'a str, Vec<(&'a str, Contexts<'a>)>> = BTreeMap::new();
         for relation in self.list("relations") {
-            if text(relation, "kind") != Some("exports") {
-                continue;
-            }
             let Some(from) = text(relation, "from") else {
                 continue;
             };
             let contexts = self
                 .declared(relation)
                 .unwrap_or_else(|| self.built_contexts(from));
-            exports.entry(from).or_default().push((relation, contexts));
+            match (text(relation, "kind"), text(relation, "to")) {
+                (Some("exports"), _) => exports.entry(from).or_default().push((relation, contexts)),
+                (Some("aliases"), Some(to)) => {
+                    aliases.entry(from).or_default().push((to, contexts))
+                }
+                _ => {}
+            }
         }
         Index {
             children,
             exports,
+            aliases,
             by_path,
         }
     }

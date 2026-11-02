@@ -197,11 +197,16 @@ description: |
 
   ## Effective visibility
 
-  - `unit`: `pub` and `pub(crate)` give `all`. `private` and `pub(self)` give
-    `scoped` to the parent module. A `macro_rules!` macro has the widest
-    access among its textual scope, `scoped` to its defining module, and the
-    visibility of each `use` that re-exports it. `pub(super)` gives `scoped` to the
-    grandparent module. `pub(in P)` gives `scoped` to `P`. For a field or an
+  - `unit`: the widest access over the paths by which code in the crate can
+    name the entity. Along one path, access is the narrowest of the entity's
+    own visibility and the visibility of each module and re-export the path
+    passes. A visibility gives: `pub` and `pub(crate)`, `all`; `private`
+    and `pub(self)`, `scoped` to the parent module; `pub(super)`, `scoped`
+    to the grandparent module; `pub(in P)`, `scoped` to `P`. So a `pub` item
+    in a private module is `scoped` to that module's parent unless a wider
+    re-export names it. A `macro_rules!` macro has the widest access among
+    its textual scope, `scoped` to its defining module, and the visibility
+    of each `use` that re-exports it. For a field or an
     associated item, the parent module is the module of its type or
     implementation block. `inherited` takes the value of the enum or trait.
   - `external`: `all` when a downstream crate can name the entity by at
@@ -225,7 +230,10 @@ description: |
   children whose declared visibility is `pub` and the names that its `pub`
   `use` items and `pub` glob re-exports add (`exports` relations with
   `visibility: pub`); in a member type, its variants, its `pub` fields and
-  variant fields, its trait items and its `pub` inherent associated items.
+  variant fields, its trait items and its `pub` inherent associated items;
+  through a member type alias whose definition is a path to a nominal type
+  (an `aliases` relation), that type's variants and `pub` inherent
+  associated items.
   Members are:
 
   - the crate root, with the crate name as its consumer path;
@@ -322,7 +330,9 @@ description: |
   ## Generated, synthetic and external entities
 
   - Items produced by `macro_rules!` expansion or procedural macros are
-    `origin: generated`. When the item's name token comes from the
+    `origin: generated`, including the implementation blocks that derive
+    macros generate and their associated items, with their `implements` and
+    `overrides` relations and a `rust:macro-expansion` fact for each item. When the item's name token comes from the
     invocation input, `definitions` is that token. Otherwise `anchor` is the
     macro path's final segment at the invocation and `generated-by` names the
     macro.

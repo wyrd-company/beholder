@@ -608,3 +608,37 @@ fn a_typescript_static_member_has_a_static_segment() {
         "{findings}"
     );
 }
+
+#[test]
+fn a_rust_type_alias_names_the_inherent_items_of_its_type() {
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    let mut block = entity(
+        "geometry.shapes.impl-Circle",
+        "extension",
+        "impl",
+        "geometry::shapes::impl geometry::shapes::Circle#1",
+        "geometry.shapes",
+        "geometry-lib",
+    );
+    block.as_object_mut().unwrap().remove("name");
+    block["declared-visibility"] = json!({"value": "private", "explicit": false});
+    block["effective-visibility"] = json!({
+        "unit": {"access": "scoped", "scope": ["geometry.shapes"]},
+        "project": "none", "external": "none"});
+    push(&mut dataset, "/entities", block);
+    let mut item = entity(
+        "geometry.shapes.Circle.grow",
+        "callable",
+        "method",
+        "geometry::shapes::Circle::grow",
+        "geometry.shapes.impl-Circle",
+        "geometry-lib",
+    );
+    item["declared-visibility"] = json!({"value": "pub", "explicit": true});
+    push(&mut dataset, "/entities", item);
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("paths [`geometry::Scale::grow`, `geometry::shapes::Circle::grow`]"),
+        "{findings}"
+    );
+}
