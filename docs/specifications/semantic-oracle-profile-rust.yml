@@ -225,8 +225,12 @@ description: |
 
   ## Public API
 
-  The public API of a distribution is the set of entities of its `lib` or
-  `proc-macro` unit that have at least one consumer path in the context. A
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  The members of a distribution are the entities of its `lib` or `proc-macro`
+  unit that have at least one consumer path in the context. A
   consumer path starts at the crate root, written as the crate name, and
   continues through names that a downstream crate can use: in a module, its
   children whose declared visibility is `pub` and the names that its `pub`
@@ -248,6 +252,95 @@ description: |
 
   Trait implementation items are not members; they are reached through the
   trait's items. `#[doc(hidden)]` does not remove membership.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `fn`, `method`, `foreign-fn` | `type-parameters`, `where`, `impl`, `parameters`, `returns`, `modifiers` |
+  | `struct`, `enum`, `union` | `type-parameters`, `where`, `bases`, `modifiers` |
+  | `trait` | `type-parameters`, `where`, `bases`, `modifiers` |
+  | `type` | `type-parameters`, `where`, `type` |
+  | `associated-type` | `type-parameters`, `where`, `bounds`, `type` as its default |
+  | `field` | `type` |
+  | `static`, `static-mut`, `foreign-static` | `type`, `modifiers` |
+  | `const` | `type`, `value` |
+  | `variant` | `value`, for an enum whose variants are all units or that states a discriminant |
+
+  `returns` is absent for a callable that returns `()`. `value` of a variant is
+  its discriminant, stated or implicit. A `macro_rules!` matcher is a grammar,
+  and membership states the macro.
+
+  Parameter modes: `self-ref` for `&self` and `self: &Self`, `self-mut-ref` for
+  `&mut self` and `self: &mut Self`. A `self` taken by value is `{name: self}`. A
+  receiver with a lifetime or another type has `type`, such as `&'a Self`. A
+  parameter whose pattern is not one identifier has no `name`.
+
+  Modifiers: `unsafe`, `const`, `async`, `non_exhaustive`, `provided` for a trait
+  item with a default body, and `auto`. Rust `async` is a modifier, because the
+  declared return type does not state its effect on a caller.
+
+  Bounds have one form. A bound on a bare parameter, inline or in a `where` clause,
+  is in that parameter's `bounds`. `where` holds other predicates only, sorted and
+  separated by `, `.
+
+  A member of an inherent implementation has the `impl` slot when the block has
+  binders or a specialized self type, because the block decides when a consumer
+  can call the member:
+
+  ```yaml
+  impl:
+    type-parameters:
+      - {name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}
+    self-type: "@{Container}<T>"
+  ```
+
+  `bases` of a trait holds its supertraits. `bases` of a struct, enum or union holds
+  one entry per trait implementation that an `implements` relation states, so that
+  `impl Trait<u8> for X` and `impl Trait<u16> for X` are one relation and two
+  entries. An entry has `type-parameters` and `self-type` when the block has binders
+  or a specialized self type, `where`, and `bindings`, sorted by `name`, for the
+  associated types and constants the block sets. A blanket implementation has no
+  self type that a relation can state, and has no entry.
+
+  ```yaml
+  - entity: api.Entry
+    bases:
+      - type: "@{api.Record}"
+        bindings:
+          - {name: Key, type: u32}
+  ```
+
+  Canonical spelling:
+
+  - Primitive names are written bare: `bool`, `char`, `str`, `f16`, `f32`, `f64`,
+    `f128`, the `i` and `u` integer types, `isize`, `usize`, `()` and `!`.
+  - Each path is its target: `core::option::Option` and `std::option::Option` are
+    one `@{id}`.
+  - `Self` in an implementation is the implementing type. `Self` in a trait stays
+    `Self`.
+  - A projection is fully qualified: `<T as @{Tr}>::@{Tr.Item}` for `T::Item`.
+  - A type's own text uses `, ` between items, ` + ` between bounds, `; ` in `[T; N]`,
+    no space after `&`, and one space after a lifetime or `mut`: `&'a T`, `&mut T`.
+  - A bound list is sorted: `'a + @{ext.core.clone.Clone}`.
+  - Lifetimes are as written, with no elision expansion.
+  - `impl Trait` is recorded as written, with its `use<..>` in declared order:
+    `impl @{ext.core.clone.Clone} + use<'a, T, N>`. The hidden type and the auto
+    traits it leaks are not recorded.
+  - A generic argument the source omits for a defaulted parameter stays omitted.
+
+  Inference: item signatures state their types, and no slot of a source entity is
+  `{inferred}`. A generated member whose code is not an indexed document has
+  `{inferred}` slots by its expansion. `value` follows the Reference's constant
+  evaluation rules; a `const` assertion probe outside the tree confirms it. A
+  constant of any type outside the model's value forms has no `value` slot.
+
+  A `@{id}` whose target has no consumer path shows that the signature exposes it.
+  `via` of a `rust:reachable-unnameable` fact is recomputed from these slots.
+
+  The compiler report comes from rustdoc JSON.
 
   ## References
 
@@ -384,6 +477,9 @@ description: |
   7. Record declared and effective visibility for every entity other than
      parameters, and every `rust:reachable-unnameable` fact.
   8. Record the public API of every distribution in every context.
+  9. Write every signature from source and the Rust Reference. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from rustdoc JSON after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A Rust dataset conforms when it conforms to `semantic-oracle-model`, every
   context derives from a project task command by the rule above, every
@@ -391,4 +487,5 @@ validation-criteria: |
   `cfg` and features, every `pub(in P)` value names a module entity, and every
   public API membership agrees with the consumer-path rule of this profile.
   Independent review confirms entity, reference and visibility facts against
-  source, the Cargo configuration and the Rust Reference.
+  source, the Cargo configuration and the Rust Reference. Every signature follows this profile's slots, modifiers and canonical spelling, and
+  its slots agree with rustdoc JSON or are listed as `unchecked`.

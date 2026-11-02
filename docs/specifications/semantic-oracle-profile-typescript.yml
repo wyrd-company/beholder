@@ -210,8 +210,12 @@ description: |
 
   ## Public API
 
-  A distribution's public API in a context consists of every entity that has
-  a consumer path. Rules 1 and 2 select the entry module of each subpath and
+  The public API of a distribution is its members and their signatures.
+
+  ### Membership
+
+  A distribution's members in a context are the entities that have a consumer
+  path. Rules 1 and 2 select the entry module of each subpath and
   mode; the dataset records each selection as a `typescript:entry` fact.
   Rule 3 gives the members of an entry module.
 
@@ -265,6 +269,68 @@ description: |
   fact has the subpath of that selection, the ambient module entity as
   `module` and its module name as `specifier`, so that several ambient
   modules of one distribution have distinct facts.
+
+  ### Signatures
+
+  A project member's signature follows the model's Signatures section. A constructor
+  and an unnamed member are not public API members. Their signatures are slots of the
+  owning type, in effective order.
+
+  | `language-kind` | Slots |
+  | --- | --- |
+  | `function`, `method`, `static-method` | `type-parameters`, `parameters`, `returns`, `modifiers`; `overloads` for several signatures |
+  | `class`, `abstract-class` | `type-parameters`, `bases`, `constructors`, `index-signatures`, `modifiers` |
+  | `interface` | `type-parameters`, `bases`, `call-signatures`, `construct-signatures`, `index-signatures` |
+  | `enum`, `const-enum` | None |
+  | `type` | `type-parameters`, `type` |
+  | `field`, `static-field`, `parameter-property`, `property-signature`, `object-member` | `type`, `modifiers` |
+  | `accessor`, `static-accessor` | `get`, `set`, `modifiers` |
+  | `let`, `var`, `const` | `type` |
+  | `enum-member` | `value` |
+
+  `overloads` holds the overload signatures of an entity, in effective order
+  including the precedence of merged declarations, and the implementation signature
+  of an overloaded function is not one of them. A `constructors` entry has `access`
+  when the constructor is `protected` or `private`, so that restricted construction
+  stays visible. A class that declares no constructor has one `constructors` entry for
+  its synthetic constructor, with its inherited parameters as `{inferred}` slots. That
+  entry's source declaration is the owning class.
+
+  Parameter modes: `optional` and `rest`. A parameter with a default has mode
+  `optional`, as the declaration emit states it, and no `default` slot. A `this`
+  parameter is the first entry, named `this`. A destructured parameter has no `name`.
+
+  Modifiers: `abstract`, `optional`, `readonly` and `static`. `optional` is distinct
+  from `undefined` in the type, because a required member can have that type. `async`
+  is not a modifier, because the return type states its effect on a caller.
+
+  A type parameter has `variance`, `in`, `out` or `in out`, and `modifiers`, `const`,
+  when it states them.
+
+  Canonical spelling:
+
+  - Predeclared names are written bare: `any`, `bigint`, `boolean`, `never`, `null`,
+    `number`, `object`, `string`, `symbol`, `undefined`, `unknown` and `void`, with
+    `this` for the polymorphic this type.
+  - `string[]` for `Array<string>`, and `readonly string[]` for `ReadonlyArray<string>`.
+    Parentheses appear only where the syntax needs them. The reference audit does not
+    expect a token that a canonical form removes.
+  - Union and intersection members are sorted within one operator. Property members of
+    a type literal are sorted by name, as `{ extra: string; kind: "workspace" }`.
+    Call and construct signatures and repeated method signatures of a type literal keep
+    their effective overload order.
+  - A string literal type uses double quotes. A type literal uses `{ a: T; b?: U }`, a
+    function type `(x: T) => U`, and `, ` between arguments.
+  - `/*elided*/ any` in a declaration emit is written `any`.
+
+  Inference: an unannotated return, `const`, `let`, field or accessor of a member is
+  `{inferred: ...}` with the type that `tsc --declaration` emits for the context's
+  options and compiler version, in canonical spelling. A `.d.ts` member is all declared.
+  TypeScript has no current language specification, and a consumer of a published
+  package compiles against that emit, so the compiler supplies these slots. It runs
+  outside the project tree.
+
+  The compiler report comes from `tsc --declaration`.
 
   ## References
 
@@ -387,6 +453,9 @@ description: |
      parameters.
   8. Record the `typescript:entry` facts and the public API of every
      distribution in every context, for both modes.
+  9. Write every declared slot from source, and take each `{inferred}` slot from `tsc --declaration` run outside the project tree. Do not read a compiler report or a compiler draft of a
+     declared slot while writing it. Run the compiler report from `tsc --declaration` after
+     writing, and settle each disagreement against the language's rule.
 validation-criteria: |
   A TypeScript dataset conforms when it conforms to `semantic-oracle-model`,
   every context derives from a `build` task command, every module specifier
@@ -395,3 +464,5 @@ validation-criteria: |
   entry-module rule of this profile. Independent review confirms facts
   against source, `package.json` and `tsconfig` files, the TypeScript
   Handbook and the Node.js package documentation.
+  Every signature follows this profile's slots, modes, modifiers and canonical spelling,
+  and its slots agree with `tsc --declaration` or are listed as `unchecked`.

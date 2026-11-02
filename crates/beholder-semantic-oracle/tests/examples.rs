@@ -1004,8 +1004,8 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
             "python",
             json!({"entity": "x", "parameters": [
                     {"name": "a", "mode": "positional-only"},
-                    {"name": "*args", "mode": "var-positional"},
-                    {"name": "**kwargs", "mode": "var-keyword"}],
+                    {"name": "args", "mode": "var-positional"},
+                    {"name": "kwargs", "mode": "var-keyword"}],
                 "type-parameters": [{"name": "T", "kind": "type", "bounds": "int", "default": "bool"}],
                 "modifiers": ["abstract", "classvar", "final", "not-required"],
                 "get": {"type": "int"}, "set": {"type": "int"}, "delete": "present", "value": "1"}),
@@ -1023,7 +1023,7 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
                     {"name": "a", "mode": "ref readonly", "type": "string~"},
                     {"name": "b", "mode": "this ref", "type": "(int x, string? y)"},
                     {"name": "c", "mode": "params", "type": "int[]", "default": "null"}],
-                "return-mode": "ref readonly", "returns": "ref int",
+                "return-mode": "ref readonly", "returns": "int",
                 "get": {"type": "int", "access": "protected internal", "modifiers": ["readonly"]},
                 "set": {"type": "int", "access": "private"}, "init": {"type": "int"},
                 "modifiers": ["override", "required", "sealed"]}),
@@ -1048,4 +1048,14 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
         let found = errors(&validator, &dataset);
         assert!(found.is_empty(), "{language}:\n{}", describe(&found));
     }
+}
+
+/// YAML 1.2 reads `N` as a string, as a Rust const parameter's name needs.
+#[test]
+fn a_bare_name_that_older_yaml_reads_as_a_boolean_is_a_string() {
+    let value = parse_yaml("{name: N, kind: const, other: y, flag: true}").unwrap();
+    assert_eq!(
+        value,
+        json!({"name": "N", "kind": "const", "other": "y", "flag": true})
+    );
 }

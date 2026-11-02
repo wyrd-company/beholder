@@ -5,7 +5,7 @@
 //! uniqueness and resolution, the document inventory and digests, locators,
 //! fact contexts against unit and document membership, dispositions,
 //! extension facts, and the consistency of public API entries with
-//! effective visibility. The audit adds criterion 8 as far as the profile
+//! effective visibility. The audit adds criterion 9 as far as the profile
 //! rules are mechanical: document file classes, out-of-profile facts, and
 //! profile-specific value rules, with coverage notes for indexed documents
 //! that hold no fact in a context.

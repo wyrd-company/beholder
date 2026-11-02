@@ -123,15 +123,17 @@ model or profile version.
    document its origin and its unit and context members.
 2. Declare the contexts the project's `build` and `test` tasks define, then
    the units and distributions, by the profile's rules.
-3. Write entities, references, relations, visibility, public API and
+3. Write entities, references, relations, visibility, public API members and
    extension facts. Use `locate` for every site; type the meaning, let the
    tool type the coordinates.
-4. Run `validate` and fix every error. Run it after each batch of facts, so
+4. Write the signature of each public API member under `public-api`
+   `signatures`, as the next section describes.
+5. Run `validate` and fix every error. Run it after each batch of facts, so
    that a mistake is found near where it was made.
-5. Run `audit`. Fix every error, then read each warning: a `model:coverage`
+6. Run `audit`. Fix every error, then read each warning: a `model:coverage`
    warning names an indexed document that holds no fact site in a context,
    which is either an empty file or a file whose facts are still missing.
-6. When the source changes, run `inventory` again to refresh the digests,
+7. When the source changes, run `inventory` again to refresh the digests,
    then `validate`. Every locator whose text moved is reported with the
    positions where its text now occurs; recapture each with `locate`.
 
@@ -139,9 +141,43 @@ The dataset is reviewed independently once it validates and audits clean.
 The tools check structure and consistency; a reviewer confirms each fact
 against source, build configuration and the language specification.
 
+## Writing signatures
+
+The public API of a distribution is `public-api` `members`, one membership for
+each member, and `signatures`, the facts a consumer depends on beyond a member's
+name. A member has a record when it has at least one slot:
+
+```yaml
+public-api:
+  members:
+    - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
+  signatures:
+    - entity: tally.make
+      returns: "@{tally.Counter}"
+```
+
+The model's Signatures section states the slots, and the profile's Public API
+section states which slots each `language-kind` has, its modes and modifiers, and
+its canonical spelling. Write each type in the language's own syntax with `@{id}`
+for each name that denotes an entity. Write each value as one string, quoted where
+YAML would read another type, such as `"null"`, `"True"` or `"1"`.
+
+| Step | Who | Writes |
+| --- | --- | --- |
+| Declared slots | The author, from source and the language specification | Types, modes, modifiers, defaults and values |
+| Inferred slots with a specification | The author, applying the specification's rule: Go and Dart | `{inferred: <type text>}` |
+| Inferred slots the compiler defines | `tsc --declaration`, outside the project tree: TypeScript | `{inferred: <type text>}`, in canonical spelling |
+| Check | A compiler report from a per-language script | Findings to settle against the language's rule |
+
+Do not read a compiler report or a compiler draft of a declared slot while
+writing it, so that a disagreement shows. Settle each disagreement against the
+language's rule, and never by copying the compiler's value. SCIP, Beholder and
+every evaluated indexer or language service are never an input.
+
 ## What the checks cover
 
-`validate` applies the model's validation criteria 1 to 7:
+`validate` applies the model's validation criteria 1 to 7, and checks a
+signature's schema and ids:
 
 | Rule | Checks |
 | --- | --- |
@@ -155,14 +191,15 @@ against source, build configuration and the language specification.
 | `model:unit-key`, `model:unit-root` | Unit keys, by the profile's key members, name one unit in the dataset; a unit root is a module or namespace of that unit. |
 | `model:effective-visibility` | An entity whose unit has no distribution has `external: none`. |
 | `model:entity-identity`, `model:entity-parent`, `model:entity-origin` | Unit, path and kind identify one entity per context; parent chains end; generated entities outside generated documents have `anchor` and `generated-by`; entities defined in generated documents are generated. |
-| `model:external-key`, `model:external-unused` | External keys are unique, and every external is a target of a reference, relation or extension fact. |
+| `model:external-key`, `model:external-unused` | External keys are unique, and every external is a target of a reference, relation, extension fact or `@{id}` of a signature. |
+| `schema:*`, `model:id-reference`, `model:context-*` on `public-api` `signatures` | A signature has the record form and vocabulary of its profile, names a project entity, and lists contexts where that entity exists. An external that a `@{id}` names counts as used. |
 | `model:relation-duplicate`, `model:public-api-duplicate` | No relation or public API membership is stated twice in a context. |
 | `model:public-api-access` | A member's `access` agrees with the entity's effective `external` access in every context. |
-| `model:public-api-recomputed` | The membership the profile's public API rule gives, recomputed in every context from `parent`, `exports`, visibility and the profile's entry facts, equals the `public-api` entries: the same members, each with the same complete path list and access. A member may be an entity of another unit, or an external, that a re-export reaches. For Rust, `project` and `external` access are `all` exactly for entities with a consumer path; trait implementation items are exempt. |
+| `model:public-api-membership-recomputed` | The membership the profile's public API rule gives, recomputed in every context from `parent`, `exports`, visibility and the profile's entry facts, equals the `public-api` `members` entries: the same members, each with the same complete path list and access. A member may be an entity of another unit, or an external, that a re-export reaches. For Rust, `project` and `external` access are `all` exactly for entities with a consumer path; trait implementation items are exempt. |
 | `model:extension-key`, `<language>:extension-target` | Extension keys, by the profile's key members, are unique per context; an extension member names a record of the kind the profile states. An extension fact without `contexts` holds where the unit of its first entity or unit member is built. |
 | `<language>:sorted` | Lists the profile states are sorted are sorted. |
 
-`audit` adds the mechanical part of criterion 8:
+`audit` adds the mechanical part of criterion 9:
 
 | Rule | Checks |
 | --- | --- |
@@ -174,7 +211,8 @@ against source, build configuration and the language specification.
 
 Not checked mechanically, and left to review: that each context derives
 from a project command, that the inventory dispositions and members follow
-the build, that the dataset is exhaustive for the required categories, that
+the build, that the dataset is exhaustive for the required categories, the
+model's `model:signature-*` rules and `profile:signature-compiler`, that
 a TypeScript site in another unit's document is an augmentation, and the
 inputs of public API recomputation: that each `exports` relation's
 `visibility` is the binding's, and that each `typescript:entry` fact names

@@ -81,9 +81,11 @@ pub const PROFILES: [Profile; 6] = [
     profile!("typescript"),
 ];
 
-/// Parses one YAML 1.2 document into a JSON value.
+/// Parses one YAML 1.2 document into a JSON value. Booleans follow YAML 1.2, so
+/// that a type parameter named `N` is a string.
 pub fn parse_yaml(text: &str) -> Result<Value> {
-    serde_saphyr::from_str(text).map_err(|error| anyhow!("{error}"))
+    let options = serde_saphyr::options! { strict_booleans: true };
+    serde_saphyr::from_str_with_options(text, options).map_err(|error| anyhow!("{error}"))
 }
 
 /// The model schema as a JSON value.
