@@ -271,3 +271,15 @@ cases:
     patch: [{op: replace, path: /public-api/signatures/2/auto-traits, value: [Send, Send]}]
     fails-at: /public-api/signatures/2/auto-traits
     keyword: uniqueItems
+  - name: auto-traits-malformed-ordinal
+    reason: An occurrence's ordinal is a decimal with no leading zero.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/auto-traits/0, value: '#01 Send'}]
+    fails-at: /public-api/signatures/2/auto-traits/0
+    keyword: pattern
+  - name: binding-auto-traits-other-trait
+    reason: '`Copy` is not an auto trait, in a binding either.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0/auto-traits/0, value: Copy}]
+    fails-at: /public-api/signatures/7/bases/0/bindings/0/auto-traits/0
+    keyword: pattern

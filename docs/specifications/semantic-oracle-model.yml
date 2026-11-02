@@ -697,7 +697,7 @@ description: |
   | Signature group entry (`constructors`, `call-signatures`, `construct-signatures`, `index-signatures`) | The callable slots of one signature, and `access` when it restricts construction. |
   | Base (`bases`) | `type`, the type text with its arguments; `position`; `type-parameters`, `self-type`, `where` and `bindings` for an implementation |
   | Implementation (`implementations`) | The slots of a base, with `self-type` always |
-  | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
+  | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value` or `auto-traits` |
   | Alternative (`alternatives`) | `at`, the definition site of one possible definition, and the slots of that definition |
 
   The profile states which slots each `language-kind` has and when each is
@@ -727,8 +727,8 @@ description: |
   `auto-traits` states the auto traits of a type that a consumer can move, share or
   pin, which the type's fields decide and no declaration states. It is a set, written
   sorted. A trait the type does not implement is absent. The profile names the auto
-  traits and the spelling of a trait held under a condition, and it is the slot of the
-  `auto-trait` class.
+  traits, the spelling of a trait held under a condition, and how an element identifies
+  one of several opaque types in a return. It is the slot of the `auto-trait` class.
 
   A record with `overloads` holds each signature's slots there, including
   `modifiers`, and has none of those slots of its own.
@@ -752,7 +752,7 @@ description: |
 
   Equal facts are equal strings. A string literal in a type text is double-quoted.
   Outside a string literal, `@{` does not occur in the type syntax of the six
-  languages, and inside one it names nothing.
+  languages, and inside one it names nothing. A char literal's quote opens no string.
 
   A name written `@{id}` whose target has no consumer path shows that the
   signature exposes the target. The target stays a non-member.
@@ -774,7 +774,8 @@ description: |
 
   A synthetic member has slots by the language rule that implies it, and each of
   its type and value slots is `{inferred}`. Its `parameter` entities are synthetic,
-  with the `anchor` of the member. A generated member whose code is not an indexed
+  with the `anchor` of the member, and their relative order in `entities` is their order in
+  the parameter list. A generated member whose code is not an indexed
   document has slots by its expansion, and is written the same way.
 
   #### Value forms
@@ -818,7 +819,8 @@ description: |
     `@{id}` resolves.
   - `model:signature-parameters`: the `name` values and order of a parameter list
     equal the `parameter` entities of its source declaration, by site. On a synthetic
-    member the comparison is by name and order, because those entities have no site.
+    member the comparison is by name and by their relative order in `entities`, because
+    those entities have no site.
   - `model:signature-references`: each `@{id}` in a declared type text has a `type`
     reference fact whose `from` is the slot's source declaration or an entity
     inside it by `parent`, and each such reference inside a parameter has its
@@ -1125,7 +1127,7 @@ description: |
   #### Signature pairing
 
   - An element of a set slot pairs by its key: the element itself in `modifiers`, and
-    the trait name in `auto-traits`, whose value is the whole element. An expected
+    the text before ` when ` in `auto-traits`, whose value is the whole element. An expected
     element with no observation is `missing`, an observed element with no expectation is
     `unexpected`, and a pair whose condition differs is `wrong-value`.
   - A parameter pairs by position. A missing parameter is `missing` on each of its
@@ -1238,6 +1240,7 @@ description: |
   | `auto-traits: [Send, Sync]` | `Send` only | `Send` `matched`; `Sync` `missing` |
   | `auto-traits: [Send]` | `Send`, `Sync` | `Send` `matched`; `Sync` `unexpected` |
   | `auto-traits: ["Send when T: Send"]` | `Send` | one `wrong-value` |
+  | `auto-traits: ["#0 Send", "#1 Send"]` | `#0 Send` only | `#0 Send` `matched`; `#1 Send` `missing` |
   | `auto-traits: [Send, Sync]`, adapter without `signature-auto-trait` | none | two `unsupported` |
   | `implements X→T`, `bases` `@{T}<u8>`, adapter with relations only | `implements X→T` | relation `matched`; `bases` slot `unsupported` |
 

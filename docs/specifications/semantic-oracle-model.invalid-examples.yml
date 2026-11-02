@@ -794,3 +794,9 @@ cases:
     fails-at: /public-api/signatures/10/implementations/0
     keyword: required
     member: self-type
+  - name: binding-without-a-fact
+    reason: A binding sets a type or a value, or states a method's auto traits.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0, value: {name: describe}}]
+    fails-at: /public-api/signatures/7/bases/0/bindings/0
+    keyword: oneOf

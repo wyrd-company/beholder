@@ -1143,6 +1143,13 @@ fn an_auto_traits_entry_may_state_a_condition() {
             "Send when T: @{ext.core.clone.Clone}",
             "Sync when <T as @{Tr}>::Item: Sync",
             "Unpin"]}));
+    dataset["public-api"]["signatures"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"entity": "x", "auto-traits": [
+            "#0 Send when T: Send", "#1 Sync", "#10 Unpin",
+            "Send when T = u8"],
+            "bases": [{"type": "@{Tr}", "bindings": [{"name": "make", "auto-traits": ["#0 Send"]}]}]}));
     let found = errors(&validator, &dataset);
     assert!(found.is_empty(), "{}", describe(&found));
 }

@@ -206,11 +206,13 @@ proposed-design:
       follows a private name in Python, and a Python return with no annotation. The
       inference table below states them.
 
-    The same script holds 10 slot regressions: consumer breaks in a trait
+    The same script holds 14 slot regressions: consumer breaks in a trait
     implementation's associated type, an inherent implementation's bound, a
     constructor, a call signature, a setter, an optional member, the order of a
-    type literal's call signatures, a Go array length, a Go constraint's terms and a
-    private field that removes `Send` from a public struct.
+    type literal's call signatures, a Go array length, a Go constraint's terms, a
+    private field that removes `Send` from a public struct, and `Send` lost by a tuple's
+    opaque component, an async function's opaque output, a trait implementation's opaque
+    return and a trait method's default body.
     Each one breaks a real consumer and changes a slot. They stay out of the table,
     because the script's text extractor reads declaration headers and these changes
     are in bodies.
@@ -248,7 +250,7 @@ proposed-design:
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
     | Base (`bases`) | `type`, the type text with its arguments; `position` for a Python base or a Dart mixin application; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
     | Implementation (`implementations`) | The slots of a base, with `self-type` always, for a Rust implementation whose self type no relation can start from |
-    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
+    | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type`, `value` or `auto-traits` |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
     `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
@@ -315,15 +317,26 @@ proposed-design:
 
     Rust records auto traits in one `auto-traits` slot, on every `struct`, `enum` and
     `union` member and on every callable whose return contains `impl Trait` or is the
-    future of an `async fn`, because losing an auto trait such as `Send` is a break that
+    future of an `async fn`, with a trait method only when it has a default body, because losing an auto trait such as `Send` is a break that
     no written signature shows, and a private field change can cause it on an ordinary
     public struct. The traits are `Send`, `Sync`, `Unpin`, `UnwindSafe` and
     `RefUnwindSafe`. The slot is a sorted list of the traits the type implements. A trait
     it does not implement is absent, and a type that implements none has no slot. A trait
     held under a condition is written `<trait> when <conditions>`, such as
     `Send when T: Send` or `Sync when T: Sync, U: Send + Sync`, with sorted predicates
-    and bounds. The slot compares as a set of units like `modifiers`, one per trait, with
-    the trait name as key: `auto-traits[Send]`. A changed condition is a `wrong-value`.
+    and bounds, and `Send when T = u8` for an implementation of one instantiation.
+
+    A return whose whole type is its only opaque type uses plain elements. Every other
+    return prefixes each element with its occurrence's ordinal, `#<n> `, counted from 0
+    in source order: the `async` keyword's future, then each `impl` token. So
+    `(impl A, impl B)` has `#0 Send` and `#1 Send`, and an `async fn` returning `impl A`
+    has `#0` for the future and `#1` for the output, because a consumer can use each
+    alone and a whole-return fact does not show one losing `Send`. A trait implementation's
+    method is no member, so its opaque return is a binding of that implementation's
+    `bases` or `implementations` entry: `{name: make, auto-traits: [Send, Sync]}`.
+
+    The slot compares as a set of units like `modifiers`, keyed by the text before
+    ` when `: `auto-traits[#1 Send]`. A changed condition is a `wrong-value`.
 
     A Rust callable's `abi` is its ABI string, absent for the Rust ABI, and the tail
     `...` of a C variadic function is a parameter `{mode: c-variadic}`. `provided` on an
@@ -332,7 +345,8 @@ proposed-design:
     implementation for a type that is not a project type, which no `implements`
     relation can start from.
 
-    A C# event's `add` and `remove` accessors hold its delegate type. A fixed-size
+    A C# delegate's synthesized constructor, `Invoke`, `BeginInvoke` and `EndInvoke` are
+    its members. A C# event's `add` and `remove` accessors hold its delegate type. A fixed-size
     buffer's `type` is `char[24]`, the oracle's spelling of its length. A Python
     signature's `type-parameters` include the module-level `TypeVar` names it uses, with
     their declared bound, constraints, variance and default.
@@ -415,7 +429,7 @@ proposed-design:
 
     | Language | Compiler report comes from |
     | --- | --- |
-    | Rust | rustdoc JSON, and a compile check for `auto-traits`: a consumer that requires a trait compiles when the slot lists it and fails when it does not |
+    | Rust | rustdoc JSON, and a compile check for `auto-traits`: a consumer that requires a listed trait, assuming its conditions, compiles, and it fails with a condition dropped or for a trait the slot does not list |
     | TypeScript | `tsc --declaration` |
     | Go | `go/types` |
     | Python | `inspect.signature`, for names, kinds, defaults and annotations |

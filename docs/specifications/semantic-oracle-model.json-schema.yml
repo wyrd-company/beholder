@@ -576,7 +576,9 @@ $defs:
       where: {$ref: '#/$defs/type-text'}
 
   binding:
-    description: An associated type or constant that an implementation sets.
+    description: >-
+      An associated type or constant that an implementation sets, or the auto
+      traits of a method it implements.
     type: object
     required: [name]
     additionalProperties: false
@@ -586,9 +588,11 @@ $defs:
       where: {$ref: '#/$defs/type-text'}
       type: {$ref: '#/$defs/type-text'}
       value: {$ref: '#/$defs/value-text'}
+      auto-traits: {$ref: '#/$defs/modifiers'}
     oneOf:
       - required: [type]
       - required: [value]
+      - required: [auto-traits]
 
   base:
     type: object

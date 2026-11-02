@@ -595,6 +595,102 @@ entities:
       - at: {path: src/Geometry/Shapes.cs, start: [41, 23], end: [41, 27], text: Name}
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor..ctor
+    kind: callable
+    language-kind: constructor
+    name: .ctor
+    path: Geometry.Visitor..ctor
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor..ctor.object
+    kind: parameter
+    language-kind: param
+    name: object
+    path: Geometry.Visitor..ctor.object
+    unit: geometry-lib
+    parent: Geometry.Visitor..ctor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor..ctor.method
+    kind: parameter
+    language-kind: param
+    name: method
+    path: Geometry.Visitor..ctor.method
+    unit: geometry-lib
+    parent: Geometry.Visitor..ctor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke
+    kind: callable
+    language-kind: method
+    name: BeginInvoke
+    path: Geometry.Visitor.BeginInvoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.BeginInvoke.shape
+    kind: parameter
+    language-kind: param
+    name: shape
+    path: Geometry.Visitor.BeginInvoke.shape
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke.callback
+    kind: parameter
+    language-kind: param
+    name: callback
+    path: Geometry.Visitor.BeginInvoke.callback
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.BeginInvoke.object
+    kind: parameter
+    language-kind: param
+    name: object
+    path: Geometry.Visitor.BeginInvoke.object
+    unit: geometry-lib
+    parent: Geometry.Visitor.BeginInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Visitor.EndInvoke
+    kind: callable
+    language-kind: method
+    name: EndInvoke
+    path: Geometry.Visitor.EndInvoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.EndInvoke.result
+    kind: parameter
+    language-kind: param
+    name: result
+    path: Geometry.Visitor.EndInvoke.result
+    unit: geometry-lib
+    parent: Geometry.Visitor.EndInvoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
 
 externals:
   - id: ext.System.Object.ToString
@@ -623,6 +719,16 @@ externals:
     language-kind: delegate
     distribution: System.Runtime
     path: System.EventHandler
+  - id: ext.System.AsyncCallback
+    kind: type
+    language-kind: delegate
+    distribution: System.Runtime
+    path: System.AsyncCallback
+  - id: ext.System.IAsyncResult
+    kind: type
+    language-kind: interface
+    distribution: System.Runtime
+    path: System.IAsyncResult
 
 references:
   - at: {path: src/Geometry/Shapes.cs, start: [8, 39], end: [8, 45], text: IShape}
@@ -733,6 +839,9 @@ public-api:
     - {distribution: geometry, entity: 'Geometry.Visitor.Invoke', paths: ['Geometry.Visitor.Invoke'], access: all}
     - {distribution: geometry, entity: 'Geometry.Header', paths: ['Geometry.Header'], access: all}
     - {distribution: geometry, entity: 'Geometry.Header.Name', paths: ['Geometry.Header.Name'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor..ctor', paths: ['Geometry.Visitor..ctor'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.BeginInvoke', paths: ['Geometry.Visitor.BeginInvoke'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.EndInvoke', paths: ['Geometry.Visitor.EndInvoke'], access: all}
   signatures:
     - entity: Geometry.Shape
       modifiers: [abstract]
@@ -778,6 +887,20 @@ public-api:
       returns: {inferred: void}
     - entity: Geometry.Header.Name
       type: char[24]
+    - entity: Geometry.Visitor..ctor
+      parameters:
+        - {name: object, type: {inferred: object~}}
+        - {name: method, type: {inferred: nint}}
+    - entity: Geometry.Visitor.BeginInvoke
+      parameters:
+        - {name: shape, type: {inferred: "@{Geometry.Shape}"}}
+        - {name: callback, type: {inferred: "@{ext.System.AsyncCallback}~"}}
+        - {name: object, type: {inferred: object~}}
+      returns: {inferred: "@{ext.System.IAsyncResult}~"}
+    - entity: Geometry.Visitor.EndInvoke
+      parameters:
+        - {name: result, type: {inferred: "@{ext.System.IAsyncResult}~"}}
+      returns: {inferred: void}
 
 extensions:
   csharp:type-forward:

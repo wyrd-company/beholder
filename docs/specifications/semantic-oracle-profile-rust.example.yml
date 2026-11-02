@@ -558,6 +558,64 @@ entities:
       - at: {path: src/lib.rs, start: [12, 8], end: [12, 18], text: make_label}
     declared-visibility: {value: pub, explicit: true}
     effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.make_pair
+    kind: callable
+    language-kind: fn
+    name: make_pair
+    path: geometry::make_pair
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [13, 8], end: [13, 17], text: make_pair}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.fetch
+    kind: callable
+    language-kind: fn
+    name: fetch
+    path: geometry::fetch
+    unit: geometry-lib
+    parent: geometry.crate
+    origin: source
+    definitions:
+      - at: {path: src/lib.rs, start: [14, 14], end: [14, 19], text: fetch}
+    declared-visibility: {value: pub, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.describe
+    kind: callable
+    language-kind: method
+    name: describe
+    path: geometry::shapes::Area::describe
+    unit: geometry-lib
+    parent: geometry.shapes.Area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [4, 8], end: [4, 16], text: describe}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.Area.describe.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: geometry::shapes::Area::describe::(self)
+    unit: geometry-lib
+    parent: geometry.shapes.Area.describe
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [4, 18], end: [4, 22], text: self}
+  - id: geometry.shapes.Circle-as-Area.describe
+    kind: callable
+    language-kind: method
+    name: describe
+    path: <geometry::shapes::Circle as geometry::shapes::Area>::describe
+    unit: geometry-lib
+    parent: geometry.shapes.impl-Area-for-Circle
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [19, 8], end: [19, 16], text: describe}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
 
 externals:
   - id: ext.std
@@ -713,6 +771,22 @@ references:
     from: geometry.make_label
     target: ext.core.fmt.Display
     role: type
+  - at: {path: src/lib.rs, start: [13, 27], end: [13, 34], text: Display}
+    from: geometry.make_pair
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/lib.rs, start: [13, 41], end: [13, 48], text: Display}
+    from: geometry.make_pair
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/lib.rs, start: [14, 29], end: [14, 36], text: Display}
+    from: geometry.fetch
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/shapes.rs, start: [4, 32], end: [4, 39], text: Display}
+    from: geometry.shapes.Area.describe
+    target: ext.core.fmt.Display
+    role: type
 
 relations:
   - kind: implements
@@ -737,6 +811,9 @@ relations:
     visibility: pub
     at: {path: src/lib.rs, start: [6, 33], end: [6, 37], text: Grid}
     contexts: [build-extras]
+  - kind: overrides
+    from: geometry.shapes.Circle-as-Area.describe
+    to: geometry.shapes.Area.describe
 
 public-api:
   members:
@@ -763,6 +840,9 @@ public-api:
     - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
     - {distribution: geometry, entity: 'geometry.shapes.Area.SCALE', paths: ['geometry::shapes::Area::SCALE'], access: all}
     - {distribution: geometry, entity: 'geometry.make_label', paths: ['geometry::make_label'], access: all}
+    - {distribution: geometry, entity: 'geometry.make_pair', paths: ['geometry::make_pair'], access: all}
+    - {distribution: geometry, entity: 'geometry.fetch', paths: ['geometry::fetch'], access: all}
+    - {distribution: geometry, entity: 'geometry.shapes.Area.describe', paths: ['geometry::shapes::Area::describe'], access: all}
   signatures:
     - entity: geometry.ORIGIN
       type: u32
@@ -796,7 +876,9 @@ public-api:
     - entity: geometry.shapes.Circle
       auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
       bases:
-        - {type: "@{geometry.shapes.Area}"}
+        - type: "@{geometry.shapes.Area}"
+          bindings:
+            - {name: describe, auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]}
     - entity: geometry.shapes.Circle.radius
       type: f64
     - entity: geometry.Scale
@@ -817,6 +899,17 @@ public-api:
     - entity: geometry.make_label
       returns: "impl @{ext.core.fmt.Display}"
       auto-traits: [RefUnwindSafe, Send, Sync, Unpin, UnwindSafe]
+    - entity: geometry.make_pair
+      returns: "(impl @{ext.core.fmt.Display}, impl @{ext.core.fmt.Display})"
+      auto-traits: ['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 Unpin', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Unpin', '#1 UnwindSafe']
+    - entity: geometry.fetch
+      modifiers: [async]
+      returns: "impl @{ext.core.fmt.Display}"
+      auto-traits: ['#0 RefUnwindSafe', '#0 Send', '#0 Sync', '#0 UnwindSafe', '#1 RefUnwindSafe', '#1 Send', '#1 Sync', '#1 Unpin', '#1 UnwindSafe']
+    - entity: geometry.shapes.Area.describe
+      parameters:
+        - {name: self, mode: self-ref}
+      returns: "impl @{ext.core.fmt.Display}"
     - entity: geometry.shapes.Area.SCALE
       type: "(f64, f64)"
       modifiers: [provided]

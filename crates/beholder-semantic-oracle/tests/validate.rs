@@ -840,12 +840,37 @@ fn a_string_literal_names_no_external() {
         json!({"entity": "tally.make", "returns": "Literal<\"\\\"@{ext.core.Marker}\">"}),
         json!({"entity": "tally.make", "value": "\"@{ext.core.Marker}\""}),
         json!({"entity": "tally.make", "abi": "@{ext.core.Marker}"}),
+        // A lifetime is no char literal, and it does not open a string either.
+        json!({"entity": "tally.make", "returns": "&'a Tag<\"@{ext.core.Marker}\">"}),
     ] {
         set(&mut dataset, "/public-api/signatures/0", slot);
         expect(
             &validate_with(&dataset, &files()),
             &[("error", "model:external-unused", "/externals/0")],
         );
+    }
+}
+
+/// A char literal's quote opens no string, so a name after it counts.
+#[test]
+fn a_char_literal_does_not_hide_a_later_external() {
+    let mut dataset = dataset();
+    let external = json!({"id": "ext.core.Marker", "kind": "type", "language-kind": "trait",
+                          "distribution": "core", "path": "core::Marker"});
+    push(&mut dataset, "/externals", external);
+    for returns in [
+        "@{tally.Counter}<'\"', @{ext.core.Marker}>",
+        "@{tally.Counter}<'\\\"', @{ext.core.Marker}>",
+        "@{tally.Counter}<'\\u{22}', @{ext.core.Marker}>",
+        "@{tally.Counter}<'a', @{ext.core.Marker}>",
+        "&'a @{tally.Counter}<@{ext.core.Marker}>",
+    ] {
+        set(
+            &mut dataset,
+            "/public-api/signatures/0/returns",
+            json!(returns),
+        );
+        assert!(validate_with(&dataset, &files()).passes(), "{returns}");
     }
 }
 

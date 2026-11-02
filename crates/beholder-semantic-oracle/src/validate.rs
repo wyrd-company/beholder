@@ -341,7 +341,7 @@ const SLOTS_WITHOUT_NAMES: [&str; 13] = [
 ];
 
 /// The ids that `@{id}` names in a type or value text. A double-quoted string
-/// literal names nothing.
+/// literal names nothing, and a char literal's quote opens no string.
 fn named_ids(slot: &str) -> Vec<&str> {
     let mut ids = Vec::new();
     let mut literal = false;
@@ -352,6 +352,11 @@ fn named_ids(slot: &str) -> Vec<&str> {
             '\\' if literal => {
                 chars.next();
             }
+            '\'' if !literal => {
+                for _ in 0..char_literal_tail(&slot[i + 1..]) {
+                    chars.next();
+                }
+            }
             '@' if !literal && slot[i..].starts_with("@{") => {
                 if let Some(end) = slot[i..].find('}') {
                     ids.push(&slot[i + 2..i + end]);
@@ -361,6 +366,23 @@ fn named_ids(slot: &str) -> Vec<&str> {
         }
     }
     ids
+}
+
+/// How many chars of `rest` finish a char literal whose opening quote precedes it:
+/// its content and closing quote, or 0 for a lifetime such as `'a`.
+fn char_literal_tail(rest: &str) -> usize {
+    let mut chars = rest.chars();
+    match chars.next() {
+        // An escape runs to its closing quote: `\"`, `\\'`, `\u{22}`.
+        Some('\\') => {
+            let escaped = chars.next().map_or(0, |_| 1);
+            chars
+                .position(|c| c == '\'')
+                .map_or(0, |quote| 2 + escaped + quote)
+        }
+        Some(_) if chars.next() == Some('\'') => 2,
+        _ => 0,
+    }
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {

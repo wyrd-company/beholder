@@ -202,7 +202,9 @@ description: |
 
   A `fixed-buffer`'s `type` is its element type with its length, `char[24]` for
   `public fixed char Name[24]`. This is the oracle's spelling, because C# has no type
-  syntax for the length, and it states the layout that the length gives.
+  syntax for the length, and it states the layout that the length gives. The bracket holds
+  the evaluated positive decimal length, so `Name[6 * 4]`, `Name[0x18]` and `Name[24]` are
+  all `char[24]`.
 
   Parameter modes: `ref`, `out`, `in`, `ref readonly` and `params`; `scoped`, `scoped ref`,
   `scoped in` and `scoped ref readonly`; and for an extension method's first parameter
@@ -219,8 +221,9 @@ description: |
 
   Every constraint is on a type parameter, so a type parameter's `bounds` holds its
   `where` clause, and the profile has no `where` slot. The language fixes a primary
-  constraint first and `new()` last, and the interface and type parameter constraints
-  between them are sorted: `class, @{IA}, @{IB}, new()`. A type parameter has `variance`, `in` or `out`, when it
+  constraint first, then `new()`, then `allows ref struct` last, and the interface and type
+  parameter constraints between the primary constraint and those are sorted:
+  `class, @{IA}, @{IB}, new()`. A type parameter has `variance`, `in` or `out`, when it
   states one.
 
   `bases` holds the targets of the type's `inherits` and `implements` relations, with
@@ -248,7 +251,10 @@ description: |
   Inference: a declared member has no inferred type. A synthetic member, such as a
   record's copy constructor, `EqualityContract`, positional members or a delegate's
   `Invoke`, has `{inferred: ...}` by the synthesis rule, with a synthetic `parameter`
-  entity for each parameter. `value` and `default` are the
+  entity for each parameter. A delegate's constructor has parameters `object` and `method`,
+  `BeginInvoke` adds `callback` and `object` to the delegate's parameters and returns
+  `@{IAsyncResult}`, and `EndInvoke` has `result` and returns the delegate's return. These
+  compiler-supplied reference types are oblivious, as `object~`. `value` and `default` are the
   constant's value under the specification's constant expression rules. C# `default` is
   written as the value it denotes for the type. A `decimal` is its exact decimal. An
   author derives these from the C# language specification, and a Roslyn compile probe
@@ -316,7 +322,7 @@ description: |
     (`Equals`, `GetHashCode`, `ToString`, `PrintMembers`, `Deconstruct`,
     `EqualityContract`, the copy constructor and positional properties) when
     the source does not declare them; the delegate members the compiler
-    declares (`Invoke`, `BeginInvoke`, `EndInvoke`). Each is anchored on the
+    declares (its constructor, `Invoke`, `BeginInvoke`, `EndInvoke`). Each is anchored on the
     declaring type's name.
   - External key path: the entity path at the defining assembly.
     `distribution` is the assembly name, such as `System.Runtime`; reference

@@ -295,26 +295,44 @@ description: |
 
   - Every `struct`, `enum` and `union` member has the slot.
   - A callable has the slot when its `returns` contains `impl Trait`, or when it is
-    `async`, whose return is a future with no written type. The slot states the
-    return as a whole: `(impl A, impl B)` holds a trait when the tuple does. A trait
-    method has no such slot, because a caller of a trait method sees only its bounds.
+    `async`, whose return is a future with no written type.
+  - A trait method has the slot only when it has a default body, because a type that
+    does not override it exposes that body's opaque type to a concrete call. A trait
+    method with no body has no hidden type, and generic dispatch sees only its bounds.
+  - A trait implementation's method is no member. Its opaque return is on the `bases` or
+    `implementations` entry of that implementation, as a binding with the method's name:
+    `{name: make, auto-traits: [Send, Sync]}`. Its elements follow these same rules.
   - An element is the trait's name when the type holds the trait with no condition.
   - An element is `<trait> when <conditions>` when the type holds the trait only under
     a condition on its generic parameters: `Send when T: Send`. Conditions are the
     predicates the trait needs, sorted and separated by `, `, each with its bounds sorted
     and separated by ` + `: `Sync when T: Sync, U: Send + Sync`. `?Sized`, and a bound
-    the type's own declaration already requires, are not conditions.
+    the type's own declaration already requires, are not conditions. An implementation
+    for one instantiation is an equality predicate, sorted with the others:
+    `Send when T = u8`, for `unsafe impl Send for Item<u8>`.
   - A trait the type does not implement in any instantiation is absent. A type that
     implements none has no slot.
+  - Each opaque type in a return is an occurrence. A return whose whole type is its only
+    opaque type uses plain elements: `impl Clone`, or an `async fn` that returns a written
+    type. Every other return prefixes each element with its occurrence's ordinal, `#<n> `,
+    counted from 0 in source order: the `async` keyword's future, then each `impl` token.
+    `(impl A, impl B)` has `#0 Send` and `#1 Send`. `async fn` returning `impl A` has `#0`
+    for the future and `#1` for the output. `(impl A, u8)` has `#0`, and
+    `impl Iterator<Item = impl A>` has `#0` for the iterator and `#1` for the item. Written
+    types around an occurrence have no element of their own, because the language's rules
+    derive their auto traits from the occurrences.
   - The five trait names are written bare in an element, in its conditions too. Any other
     name that denotes an entity is `@{id}`: `Send when T: @{ext.core.clone.Clone}`, for an
     `unsafe impl<T: Clone> Send`.
-  - The list is sorted, and is compared as a set. The trait name is the key of a unit,
-    `auto-traits[Send]`, and the whole element is its value.
+  - The list is sorted by code point, and is compared as a set. The text before ` when `
+    is the key of a unit, `auto-traits[#1 Send]`, and the whole element is its value.
   - An adapter declares `signature-auto-trait` for these units, in the `auto-trait` slot
     class.
 
   ```yaml
+  - entity: shapes.make_pair
+    returns: "(impl @{ext.core.clone.Clone}, impl @{ext.core.clone.Clone})"
+    auto-traits: ['#0 Send', '#0 Sync', '#0 Unpin', '#1 Unpin']
   - entity: shapes.Pair
     auto-traits:
       - 'RefUnwindSafe when T: RefUnwindSafe'
@@ -399,8 +417,11 @@ description: |
 
   An author writes `auto-traits` from the Reference's auto trait rules applied to the
   type's fields, including its private fields, and to explicit implementations. A compile
-  check outside the tree verifies each element: a consumer that requires the trait
-  compiles when the slot lists it, and fails to compile when the slot does not.
+  check outside the tree verifies each element in a consumer that requires the trait of the
+  type, or of the occurrence's value such as `make().0` or `make().await`. An element's
+  consumer assumes its conditions and compiles: `fn c<T: Send>()` can require
+  `Owned<T>: Send`. The same consumer with a condition dropped fails to compile, and so does
+  a consumer that requires a trait the slot does not list.
 
   The compiler report comes from rustdoc JSON, with that compile check for `auto-traits`.
 

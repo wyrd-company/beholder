@@ -215,11 +215,7 @@ $defs:
       impl: {properties: {type-parameters: {items: {$ref: '#/$defs/type-parameter'}}}}
       bases: {items: {$ref: '#/$defs/base'}}
       implementations: {items: {$ref: '#/$defs/base'}}
-      # An auto trait, with its condition when the type holds it conditionally.
-      auto-traits:
-        items:
-          type: string
-          pattern: '^(RefUnwindSafe|Send|Sync|Unpin|UnwindSafe)( when \S.*)?$'
+      auto-traits: {$ref: '#/$defs/auto-traits'}
   type-parameter:
     properties:
       variance: false
@@ -232,4 +228,14 @@ $defs:
     properties:
       position: false
       type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
-      bindings: {items: {properties: {type-parameters: {items: {$ref: '#/$defs/type-parameter'}}}}}
+      bindings:
+        items:
+          properties:
+            type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+            auto-traits: {$ref: '#/$defs/auto-traits'}
+  # An auto trait, with its opaque occurrence's ordinal where the return needs one,
+  # and its condition when the type holds it conditionally.
+  auto-traits:
+    items:
+      type: string
+      pattern: '^(#(0|[1-9][0-9]*) )?(RefUnwindSafe|Send|Sync|Unpin|UnwindSafe)( when \S.*)?$'
