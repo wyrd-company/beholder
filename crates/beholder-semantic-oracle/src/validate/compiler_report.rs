@@ -11,12 +11,14 @@
 //!   "tool": {"name": "rustdoc", "version": "1.99.1"},
 //!   "covers": ["returns", "parameters[].type", "auto-traits[]"],
 //!   "members": [
-//!     {"path": "tally::make", "slots": {"returns": "@{tally::Counter}"}, "unstated": []}
+//!     {"path": "tally::make", "kind": "callable", "unit": {"package-version": "1.0.0"},
+//!      "slots": {"returns": "@{tally::Counter}"}, "unstated": []}
 //!   ]
 //! }
 //! ```
 //!
-//! `path` is the entity's canonical path, a report's `@{...}` holds a canonical
+//! `path` is the entity's canonical path and `kind`, where a language needs one, its
+//! common kind, and `unit` any attributes that tell two units with one path apart. A report's `@{...}` holds a canonical
 //! path, and a slot key is the model's slot path. `covers` lists the slot shapes,
 //! with each bracket's content removed, that the report can state; `unstated`
 //! lists a shape prefix or an exact slot path it could not state for one member,
@@ -67,7 +69,34 @@ fn shape_of(path: &str) -> String {
 struct Reported<'r> {
     covers: BTreeSet<&'r str>,
     tool: String,
-    members: BTreeMap<&'r str, &'r Value>,
+    /// By path. One path can name several kinds, in Rust's namespaces, each with
+    /// its own `kind`; a report in one namespace has none.
+    members: BTreeMap<&'r str, Vec<&'r Value>>,
+}
+
+impl<'r> Reported<'r> {
+    /// A report's member for an entity's path and kind.
+    fn member(&self, path: &str, kind: &str, unit: Option<&Value>) -> Option<&'r Value> {
+        let found = self.members.get(path)?;
+        found
+            .iter()
+            .find(|member| {
+                text(member, "kind").is_none_or(|theirs| theirs == kind) && same_unit(member, unit)
+            })
+            .copied()
+    }
+}
+
+/// Whether a report's member can be in this unit: each attribute it states agrees.
+/// Two units can hold one path, such as two versions of one crate.
+fn same_unit(member: &Value, unit: Option<&Value>) -> bool {
+    let Some(stated) = member.get("unit").and_then(Value::as_object) else {
+        return true;
+    };
+    stated.iter().all(|(key, value)| {
+        unit.and_then(|unit| unit.get(key))
+            .is_none_or(|theirs| theirs == value)
+    })
 }
 
 /// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names.
@@ -118,10 +147,12 @@ impl<'a> Checker<'a> {
                     format!("the report could not read `{failed}`; its slots are unchecked"),
                 );
             }
-            let members = list(report, "members")
-                .iter()
-                .filter_map(|member| Some((text(member, "path")?, member)))
-                .collect();
+            let mut members: BTreeMap<&str, Vec<&Value>> = BTreeMap::new();
+            for member in list(report, "members") {
+                if let Some(path) = text(member, "path") {
+                    members.entry(path).or_default().push(member);
+                }
+            }
             let covers = list(report, "covers")
                 .iter()
                 .filter_map(Value::as_str)
@@ -166,13 +197,15 @@ impl<'a> Checker<'a> {
                 continue;
             };
             let path = text(entity, "path").unwrap_or_default();
+            let kind = text(entity, "kind").unwrap_or_default();
+            let unit = self.unit_of_entity(entity);
             let contexts = self
                 .declared(record)
                 .unwrap_or_else(|| self.built_contexts(id));
             let at = format!("/public-api/signatures/{index}");
             for slot in slots(record) {
                 let (reasons, disagreements) =
-                    self.compare_slot(&slot, path, &contexts, &by_context);
+                    self.compare_slot(&slot, (path, kind, unit), &contexts, &by_context);
                 let pointer = format!("{at}{}", slot.pointer);
                 if !disagreements.is_empty() {
                     for message in disagreements {
@@ -189,7 +222,13 @@ impl<'a> Checker<'a> {
                     });
                 }
             }
-            self.check_reported_slots_exist(record, path, &contexts, &at, &by_context);
+            self.check_reported_slots_exist(
+                record,
+                (path, kind, unit),
+                &contexts,
+                &at,
+                &by_context,
+            );
         }
         self.check_reported_members(&by_context);
         (unchecked, agreed)
@@ -198,7 +237,7 @@ impl<'a> Checker<'a> {
     fn compare_slot(
         &self,
         slot: &crate::signature::Slot<'_>,
-        path: &str,
+        (path, kind, unit): (&str, &str, Option<&Value>),
         contexts: &Contexts<'a>,
         by_context: &BTreeMap<&str, Reported<'_>>,
     ) -> (Vec<String>, Vec<String>) {
@@ -214,7 +253,7 @@ impl<'a> Checker<'a> {
                 reasons.push(format!("no compiler report for context `{context}`"));
                 continue;
             };
-            let Some(member) = report.members.get(path) else {
+            let Some(member) = report.member(path, kind, unit) else {
                 reasons.push(format!("{} does not state `{path}`", report.tool));
                 continue;
             };
@@ -271,11 +310,18 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// The unit record of an entity with one unit.
+    fn unit_of_entity(&self, entity: &'a Value) -> Option<&'a Value> {
+        text(entity, "unit")
+            .and_then(|unit| self.ids.get(unit))
+            .map(|(_, record)| *record)
+    }
+
     /// A slot a report states that its record lacks.
     fn check_reported_slots_exist(
         &mut self,
         record: &'a Value,
-        path: &str,
+        (path, kind, unit): (&str, &str, Option<&Value>),
         contexts: &Contexts<'a>,
         at: &str,
         by_context: &BTreeMap<&str, Reported<'_>>,
@@ -286,7 +332,7 @@ impl<'a> Checker<'a> {
             let Some(report) = by_context.get(context) else {
                 continue;
             };
-            let Some(member) = report.members.get(path) else {
+            let Some(member) = report.member(path, kind, unit) else {
                 continue;
             };
             let Some(stated) = member.get("slots").and_then(Value::as_object) else {
@@ -338,10 +384,11 @@ impl<'a> Checker<'a> {
                 continue;
             }
             let path = text(entity, "path").unwrap_or_default();
+            let kind = text(entity, "kind").unwrap_or_default();
+            let unit = self.unit_of_entity(entity);
             for (context, report) in by_context {
                 let stated = report
-                    .members
-                    .get(path)
+                    .member(path, kind, unit)
                     .and_then(|member| member.get("slots"))
                     .and_then(Value::as_object);
                 if let Some(first) = stated.and_then(|slots| slots.keys().next()) {

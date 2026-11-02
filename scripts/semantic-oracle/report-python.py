@@ -51,10 +51,23 @@ MODES = {
 BARE = {"bool", "bytearray", "bytes", "complex", "dict", "float", "frozenset", "int", "list", "object", "set", "str", "tuple", "type"}
 
 
+# The runtime expands an alias to its value, and the profile writes the alias. Each
+# value a module binds that is not a class names its alias, by identity.
+ALIASES = {}
+
+
+def remember_aliases(module):
+    for name, value in vars(module).items():
+        if not inspect.isclass(value) and (typing.get_origin(value) is not None or isinstance(value, types.UnionType)):
+            ALIASES.setdefault(id(value), f"{module.__name__}.{name}")
+
+
 def type_text(annotation):
     """An annotation as type text. Returns None for one this cannot spell."""
     if annotation is inspect.Signature.empty:
         return None
+    if id(annotation) in ALIASES:
+        return f"@{{{ALIASES[id(annotation)]}}}"
     if annotation is None or annotation is type(None):
         return "None"
     if annotation is Ellipsis:
@@ -219,7 +232,9 @@ def main():
     failed = []
     for name in sorted(set(modules_under(search_path))):
         try:
-            report.module(importlib.import_module(name))
+            module = importlib.import_module(name)
+            remember_aliases(module)
+            report.module(module)
         except BaseException as cause:  # A project module can raise anything on import.
             failed.append(f"{name}: {type(cause).__name__}: {cause}")
     with open(out, "w") as written:

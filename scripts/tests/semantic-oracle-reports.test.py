@@ -7,6 +7,7 @@
 directory, and checks slots it must state. Each script's toolchain is required: a
 missing one fails this test rather than skipping it, so that a pass means all four
 ran. C# and Dart have no script until their toolchains exist."""
+import importlib.util
 import json
 import os
 import shutil
@@ -32,7 +33,13 @@ def members(out):
     with open(out) as source:
         report = json.load(source)
     assert report["format"] == "semantic-oracle-compiler-report/1"
-    return report, {m["path"]: m for m in report["members"]}
+    # Rust's namespaces let one path name several kinds, keyed `<path>@<kind>` there.
+    keyed = {}
+    for member in report["members"]:
+        keyed.setdefault(member["path"], member)
+        if "kind" in member:
+            keyed[f"{member['path']}@{member['kind']}"] = member
+    return report, keyed
 
 
 def expect(found, path, slot, value):
@@ -86,6 +93,12 @@ pub use hidden::Reexported;
 pub struct Item;
 pub trait Tr { fn made() -> impl Clone; }
 impl Tr for Item { fn made() -> impl Clone { Rc::new(()) } }
+pub trait Assoc { type Out; }
+impl Assoc for Plain { type Out = u8; }
+pub type Projected = <Plain as Assoc>::Out;
+pub mod both { pub struct Inner; }
+pub fn both() -> u32 { 1 }
+pub struct Crossed;
 """,
     })
     before = listing(project)
@@ -125,6 +138,10 @@ impl Tr for Item { fn made() -> impl Clone { Rc::new(()) } }
     expect(found, "sample::Kind::Square", "value", "1")
     expect(found, "sample::convert", "abi", "C")
     expect(found, "sample::Plain::radius", "type", "f64")
+    expect(found, "sample::Projected", "type", "<@{sample::Plain} as @{sample::Assoc}>::@{sample::Assoc::Out}")
+    expect(found, "sample::both@callable", "returns", "u32")
+    # A field has no `auto-traits`, so it does not read as a member the probe skipped.
+    assert found["sample::Plain::radius"]["unstated"] == []
 
 
 def failure(command, cwd, out, words):
@@ -175,6 +192,14 @@ pub fn make() -> impl Clone { std::rc::Rc::new(()) }
     out = os.path.join(tmp, "broken.json")
     command = [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", broken, "--context", "default", "--out", out]
     failure(command, tmp, out, ["checked feature required"])
+    # A project rustdoc cannot read certifies nothing either.
+    undocumented = os.path.join(tmp, "rust-undocumented")
+    write(undocumented, {
+        "Cargo.toml": '[package]\nname = "sample"\nversion = "0.1.0"\nedition = "2021"\n[lib]\n[workspace]\n',
+        "src/lib.rs": '#[cfg(doc)]\ncompile_error!("rustdoc cannot read this");\npub struct Plain;\n',
+    })
+    out_doc = os.path.join(tmp, "undocumented.json")
+    failure([sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", undocumented, "--context", "default", "--out", out_doc], tmp, out_doc, ["rustdoc failed"])
     # A stale report does not survive a failed run.
     with open(out, "w") as stale:
         stale.write("{}")
@@ -182,6 +207,107 @@ pub fn make() -> impl Clone { std::rc::Rc::new(()) }
     # A report never lands in the project tree.
     inside = os.path.join(broken, "report.json")
     failure([sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", broken, "--context", "default", "--out", inside], tmp, inside, ["inside the project tree"])
+
+
+def rust_workspace(tmp):
+    """Each crate of a workspace gets its own probes, whichever crate comes first."""
+    project = os.path.join(tmp, "rust-workspace")
+    write(project, {
+        "Cargo.toml": '[workspace]\nmembers = ["one", "two"]\nresolver = "2"\n',
+        "one/Cargo.toml": '[package]\nname = "one"\nversion = "0.1.0"\nedition = "2021"\n',
+        "one/src/lib.rs": "pub struct First;\n",
+        "two/Cargo.toml": '[package]\nname = "two"\nversion = "0.1.0"\nedition = "2021"\n',
+        "two/src/lib.rs": "pub struct Second;\n",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "rust-workspace.json")
+    _, found = run("rust", [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", project, "--context", "default", "--out", out], tmp, out)
+    tree_unchanged(project, before)
+    for path in ("one::First", "two::Second"):
+        assert found[path]["unstated"] == [], found[path]
+        expect(found, path, "auto-traits[Send]", "Send")
+
+
+def load_rust_report():
+    specification = importlib.util.spec_from_file_location("report_rust", os.path.join(SCRIPTS, "report-rust.py"))
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return module
+
+
+def stops(function, *arguments):
+    try:
+        function(*arguments)
+    except SystemExit as stop:
+        assert stop.code == 2, stop.code
+        return True
+    return False
+
+
+def rust_check_reading():
+    """What a check's output proves, without running one."""
+    report = load_rust_report()
+    artifact = json.dumps({"reason": "compiler-artifact", "target": {"name": report.PROBE_TARGET}})
+    assert report.read_check(0, artifact, "") == (set(), set())
+    # A success that never checked the probe, and a failure with nothing to attribute.
+    assert stops(report.read_check, 0, "", "")
+    assert stops(report.read_check, 101, "", "")
+    assert stops(report.read_check, 101, artifact, "")
+
+    def message(target, code, spans):
+        return json.dumps({"reason": "compiler-message", "target": {"name": target}, "message": {"level": "error", "code": {"code": code} if code else None, "spans": spans, "message": "m"}})
+
+    line = [{"is_primary": True, "file_name": "src/lib.rs", "line_start": 9}]
+    assert report.read_check(101, message(report.PROBE_TARGET, "E0277", line), "") == ({9}, set())
+    assert report.read_check(101, message(report.PROBE_TARGET, "E0433", line), "") == (set(), {9})
+    # An error in another crate's file of the same name, and one with no generated line.
+    assert stops(report.read_check, 101, message("sample", "E0277", line), "")
+    assert stops(report.read_check, 101, message(report.PROBE_TARGET, "E0463", []), "")
+    # After a real failure too, an error with no generated line still stops the report.
+    both = message(report.PROBE_TARGET, "E0277", line) + "\n" + message(report.PROBE_TARGET, "E0463", [])
+    assert stops(report.read_check, 101, both, "")
+    # The compiler's closing summary has no code, and says nothing new.
+    summary = message(report.PROBE_TARGET, "E0277", line) + "\n" + message(report.PROBE_TARGET, None, [])
+    assert report.read_check(101, summary, "") == ({9}, set())
+    other_file = [{"is_primary": True, "file_name": "/elsewhere/src/lib.rs", "line_start": 9}]
+    assert stops(report.read_check, 101, message(report.PROBE_TARGET, "E0277", other_file), "")
+
+    class Selection:
+        features = "a,missing"
+        no_default_features = True
+        all_features = False
+
+    package = {"name": "sample", "manifest_path": "/p/Cargo.toml", "features": {"a": [], "b": []}}
+    line = report.dependency_line(package, Selection)
+    assert '"sample"' in line and '"/p"' in line and '["a"]' in line and "default-features = false" in line, line
+    Selection.no_default_features = False
+    Selection.all_features = True
+    line = report.dependency_line(package, Selection)
+    assert '["a", "b"]' in line and "default-features" not in line, line
+
+    assert report.public_path("core::future::future::Future") == "core::future::Future"
+    assert report.public_path("alloc::string::String") == "alloc::string::String"
+    assert report.public_path("sample::a::b::C") == "sample::a::b::C"
+
+
+def rust_toolchain_selection(tmp):
+    """One toolchain, the one the project selects, for every command."""
+    report = load_rust_report()
+    bin_dir = os.path.join(tmp, "fake-rustup")
+    os.makedirs(bin_dir)
+    rustup = os.path.join(bin_dir, "rustup")
+    with open(rustup, "w") as out:
+        out.write('#!/bin/sh\necho "1.90.0-x86_64-unknown-linux-gnu (overridden by rust-toolchain.toml)"\n')
+    os.chmod(rustup, 0o755)
+    path = os.environ["PATH"]
+    os.environ["PATH"] = bin_dir + os.pathsep + path
+    try:
+        report.select_toolchain(tmp)
+    finally:
+        os.environ["PATH"] = path
+    assert report.TOOLCHAIN == {"RUSTUP_TOOLCHAIN": "1.90.0-x86_64-unknown-linux-gnu"}, report.TOOLCHAIN
+    done = report.run([sys.executable, "-c", "import os; print(os.environ['RUSTUP_TOOLCHAIN'])"], tmp)
+    assert done.stdout.strip() == "1.90.0-x86_64-unknown-linux-gnu", done.stdout
 
 
 def go_build_failure(tmp):
@@ -207,6 +333,9 @@ def typescript_build_failures(tmp):
     write(project, {"tsconfig.json": '{"compilerOptions": {"target": "nonsense"}}', "input.ts": "export const x = 1;\n"})
     out = os.path.join(tmp, "ts-bad-config.json")
     failure(script + ["--project", project, "--context", "x", "--out", out], tmp, out, ["report-typescript"])
+    # A report never lands in the project tree.
+    inside = os.path.join(project, "report.json")
+    failure(script + ["--project", project, "--context", "x", "--out", inside], tmp, inside, ["inside the project tree"])
     # Each of the project's own emit destinations stays empty.
     for name, options in (("decl", {"declarationDir": "decl"}), ("out", {"outFile": "bundle.js", "module": "amd"})):
         project = os.path.join(tmp, f"ts-{name}")
@@ -228,7 +357,7 @@ def typescript_declaration_files(tmp):
         "tsconfig.json": json.dumps({"compilerOptions": {"strict": True, "target": "es2022", "module": "commonjs", "moduleResolution": "node10", "noEmit": False, "types": []}, "include": ["src/*.ts", "ambient/*.d.ts"]}),
         "src/use.ts": "import { read } from '../packages/lib/dist';\nimport { readScoped } from '@scope/name';\nexport const a = read('x');\nexport const b = readScoped('y');\n",
         "packages/lib/dist/index.d.ts": "export declare function read(value: string): string;\nexport interface Marker { readonly modern: true; }\n",
-        "ambient/scope.d.ts": "declare module '@scope/name' {\n  export function readScoped(value: string): string;\n  export interface ScopedMarker { source: 'scoped'; }\n}\n",
+        "ambient/scope.d.ts": "declare module '@scope/name' {\n  export function readScoped(value: string): string;\n  export interface ScopedMarker { source: 'scoped'; }\n  export function make(): ScopedMarker;\n}\n",
     })
     before = listing(project)
     out = os.path.join(tmp, "ts-declarations.json")
@@ -242,6 +371,8 @@ def typescript_declaration_files(tmp):
     # A member of an ambient module, under its `ambient:` path.
     expect(found, 'ambient:"@scope/name"#readScoped', "parameters[0].type", "string")
     expect(found, 'ambient:"@scope/name"#ScopedMarker.source', "type", "'scoped'")
+    # A name that denotes an ambient member, under the same path.
+    expect(found, 'ambient:"@scope/name"#make', "returns", '@{ambient:"@scope/name"#ScopedMarker}')
 
 
 def go(tmp):
@@ -298,6 +429,10 @@ def python(tmp):
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+from typing import Literal
+Status = Literal["open", "closed"]
+def uses_alias(a: Status) -> Status:
+    return a
 def plain(a: int, b: "str" = "x", *args: int, c: Optional[int] = None, **kw: float) -> list[int]:
     return []
 def unannotated(a, b=1 + 1):
@@ -317,6 +452,7 @@ class Point:
     out = os.path.join(tmp, "python.json")
     _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out], tmp, out)
     tree_unchanged(project, before)
+    expect(found, "pkg.mod.uses_alias", "parameters[0].type", "@{pkg.mod.Status}")
     expect(found, "pkg.mod.plain", "parameters[0].type", "int")
     expect(found, "pkg.mod.plain", "parameters[1].type", "str")
     expect(found, "pkg.mod.plain", "parameters[1].default", '"x"')
@@ -374,7 +510,9 @@ export function dflt(first: number = 1, second: string): string { return second;
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
-        for test in (rust, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        rust_check_reading()
+        rust_toolchain_selection(tmp)
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

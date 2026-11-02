@@ -45,6 +45,7 @@ BOUND = {
     "Unpin": "::std::marker::Unpin",
     "UnwindSafe": "::std::panic::UnwindSafe",
 }
+# What the probe reads: every other member kind has no `auto-traits`.
 COVERS = [
     "parameters[].name",
     "parameters[].type",
@@ -228,7 +229,11 @@ class Crate:
             subject = self.ty(qualified["self_type"], self_type)
             trait = qualified.get("trait")
             if trait:
-                return f"<{subject} as {self.path_ref(trait, self_type)}>::{qualified['name']}"
+                # The associated item by its own path, as the profile writes it.
+                owner = self.item_path(trait["id"])
+                name = qualified["name"]
+                item = f"@{{{owner}::{name}}}" if owner else name
+                return f"<{subject} as {self.path_ref(trait, self_type)}>::{item}"
             return f"{subject}::{qualified['name']}"
         return json.dumps(t)
 
@@ -288,6 +293,12 @@ def generics_slots(generics):
     return slots
 
 
+def add_member(members, path, kind):
+    """A member, by its path and common kind: Rust's namespaces let one path name a
+    module, a type and a function."""
+    return members.setdefault(f"{kind}:{path}", {"path": path, "kind": kind, "slots": {}, "unstated": []})
+
+
 class Walker:
     """Lists the crate's items by the profile's canonical entity paths."""
 
@@ -295,8 +306,8 @@ class Walker:
         self.crate = crate
         self.members = {}
 
-    def add(self, path, slots):
-        self.members.setdefault(path, {"path": path, "slots": {}, "unstated": []})["slots"].update(slots)
+    def add(self, path, slots, kind):
+        add_member(self.members, path, kind)["slots"].update(slots)
 
     def walk_module(self, item_id, prefix):
         crate = self.crate
@@ -316,23 +327,23 @@ class Walker:
         if kind == "module":
             self.walk_module(item["id"], path)
         elif kind == "function":
-            self.add(path, callable_slots(crate, inner, None))
+            self.add(path, callable_slots(crate, inner, None), "callable")
         elif kind == "constant":
             slots = {"type": crate.ty(inner["type"])}
             value = const_value(inner["const"].get("value") or inner["const"].get("expr"))
             if value and re.fullmatch(r"-?[0-9.]+|true|false", value):
                 slots["value"] = value
-            self.add(path, slots)
+            self.add(path, slots, "constant")
         elif kind == "static":
-            self.add(path, {"type": crate.ty(inner["type"])})
+            self.add(path, {"type": crate.ty(inner["type"])}, "variable")
         elif kind == "type_alias":
-            self.add(path, {"type": crate.ty(inner["type"])})
+            self.add(path, {"type": crate.ty(inner["type"])}, "type-alias")
         elif kind == "struct":
             self.walk_struct(item, inner, path)
         elif kind == "enum":
             self.walk_enum(item, inner, path)
         elif kind == "union":
-            self.add(path, {})
+            self.add(path, {}, "type")
             for field in inner.get("fields", []):
                 self.field(field, path)
             self.inherent(inner, path)
@@ -342,10 +353,10 @@ class Walker:
     def field(self, field_id, owner):
         item = self.crate.index.get(str(field_id))
         if item and "struct_field" in item["inner"]:
-            self.add(f"{owner}::{item['name']}", {"type": self.crate.ty(item["inner"]["struct_field"])})
+            self.add(f"{owner}::{item['name']}", {"type": self.crate.ty(item["inner"]["struct_field"])}, "field")
 
     def walk_struct(self, item, inner, path):
-        self.add(path, {**self.attributes(item), **generics_slots(inner["generics"])})
+        self.add(path, {**self.attributes(item), **generics_slots(inner["generics"])}, "type")
         struct_kind = inner["kind"]
         fields = []
         if "plain" in struct_kind:
@@ -355,13 +366,13 @@ class Walker:
                 if field is not None:
                     found = self.crate.index.get(str(field))
                     if found:
-                        self.add(f"{path}::{index}", {"type": self.crate.ty(found["inner"]["struct_field"])})
+                        self.add(f"{path}::{index}", {"type": self.crate.ty(found["inner"]["struct_field"])}, "field")
         for field in fields:
             self.field(field, path)
         self.inherent(inner, path)
 
     def walk_enum(self, item, inner, path):
-        self.add(path, self.attributes(item))
+        self.add(path, self.attributes(item), "type")
         # A variant's discriminant, stated or implicit, for an enum of only units
         # or one that states a discriminant.
         variants = [self.crate.index.get(str(v)) for v in inner["variants"]]
@@ -383,7 +394,7 @@ class Walker:
             elif states_values and next_value is not None:
                 slots["value"] = str(next_value)
                 next_value += 1
-            self.add(variant_path, slots)
+            self.add(variant_path, slots, "enum-member")
             shape = variant["inner"]["variant"]["kind"]
             if isinstance(shape, dict) and "struct" in shape:
                 for field in shape["struct"]["fields"]:
@@ -411,13 +422,13 @@ class Walker:
                 kind = next(iter(item["inner"]))
                 child = f"{path}::{item['name']}"
                 if kind == "function":
-                    self.add(child, callable_slots(crate, item["inner"][kind], self_type))
+                    self.add(child, callable_slots(crate, item["inner"][kind], self_type), "callable")
                 elif kind == "assoc_const":
-                    self.add(child, {"type": crate.ty(item["inner"][kind]["type"], self_type)})
+                    self.add(child, {"type": crate.ty(item["inner"][kind]["type"], self_type)}, "constant")
 
     def walk_trait(self, inner, path):
         crate = self.crate
-        self.add(path, {"modifiers[auto]": "auto"} if inner.get("is_auto") else {})
+        self.add(path, {"modifiers[auto]": "auto"} if inner.get("is_auto") else {}, "type")
         for member in inner["items"]:
             item = crate.index.get(str(member))
             if not item:
@@ -429,17 +440,17 @@ class Walker:
                 slots = callable_slots(crate, body, None)
                 if body.get("has_body"):
                     slots["modifiers[provided]"] = "provided"
-                self.add(child, slots)
+                self.add(child, slots, "callable")
             elif kind == "assoc_const":
                 slots = {"type": crate.ty(body["type"])}
                 if body.get("value") is not None:
                     slots["modifiers[provided]"] = "provided"
-                self.add(child, slots)
+                self.add(child, slots, "constant")
             elif kind == "assoc_type":
                 slots = {}
                 if body.get("type") is not None:
                     slots["type"] = crate.ty(body["type"])
-                self.add(child, slots)
+                self.add(child, slots, "type-alias")
 
 
 # ------------------------------------------------------------------- probes
@@ -572,7 +583,7 @@ def plan_type(probes, crate, path, consumer, inner, generics):
         name = f"p{len(probes.lines)}"
         probes.add(
             f"pub fn {name}{head}(){clause} {{ need_{trait}::<{subject}>(); }}",
-            {"path": path, "label": trait, "conditions": wanted, "kind": "holds"},
+            {"path": f"type:{path}", "label": trait, "conditions": wanted, "kind": "holds"},
         )
         # With a condition dropped, the claim fails to compile.
         for dropped in wanted:
@@ -581,7 +592,7 @@ def plan_type(probes, crate, path, consumer, inner, generics):
             name = f"p{len(probes.lines)}"
             probes.add(
                 f"pub fn {name}{head}(){clause} {{ need_{trait}::<{subject}>(); }}",
-                {"path": path, "label": trait, "conditions": wanted, "kind": "needs"},
+                {"path": f"type:{path}", "label": trait, "conditions": wanted, "kind": "needs"},
             )
 
 
@@ -656,6 +667,8 @@ def plan_opaque(probes, crate, path, function, call, owner_generics, self_type, 
     is_async = bool(function["header"].get("is_async"))
     if not is_async and "impl_trait" not in json.dumps(output):
         return
+    # A binding's slot is on its implementing type.
+    member = f"{'type' if key.startswith('bases[') else 'callable'}:{path}"
     merged = {
         "params": owner_generics.get("params", []) + function["generics"].get("params", []),
         "where_predicates": owner_generics.get("where_predicates", []) + function["generics"].get("where_predicates", []),
@@ -663,11 +676,11 @@ def plan_opaque(probes, crate, path, function, call, owner_generics, self_type, 
     types = [p["name"] for p in merged["params"] if "type" in p["kind"] and not p["kind"]["type"].get("is_synthetic")]
     synthetic = any("type" in p["kind"] and p["kind"]["type"].get("is_synthetic") for p in merged["params"])
     if len(types) > 3 or synthetic:
-        members[path]["unstated"].append(key)
+        members[member]["unstated"].append(key)
         return
     rewritten = rewrite_opaque(crate, output, 1 if is_async else 0) if output is not None else ("()", {}, 1 if is_async else 0)
     if rewritten is None:
-        members[path]["unstated"].append(key)
+        members[member]["unstated"].append(key)
         return
     returned, nested, total = rewritten
     whole = total == 1 and (is_async or "impl_trait" in (output or {}))
@@ -686,7 +699,7 @@ def plan_opaque(probes, crate, path, function, call, owner_generics, self_type, 
                 head, clause, _ = head_and_clause(crate, merged, extra)
                 name = f"p{len(probes.lines)}"
                 wanted = sorted(f"{item}: {trait}" for item in subset)
-                claim = {"path": path, "label": label, "conditions": wanted, "kind": "opaque", "key": key, "generic": bool(types)}
+                claim = {"path": member, "label": label, "conditions": wanted, "kind": "opaque", "key": key, "generic": bool(types)}
                 helper_params = [
                     f"{o}" + (f": {' + '.join(nested[o])}" if nested.get(o) else "")
                     for o in occurrences
@@ -723,15 +736,18 @@ PROBE_TARGET = "semantic_oracle_probe"
 
 
 def compile_probe(directory, target_dir):
-    """Checks the generated crate. Returns its `E0277` lines and its lines that fail
-    for another reason. Stops the report when the check says nothing about them: a
-    dependency that fails, an error outside the generated source, or a failure with
-    no diagnostic to attribute."""
     command = ["cargo", "check", "--offline", "--message-format=json", "--target-dir", target_dir]
     built = run(command, directory)
+    return read_check(built.returncode, built.stdout, built.stderr)
+
+
+def read_check(returncode, stdout, stderr):
+    """A check's `E0277` lines and its lines that fail for another reason. Stops the
+    report when the check says nothing about them: a dependency that fails, an error
+    outside the generated source, or a failure with no diagnostic to attribute."""
     failed, other = set(), set()
     checked = False
-    for line in built.stdout.splitlines():
+    for line in stdout.splitlines():
         try:
             message = json.loads(line)
         except json.JSONDecodeError:
@@ -755,11 +771,11 @@ def compile_probe(directory, target_dir):
             fail(f"the probe failed with no generated line:\n{body.get('rendered', body.get('message'))}")
         for span in spans:
             (failed if code == "E0277" else other).add(span["line_start"])
-    if built.returncode == 0:
+    if returncode == 0:
         if not checked:
-            fail(f"cargo check reported success with no check of the probe:\n{built.stderr}")
+            fail(f"cargo check reported success with no check of the probe:\n{stderr}")
     elif not failed and not other:
-        fail(f"cargo check failed with no diagnostic for the probe:\n{built.stderr}")
+        fail(f"cargo check failed with no diagnostic for the probe:\n{stderr}")
     return failed, other
 
 
@@ -878,7 +894,7 @@ def collect_probe_plans(crate, members):
                     plans["callables"].append((path, method["inner"]["function"], call, block["generics"], self_type, f"bases[{base}].bindings[{name}].auto-traits"))
                 else:
                     child = f"{path}::{name}"
-                    members.setdefault(child, {"path": child, "slots": {}, "unstated": []})
+                    add_member(members, child, "callable")
                     call = f"{subject}::{name}" if block["generics"].get("params") else f"::{rust_path(consumer)}::{name}"
                     plans["callables"].append((child, method["inner"]["function"], call, block["generics"], self_type, "auto-traits"))
 
@@ -887,12 +903,12 @@ def collect_probe_plans(crate, members):
         if kind in ("struct", "enum", "union") and canonical not in seen:
             seen.add(canonical)
             inner = item["inner"][kind]
-            members.setdefault(canonical, {"path": canonical, "slots": {}, "unstated": []})
+            add_member(members, canonical, "type")
             plans["types"].append((canonical, consumer, inner, inner["generics"]))
             plan_impls(inner, canonical, consumer)
         elif kind == "function" and canonical not in seen:
             seen.add(canonical)
-            members.setdefault(canonical, {"path": canonical, "slots": {}, "unstated": []})
+            add_member(members, canonical, "callable")
             call = "::" + rust_path(consumer)
             plans["callables"].append((canonical, item["inner"]["function"], call, {}, None, "auto-traits"))
 
@@ -925,12 +941,6 @@ def collect_probe_plans(crate, members):
                 plan(item, crate.item_path(item["id"]) or path, path)
 
     visit(crate.data["root"], root["name"])
-    # A type or callable no public path reaches has nothing to probe.
-    for member in members.values():
-        path = member["path"]
-        item_kinds = {p[0] for p in plans["types"]} | {p[0] for p in plans["callables"]}
-        if path not in item_kinds and "auto-traits" not in member["unstated"]:
-            member["unstated"].append("auto-traits")
     return plans
 
 
@@ -976,10 +986,20 @@ def main():
                 format_version = crate.data.get("format_version")
                 walker = Walker(crate)
                 walker.walk_module(crate.data["root"], crate.index[str(crate.data["root"])]["name"])
+                for member in walker.members.values():
+                    member["unit"] = {"package": package["name"], "package-version": package["version"]}
                 members.update(walker.members)
                 if "proc-macro" not in target["kind"]:
                     crate_data.append((crate, collect_probe_plans(crate, members)))
                     packages.append(package)
+        # A type or callable that no public path reaches has nothing to probe.
+        planned = set()
+        for _, plans in crate_data:
+            planned |= {f"type:{plan[0]}" for plan in plans["types"]}
+            planned |= {f"callable:{plan[0]}" for plan in plans["callables"] if plan[5] == "auto-traits"}
+        for key, member in members.items():
+            if key not in planned and key.split(":")[0] in ("type", "callable"):
+                member["unstated"].append("auto-traits")
         probe_target = os.path.join(work, "probe-target")
         times = probe_auto_traits(crate_data, packages, arguments, members, probe_target)
         version = run(["rustc", "--version"], project).stdout.strip()
@@ -989,7 +1009,7 @@ def main():
             "context": arguments.context,
             "tool": {"name": "rustdoc-json", "version": f"{version}, format {format_version}"},
             "covers": COVERS,
-            "members": sorted(members.values(), key=lambda member: member["path"]),
+            "members": sorted(members.values(), key=lambda member: (member["path"], member["kind"])),
         }
         with open(out, "w") as written:
             json.dump(report, written, indent=1, sort_keys=True)

@@ -1605,6 +1605,13 @@ mod tests {
             order("struct, @{IB}, @{IA}, allows ref struct"),
             "struct, @{IA}, @{IB}, allows ref struct"
         );
+        // `new()` is last whatever sorts after it, and so is `allows ref struct`.
+        assert_eq!(order("zeta, new()"), "zeta, new()");
+        assert_eq!(order("new(), zeta"), "zeta, new()");
+        assert_eq!(
+            order("allows ref struct, zeta, new()"),
+            "zeta, new(), allows ref struct"
+        );
         assert_eq!(
             order("@{IB}, new(), allows ref struct"),
             "@{IB}, new(), allows ref struct"
@@ -1863,6 +1870,8 @@ mod tests {
             ("rust", "1.50"),
             ("rust", "+1"),
             ("rust", "0.30000000000000004000"),
+            // Parses to 0.1, whose shortest spelling is shorter.
+            ("rust", "0.1000000000000000055"),
             ("go", "+"),
             ("go", "1.5"),
             ("go", "(1/2 + i)"),

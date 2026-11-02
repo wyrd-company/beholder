@@ -1459,7 +1459,21 @@ fn an_impl_slot_reads_the_member_block() {
         json!({"entity": "geometry.shapes.Pair.get",
                "impl": {"self-type": "@{geometry.shapes.Pair}<T>"}, "returns": "u8"}),
     );
-    let found = rule_messages(&dataset, REFERENCES);
+    // A reference elsewhere does not state the block's self type.
+    let mut outside = dataset.clone();
+    push(
+        &mut outside,
+        "/references",
+        type_reference(
+            "src/shapes.rs",
+            28,
+            6,
+            "Pair",
+            "geometry.shapes",
+            "geometry.shapes.Pair",
+        ),
+    );
+    let found = rule_messages(&outside, REFERENCES);
     assert!(
         found.iter().any(|m| m.contains("/impl/self-type")),
         "{found:#?}"
@@ -1533,6 +1547,51 @@ fn a_group_entry_has_sorted_modifiers() {
     let found = rule_messages(&dataset, "model:signature-canonical");
     assert!(
         found.iter().any(|m| m.contains("constructors/0/modifiers")),
+        "{found:#?}"
+    );
+}
+
+/// A block inside a function body is out-of-profile, so its relation's base has no
+/// source declaration, and a member's other implementation still does.
+#[test]
+fn a_body_local_implementation_has_no_block_to_read() {
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    push(
+        &mut dataset,
+        "/relations",
+        json!({"kind": "implements", "from": "geometry.shapes.Circle", "to": "geometry.shapes.Solid",
+               "at": {"path": "src/shapes.rs", "start": [40, 10], "end": [40, 15], "text": "Solid"}}),
+    );
+    let at = record_of(&dataset, "geometry.shapes.Circle");
+    push(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/bases"),
+        json!({"type": "@{geometry.shapes.Solid}"}),
+    );
+    push(
+        &mut dataset,
+        "/references",
+        type_reference(
+            "src/shapes.rs",
+            40,
+            10,
+            "Solid",
+            "geometry.shapes",
+            "geometry.shapes.Solid",
+        ),
+    );
+    assert_eq!(rule_messages(&dataset, REFERENCES), Vec::<String>::new());
+    // With a block in the dataset, its base reads that block.
+    let mut block = load("semantic-oracle-profile-rust.example.yml");
+    let at = record_of(&block, "geometry.shapes.Circle");
+    set_at(
+        &mut block,
+        &format!("/public-api/signatures/{at}/bases/0/where"),
+        json!("@{geometry.shapes.Solid}: @{geometry.shapes.Area}"),
+    );
+    let found = rule_messages(&block, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("bases/0/where")),
         "{found:#?}"
     );
 }

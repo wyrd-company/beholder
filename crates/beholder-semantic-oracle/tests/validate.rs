@@ -2033,3 +2033,48 @@ fn every_context_needs_a_report_for_a_slot_to_agree() {
         "{unchecked:?}"
     );
 }
+
+/// One path can name several kinds, each with its own member in a report.
+#[test]
+fn a_report_reads_a_member_by_its_kind() {
+    let mut reported = report(json!({"returns": "@{tally::Counter}"}), json!(["returns"]));
+    reported["members"][0]["kind"] = json!("callable");
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported.clone()]);
+    assert_eq!(audited.agreed, 1);
+    // A member of another kind at this path says nothing about this one.
+    reported["members"][0]["kind"] = json!("module");
+    reported["members"][0]["slots"] = json!({"returns": "u32"});
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 0);
+}
+
+/// A report lists what it could not read, and that does not count as agreement.
+#[test]
+fn a_report_that_could_not_read_a_module_warns() {
+    let mut reported = report(json!({}), json!([]));
+    reported["failed"] = json!(["pkg.broken: ImportError"]);
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported]);
+    assert!(audited
+        .findings
+        .iter()
+        .any(|f| f.rule == COMPILER && f.message.contains("pkg.broken")));
+    assert_eq!(audited.agreed, 0);
+}
+
+/// Two units can hold one path, such as two versions of one crate.
+#[test]
+fn a_report_of_another_unit_says_nothing_about_this_one() {
+    let mut reported = report(json!({"returns": "u32"}), json!(["returns"]));
+    reported["members"][0]["unit"] = json!({"package-version": "9.9.9"});
+    let audited = audit_with_reports(&dataset(), Some(&files()), &[reported.clone()]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+    let version = dataset()["units"][0]["package-version"].clone();
+    reported["members"][0]["unit"] = json!({"package-version": version});
+    let found = compiler_findings(&audit_with_reports(&dataset(), Some(&files()), &[reported]));
+    assert!(
+        found.iter().any(|m| m.contains("states `u32`")),
+        "{found:#?}"
+    );
+}

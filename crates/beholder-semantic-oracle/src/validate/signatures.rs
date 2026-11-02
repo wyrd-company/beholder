@@ -922,6 +922,7 @@ impl<'a> Checker<'a> {
             })
             .collect();
         let structural = self.structural_bases(record.id);
+        let body_local = self.body_local_bases(record, &references);
         let mut problems = Vec::new();
         for slot in slots(record.record) {
             if slot.class != SlotClass::DeclaredType || record_is_synthetic(record.entity) {
@@ -934,7 +935,9 @@ impl<'a> Checker<'a> {
                     .and_then(|entry| text(entry, "type"))
                     .map(|written| named_ids(language, written))
                     .and_then(|ids| ids.into_iter().next());
-                if head.is_some_and(|id| structural.contains(id.as_str())) {
+                if head.is_some_and(|id| {
+                    structural.contains(id.as_str()) || body_local.contains(id.as_str())
+                }) {
                     continue;
                 }
             }
@@ -1007,6 +1010,41 @@ impl<'a> Checker<'a> {
         for (at, message) in problems {
             self.error(REFERENCES, at, message);
         }
+    }
+
+    /// Rust: targets of a member's `implements` relations whose implementation has
+    /// no block in the dataset. A block inside a function body is out-of-profile, and
+    /// the profile records its relation, so its base has no source declaration to read.
+    fn body_local_bases(&self, record: &Record<'a>, references: &[&'a Value]) -> BTreeSet<&'a str> {
+        if self.rules.language != "rust" {
+            return BTreeSet::new();
+        }
+        let has_block = |target: &str| {
+            references.iter().any(|reference| {
+                text(reference, "target") == Some(target)
+                    && text(reference, "from").is_some_and(|from| {
+                        self.ids.get(from).is_some_and(|(_, entity)| {
+                            self.language_kinds(entity).contains(&"trait-impl")
+                        }) || self
+                            .ids
+                            .get(from)
+                            .and_then(|(_, entity)| text(entity, "parent"))
+                            .and_then(|parent| self.ids.get(parent))
+                            .is_some_and(|(_, entity)| {
+                                self.language_kinds(entity).contains(&"trait-impl")
+                            })
+                    })
+            })
+        };
+        self.list("relations")
+            .iter()
+            .filter(|relation| {
+                text(relation, "kind") == Some("implements")
+                    && text(relation, "from") == Some(record.id)
+            })
+            .filter_map(|relation| text(relation, "to"))
+            .filter(|target| !has_block(target))
+            .collect()
     }
 
     /// Whether a canonical form writes this target's token bare or removes it.
