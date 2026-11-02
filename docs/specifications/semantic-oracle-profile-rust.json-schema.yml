@@ -163,7 +163,7 @@ $defs:
           properties:
             entity: {$ref: '#/$defs/id'}
             distribution: {$ref: '#/$defs/id'}
-            via: {$ref: '#/$defs/id'}
+            via: {type: array, minItems: 1, uniqueItems: true, items: {$ref: '#/$defs/id'}}
           unevaluatedProperties: false
       rust:macro-expansion:
         type: array

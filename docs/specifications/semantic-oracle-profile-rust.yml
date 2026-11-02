@@ -58,8 +58,13 @@ description: |
   in mode `build` and test, bench and unit-test targets in mode `test`.
   `cargo test` compiles unit-test and integration-test targets in mode
   `test` and examples in mode `build`. `cargo doc` compiles in mode `doc`.
-  Formatting commands define no context. When a command omits `--target`,
-  `target` is the host triple the fixture plan declares.
+  Formatting commands define no context. A compilation that a command
+  performs only as a dependency of the targets it selects, such as the
+  check compilation of a library that `cargo doc --no-deps` documents
+  against, defines no context; its unit is a unit of the command's context.
+  Doctest compilations define no context, because doc comments are
+  out-of-profile. When a command omits `--target`, `target` is the host
+  triple of the corpus toolchain, `x86_64-unknown-linux-gnu`.
 
   ## Units and distributions
 
@@ -119,17 +124,21 @@ description: |
   An entity path is `<crate-name>` followed by `::`-separated segments:
 
   - modules, items, enum variants and their named fields by name;
-  - tuple fields by index, as `Pair::0`;
+  - tuple fields by index, as `Pair::0`; a tuple field's `name` is its
+    index;
   - inherent associated items as `Type::item`;
   - trait associated items as `Trait::item`;
   - trait implementation items as `<Type as Trait>::item`;
   - implementation blocks as `impl Type` or `impl Trait for Type`, written
     with canonical paths, followed by `#<n>` for the n-th such block in the
     module in source order, from 1;
-  - `#[macro_export]` macros at the crate root; other `macro_rules!` macros
-    at their defining module;
+  - `#[macro_export]` macros at the crate root, with the crate root as
+    `parent`; other `macro_rules!` macros at their defining module;
   - parameters as `<callable>::(<name>)` and type parameters as
     `<item>::<<name>>`, with lifetimes written with their apostrophe.
+
+  A raw identifier's `name` and path segment omit `r#`, in entity and
+  consumer paths alike.
 
   Each `macro_rules!` definition that shadows an earlier definition with the
   same name in the same module is a redeclaration form; the second and later
@@ -185,7 +194,9 @@ description: |
   ## Effective visibility
 
   - `unit`: `pub` and `pub(crate)` give `all`. `private` and `pub(self)` give
-    `scoped` to the parent module. `pub(super)` gives `scoped` to the
+    `scoped` to the parent module. A `macro_rules!` macro has the widest
+    access among its textual scope, `scoped` to its defining module, and the
+    visibility of each `use` that re-exports it. `pub(super)` gives `scoped` to the
     grandparent module. `pub(in P)` gives `scoped` to `P`. For a field or an
     associated item, the parent module is the module of its type or
     implementation block. `inherited` takes the value of the enum or trait.
@@ -218,7 +229,8 @@ description: |
     variants, `pub` fields of members, trait items of member traits, `pub`
     inherent associated items of member types, and `#[macro_export]` macros;
   - procedural macros of a `proc-macro` unit;
-  - external entities that a `pub` re-export names.
+  - entities of other units and external entities that a `pub` re-export
+    names.
 
   Trait implementation items are not members; they are reached through the
   trait's items. `#[doc(hidden)]` does not remove membership.
@@ -228,7 +240,22 @@ description: |
   The target of a path segment is the entity that name resolution selects in
   the segment's namespace, after following `use` bindings, `extern crate`
   bindings, re-exports and glob imports. A path segment that names a crate
-  targets that crate's root module.
+  targets that crate's root module. The keyword segments `crate`, `self`,
+  `super` and `Self` are references to the crate root, the current module,
+  the parent module and the implementing or declared type, with the role of
+  their position. A path that names a trait item through a type, such as
+  `String::from` or `<T as Trait>::f`, targets the trait item, and the
+  equivalence rule below applies.
+
+  Primitive types are not entities, and their tokens have no reference.
+  Their inherent associated items are externals of distribution `core` with
+  the primitive type as the first path segment, such as `f64::EPSILON` and
+  `str::len`. Built-in and tool attributes, such as `inline`, `cfg`, `doc`,
+  `path` and `rustfmt::skip`, name no entity. Built-in macros are externals
+  at their definitions: `derive` is `core::macros::builtin::derive` with
+  `language-kind` `proc-macro-attribute`, and `include`, `assert_eq` and
+  `println` are `#[macro_export]` `macro-rules` macros at the root of `core`
+  or `std`.
 
   | Occurrence | Role |
   | --- | --- |
@@ -238,6 +265,9 @@ description: |
   | Crate name in `extern crate` | `import` |
   | Function or method call, including a method-call expression | `call` |
   | Struct expression, tuple struct or tuple variant constructor call, unit struct or unit variant used as a value | `construct` |
+  | Field name in a struct expression | `write` |
+  | Field name in a struct pattern | `pattern` |
+  | Path in `pub(in …)` | `qualifier` |
   | Path in a type position, trait bound, `impl` header or `dyn`/`impl` type | `type` |
   | Path in a pattern | `pattern` |
   | Field access, constant, static or function item used as a value | `read` |
@@ -258,8 +288,10 @@ description: |
   observation spanning only `name` is accepted.
 
   Tokens inside a `macro_rules!` definition body are out-of-profile. A token
-  of a macro invocation's input that expansion uses as a path or a
-  definition name is in profile at its invocation site.
+  of a macro invocation's input that expansion uses as a path, a field name
+  or a definition name is in profile at its invocation site. A file that
+  `include!` reads and that is an indexed document defines its items with
+  `origin: source`, and no `rust:macro-expansion` fact.
 
   ## Relations
 
@@ -272,8 +304,14 @@ description: |
     definition is a path to a nominal type without type arguments.
   - `exports`: each name a `pub` or `pub(...)` `use` adds to a module, with
     `name` set to the bound name; each name a glob re-export adds, with `at`
-    on the `*` token. `visibility` is the declared visibility of the `use`
-    item, written as declared visibility values are.
+    on the `*` token. A glob adds no name that an explicit item or `use` in
+    the module binds. `visibility` is the declared visibility of the `use`
+    item, written as declared visibility values are; for a name a glob adds,
+    it is the narrower of the `use` item's visibility and the visibility of
+    the binding the glob imports.
+  - A relation between project entities that an implementation block inside
+    a function body establishes is recorded, although the block itself is
+    out-of-profile.
 
   ## Generated, synthetic and external entities
 
@@ -301,10 +339,11 @@ description: |
 
   | Kind | Members | Key | Compared |
   | --- | --- | --- | --- |
-  | `rust:reachable-unnameable` | `entity`, `distribution`, `via`: the public entity whose signature exposes it | `entity`, `distribution` | `via` |
+  | `rust:reachable-unnameable` | `entity`, `distribution`, `via`: the sorted list of public entities whose signatures expose it | `entity`, `distribution` | `via` |
   | `rust:macro-expansion` | `entity`, `macro`: the invoked macro entity or external, `invocation`: the invocation site | `entity` | `macro`, `invocation` |
 
-  Both extensions are required.
+  Both extensions are required. `rust:reachable-unnameable` records items;
+  a field of an unnameable type has no fact of its own.
 
   ## Authoring obligation
 

@@ -1489,20 +1489,6 @@ impl<'a> Checker<'a> {
                 continue;
             };
 
-            let distributions: BTreeSet<&str> = self
-                .units_of(entity)
-                .into_iter()
-                .filter_map(|unit| self.ids.get(unit))
-                .filter_map(|(_, unit)| text(unit, "distribution"))
-                .collect();
-            if !distributions.contains(distribution) {
-                self.error(
-                    "model:public-api-distribution",
-                    format!("{at}/distribution"),
-                    format!("entity `{id}` is not in a unit of distribution `{distribution}`"),
-                );
-            }
-
             let access = text(membership, "access").unwrap_or_default();
             let Some(visibility) = entity.get("effective-visibility") else {
                 continue;
@@ -1687,6 +1673,16 @@ impl<'a> Checker<'a> {
                 }
             }
             (Names::SortedList, _) => self.check_sorted(at, Some(value)),
+            (Names::Entities, _) => {
+                for (k, item) in value.as_array().into_iter().flatten().enumerate() {
+                    let Some(id) = item.as_str() else { continue };
+                    let item_at = format!("{at}/{k}");
+                    if self.expect(item_at.clone(), id, &[Class::Entity]).is_some() {
+                        self.check_exists(item_at, id, contexts);
+                    }
+                }
+                self.check_sorted(at, Some(value));
+            }
             _ => {}
         }
     }

@@ -699,7 +699,7 @@ fn a_relation_is_stated_once_per_context() {
 }
 
 #[test]
-fn a_public_api_member_is_externally_accessible_in_its_distribution() {
+fn a_public_api_member_is_externally_accessible() {
     let mut dataset = dataset();
     set(
         &mut dataset,
@@ -707,6 +707,18 @@ fn a_public_api_member_is_externally_accessible_in_its_distribution() {
         json!("none"),
     );
     set(&mut dataset, "/public-api/0/access", json!("subtypes"));
+    expect(
+        &validate_with(&dataset, &files()),
+        &[
+            ("error", "model:public-api-access", "/public-api/0/access"),
+            ("error", "model:public-api-access", "/public-api/1/access"),
+        ],
+    );
+}
+
+#[test]
+fn a_member_of_another_distribution_is_one_the_rule_reaches() {
+    let mut dataset = dataset();
     push(
         &mut dataset,
         "/distributions",
@@ -714,19 +726,13 @@ fn a_public_api_member_is_externally_accessible_in_its_distribution() {
     );
     let mut copy = dataset["public-api"][0].clone();
     copy["distribution"] = json!("other");
-    copy["access"] = json!("all");
     push(&mut dataset, "/public-api", copy);
-    expect(
+    expect_recomputed(
         &validate_with(&dataset, &files()),
-        &[
-            ("error", "model:public-api-access", "/public-api/0/access"),
-            ("error", "model:public-api-access", "/public-api/1/access"),
-            (
-                "error",
-                "model:public-api-distribution",
-                "/public-api/3/distribution",
-            ),
-        ],
+        &[(
+            "/public-api/3",
+            "gives `tally.Counter` no consumer path in `other`",
+        )],
     );
 }
 
@@ -752,7 +758,7 @@ fn extension_facts_resolve_and_have_unique_keys() {
         &mut dataset,
         "/extensions",
         json!({"rust:macro-expansion": [fact.clone(), fact],
-               "rust:reachable-unnameable": [{"entity": "tally.Counter", "distribution": "tally-lib", "via": "tally.make"}]}),
+               "rust:reachable-unnameable": [{"entity": "tally.Counter", "distribution": "tally-lib", "via": ["tally.make"]}]}),
     );
     expect(
         &validate_with(&dataset, &files()),

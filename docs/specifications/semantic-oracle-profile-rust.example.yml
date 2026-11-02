@@ -272,6 +272,7 @@ entities:
   - id: geometry.shapes.Pair.0
     kind: field
     language-kind: field
+    name: '0'
     path: geometry::shapes::Pair::0
     unit: geometry-lib
     parent: geometry.shapes.Pair
@@ -676,7 +677,7 @@ extensions:
   rust:reachable-unnameable:
     - entity: geometry.detail.Hidden
       distribution: geometry
-      via: geometry.make_hidden
+      via: [geometry.make_hidden]
   rust:macro-expansion:
     - entity: geometry.Pin
       macro: geometry.marker

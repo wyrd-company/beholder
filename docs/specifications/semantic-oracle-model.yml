@@ -435,7 +435,7 @@ description: |
   | Member | Meaning |
   | --- | --- |
   | `at` | The reference site. |
-  | `from` | The innermost in-profile entity whose declaration contains the site; the unit root for a site outside every other in-profile entity. |
+  | `from` | The innermost in-profile entity whose declaration contains the site; the unit root for a site outside every other in-profile entity. Outer attributes, decorators and visibility modifiers written before a declaration lie in the enclosing entity's declaration. |
   | `target` | The id of an entity or external entity, for disposition `resolved` or `external`. |
   | `disposition` | `resolved` by default when `target` names a project entity and `external` when it names an external entity; otherwise one of the values under Target dispositions. |
   | `role` | One common reference role. |
@@ -594,8 +594,9 @@ description: |
       contexts: [default]
   ```
 
-  - `entity` is a project entity, or an external entity that a re-export or
-    a type forward makes a member.
+  - `entity` is a project entity of the distribution's units, or an entity
+    of another unit or an external entity that a re-export or a type forward
+    makes a member.
   - `paths` lists every consumer path by which a consumer names the entity,
     by the profile's path grammar for consumer paths. The list is complete.
     A consumer path passes through each container at most once, so a cycle

@@ -7,6 +7,8 @@
 pub enum Names {
     /// A project entity.
     Entity,
+    /// A sorted list of project entities.
+    Entities,
     /// A project entity or an external entity.
     EntityOrExternal,
     /// A unit.
@@ -96,7 +98,7 @@ const RUST: ProfileRules = ProfileRules {
             members: &[
                 ("entity", Entity),
                 ("distribution", Distribution),
-                ("via", Entity),
+                ("via", Entities),
             ],
             key: &["entity", "distribution"],
         },
