@@ -19,8 +19,10 @@
 # record of the right kind, that ids are unique, that context lists of a
 # context-variant attribute partition the record's contexts, that a start
 # position precedes its end, that a locator matches its document, that a list
-# described as sorted is sorted, and every consistency and audit rule of the
-# model and profiles. The dataset validator owns those checks.
+# described as sorted is sorted, that a signature's slots fit its member's kind,
+# that a type text is canonical and each `@{id}` resolves, and every other
+# consistency and audit rule of the model and profiles. The dataset validator
+# owns those checks.
 $schema: https://json-schema.org/draft/2020-12/schema
 $id: https://wyrd.foo/beholder/schemas/semantic-oracle/1
 title: Semantic-oracle dataset, model version 1
@@ -468,7 +470,7 @@ $defs:
     additionalProperties: false
     properties:
       members: {type: array, items: {$ref: '#/$defs/public-api-membership'}}
-      signatures: {type: array, items: {type: object}}
+      signatures: {type: array, items: {$ref: '#/$defs/signature'}}
 
   public-api-membership:
     type: object
@@ -484,6 +486,215 @@ $defs:
         items: {$ref: '#/$defs/text'}
       access: {enum: [all, subtypes]}
       contexts: {$ref: '#/$defs/context-list'}
+
+  # ------------------------------------------------------------- signatures
+  # A slot's name and record form live here once. A profile schema applies its
+  # slot, mode and modifier vocabulary over these records, and forbids each slot
+  # its language does not have.
+  type-text:
+    description: >-
+      A type in the language's own syntax and the profile's canonical spelling,
+      with `@{id}` for each name that denotes an entity.
+    $ref: '#/$defs/text'
+
+  value-text:
+    description: >-
+      A constant, enum or default value in the value form: one string, whatever
+      the value's type.
+    $ref: '#/$defs/text'
+
+  type-slot:
+    description: A declared type text, or `{inferred}` for a type no source token states.
+    anyOf:
+      - $ref: '#/$defs/type-text'
+      - type: object
+        required: [inferred]
+        additionalProperties: false
+        properties:
+          inferred: {$ref: '#/$defs/type-text'}
+
+  value-slot:
+    description: A value text, or `{inferred}` for a value that the language forwards.
+    anyOf:
+      - $ref: '#/$defs/value-text'
+      - type: object
+        required: [inferred]
+        additionalProperties: false
+        properties:
+          inferred: {$ref: '#/$defs/value-text'}
+
+  modifiers:
+    description: A set, written sorted.
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items: {$ref: '#/$defs/text'}
+
+  type-parameter:
+    type: object
+    required: [name, kind]
+    additionalProperties: false
+    properties:
+      name: {$ref: '#/$defs/text'}
+      kind: {enum: [type, lifetime, const]}
+      type: {$ref: '#/$defs/type-text'}
+      bounds: {$ref: '#/$defs/type-text'}
+      default: {$ref: '#/$defs/text'}
+      variance: {$ref: '#/$defs/text'}
+      modifiers: {$ref: '#/$defs/modifiers'}
+    if: {properties: {kind: {const: const}}, required: [kind]}
+    then: {required: [type]}
+    else: {properties: {type: false}}
+
+  parameter:
+    description: A parameter with no name token has no `name`.
+    type: object
+    minProperties: 1
+    additionalProperties: false
+    properties:
+      name: {$ref: '#/$defs/text'}
+      type: {$ref: '#/$defs/type-slot'}
+      mode: {$ref: '#/$defs/text'}
+      default: {$ref: '#/$defs/value-slot'}
+
+  accessor:
+    type: object
+    additionalProperties: false
+    properties:
+      type: {$ref: '#/$defs/type-slot'}
+      access: {$ref: '#/$defs/text'}
+      modifiers: {$ref: '#/$defs/modifiers'}
+
+  implementation:
+    description: The inherent Rust implementation block of a member.
+    type: object
+    required: [self-type]
+    additionalProperties: false
+    properties:
+      type-parameters: {$ref: '#/$defs/type-parameters'}
+      self-type: {$ref: '#/$defs/type-text'}
+      where: {$ref: '#/$defs/type-text'}
+
+  binding:
+    description: An associated type or constant that an implementation sets.
+    type: object
+    required: [name]
+    additionalProperties: false
+    properties:
+      name: {$ref: '#/$defs/text'}
+      type-parameters: {$ref: '#/$defs/type-parameters'}
+      where: {$ref: '#/$defs/type-text'}
+      type: {$ref: '#/$defs/type-text'}
+      value: {$ref: '#/$defs/value-text'}
+    oneOf:
+      - required: [type]
+      - required: [value]
+
+  base:
+    type: object
+    required: [type]
+    additionalProperties: false
+    properties:
+      type: {$ref: '#/$defs/type-text'}
+      position: {type: integer, minimum: 0}
+      type-parameters: {$ref: '#/$defs/type-parameters'}
+      self-type: {$ref: '#/$defs/type-text'}
+      where: {$ref: '#/$defs/type-text'}
+      bindings: {type: array, minItems: 1, items: {$ref: '#/$defs/binding'}}
+
+  type-parameters: {type: array, minItems: 1, items: {$ref: '#/$defs/type-parameter'}}
+
+  parameters: {type: array, minItems: 1, items: {$ref: '#/$defs/parameter'}}
+
+  callable-slots:
+    description: The slots of one signature of a callable. Open; a record that uses it closes it.
+    type: object
+    properties:
+      type-parameters: {$ref: '#/$defs/type-parameters'}
+      where: {$ref: '#/$defs/type-text'}
+      parameters: {$ref: '#/$defs/parameters'}
+      returns: {$ref: '#/$defs/type-slot'}
+      return-mode: {$ref: '#/$defs/text'}
+      modifiers: {$ref: '#/$defs/modifiers'}
+
+  overload:
+    description: One signature of `overloads`. An empty record states a signature with no slot.
+    $ref: '#/$defs/callable-slots'
+    unevaluatedProperties: false
+
+  signature-group-entry:
+    description: >-
+      One signature of a TypeScript type: a constructor, an unnamed call,
+      construct or index signature.
+    $ref: '#/$defs/callable-slots'
+    properties:
+      access: {$ref: '#/$defs/text'}
+    unevaluatedProperties: false
+
+  signature-group:
+    type: array
+    minItems: 1
+    items: {$ref: '#/$defs/signature-group-entry'}
+
+  signature-slots:
+    description: >-
+      Every slot of a signature. Open; a record that uses it closes it. Which
+      slots a member has follows its kind, which the validator checks.
+    $ref: '#/$defs/callable-slots'
+    properties:
+      impl: {$ref: '#/$defs/implementation'}
+      receiver: {$ref: '#/$defs/type-text'}
+      overloads: {type: array, minItems: 2, items: {$ref: '#/$defs/overload'}}
+      bases: {type: array, minItems: 1, items: {$ref: '#/$defs/base'}}
+      underlying: {$ref: '#/$defs/type-slot'}
+      constructors: {$ref: '#/$defs/signature-group'}
+      call-signatures: {$ref: '#/$defs/signature-group'}
+      construct-signatures: {$ref: '#/$defs/signature-group'}
+      index-signatures: {$ref: '#/$defs/signature-group'}
+      type: {$ref: '#/$defs/type-slot'}
+      bounds: {$ref: '#/$defs/type-text'}
+      tag: {$ref: '#/$defs/text'}
+      value: {$ref: '#/$defs/value-slot'}
+      get: {$ref: '#/$defs/accessor'}
+      set: {$ref: '#/$defs/accessor'}
+      init: {$ref: '#/$defs/accessor'}
+      delete: {const: present}
+    # `overloads` holds a callable's signatures; they are not also on the record.
+    if: {required: [overloads]}
+    then:
+      properties:
+        type-parameters: false
+        where: false
+        parameters: false
+        returns: false
+        return-mode: false
+
+  signature-alternative:
+    description: One definition that control flow leaves possible, with its slots.
+    $ref: '#/$defs/signature-slots'
+    required: [at]
+    properties:
+      at: {$ref: '#/$defs/locator'}
+    unevaluatedProperties: false
+
+  signature:
+    description: >-
+      One record per member and distinct set of contexts. A member has a record
+      when it has at least one slot.
+    $ref: '#/$defs/signature-slots'
+    required: [entity]
+    properties:
+      entity: {$ref: '#/$defs/id'}
+      contexts: {$ref: '#/$defs/context-list'}
+      alternatives: {type: array, minItems: 2, items: {$ref: '#/$defs/signature-alternative'}}
+    unevaluatedProperties: false
+    allOf:
+      - if: {required: [contexts]}
+        then: {minProperties: 3}
+        else: {minProperties: 2}
+      # The slots of a record with alternatives are on its alternatives.
+      - if: {required: [alternatives]}
+        then: {propertyNames: {enum: [entity, contexts, alternatives]}}
 
   # ------------------------------------------------------------- extensions
   extensions:

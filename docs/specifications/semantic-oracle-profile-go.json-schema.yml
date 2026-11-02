@@ -35,6 +35,7 @@ properties:
         kind: {enum: [implements, inherits, overrides, aliases]}
         # The profile gives export bindings no visibility.
         visibility: false
+  public-api: {properties: {signatures: {items: {$ref: '#/$defs/signature'}}}}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -164,3 +165,49 @@ $defs:
               uniqueItems: true
               items: {$ref: '#/$defs/canonical-path'}
           unevaluatedProperties: false
+
+  # ------------------------------------------------------------- signatures
+  # The slots, modes and modifiers of this language over the model's records.
+  signature:
+    $ref: '#/$defs/signature-slots'
+    properties:
+      alternatives: false
+  callable-slots:
+    properties:
+      where: false
+      return-mode: false
+      modifiers: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      parameters: {items: {$ref: '#/$defs/parameter'}}
+  signature-slots:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      impl: false
+      overloads: false
+      constructors: false
+      call-signatures: false
+      construct-signatures: false
+      index-signatures: false
+      bounds: false
+      get: false
+      set: false
+      init: false
+      delete: false
+      bases: {items: {$ref: '#/$defs/base'}}
+  type-parameter:
+    properties:
+      variance: false
+      default: false
+      modifiers: false
+      kind: {const: type}
+  parameter:
+    properties:
+      mode: false
+      default: false
+  base:
+    properties:
+      position: false
+      type-parameters: false
+      self-type: false
+      where: false
+      bindings: false

@@ -185,3 +185,53 @@ cases:
     patch: [{op: replace, path: /relations/4/visibility, value: public}]
     fails-at: /relations/4/visibility
     keyword: anyOf
+
+  # ------------------------------------------------------------- signatures
+  - name: unknown-signature-modifier
+    reason: '`public` is not a Rust modifier.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/2/modifiers/0, value: public}]
+    fails-at: /public-api/signatures/2/modifiers/0
+    keyword: enum
+  - name: unknown-parameter-mode
+    reason: '`ref` is not a Rust parameter mode; `&self` is `self-ref`.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/6/parameters/0/mode, value: ref}]
+    fails-at: /public-api/signatures/6/parameters/0/mode
+    keyword: enum
+  - name: parameter-default
+    reason: 'A Rust parameter has no default.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/parameters/0/default, value: x}]
+    fails-at: /public-api/signatures/6/parameters/0/default
+    keyword: falseSchema
+  - name: receiver-slot
+    reason: '`receiver` is a Go slot; a Rust receiver is the `self` parameter.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/receiver, value: x}]
+    fails-at: /public-api/signatures/6/receiver
+    keyword: falseSchema
+  - name: overloads-slot
+    reason: 'A Rust path has one signature.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/2/overloads, value: [{returns: u8}, {returns: u16}]}]
+    fails-at: /public-api/signatures/2/overloads
+    keyword: falseSchema
+  - name: alternatives-slot
+    reason: '`alternatives` is a Python form.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1, value: {entity: geometry.make_hidden, alternatives: [{at: {path: src/lib.rs, start: [8, 8], end: [8, 19], text: make_hidden}}, {at: {path: src/lib.rs, start: [8, 8], end: [8, 19], text: make_hidden}}]}}]
+    fails-at: /public-api/signatures/1/alternatives
+    keyword: falseSchema
+  - name: base-position
+    reason: 'Rust base order has no meaning; `position` is for Python and Dart.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/7/bases/0/position, value: 0}]
+    fails-at: /public-api/signatures/7/bases/0/position
+    keyword: falseSchema
+  - name: type-parameter-variance
+    reason: 'Rust variance is inferred and is not recorded.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/type-parameters/0/variance, value: out}]
+    fails-at: /public-api/signatures/4/type-parameters/0/variance
+    keyword: falseSchema

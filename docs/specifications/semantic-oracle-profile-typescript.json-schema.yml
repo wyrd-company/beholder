@@ -34,6 +34,7 @@ properties:
         kind: {enum: [inherits, implements, overrides, aliases, exports]}
         # The profile gives export bindings no visibility.
         visibility: false
+  public-api: {properties: {signatures: {items: {$ref: '#/$defs/signature'}}}}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -163,3 +164,59 @@ $defs:
             target: {$ref: '#/$defs/id'}
             at: {$ref: '#/$defs/locator'}
           unevaluatedProperties: false
+
+  # ------------------------------------------------------------- signatures
+  # The slots, modes and modifiers of this language over the model's records.
+  signature:
+    $ref: '#/$defs/signature-slots'
+    properties:
+      alternatives: false
+  callable-slots:
+    properties:
+      where: false
+      return-mode: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      parameters: {items: {$ref: '#/$defs/parameter'}}
+      modifiers: {items: {enum: [abstract, optional, readonly, static]}}
+  signature-slots:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      impl: false
+      receiver: false
+      underlying: false
+      bounds: false
+      tag: false
+      init: false
+      delete: false
+      overloads: {items: {$ref: '#/$defs/callable-slots'}}
+      bases: {items: {$ref: '#/$defs/base'}}
+      get: {$ref: '#/$defs/accessor'}
+      set: {$ref: '#/$defs/accessor'}
+      constructors: {items: {$ref: '#/$defs/signature-group-entry'}}
+      call-signatures: {items: {$ref: '#/$defs/signature-group-entry'}}
+      construct-signatures: {items: {$ref: '#/$defs/signature-group-entry'}}
+      index-signatures: {items: {$ref: '#/$defs/signature-group-entry'}}
+  signature-group-entry:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      access: {enum: [private, protected]}
+  type-parameter:
+    properties:
+      variance: {enum: [in, 'in out', out]}
+      modifiers: {items: {enum: [const]}}
+      kind: {const: type}
+  parameter:
+    properties:
+      default: false
+      mode: {enum: [optional, rest]}
+  base:
+    properties:
+      position: false
+      type-parameters: false
+      self-type: false
+      where: false
+      bindings: false
+  accessor:
+    properties:
+      access: {enum: [private, protected]}
+      modifiers: false

@@ -93,3 +93,41 @@ cases:
     fails-at: /extensions/dart:mixin-application/0
     keyword: unevaluatedProperties
     member: at
+
+  # ------------------------------------------------------------- signatures
+  - name: unknown-signature-modifier
+    reason: '`readonly` is not a Dart modifier.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: replace, path: /public-api/signatures/1/modifiers/0, value: readonly}]
+    fails-at: /public-api/signatures/1/modifiers/0
+    keyword: enum
+  - name: unknown-parameter-mode
+    reason: '`rest` is not a Dart parameter mode.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: replace, path: /public-api/signatures/4/parameters/0/mode, value: rest}]
+    fails-at: /public-api/signatures/4/parameters/0/mode
+    keyword: enum
+  - name: init-accessor
+    reason: '`init` is a C# accessor.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/2/init, value: {type: int}}]
+    fails-at: /public-api/signatures/2/init
+    keyword: falseSchema
+  - name: overloads-slot
+    reason: 'A Dart name has one signature.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/overloads, value: [{returns: int}, {returns: double}]}]
+    fails-at: /public-api/signatures/1/overloads
+    keyword: falseSchema
+  - name: return-mode-slot
+    reason: '`return-mode` is a C# slot.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/return-mode, value: ref}]
+    fails-at: /public-api/signatures/3/return-mode
+    keyword: falseSchema
+  - name: base-bindings
+    reason: '`bindings` is for a Rust implementation.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/bases/0/bindings, value: [{name: K, type: int}]}]
+    fails-at: /public-api/signatures/0/bases/0/bindings
+    keyword: falseSchema

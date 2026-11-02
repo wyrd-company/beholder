@@ -449,6 +449,7 @@ impl<'a> Checker<'a> {
         self.check_relations();
         self.check_public_api();
         self.check_public_api_recomputed();
+        self.check_signature_ids();
         self.check_extensions();
         self.check_unused_externals();
     }
@@ -1568,6 +1569,61 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// Criteria 2 and 5 for signature records: each names a project entity, in
+    /// contexts where it exists, and an external that a type text names is used.
+    fn check_signature_ids(&mut self) {
+        let signatures = self
+            .dataset
+            .get("public-api")
+            .map(|public_api| list(public_api, "signatures"))
+            .unwrap_or(&[]);
+        for (i, signature) in signatures.iter().enumerate() {
+            let at = format!("/public-api/signatures/{i}");
+            let id = text(signature, "entity").unwrap_or_default();
+            if self
+                .expect(format!("{at}/entity"), id, &[Class::Entity])
+                .is_some()
+            {
+                let built = self.built_contexts(id);
+                let contexts = self.fact_contexts(
+                    &at,
+                    signature,
+                    built.clone(),
+                    &built,
+                    &format!("the unit of `{id}`"),
+                );
+                self.check_exists(format!("{at}/entity"), id, &contexts);
+            }
+            self.use_externals_named_in(signature);
+        }
+    }
+
+    /// Marks each external that a `@{id}` in a slot of `value` names.
+    fn use_externals_named_in(&mut self, value: &'a Value) {
+        match value {
+            Value::String(slot) => {
+                let mut rest = slot.as_str();
+                while let Some(start) = rest.find("@{") {
+                    rest = &rest[start + 2..];
+                    let Some(end) = rest.find('}') else {
+                        break;
+                    };
+                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(&rest[..end]) {
+                        self.used_externals.insert(id);
+                    }
+                    rest = &rest[end + 1..];
+                }
+            }
+            Value::Array(items) => items
+                .iter()
+                .for_each(|item| self.use_externals_named_in(item)),
+            Value::Object(members) => members
+                .values()
+                .for_each(|member| self.use_externals_named_in(member)),
+            _ => {}
+        }
+    }
+
     fn check_extensions(&mut self) {
         let Some(extensions) = self.dataset.get("extensions").and_then(Value::as_object) else {
             return;
@@ -1765,7 +1821,7 @@ impl<'a> Checker<'a> {
                 self.error(
                     "model:external-unused",
                     format!("/externals/{i}"),
-                    format!("no reference, relation or extension fact targets `{id}`"),
+                    format!("no reference, relation, extension fact or signature targets `{id}`"),
                 );
             }
         }

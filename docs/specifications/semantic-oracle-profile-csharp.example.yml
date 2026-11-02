@@ -7,6 +7,9 @@
 # test assembly, and application `Atlas`. It exercises every C# record form
 # and extension of the schema. Locators and digests describe notional
 # source; schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: csharp/1
 project:
@@ -569,6 +572,11 @@ externals:
     distribution: Legacy.Geometry
     version: 2.0.0.0
     path: Legacy.Point
+  - id: ext.System.EventHandler
+    kind: type
+    language-kind: delegate
+    distribution: System.Runtime
+    path: System.EventHandler
 
 references:
   - at: {path: src/Geometry/Shapes.cs, start: [8, 39], end: [8, 45], text: IShape}
@@ -628,6 +636,10 @@ references:
     from: Atlas.Program.Main
     target: ext.System.ObsoleteAttribute..ctor
     role: attribute
+  - at: {path: src/Geometry/Shapes.cs, start: [18, 25], end: [18, 37], text: EventHandler}
+    from: Geometry.Circle.Changed
+    target: ext.System.EventHandler
+    role: type
 
 relations:
   - kind: implements
@@ -672,7 +684,44 @@ public-api:
     - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
     - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
     - {distribution: geometry, entity: 'Geometry', paths: ['Geometry'], access: all}
-  signatures: []
+  signatures:
+    - entity: Geometry.Shape
+      modifiers: [abstract]
+      bases:
+        - {type: "@{Geometry.IShape}"}
+    - entity: Geometry.Shape.Scale
+      modifiers: [virtual]
+      parameters:
+        - {name: factor, type: double}
+      returns: double
+    - entity: Geometry.Shape.Count
+      modifiers: [static]
+      type: int
+    - entity: Geometry.Circle
+      bases:
+        - {type: "@{Geometry.IShape}"}
+        - {type: "@{Geometry.Shape}"}
+    - entity: Geometry.Circle.Area
+      modifiers: [override]
+      get: {type: double}
+    - entity: Geometry.Circle.Changed
+      type: "@{ext.System.EventHandler}?"
+    - entity: Geometry.Circle.ToString
+      modifiers: [override]
+      returns: {inferred: string}
+    - entity: Geometry.IShape.Area
+      get: {type: double}
+    - entity: Geometry.Kind
+      underlying: int
+    - entity: Geometry.Kind.Round
+      value: "0"
+    - entity: Geometry.Shape.Area
+      modifiers: [abstract]
+      get: {type: double}
+    - entity: Geometry.ShapeExtensions.extension-IShape.Doubled
+      returns: double
+    - entity: Geometry.ShapeExtensions
+      modifiers: [static]
 
 extensions:
   csharp:type-forward:

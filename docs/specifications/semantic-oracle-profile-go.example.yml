@@ -7,6 +7,9 @@
 # library package, an external test package and a command. It exercises
 # every Go record form and extension of the schema. Locators and digests
 # describe notional source; schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: go/1
 project:
@@ -474,6 +477,28 @@ entities:
       - at: {path: cmd/atlas/main.go, start: [9, 6], end: [9, 10], text: main}
     declared-visibility: {value: unexported, explicit: true}
     effective-visibility: {unit: all, project: none, external: none}
+  - id: geometry.Platform.linux.names
+    kind: parameter
+    language-kind: param
+    name: names
+    path: example.com/geometry.Platform.(names)
+    unit: geometry-pkg
+    parent: geometry.Platform.linux
+    origin: source
+    contexts: [linux, linux-test]
+    definitions:
+      - at: {path: shapes_linux.go, start: [5, 15], end: [5, 20], text: names}
+  - id: geometry.Platform.darwin.names
+    kind: parameter
+    language-kind: param
+    name: names
+    path: example.com/geometry.Platform.(names)
+    unit: geometry-pkg
+    parent: geometry.Platform.darwin
+    origin: source
+    contexts: [darwin]
+    definitions:
+      - at: {path: shapes_darwin.go, start: [5, 15], end: [5, 20], text: names}
 
 externals:
   - id: ext.builtin.float64
@@ -502,7 +527,7 @@ references:
     target: ext.builtin.float64
     role: type
   - at: {path: shapes.go, start: [14, 2], end: [14, 6], text: Base}
-    from: geometry.Circle
+    from: geometry.Circle.Base
     target: geometry.Base
     role: type
   - at: {path: shapes.go, start: [21, 15], end: [21, 22], text: float64}
@@ -564,6 +589,10 @@ references:
     disposition: indeterminate
     reason: the method is called through a reflection value
     role: call
+  - at: {path: shapes.go, start: [18, 10], end: [18, 16], text: Circle}
+    from: geometry.Circle.Area
+    target: geometry.Circle
+    role: type
 
 relations:
   - kind: implements
@@ -605,7 +634,50 @@ public-api:
     - {distribution: geometry-module, entity: 'geometry.Solid', paths: ['example.com/geometry.Solid'], access: all}
     - {distribution: geometry-module, entity: 'geometry.Table', paths: ['example.com/geometry.Table'], access: all}
     - {distribution: geometry-module, entity: 'geometry', paths: ['example.com/geometry'], access: all}
-  signatures: []
+  signatures:
+    - entity: geometry.Shape
+      underlying: "interface { Area() float64 }"
+    - entity: geometry.Circle
+      bases:
+        - {type: "@{geometry.Shape}"}
+      underlying: "struct { @{geometry.Base}; radius float64 }"
+    - entity: geometry.Base
+      underlying: 'struct { Label string "json:\"label\"" }'
+    - entity: geometry.Base.Label
+      type: string
+      tag: '"json:\"label\""'
+    - entity: geometry.Platform.linux
+      contexts: [linux, linux-test]
+      parameters:
+        - {name: names, type: "...string"}
+      returns: string
+    - entity: geometry.Platform.darwin
+      contexts: [darwin]
+      parameters:
+        - {name: names, type: "...string"}
+      returns: string
+    - entity: geometry.Circle.Area
+      receiver: "*@{geometry.Circle}"
+      returns: float64
+    - entity: geometry.Circle.Base
+      type: "@{geometry.Base}"
+    - entity: geometry.Meters
+      type: float64
+    - entity: geometry.Pair
+      type-parameters:
+        - {name: T, kind: type, bounds: any}
+      underlying: "struct { Left T; Right T }"
+    - entity: geometry.Pi
+      type: untyped float
+      value: 314159/100000
+    - entity: geometry.Shape.Area
+      returns: float64
+    - entity: geometry.Solid
+      bases:
+        - {type: "@{geometry.Shape}"}
+      underlying: "interface { @{geometry.Shape} }"
+    - entity: geometry.Table
+      type: {inferred: "map[string]int"}
 
 extensions:
   go:embeds:

@@ -34,6 +34,7 @@ properties:
         kind: {enum: [inherits, implements, overrides]}
         # The profile gives export bindings no visibility.
         visibility: false
+  public-api: {properties: {signatures: {items: {$ref: '#/$defs/signature'}}}}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
@@ -168,3 +169,54 @@ $defs:
             reference: {$ref: '#/$defs/text'}
             aliases: {$ref: '#/$defs/text-list', minItems: 1}
           unevaluatedProperties: false
+
+  # ------------------------------------------------------------- signatures
+  # The slots, modes and modifiers of this language over the model's records.
+  signature:
+    $ref: '#/$defs/signature-slots'
+    properties:
+      alternatives: false
+  callable-slots:
+    properties:
+      where: false
+      type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
+      parameters: {items: {$ref: '#/$defs/parameter'}}
+      modifiers: {items: {enum: [abstract, override, readonly, required, sealed, static, virtual]}}
+      return-mode: {enum: [ref, 'ref readonly']}
+  signature-slots:
+    $ref: '#/$defs/callable-slots'
+    properties:
+      impl: false
+      receiver: false
+      overloads: false
+      constructors: false
+      call-signatures: false
+      construct-signatures: false
+      index-signatures: false
+      bounds: false
+      tag: false
+      delete: false
+      bases: {items: {$ref: '#/$defs/base'}}
+      get: {$ref: '#/$defs/accessor'}
+      set: {$ref: '#/$defs/accessor'}
+      init: {$ref: '#/$defs/accessor'}
+  type-parameter:
+    properties:
+      default: false
+      modifiers: false
+      variance: {enum: [in, out]}
+      kind: {const: type}
+  parameter:
+    properties:
+      mode: {enum: [in, out, params, ref, 'ref readonly', this, 'this in', 'this ref', 'this ref readonly']}
+  base:
+    properties:
+      position: false
+      type-parameters: false
+      self-type: false
+      where: false
+      bindings: false
+  accessor:
+    properties:
+      access: {enum: [internal, private, 'private protected', protected, 'protected internal']}
+      modifiers: {items: {enum: [readonly]}}

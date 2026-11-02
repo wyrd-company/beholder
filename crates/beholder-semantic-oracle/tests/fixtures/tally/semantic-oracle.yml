@@ -94,5 +94,7 @@ public-api:
     - {distribution: tally, entity: tally.Counter, paths: ['tally::Counter'], access: all}
     - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
     - {distribution: tally, entity: tally.crate, paths: [tally], access: all}
-  signatures: []
+  signatures:
+    - entity: tally.make
+      returns: "@{tally.Counter}"
 extensions: {}

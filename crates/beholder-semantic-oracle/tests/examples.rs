@@ -885,3 +885,167 @@ fn a_forwarded_project_type_brings_its_namespaces() {
     let example = load("semantic-oracle-profile-csharp.example.yml");
     assert_eq!(recomputed(&example), Vec::<String>::new());
 }
+
+/// Every example states signatures for its public API members: a record names
+/// a member in the contexts it lists, and a member of a kind with slots has a
+/// record unless it has nothing to state.
+#[test]
+fn every_example_states_signatures_for_its_members() {
+    const SLOT_KINDS: [&str; 8] = [
+        "callable",
+        "type",
+        "type-alias",
+        "field",
+        "property",
+        "variable",
+        "constant",
+        "enum-member",
+    ];
+    // Plain declarations of these members state nothing beyond their names.
+    const NOTHING_TO_STATE: [&str; 11] = [
+        "geometry.Pin",
+        "geometry.Registry",
+        "geometry.detail.Grid",
+        "geometry.shapes.Area",
+        "atlas.portable.run",
+        "stub.atlas.shapes.Shape",
+        "Geometry.IShape",
+        "Geometry.Generated.Metrics",
+        "Geometry.Shape..ctor",
+        "Geometry.Visitor",
+        "ext.Legacy.Point",
+    ];
+    for example in assets(".example.yml") {
+        let dataset = load(&example);
+        let members = dataset["public-api"]["members"].as_array().unwrap();
+        let signatures = dataset["public-api"]["signatures"].as_array().unwrap();
+        assert!(!signatures.is_empty(), "{example}");
+        let member_ids: BTreeSet<&str> = members
+            .iter()
+            .map(|member| member["entity"].as_str().unwrap())
+            .collect();
+        let stated: BTreeSet<&str> = signatures
+            .iter()
+            .map(|signature| signature["entity"].as_str().unwrap())
+            .collect();
+        for id in &stated {
+            assert!(member_ids.contains(id), "{example}: `{id}` is no member");
+        }
+        for entity in dataset["entities"].as_array().unwrap() {
+            let id = entity["id"].as_str().unwrap();
+            let kind = entity["kind"].as_str().unwrap();
+            if member_ids.contains(id)
+                && SLOT_KINDS.contains(&kind)
+                && !NOTHING_TO_STATE.contains(&id)
+            {
+                assert!(stated.contains(id), "{example}: `{id}` has no record");
+            }
+        }
+    }
+}
+
+/// Each signature form that the examples' members do not use is schema-valid
+/// for its profile.
+#[test]
+fn every_signature_form_is_schema_valid_for_its_profile() {
+    let at = json!({"path": "x", "start": [1, 1], "end": [1, 2], "text": "x"});
+    let forms = [
+        (
+            "rust",
+            json!({"entity": "x", "impl": {
+                "type-parameters": [{"name": "T", "kind": "type", "bounds": "@{C}"}],
+                "self-type": "@{X}<T>", "where": "@{V}<T>: @{C}"},
+                "parameters": [{"name": "self", "mode": "self-mut-ref"}, {"name": "n", "type": "u8"}],
+                "modifiers": ["async", "const", "unsafe"], "returns": "T"}),
+        ),
+        (
+            "rust",
+            json!({"entity": "x", "type-parameters": [
+                    {"name": "'a", "kind": "lifetime"},
+                    {"name": "N", "kind": "const", "type": "usize", "default": "10"}],
+                "modifiers": ["auto"],
+                "bases": [{"type": "@{T}<u8>", "self-type": "@{X}<U>",
+                    "type-parameters": [{"name": "U", "kind": "type"}], "where": "@{V}<U>: @{C}",
+                    "bindings": [
+                        {"name": "Item", "type": "u8"},
+                        {"name": "Out", "type-parameters": [{"name": "'b", "kind": "lifetime"}], "where": "U: 'b", "type": "&'b U"},
+                        {"name": "SIZE", "value": "4"}]}]}),
+        ),
+        (
+            "rust",
+            json!({"entity": "x", "bounds": "@{C}", "type": "u8"}),
+        ),
+        (
+            "typescript",
+            json!({"entity": "x", "overloads": [
+                {"type-parameters": [{"name": "T", "kind": "type", "variance": "in out", "modifiers": ["const"], "default": "string"}],
+                 "parameters": [{"name": "v", "type": "T"}], "returns": "T"},
+                {"parameters": [{"type": "string", "mode": "rest"}], "returns": "string"},
+                {}]}),
+        ),
+        (
+            "typescript",
+            json!({"entity": "x", "constructors": [{"access": "protected"}, {"parameters": [{"name": "a", "type": {"inferred": "number"}}]}],
+                "call-signatures": [{"returns": "void"}],
+                "construct-signatures": [{"returns": "@{X}"}],
+                "index-signatures": [{"parameters": [{"name": "k", "type": "string"}], "returns": "number", "modifiers": ["readonly"]}],
+                "get": {"type": "string", "access": "protected"}, "set": {"type": "string"},
+                "modifiers": ["abstract", "optional", "static"]}),
+        ),
+        ("typescript", json!({"entity": "x", "value": "\"a\""})),
+        (
+            "python",
+            json!({"entity": "x", "alternatives": [
+                {"at": at, "parameters": [{"name": "a", "type": "int", "default": "present", "mode": "keyword-only"}], "returns": "int"},
+                {"at": at, "overloads": [{"returns": "int"}, {"returns": "str"}]},
+                {"at": at}]}),
+        ),
+        (
+            "python",
+            json!({"entity": "x", "parameters": [
+                    {"name": "a", "mode": "positional-only"},
+                    {"name": "*args", "mode": "var-positional"},
+                    {"name": "**kwargs", "mode": "var-keyword"}],
+                "type-parameters": [{"name": "T", "kind": "type", "bounds": "int", "default": "bool"}],
+                "modifiers": ["abstract", "classvar", "final", "not-required"],
+                "get": {"type": "int"}, "set": {"type": "int"}, "delete": "present", "value": "1"}),
+        ),
+        (
+            "go",
+            json!({"entity": "x", "type-parameters": [{"name": "T", "kind": "type", "bounds": "~int | ~string"}],
+                "receiver": "@{X}[T]", "parameters": [{"type": "int"}], "returns": "(int, error)",
+                "tag": "\"json\"", "value": "(5/2 + 3i)", "type": {"inferred": "int"}}),
+        ),
+        (
+            "csharp",
+            json!({"entity": "x", "type-parameters": [{"name": "T", "kind": "type", "variance": "out", "bounds": "class, new()"}],
+                "parameters": [
+                    {"name": "a", "mode": "ref readonly", "type": "string~"},
+                    {"name": "b", "mode": "this ref", "type": "(int x, string? y)"},
+                    {"name": "c", "mode": "params", "type": "int[]", "default": "null"}],
+                "return-mode": "ref readonly", "returns": "ref int",
+                "get": {"type": "int", "access": "protected internal", "modifiers": ["readonly"]},
+                "set": {"type": "int", "access": "private"}, "init": {"type": "int"},
+                "modifiers": ["override", "required", "sealed"]}),
+        ),
+        (
+            "dart",
+            json!({"entity": "x", "type-parameters": [{"name": "T", "kind": "type", "bounds": "num"}],
+                "parameters": [
+                    {"name": "a", "mode": "optional", "default": "null"},
+                    {"name": "b", "mode": "required-named", "type": {"inferred": "int"}, "default": {"inferred": "1"}}],
+                "underlying": "int", "get": {"type": "int"}, "set": {"type": "int", "modifiers": ["covariant"]},
+                "modifiers": ["abstract", "base", "const", "covariant", "external", "interface", "late", "mixin", "sealed", "static"]}),
+        ),
+    ];
+    let validator = dataset_validator().expect("build the validator");
+    for (language, form) in forms {
+        let mut dataset = load(&format!("semantic-oracle-profile-{language}.example.yml"));
+        dataset["public-api"]["signatures"]
+            .as_array_mut()
+            .unwrap()
+            .push(form);
+        let found = errors(&validator, &dataset);
+        assert!(found.is_empty(), "{language}:\n{}", describe(&found));
+    }
+}

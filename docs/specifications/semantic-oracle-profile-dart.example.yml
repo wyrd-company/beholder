@@ -8,6 +8,9 @@
 # a configurable import, and an executable. It exercises every Dart record
 # form and extension of the schema. Locators and digests describe notional
 # source; schema validation does not read documents.
+#
+# Its signatures state its members. A signature form that no member here needs
+# is covered by the invalid examples and the crate's schema tests.
 model: semantic-oracle/1
 profile: dart/1
 project:
@@ -478,6 +481,26 @@ entities:
     anchor: {path: bin/atlas.dart, start: [3, 44], end: [3, 49], text: extra}
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: none, external: none}
+  - id: shapes.Circle.plus.other
+    kind: parameter
+    language-kind: param
+    name: other
+    path: package:geometry/src/shapes.dart::Circle.+.(other)
+    unit: shapes-lib
+    parent: shapes.Circle.plus
+    origin: source
+    definitions:
+      - at: {path: lib/src/shapes.dart, start: [19, 28], end: [19, 33], text: other}
+  - id: shapes.Circle.unit.scale
+    kind: parameter
+    language-kind: param
+    name: scale
+    path: package:geometry/src/shapes.dart::Circle.unit.(scale)
+    unit: shapes-lib
+    parent: shapes.Circle.unit
+    origin: source
+    definitions:
+      - at: {path: lib/src/shapes.dart, start: [16, 31], end: [16, 36], text: scale}
 
 externals:
   - id: ext.dart.core.double
@@ -583,6 +606,14 @@ references:
     disposition: indeterminate
     reason: member access on a dynamic receiver binds at run time
     role: call
+  - at: {path: lib/src/shapes.dart, start: [19, 12], end: [19, 18], text: Circle}
+    from: shapes.Circle.plus
+    target: shapes.Circle
+    role: type
+  - at: {path: lib/src/shapes.dart, start: [19, 21], end: [19, 27], text: Circle}
+    from: shapes.Circle.plus
+    target: shapes.Circle
+    role: type
 
 relations:
   - id: circle-extends-shape
@@ -619,7 +650,23 @@ public-api:
     - {distribution: geometry, entity: 'shapes.Circle.plus', paths: ['package:geometry/geometry.dart::Circle.+'], access: all}
     - {distribution: geometry, entity: 'shapes.Circle.unit', paths: ['package:geometry/geometry.dart::Circle.unit'], access: all}
     - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
-  signatures: []
+  signatures:
+    - entity: shapes.Circle
+      bases:
+        - {type: "@{shapes.Labeled}", position: 0}
+        - {type: "@{shapes.Shape}"}
+    - entity: shapes.Circle.radius
+      modifiers: [final]
+      type: double
+    - entity: shapes.Circle.area
+      get: {type: {inferred: double}}
+    - entity: shapes.Circle.plus
+      parameters:
+        - {name: other, type: "@{shapes.Circle}"}
+      returns: "@{shapes.Circle}"
+    - entity: shapes.Circle.unit
+      parameters:
+        - {name: scale, type: double, mode: named, default: "1.0"}
 
 extensions:
   dart:visibility-annotation:

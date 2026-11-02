@@ -197,9 +197,21 @@ fn ids_are_unique_across_the_dataset() {
         &validate_with(&dataset, &files()),
         &[
             ("error", "model:id-unique", "/distributions/0/id"),
-            ("error", "model:id-reference", "/public-api/members/0/distribution"),
-            ("error", "model:id-reference", "/public-api/members/1/distribution"),
-            ("error", "model:id-reference", "/public-api/members/2/distribution"),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/0/distribution",
+            ),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/1/distribution",
+            ),
+            (
+                "error",
+                "model:id-reference",
+                "/public-api/members/2/distribution",
+            ),
             ("error", "model:id-reference", "/units/0/distribution"),
         ],
     );
@@ -673,7 +685,10 @@ fn scope_members_name_entities_units_or_documents() {
         json!({"unit": {"access": "scoped", "scope": ["tally.Counter", "src/lib.rs", "elsewhere"]},
                "project": "none", "external": "none"}),
     );
-    dataset["public-api"]["members"].as_array_mut().unwrap().remove(1);
+    dataset["public-api"]["members"]
+        .as_array_mut()
+        .unwrap()
+        .remove(1);
     expect(
         &validate_with(&dataset, &files()),
         &[(
@@ -706,12 +721,24 @@ fn a_public_api_member_is_externally_accessible() {
         "/entities/2/effective-visibility/external",
         json!("none"),
     );
-    set(&mut dataset, "/public-api/members/0/access", json!("subtypes"));
+    set(
+        &mut dataset,
+        "/public-api/members/0/access",
+        json!("subtypes"),
+    );
     expect(
         &validate_with(&dataset, &files()),
         &[
-            ("error", "model:public-api-access", "/public-api/members/0/access"),
-            ("error", "model:public-api-access", "/public-api/members/1/access"),
+            (
+                "error",
+                "model:public-api-access",
+                "/public-api/members/0/access",
+            ),
+            (
+                "error",
+                "model:public-api-access",
+                "/public-api/members/1/access",
+            ),
         ],
     );
 }
@@ -743,8 +770,63 @@ fn a_public_api_member_is_stated_once_per_context() {
     push(&mut dataset, "/public-api/members", copy);
     expect(
         &validate_with(&dataset, &files()),
-        &[("error", "model:public-api-duplicate", "/public-api/members/3")],
+        &[(
+            "error",
+            "model:public-api-duplicate",
+            "/public-api/members/3",
+        )],
     );
+}
+
+#[test]
+fn a_signature_names_a_project_entity_in_its_contexts() {
+    let mut dataset = dataset();
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/entity",
+        json!("tally.absent"),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:id-reference",
+            "/public-api/signatures/0/entity",
+        )],
+    );
+
+    let mut dataset = self::dataset();
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["other"]),
+    );
+    expect(
+        &validate_with(&dataset, &files()),
+        &[(
+            "error",
+            "model:context-declared",
+            "/public-api/signatures/0/contexts/0",
+        )],
+    );
+}
+
+#[test]
+fn an_external_that_only_a_signature_names_is_used() {
+    let mut dataset = dataset();
+    let external = json!({"id": "ext.core.Marker", "kind": "type", "language-kind": "trait",
+                          "distribution": "core", "path": "core::Marker"});
+    push(&mut dataset, "/externals", external);
+    expect(
+        &validate_with(&dataset, &files()),
+        &[("error", "model:external-unused", "/externals/0")],
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/returns",
+        json!({"inferred": "impl @{ext.core.Marker}"}),
+    );
+    assert!(validate_with(&dataset, &files()).passes());
 }
 
 // ----------------------------------------------------------- extensions
@@ -997,7 +1079,16 @@ fn an_entity_without_a_distribution_has_no_external_access() {
 fn an_omitted_fact_context_list_means_every_context_of_the_unit() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/2/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/members/1/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/1/contexts",
+        json!(["default"]),
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["default"]),
+    );
     expect(
         &validate_with(&dataset, &files()),
         &[
@@ -1014,7 +1105,11 @@ fn an_omitted_fact_context_list_means_every_context_of_the_unit() {
 fn a_target_exists_in_every_context_of_its_fact() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/1/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/members/0/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/0/contexts",
+        json!(["default"]),
+    );
     push(
         &mut dataset,
         "/relations",
@@ -1033,10 +1128,18 @@ fn a_target_exists_in_every_context_of_its_fact() {
 #[test]
 fn an_unknown_distribution_is_one_finding() {
     let mut dataset = dataset();
-    set(&mut dataset, "/public-api/members/0/distribution", json!("missing"));
+    set(
+        &mut dataset,
+        "/public-api/members/0/distribution",
+        json!("missing"),
+    );
     expect(
         &validate_with(&dataset, &files()),
-        &[("error", "model:id-reference", "/public-api/members/0/distribution")],
+        &[(
+            "error",
+            "model:id-reference",
+            "/public-api/members/0/distribution",
+        )],
     );
 }
 
@@ -1112,7 +1215,16 @@ fn integral_float_coordinates_are_checked_like_integers() {
 fn an_extension_target_exists_in_every_context_of_its_fact() {
     let mut dataset = two_contexts();
     set(&mut dataset, "/entities/2/contexts", json!(["default"]));
-    set(&mut dataset, "/public-api/members/1/contexts", json!(["default"]));
+    set(
+        &mut dataset,
+        "/public-api/members/1/contexts",
+        json!(["default"]),
+    );
+    set(
+        &mut dataset,
+        "/public-api/signatures/0/contexts",
+        json!(["default"]),
+    );
     set(&mut dataset, "/references/0/contexts", json!(["default"]));
     set(&mut dataset, "/references/1/contexts", json!(["default"]));
     set(
@@ -1231,7 +1343,10 @@ fn equal_coordinates_are_one_site_whatever_their_number_form() {
 #[test]
 fn a_member_the_profile_rule_finds_has_an_entry() {
     let mut dataset = dataset();
-    dataset["public-api"]["members"].as_array_mut().unwrap().remove(1);
+    dataset["public-api"]["members"]
+        .as_array_mut()
+        .unwrap()
+        .remove(1);
     expect_recomputed(
         &validate_with(&dataset, &files()),
         &[(
@@ -1251,7 +1366,10 @@ fn an_entry_lists_exactly_the_consumer_paths() {
     );
     expect_recomputed(
         &validate_with(&dataset, &files()),
-        &[("/public-api/members/0/paths", "not consumer paths [`tally::Count`]")],
+        &[(
+            "/public-api/members/0/paths",
+            "not consumer paths [`tally::Count`]",
+        )],
     );
 }
 
@@ -1284,7 +1402,10 @@ fn a_private_item_has_no_consumer_path() {
         &[
             ("/entities/2/effective-visibility", "`external` is `none`"),
             ("/entities/2/effective-visibility", "`project` is `none`"),
-            ("/public-api/members/1", "gives `tally.make` no consumer path"),
+            (
+                "/public-api/members/1",
+                "gives `tally.make` no consumer path",
+            ),
         ],
     );
 }
