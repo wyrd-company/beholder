@@ -99,9 +99,11 @@ description: |
   attributes `package` and `package-version`, the package name and version
   from its manifest, `target-name`, the Cargo target name, `edition`,
   `platform`, `features`, the sorted features Cargo's feature resolver
-  enables for that unit, and `mode`, the unit's compilation mode where it
-  differs from its context's `mode`, absent otherwise. `features` and
-  `mode` are context-variant in the model's attribute form.
+  enables for that unit, and `mode`, present when the unit's compilation
+  mode differs from its context's `mode` in some context. `features` and
+  `mode` are context-variant in the model's attribute form, so a `mode`
+  list covers every context of the unit, with the context's own mode where
+  the two agree.
   The unit key is `package`, `package-version`, the unit kind,
   `target-name` and `platform`.
 
@@ -332,7 +334,10 @@ description: |
   - Items produced by `macro_rules!` expansion or procedural macros are
     `origin: generated`, including the implementation blocks that derive
     macros generate and their associated items, with their `implements` and
-    `overrides` relations and a `rust:macro-expansion` fact for each item. When the item's name token comes from the
+    `overrides` relations and a `rust:macro-expansion` fact for each item.
+    The parameters of a generated callable are generated entities without a
+    fact of their own. A derived `implements` relation has `at` on the
+    derive name. When the item's name token comes from the
     invocation input, `definitions` is that token. Otherwise `anchor` is the
     macro path's final segment at the invocation and `generated-by` names the
     macro.

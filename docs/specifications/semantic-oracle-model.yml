@@ -581,6 +581,10 @@ description: |
 
   For an entity in a unit with no distribution, `external` is `none`.
 
+  A value has one spelling: at the `unit` boundary, a `scope` that contains
+  the entity's unit or its unit root covers the whole unit and is written
+  `all`.
+
   ### Public API membership
 
   A public API membership states that an external consumer of a distribution
