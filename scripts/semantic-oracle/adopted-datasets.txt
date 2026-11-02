@@ -1,0 +1,2 @@
+# Datasets that must hold the current `public-api` shape, relative to the fixtures
+# checkout. The commit that moves the `fixtures` pin to a migrated dataset lists it here.
