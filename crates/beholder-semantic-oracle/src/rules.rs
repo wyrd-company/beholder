@@ -48,6 +48,28 @@ pub enum PublicApiRule {
     TypeScript,
 }
 
+/// The signature slots of some `language-kind` values.
+#[derive(Debug, Clone, Copy)]
+pub struct KindSlots {
+    pub kinds: &'static [&'static str],
+    /// The slots these kinds can have.
+    pub slots: &'static [&'static str],
+    /// The slots the language always gives them.
+    pub required: &'static [&'static str],
+}
+
+const fn slots(
+    kinds: &'static [&'static str],
+    slots: &'static [&'static str],
+    required: &'static [&'static str],
+) -> KindSlots {
+    KindSlots {
+        kinds,
+        slots,
+        required,
+    }
+}
+
 /// One profile's rules.
 #[derive(Debug, Clone, Copy)]
 pub struct ProfileRules {
@@ -77,6 +99,12 @@ pub struct ProfileRules {
     pub configuration: &'static [&'static str],
     /// The public API membership rule.
     pub public_api: PublicApiRule,
+    /// The Public API section's table of slots by `language-kind`.
+    pub signature_slots: &'static [KindSlots],
+    /// Whether a source entity can have an `{inferred}` slot, per `language-kind`.
+    pub inferred_on_source: &'static [&'static str],
+    /// `language-kind` values of a `parameter` entity that a parameter list holds.
+    pub listed_parameters: &'static [&'static str],
 }
 
 use Names::*;
@@ -119,6 +147,60 @@ const RUST: ProfileRules = ProfileRules {
     augmentation: false,
     configuration: &["Cargo.toml", "rust-toolchain.toml", ".cargo/config.toml"],
     public_api: PublicApiRule::Rust,
+    signature_slots: &[
+        slots(
+            &["fn", "method", "foreign-fn"],
+            &[
+                "type-parameters",
+                "where",
+                "impl",
+                "abi",
+                "parameters",
+                "returns",
+                "modifiers",
+                "auto-traits",
+            ],
+            &[],
+        ),
+        slots(
+            &["struct", "enum", "union"],
+            &[
+                "type-parameters",
+                "where",
+                "bases",
+                "modifiers",
+                "auto-traits",
+            ],
+            &[],
+        ),
+        slots(
+            &["trait"],
+            &[
+                "type-parameters",
+                "where",
+                "bases",
+                "implementations",
+                "modifiers",
+            ],
+            &[],
+        ),
+        slots(&["type"], &["type-parameters", "where", "type"], &["type"]),
+        slots(
+            &["associated-type"],
+            &["type-parameters", "where", "bounds", "type"],
+            &[],
+        ),
+        slots(&["field"], &["type"], &["type"]),
+        slots(
+            &["static", "static-mut", "foreign-static"],
+            &["type", "modifiers"],
+            &["type"],
+        ),
+        slots(&["const"], &["type", "value", "modifiers"], &["type"]),
+        slots(&["variant"], &["value"], &[]),
+    ],
+    inferred_on_source: &[],
+    listed_parameters: &["param"],
 };
 
 const CSHARP: ProfileRules = ProfileRules {
@@ -163,6 +245,66 @@ const CSHARP: ProfileRules = ProfileRules {
         "NuGet.config",
     ],
     public_api: PublicApiRule::CSharp,
+    signature_slots: &[
+        slots(
+            &["method"],
+            &[
+                "type-parameters",
+                "parameters",
+                "returns",
+                "return-mode",
+                "modifiers",
+            ],
+            &["returns"],
+        ),
+        slots(
+            &["operator", "conversion"],
+            &["parameters", "returns", "modifiers"],
+            &["returns"],
+        ),
+        slots(&["constructor"], &["parameters", "modifiers"], &[]),
+        slots(&["static-constructor", "finalizer"], &[], &[]),
+        slots(
+            &[
+                "class",
+                "record",
+                "struct",
+                "record-struct",
+                "ref-struct",
+                "interface",
+            ],
+            &["type-parameters", "bases", "modifiers"],
+            &[],
+        ),
+        slots(&["delegate"], &["type-parameters", "modifiers"], &[]),
+        slots(&["enum"], &["underlying"], &["underlying"]),
+        slots(
+            &["field", "fixed-buffer"],
+            &["type", "modifiers"],
+            &["type"],
+        ),
+        slots(&["const"], &["type", "value"], &["type"]),
+        slots(
+            &["property", "indexer"],
+            &[
+                "get",
+                "set",
+                "init",
+                "return-mode",
+                "modifiers",
+                "parameters",
+            ],
+            &[],
+        ),
+        slots(
+            &["event"],
+            &["add", "remove", "modifiers"],
+            &["add", "remove"],
+        ),
+        slots(&["enum-member"], &["value"], &[]),
+    ],
+    inferred_on_source: &[],
+    listed_parameters: &["param"],
 };
 
 const DART: ProfileRules = ProfileRules {
@@ -199,6 +341,62 @@ const DART: ProfileRules = ProfileRules {
         "pubspec_overrides.yaml",
     ],
     public_api: PublicApiRule::Dart,
+    signature_slots: &[
+        slots(
+            &["function", "method", "operator"],
+            &["type-parameters", "parameters", "returns", "modifiers"],
+            &["returns"],
+        ),
+        slots(
+            &["constructor", "factory"],
+            &["parameters", "modifiers"],
+            &[],
+        ),
+        slots(
+            &["class", "mixin-class", "enum"],
+            &["type-parameters", "bases", "modifiers"],
+            &[],
+        ),
+        slots(
+            &["mixin"],
+            &["type-parameters", "bases", "bounds", "modifiers"],
+            &[],
+        ),
+        slots(
+            &["extension-type"],
+            &["type-parameters", "bases", "underlying", "modifiers"],
+            &["underlying"],
+        ),
+        slots(
+            &["extension"],
+            &["type-parameters", "receiver"],
+            &["receiver"],
+        ),
+        slots(&["typedef"], &["type-parameters", "type"], &["type"]),
+        slots(
+            &["field", "variable", "final", "late"],
+            &["type", "modifiers"],
+            &["type"],
+        ),
+        slots(&["accessor"], &["get", "set", "modifiers"], &[]),
+        slots(&["const"], &["type", "value"], &["type"]),
+        slots(&["enum-value"], &["type"], &[]),
+    ],
+    inferred_on_source: &[
+        "function",
+        "method",
+        "operator",
+        "constructor",
+        "factory",
+        "field",
+        "variable",
+        "final",
+        "late",
+        "accessor",
+        "enum-value",
+        "const",
+    ],
+    listed_parameters: &["param"],
 };
 
 const GO: ProfileRules = ProfileRules {
@@ -243,6 +441,29 @@ const GO: ProfileRules = ProfileRules {
     augmentation: false,
     configuration: &["go.mod", "go.work", "go.sum"],
     public_api: PublicApiRule::Go,
+    signature_slots: &[
+        slots(
+            &["func", "interface-method"],
+            &["type-parameters", "parameters", "returns"],
+            &[],
+        ),
+        slots(
+            &["method", "pointer-method"],
+            &["receiver", "parameters", "returns"],
+            &["receiver"],
+        ),
+        slots(
+            &["struct", "interface", "defined"],
+            &["type-parameters", "bases", "underlying"],
+            &["underlying"],
+        ),
+        slots(&["alias"], &["type-parameters", "type"], &["type"]),
+        slots(&["field", "embedded"], &["type", "tag"], &["type"]),
+        slots(&["var"], &["type"], &["type"]),
+        slots(&["const"], &["type", "value"], &["type"]),
+    ],
+    inferred_on_source: &["var"],
+    listed_parameters: &["param"],
 };
 
 const PYTHON: ProfileRules = ProfileRules {
@@ -274,6 +495,58 @@ const PYTHON: ProfileRules = ProfileRules {
     augmentation: false,
     configuration: &["pyproject.toml", "setup.cfg", "*.pth", "py.typed"],
     public_api: PublicApiRule::Python,
+    signature_slots: &[
+        slots(
+            &[
+                "function",
+                "method",
+                "classmethod",
+                "staticmethod",
+                "async-function",
+                "async-method",
+                "async-classmethod",
+                "async-staticmethod",
+            ],
+            &[
+                "type-parameters",
+                "parameters",
+                "returns",
+                "modifiers",
+                "overloads",
+            ],
+            &[],
+        ),
+        slots(
+            &[
+                "class",
+                "protocol",
+                "enum",
+                "typed-dict",
+                "named-tuple",
+                "dataclass",
+            ],
+            &["type-parameters", "bases", "modifiers"],
+            &[],
+        ),
+        slots(
+            &["type-statement", "type-alias"],
+            &["type-parameters", "type"],
+            &[],
+        ),
+        slots(
+            &["property", "descriptor"],
+            &["get", "set", "delete", "modifiers"],
+            &[],
+        ),
+        slots(
+            &["class-attribute", "instance-attribute", "variable", "final"],
+            &["type", "modifiers"],
+            &[],
+        ),
+        slots(&["enum-member"], &["value"], &[]),
+    ],
+    inferred_on_source: &[],
+    listed_parameters: &["param"],
 };
 
 const TYPESCRIPT: ProfileRules = ProfileRules {
@@ -314,6 +587,79 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
     augmentation: true,
     configuration: &["package.json", "tsconfig*.json", "jsconfig*.json"],
     public_api: PublicApiRule::TypeScript,
+    signature_slots: &[
+        slots(
+            &["function", "method", "static-method"],
+            &[
+                "type-parameters",
+                "parameters",
+                "returns",
+                "modifiers",
+                "overloads",
+            ],
+            &["returns"],
+        ),
+        slots(
+            &["class", "abstract-class"],
+            &[
+                "type-parameters",
+                "bases",
+                "constructors",
+                "index-signatures",
+                "modifiers",
+            ],
+            &["constructors"],
+        ),
+        slots(
+            &["interface"],
+            &[
+                "type-parameters",
+                "bases",
+                "call-signatures",
+                "construct-signatures",
+                "index-signatures",
+            ],
+            &[],
+        ),
+        slots(&["enum", "const-enum"], &[], &[]),
+        slots(&["type"], &["type-parameters", "type"], &["type"]),
+        slots(
+            &[
+                "field",
+                "static-field",
+                "parameter-property",
+                "property-signature",
+                "object-member",
+            ],
+            &["type", "modifiers"],
+            &["type"],
+        ),
+        slots(
+            &["accessor", "static-accessor"],
+            &["get", "set", "modifiers"],
+            &[],
+        ),
+        slots(&["let", "var", "const"], &["type"], &["type"]),
+        slots(&["enum-member"], &["value"], &[]),
+    ],
+    inferred_on_source: &[
+        "function",
+        "method",
+        "static-method",
+        "class",
+        "abstract-class",
+        "field",
+        "static-field",
+        "parameter-property",
+        "property-signature",
+        "object-member",
+        "accessor",
+        "static-accessor",
+        "let",
+        "var",
+        "const",
+    ],
+    listed_parameters: &["param"],
 };
 
 /// The rules of every profile of model version 1.
@@ -322,6 +668,13 @@ pub const RULES: [ProfileRules; 6] = [CSHARP, DART, GO, PYTHON, RUST, TYPESCRIPT
 impl ProfileRules {
     pub fn for_language(language: &str) -> Option<&'static ProfileRules> {
         RULES.iter().find(|rules| rules.language == language)
+    }
+
+    /// The table row of a `language-kind`.
+    pub fn slots_of(&self, language_kind: &str) -> Option<&'static KindSlots> {
+        self.signature_slots
+            .iter()
+            .find(|row| row.kinds.contains(&language_kind))
     }
 
     pub fn extension(&self, kind: &str) -> Option<&'static Extension> {

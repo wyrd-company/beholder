@@ -1,14 +1,15 @@
 //! Dataset validation and the profile audit.
 //!
-//! Validation applies the model's validation criteria 1 to 6 and the
-//! model-level part of criterion 7: the dataset schema and versions, id
+//! Validation applies the model's validation criteria 1 to 6, the
+//! model-level part of criterion 7, and criterion 8: the dataset schema and versions, id
 //! uniqueness and resolution, the document inventory and digests, locators,
 //! fact contexts against unit and document membership, dispositions,
 //! extension facts, and the consistency of public API entries with
 //! effective visibility. The audit adds criterion 9 as far as the profile
 //! rules are mechanical: document file classes, out-of-profile facts, and
 //! profile-specific value rules, with coverage notes for indexed documents
-//! that hold no fact in a context.
+//! that hold no fact in a context. Criterion 8, the signature checks, runs in
+//! validation, and the audit compares signatures with compiler reports.
 //!
 //! Every finding names the rule it enforces: `model:<rule>` for a rule of
 //! `semantic-oracle-model`, `<language>:<rule>` for a rule of a profile, and
@@ -22,7 +23,9 @@ use std::{
 
 use serde_json::{json, Value};
 
+mod compiler_report;
 mod public_api;
+mod signatures;
 
 use crate::{
     dataset_validator,
@@ -74,6 +77,40 @@ impl Finding {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Report {
     pub findings: Vec<Finding>,
+    /// The signature slots `profile:signature-compiler` could not compare; none
+    /// of these has passed. Empty, with `compared` false, outside an audit.
+    pub unchecked: Vec<Unchecked>,
+    /// How many signature slots agree with a compiler report in every context
+    /// they hold in.
+    pub agreed: usize,
+    /// Whether `profile:signature-compiler` ran.
+    pub compared: bool,
+}
+
+/// One signature slot that no compiler report states.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Unchecked {
+    /// The JSON Pointer of the slot in the dataset.
+    pub at: String,
+    /// The model's slot path.
+    pub slot: String,
+    /// The slot's class, as a report's `slot-class` groups it.
+    pub class: &'static str,
+    /// Why no report states it.
+    pub reason: String,
+}
+
+impl Unchecked {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "severity": "unchecked",
+            "rule": "profile:signature-compiler",
+            "at": self.at,
+            "slot": self.slot,
+            "slot-class": self.class,
+            "message": self.reason,
+        })
+    }
 }
 
 impl Report {
@@ -85,7 +122,10 @@ impl Report {
                 .then_with(|| a.severity.cmp(&b.severity))
         });
         findings.dedup();
-        Self { findings }
+        Self {
+            findings,
+            ..Self::default()
+        }
     }
 
     pub fn errors(&self) -> usize {
@@ -108,9 +148,20 @@ impl Report {
         self.errors() == 0
     }
 
-    /// The summary record: error and warning counts.
+    /// The summary record: error and warning counts, and for an audit, the
+    /// signature slots that agree with a compiler report and those no report
+    /// states.
     pub fn summary(&self) -> Value {
-        json!({ "errors": self.errors(), "warnings": self.warnings() })
+        if self.compared {
+            json!({
+                "errors": self.errors(),
+                "warnings": self.warnings(),
+                "agreed": self.agreed,
+                "unchecked": self.unchecked.len(),
+            })
+        } else {
+            json!({ "errors": self.errors(), "warnings": self.warnings() })
+        }
     }
 }
 
@@ -141,15 +192,27 @@ fn compare_pointers(a: &str, b: &str) -> Ordering {
 /// text are checked against the project; without, those checks are
 /// skipped.
 pub fn validate(dataset: &Value, files: Option<&dyn ProjectFiles>) -> Report {
-    run(dataset, files, false)
+    run(dataset, files, None)
 }
 
-/// Validates a dataset and audits it against its profile.
+/// Validates a dataset and audits it against its profile. No compiler report is
+/// given, so every signature slot is unchecked.
 pub fn audit(dataset: &Value, files: Option<&dyn ProjectFiles>) -> Report {
-    run(dataset, files, true)
+    audit_with_reports(dataset, files, &[])
 }
 
-fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report {
+/// Validates a dataset, audits it against its profile, and compares its
+/// signatures with compiler reports. This crate runs no compiler: each report is
+/// a JSON file that a per-language script produces outside the project tree.
+pub fn audit_with_reports(
+    dataset: &Value,
+    files: Option<&dyn ProjectFiles>,
+    reports: &[Value],
+) -> Report {
+    run(dataset, files, Some(reports))
+}
+
+fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: Option<&[Value]>) -> Report {
     let mut findings = Vec::new();
     let rules = versions(dataset, &mut findings);
     if !findings.is_empty() {
@@ -170,11 +233,18 @@ fn run(dataset: &Value, files: Option<&dyn ProjectFiles>, audit: bool) -> Report
     };
     let mut checker = Checker::new(dataset, rules, files);
     checker.validate();
-    if audit {
+    let comparison = audit.map(|reports| {
         checker.audit();
-    }
+        checker.compare_with_reports(reports)
+    });
     findings.extend(checker.finish());
-    Report::new(findings)
+    let mut report = Report::new(findings);
+    if let Some((unchecked, agreed)) = comparison {
+        report.unchecked = unchecked;
+        report.agreed = agreed;
+        report.compared = true;
+    }
+    report
 }
 
 /// Checks the model and profile versions first, so that a dataset of
@@ -340,51 +410,6 @@ const SLOTS_WITHOUT_NAMES: [&str; 13] = [
     "variance",
 ];
 
-/// The ids that `@{id}` names in a type or value text. A double-quoted string
-/// literal names nothing, and a char literal's quote opens no string.
-fn named_ids(slot: &str) -> Vec<&str> {
-    let mut ids = Vec::new();
-    let mut literal = false;
-    let mut chars = slot.char_indices();
-    while let Some((i, c)) = chars.next() {
-        match c {
-            '"' => literal = !literal,
-            '\\' if literal => {
-                chars.next();
-            }
-            '\'' if !literal => {
-                for _ in 0..char_literal_tail(&slot[i + 1..]) {
-                    chars.next();
-                }
-            }
-            '@' if !literal && slot[i..].starts_with("@{") => {
-                if let Some(end) = slot[i..].find('}') {
-                    ids.push(&slot[i + 2..i + end]);
-                }
-            }
-            _ => {}
-        }
-    }
-    ids
-}
-
-/// How many chars of `rest` finish a char literal whose opening quote precedes it:
-/// its content and closing quote, or 0 for a lifetime such as `'a`.
-fn char_literal_tail(rest: &str) -> usize {
-    let mut chars = rest.chars();
-    match chars.next() {
-        // An escape runs to its closing quote: `\"`, `\\'`, `\u{22}`.
-        Some('\\') => {
-            let escaped = chars.next().map_or(0, |_| 1);
-            chars
-                .position(|c| c == '\'')
-                .map_or(0, |quote| 2 + escaped + quote)
-        }
-        Some(_) if chars.next() == Some('\'') => 2,
-        _ => 0,
-    }
-}
-
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
 }
@@ -512,6 +537,7 @@ impl<'a> Checker<'a> {
         self.check_public_api();
         self.check_public_api_recomputed();
         self.check_signature_ids();
+        self.check_signatures();
         self.check_extensions();
         self.check_unused_externals();
     }
@@ -1672,7 +1698,7 @@ impl<'a> Checker<'a> {
     fn use_externals_named_in(&mut self, value: &'a Value) {
         match value {
             Value::String(slot) => {
-                for id in named_ids(slot) {
+                for id in crate::canonical::named_ids(slot) {
                     if let Some((id, (Class::External, _))) = self.ids.get_key_value(id) {
                         self.used_externals.insert(id);
                     }

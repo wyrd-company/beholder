@@ -21,10 +21,10 @@ use std::{
 
 use anyhow::{bail, Context, Result};
 use beholder_semantic_oracle::{
-    audit,
+    audit_with_reports,
     locator::{capture, SourceText},
     parse_yaml,
-    project::{inventory, GitProject, DATASET_FILE},
+    project::{inventory, GitProject, ProjectFiles, DATASET_FILE},
     validate, Finding, Report, Severity,
 };
 use clap::{Parser, Subcommand};
@@ -72,11 +72,17 @@ enum Command {
         #[arg(default_value = ".")]
         project: PathBuf,
     },
-    /// Validate a dataset and audit it against its profile.
+    /// Validate a dataset, audit it against its profile, and compare its
+    /// signatures with compiler reports. A slot no report states is listed as
+    /// unchecked, and has not passed.
     Audit {
         /// The project root, or the dataset file in it.
         #[arg(default_value = ".")]
         project: PathBuf,
+        /// A compiler report from a `semantic-oracle:report:<language>` task.
+        /// Repeat it for each context.
+        #[arg(long = "report")]
+        reports: Vec<PathBuf>,
     },
 }
 
@@ -132,16 +138,29 @@ fn run(command: Command) -> Result<ExitCode> {
             write!(out, "{}", inventory(&files, dataset.as_ref())?)?;
             Ok(ExitCode::SUCCESS)
         }
-        Command::Validate { project } => check(&mut out, &project, validate),
-        Command::Audit { project } => check(&mut out, &project, audit),
+        Command::Validate { project } => check(&mut out, &project, &validate),
+        Command::Audit { project, reports } => {
+            let reports = reports
+                .iter()
+                .map(|path| {
+                    let text = std::fs::read_to_string(path)
+                        .with_context(|| format!("read {}", path.display()))?;
+                    serde_json::from_str(&text).with_context(|| format!("parse {}", path.display()))
+                })
+                .collect::<Result<Vec<Value>>>()?;
+            let audit = |dataset: &Value, files: Option<&dyn ProjectFiles>| {
+                audit_with_reports(dataset, files, &reports)
+            };
+            check(&mut out, &project, &audit)
+        }
     }
 }
 
-type Check = fn(&Value, Option<&dyn beholder_semantic_oracle::project::ProjectFiles>) -> Report;
+type Check<'c> = &'c dyn Fn(&Value, Option<&dyn ProjectFiles>) -> Report;
 
 /// Runs a check and writes its findings as JSON Lines, one finding per line
 /// followed by one summary line.
-fn check(out: &mut impl Write, target: &Path, check: Check) -> Result<ExitCode> {
+fn check(out: &mut impl Write, target: &Path, check: Check<'_>) -> Result<ExitCode> {
     let (root, dataset_file) = locate_dataset(target)?;
     let text = std::fs::read_to_string(&dataset_file)
         .with_context(|| format!("read {}", dataset_file.display()))?;
@@ -157,10 +176,14 @@ fn check(out: &mut impl Write, target: &Path, check: Check) -> Result<ExitCode> 
                 at: String::new(),
                 message: format!("{cause:#}"),
             }],
+            ..Report::default()
         },
     };
     for finding in &report.findings {
         writeln!(out, "{}", finding.to_json())?;
+    }
+    for unchecked in &report.unchecked {
+        writeln!(out, "{}", unchecked.to_json())?;
     }
     writeln!(out, "{}", json!({ "summary": report.summary() }))?;
     Ok(if report.passes() {

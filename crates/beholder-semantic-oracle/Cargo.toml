@@ -20,6 +20,8 @@ serde_json.workspace = true
 sha2.workspace = true
 # YAML 1.2, the version the semantic-oracle model names for datasets.
 serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }
+# Tokenizes type text for the canonical spelling rules; `@{id}` is not any language's syntax.
+logos = "0.16"
 
 [dev-dependencies]
 json-patch = "4"

@@ -12,16 +12,20 @@
 //! Schema validation is structural. [`validate`] adds the checks the schema
 //! cannot make: id resolution and uniqueness, the document inventory and
 //! digests, locators, context partitions and membership, dispositions,
-//! extension facts and public API consistency. [`audit`] adds the
-//! mechanical part of the profile audit. [`locator`] captures locators from
+//! extension facts, public API consistency and signature checks. [`audit`] adds
+//! the mechanical part of the profile audit, and [`audit_with_reports`] compares
+//! signatures with compiler reports. [`canonical`] holds each language's type
+//! text rules, and [`signature`] the slots of a record. [`locator`] captures locators from
 //! source text, and [`project`] reads a project's tracked files.
 
+pub mod canonical;
 pub mod locator;
 pub mod project;
 pub mod rules;
+pub mod signature;
 mod validate;
 
-pub use validate::{audit, validate, Finding, Report, Severity};
+pub use validate::{audit, audit_with_reports, validate, Finding, Report, Severity, Unchecked};
 
 use anyhow::{anyhow, Context, Result};
 use jsonschema::{Draft, Registry, Validator};
