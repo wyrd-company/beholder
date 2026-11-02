@@ -859,13 +859,21 @@ impl<'a> Checker<'a> {
                     let (true, Some(package)) = (holds, text(record, "name")) else {
                         continue;
                     };
-                    let rest = subpath.strip_prefix('.').unwrap_or(subpath);
+                    // The specifier consumers write: stated where it is not
+                    // the package name followed by the subpath.
+                    let specifier = match text(fact, "specifier") {
+                        Some(specifier) => specifier.to_owned(),
+                        None => {
+                            let rest = subpath.strip_prefix('.').unwrap_or(subpath);
+                            format!("{package}{rest}")
+                        }
+                    };
                     entries
                         .entry(distribution)
                         .or_default()
                         .push(Entry::TypeScript {
                             module,
-                            prefix: format!("{mode}:{package}{rest}#"),
+                            prefix: format!("{mode}:{specifier}#"),
                         });
                 }
             }

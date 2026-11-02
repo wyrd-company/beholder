@@ -74,8 +74,9 @@ $defs:
       - if: {properties: {kind: {const: namespace}, path: {const: global}}}
         then: {required: [units]}
         else: {properties: {units: false}}
-      # The synthetic constructor is anchored on its class name.
-      - if: {properties: {origin: {const: synthetic}}}
+      # The synthetic constructor is anchored on its class name. The global
+      # namespace, which spans units, has no anchor.
+      - if: {properties: {origin: {const: synthetic}}, required: [unit]}
         then: {required: [anchor]}
 
   kind-and-language-kind:
@@ -149,6 +150,7 @@ $defs:
             distribution: {$ref: '#/$defs/id'}
             mode: {enum: [import, require]}
             subpath: {type: string, pattern: '^\.(/.+)?$'}
+            specifier: {$ref: '#/$defs/text'}
             module: {$ref: '#/$defs/id'}
           unevaluatedProperties: false
       typescript:augments:

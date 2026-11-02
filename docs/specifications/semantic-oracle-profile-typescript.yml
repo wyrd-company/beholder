@@ -73,7 +73,9 @@ description: |
 
   The global scope is a project-merged namespace entity with path `global`
   and `units` listing every `script` and `declaration-script` unit, and every
-  module that contains `declare global`.
+  module that contains `declare global`. It has no definition site and no
+  `anchor`; its key identifies it. Its effective visibility is `all` at
+  every boundary.
 
   A distribution is a package directory under the project with a
   `package.json` that has a `name`: `kind: npm-package`, `name` and `version`
@@ -102,7 +104,9 @@ description: |
 
   - A module path is the canonical document path, written in double quotes,
     such as `"src/shapes.ts"`. An ambient module declared with
-    `declare module "x"` has the path `ambient:"x"`.
+    `declare module "x"` has the path `ambient:"x"`, its definition site
+    spans the string contents without quotes, and its `parent` is `global`
+    when it is declared in the global scope.
   - A declaration path is `<module path>#<name>` followed by `.`-separated
     member names, such as `"src/shapes.ts"#Circle.area`. A static member's
     segment is `static:<name>`, such as `"src/shapes.ts"#Circle.static:unit`,
@@ -172,7 +176,14 @@ description: |
   are bindings, not entities. Members of type literals and object literal
   expressions are out-of-profile, except object literal members that a
   module-level `const` exports, which are `field` entities with
-  `language-kind` `object-member`.
+  `language-kind` `object-member`. The parameters of a function type or a
+  signature in a type literal are not entities. An object literal property
+  name that matches a member of the literal's contextual type is not a
+  reference, because the match depends on an inferred type.
+
+  A `declare module "x"` block whose specifier resolves to no module in the
+  context augments nothing and declares no entity. A module that augments
+  itself merges its declarations into its own module entity.
 
   ## Declared visibility
 
@@ -226,7 +237,9 @@ description: |
   2. Otherwise, including `moduleResolution` `node10` and `classic` and
      `resolvePackageJsonExports` false, `types`, `typings` or `main`, with
      `typesVersions` applied for the context's compiler version, selects the
-     entry module for both modes.
+     entry module for both modes; without them, the package directory's
+     `index` file does, as TypeScript resolves it. A deep import of another
+     file of such a package is not a consumer path.
   3. The members are the entry module's export namespace: its declarations
      whose declared visibility is `exported`, under their names, or
      `exported-default`, under `default`, and every name an `exports`
@@ -237,6 +250,14 @@ description: |
      `access: subtypes`. Constructors and members without a name, such as
      index signatures, are not members. An external entity that a re-export
      names is a member.
+
+  An entry module that the context's program does not contain has no
+  `typescript:entry` fact in that context. The specifier of a consumer path
+  is the package name followed by the subpath, except where consumers write
+  another: an `@types` package is imported by the name of the package it
+  types (`@types/scope__name` as `@scope/name`), and an ambient module that
+  a distribution declares is imported by its module name. A
+  `typescript:entry` fact then states that specifier.
 
   ## References
 
@@ -254,7 +275,7 @@ description: |
   | Callee of a call expression, tagged template tag | `call` |
   | Expression of a `new` expression, JSX element tag name | `construct` |
   | Type reference, `extends` and `implements` clauses, `typeof` type query operand, `keyof` operand | `type` |
-  | Property access, element access with a string literal, identifier used as a value | `read` |
+  | Property access, element access with a string literal, string literal in an indexed access type, identifier used as a value | `read` |
   | Assignment target | `write` |
   | Compound assignment, increment, decrement target | `read-write` |
   | Name in a destructuring pattern that selects a property | `pattern` |
@@ -290,7 +311,8 @@ description: |
     `implements`.
   - `aliases`: an `import x = N.y` declaration inside a namespace, from the
     resulting namespace member to `N.y`, and a `type` alias whose right side
-    is a type reference without type arguments.
+    is a type reference without type arguments, including an
+    `import("x").T` type.
   - `exports`: each name an `export` specifier, `export *`, `export * as` or
     `export =` adds to a module's export namespace, with `name` set to the
     exported name and `default` for default exports.
@@ -321,7 +343,7 @@ description: |
   | Kind | Members | Key | Compared |
   | --- | --- | --- | --- |
   | `typescript:module-format` | `unit`, `format`: `esm` or `cjs`, and the fact's `contexts` | `unit` | `format` |
-  | `typescript:entry` | `distribution`, `mode`: `import` or `require`, `subpath`: `.` or `./<subpath>` as `exports` writes it after pattern expansion, `.` when Public API rule 2 applies, `module`: the entry module entity | `distribution`, `mode`, `subpath` | `module` |
+  | `typescript:entry` | `distribution`, `mode`: `import` or `require`, `subpath`: `.` or `./<subpath>` as `exports` writes it after pattern expansion, `.` when Public API rule 2 applies, `specifier`: the specifier consumers write, where Public API states one, `module`: the entry module entity | `distribution`, `mode`, `subpath` | `module` |
   | `typescript:type-only` | `reference`: the id of an import, export or module-specifier reference that is elided from emit | `reference` | none |
   | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 

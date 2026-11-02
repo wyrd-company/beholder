@@ -507,7 +507,8 @@ description: |
   - `at` is the site that establishes the relation, when one exists: the
     base-type token, the implemented-interface token, the re-exported name.
     When several tokens establish one relation, `at` is the first in source
-    order. Structural relations with no establishing token have no `at`.
+    order. A relation that a glob or wildcard re-export establishes has `at`
+    on the wildcard token. Structural relations with no establishing token have no `at`.
   - `exports` has a `name` member: the name under which consumers of the
     container see the target. A container's own declarations are members of
     its namespace through `parent`; `exports` records every other member

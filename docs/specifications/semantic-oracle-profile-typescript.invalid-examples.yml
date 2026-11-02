@@ -51,7 +51,7 @@ cases:
       - {op: add, path: /entities/0/unit, value: globals-dts}
     fails-at: /entities/0
     keyword: required
-    member: units
+    member: [anchor, units]
   - name: namespace-block-with-units
     reason: Only the global scope is project-merged in the TypeScript profile.
     base: semantic-oracle-profile-typescript.example.yml
