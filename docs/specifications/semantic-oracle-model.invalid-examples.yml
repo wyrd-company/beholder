@@ -780,3 +780,19 @@ cases:
     patch: [{op: add, path: /public-api/signatures/4/delete, value: {type: None}}]
     fails-at: /public-api/signatures/4/delete
     keyword: const
+  - name: modifiers-beside-overloads
+    reason: The modifiers of an overloaded callable are on each of its signatures.
+    base: semantic-oracle-profile-typescript.example.yml
+    patch:
+      - op: replace
+        path: /public-api/signatures/1
+        value: {entity: shapes.Circle.area, modifiers: [static], overloads: [{returns: number}, {returns: string}]}
+    fails-at: /public-api/signatures/1/modifiers
+    keyword: falseSchema
+  - name: implementation-entry-without-self-type
+    reason: An `implementations` entry is keyed by its `type` and `self-type`.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /public-api/signatures/10/implementations/0/self-type}]
+    fails-at: /public-api/signatures/10/implementations/0
+    keyword: required
+    member: self-type

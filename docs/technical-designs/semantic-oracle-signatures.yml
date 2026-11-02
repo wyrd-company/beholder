@@ -227,30 +227,32 @@ proposed-design:
 
     | Member kind | Slots |
     | --- | --- |
-    | `callable` | `type-parameters`, `where`, `impl`, `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`; `overloads` holding these slots when one entity has several signatures |
-    | `type` | `type-parameters`, `where`, `bases`, `underlying`, `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
+    | `callable` | `type-parameters`, `where`, `impl`, `abi` (Rust), `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`; `overloads` holding these slots when one entity has several signatures |
+    | `type` | `type-parameters`, `where`, `bases`, `implementations` (Rust), `underlying`, `bounds` (a Dart mixin's `on`), `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
     | `type-alias` | `type-parameters`, `where`, `type`; for a Rust associated type, `bounds` and `type` as its default |
     | `field` | `type`, `tag` (Go), `modifiers` |
-    | `property` | `get`, `set`, `init` (C#), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
+    | `property` | `get`, `set`, `init` (C#), `add` and `remove` (a C# event), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
     | `variable` | `type`, `modifiers` |
-    | `constant` | `type`, `value` |
-    | `enum-member` | `value` |
-    | `module`, `namespace`, `macro`, `extension` | No signature. Membership states them. |
+    | `constant` | `type`, `value`, `modifiers` (Rust `provided`) |
+    | `enum-member` | `value`; `type` for a value of a generic Dart enum |
+    | `extension` | For a named Dart extension, `type-parameters` and `receiver`, its `on` type. No signature otherwise. |
+    | `module`, `namespace`, `macro` | No signature. Membership states them. |
     | An external entity a re-export names | No signature, by the model's rule on the internal structure of external entities. |
 
     | Nested record | Slots |
     | --- | --- |
     | Parameter | `name`, `type`, `mode` (profile vocabulary: `optional`, `rest`, `ref`, `out`, `in`, `params`, `self-ref`, `keyword-only`, `positional-only`, `named`, `required-named`, and similar), `default` |
     | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` (TypeScript `const`) |
-    | Accessor (`get`, `set`, `init`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
+    | Accessor (`get`, `set`, `init`, `add`, `remove`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
     | Base (`bases`) | `type`, the type text with its arguments; `position` for a Python base or a Dart mixin application; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
+    | Implementation (`implementations`) | The slots of a base, with `self-type` always, for a Rust implementation whose self type no relation can start from |
     | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
     `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
-    set. `index-signatures` are sorted by key type, `bases` by `type` and then
-    `self-type`, and `bindings` by `name`. A profile lists its modifiers, and a modifier is listed when it changes
+    set. `index-signatures` are sorted by key type, `bases` and `implementations` by
+    `type` and then `self-type`, and `bindings` by `name`. A profile lists its modifiers, and a modifier is listed when it changes
     what a consumer can do:
 
     | Language | Modifiers |
@@ -310,6 +312,18 @@ proposed-design:
     `{inferred}` slots. That entry's source declaration is the owning class, and the
     audit reads the class and the synthesis rule.
 
+    A Rust callable's `abi` is its ABI string, absent for the Rust ABI, and the tail
+    `...` of a C variadic function is a parameter `{mode: c-variadic}`. `provided` on an
+    associated constant states its default whether or not the default has a `value`
+    slot. `implementations` is a slot of a trait, for a blanket implementation and an
+    implementation for a type that is not a project type, which no `implements`
+    relation can start from.
+
+    A C# event's `add` and `remove` accessors hold its delegate type. A fixed-size
+    buffer's `type` is `char[24]`, the oracle's spelling of its length. A Python
+    signature's `type-parameters` include the module-level `TypeVar` names it uses, with
+    their declared bound, constraints, variance and default.
+
     Rust bounds have one form: a bound on a bare parameter, inline or in a `where`
     clause, is in that parameter's sorted `bounds`, and `where` holds other
     predicates only.
@@ -351,7 +365,9 @@ proposed-design:
     the named constructs below into its required categories by the model's
     existing rule. A slot whose type no source token states, because inference or
     a synthesis rule gives it, is written `{inferred: <type text>}`. An observation
-    of a type for an absent slot is `out-of-profile`.
+    of a type that the inference rule below leaves unstated is `out-of-profile`. The
+    slots of an extra parameter and a `bases` key that the record does not have stay
+    `unexpected`.
 
     | Profile | What it records | How an author derives it |
     | --- | --- | --- |
@@ -428,7 +444,8 @@ proposed-design:
     observations match two alternatives with equal values. Each slot pairs on its
     own, so one observation's slots can match different alternatives.
 
-    A `bases` entry is keyed by its `type` and `self-type`, written in the slot path:
+    A `bases` or `implementations` entry is keyed by its `type` and `self-type`, written
+    in the slot path:
     `bases[@{Trait}<u8>].where`. A wrong `where` or binding is `wrong-value` on that
     slot. A wrong `type` is a different key, so it is `unexpected` and the expected
     entry's slots are `missing`. Relation units are unchanged, so an adapter that
@@ -501,8 +518,10 @@ proposed-design:
     | `constructors[n]`, `call-signatures[n]`, `construct-signatures[n]`, `index-signatures[n]` | That constructor or unnamed callable entity |
     | `impl` | The `extension` entity, with its `type-parameter` entities |
     | `bases[k]` | The `extension` entity for a Rust implementation; the member for other languages |
+    | `implementations[k]` | The `extension` entity |
     | `underlying` | The member and its field entities |
-    | `get`, `set`, `init`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
+    | A `type-parameters` entry for a name the declaration does not declare | That name's declaration, where the profile gives one: a Python `TypeVar` |
+    | `get`, `set`, `init`, `add`, `remove`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
 
     - `profile:signature-compiler`: facts agree with the language's compiler report,
       as the Authoring section states. A language with no report is listed as

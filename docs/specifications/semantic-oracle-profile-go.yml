@@ -199,6 +199,9 @@ description: |
     `complex128`, `error`, `float32`, `float64`, the `int` and `uint` types,
     `string` and `uintptr`.
   - `any` for `interface{}`, `uint8` for `byte` and `int32` for `rune`.
+  - A parameter label in a nested function type or an interface method is omitted:
+    `func(int) int` for `func(x int) int`, and `interface { M(int) int }`. Field labels
+    of a struct stay.
   - Text follows `gofmt` spacing. A struct is `struct { A int; B string }` in field
     order. An interface is `interface { M() int; ~int | ~string }`, with methods
     sorted and then its embedded elements sorted. The terms of a union are sorted.

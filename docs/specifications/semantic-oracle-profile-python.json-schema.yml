@@ -167,6 +167,10 @@ $defs:
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      abi: false
+      implementations: false
+      add: false
+      remove: false
       impl: false
       receiver: false
       underlying: false
@@ -183,7 +187,7 @@ $defs:
       set: {$ref: '#/$defs/accessor'}
   type-parameter:
     properties:
-      variance: false
+      variance: {enum: [in, out]}
       modifiers: false
       kind: {const: type}
   parameter:

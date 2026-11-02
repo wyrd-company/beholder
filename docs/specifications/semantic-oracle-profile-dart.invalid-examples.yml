@@ -116,8 +116,8 @@ cases:
   - name: overloads-slot
     reason: 'A Dart name has one signature.'
     base: semantic-oracle-profile-dart.example.yml
-    patch: [{op: add, path: /public-api/signatures/1/overloads, value: [{returns: int}, {returns: double}]}]
-    fails-at: /public-api/signatures/1/overloads
+    patch: [{op: add, path: /public-api/signatures/0/overloads, value: [{returns: int}, {returns: double}]}]
+    fails-at: /public-api/signatures/0/overloads
     keyword: falseSchema
   - name: return-mode-slot
     reason: '`return-mode` is a C# slot.'
@@ -130,4 +130,16 @@ cases:
     base: semantic-oracle-profile-dart.example.yml
     patch: [{op: add, path: /public-api/signatures/0/bases/0/bindings, value: [{name: K, type: int}]}]
     fails-at: /public-api/signatures/0/bases/0/bindings
+    keyword: falseSchema
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/3/abi, value: C}]
+    fails-at: /public-api/signatures/3/abi
+    keyword: falseSchema
+  - name: event-accessor
+    reason: '`remove` is a C# event accessor.'
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: add, path: /public-api/signatures/2/remove, value: {type: int}}]
+    fails-at: /public-api/signatures/2/remove
     keyword: falseSchema

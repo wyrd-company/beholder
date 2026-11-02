@@ -677,24 +677,26 @@ description: |
 
   | Member kind | Slots |
   | --- | --- |
-  | `callable` | `type-parameters`, `where`, `impl`, `receiver`, `parameters`, `returns`, `return-mode`, `modifiers`; `overloads`, holding these slots, when one entity has several signatures |
-  | `type` | `type-parameters`, `where`, `bases`, `underlying`, `modifiers`; `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` where the profile gives them |
+  | `callable` | `type-parameters`, `where`, `impl`, `abi`, `receiver`, `parameters`, `returns`, `return-mode`, `modifiers`; `overloads`, holding the slots of one signature, when one entity has several signatures |
+  | `type` | `type-parameters`, `where`, `bases`, `implementations`, `underlying`, `bounds`, `modifiers`; `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` where the profile gives them |
   | `type-alias` | `type-parameters`, `where`, `type`, `bounds` |
   | `field` | `type`, `tag`, `modifiers` |
-  | `property` | `get`, `set`, `init`, `delete`, `parameters` for an indexer, `return-mode`, `modifiers` |
+  | `property` | `get`, `set`, `init`, `add`, `remove`, `delete`, `parameters` for an indexer, `return-mode`, `modifiers` |
   | `variable` | `type`, `modifiers` |
-  | `constant` | `type`, `value` |
-  | `enum-member` | `value` |
-  | `module`, `namespace`, `macro`, `extension` | None. Membership states them. |
+  | `constant` | `type`, `value`, `modifiers` |
+  | `enum-member` | `value`, `type` |
+  | `extension` | `type-parameters`, `receiver`, where the profile gives them |
+  | `module`, `namespace`, `macro` | None. Membership states them. |
 
   | Nested record | Slots |
   | --- | --- |
   | Parameter | `name`, `type`, `mode` from the profile's vocabulary, `default`. A parameter with no name token has no `name`. |
   | Type parameter | `name`, `kind` (`type`, `lifetime` or `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` |
-  | Accessor (`get`, `set`, `init`) | `type`, `access` when narrower than the member's, `modifiers`. `delete` is the value `present`. |
+  | Accessor (`get`, `set`, `init`, `add`, `remove`) | `type`, `access` when narrower than the member's, `modifiers`. `delete` is the value `present`. |
   | `impl` | `type-parameters`, `self-type`, `where` |
   | Signature group entry (`constructors`, `call-signatures`, `construct-signatures`, `index-signatures`) | The callable slots of one signature, and `access` when it restricts construction. |
   | Base (`bases`) | `type`, the type text with its arguments; `position`; `type-parameters`, `self-type`, `where` and `bindings` for an implementation |
+  | Implementation (`implementations`) | The slots of a base, with `self-type` always |
   | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
   | Alternative (`alternatives`) | `at`, the definition site of one possible definition, and the slots of that definition |
 
@@ -704,8 +706,9 @@ description: |
 
   Order is significant in `parameters`, `type-parameters`, `overloads`,
   `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
-  set, written sorted. `index-signatures` are sorted by key type, `bases` by
-  `type` and then `self-type`, and `bindings` by `name`. An entry of `overloads`
+  set, written sorted. `index-signatures` are sorted by key type, `bases` and
+  `implementations` by `type` and then `self-type`, and `bindings` by `name`. An
+  entry of `overloads`
   or a signature group that has no slot is an empty record: it holds its ordinal
   and has no comparison unit.
 
@@ -715,6 +718,14 @@ description: |
   of a member's `bases` equal its relations' targets. Two implementations of one
   generic base are one relation and two `bases` entries. `position` is the base's
   index where the profile states that base order changes behavior.
+
+  `implementations` is a slot of the implemented type, for an implementation whose
+  self type no `implements` relation can start from: a type parameter, or a type
+  that is not a project type. A relation states no such fact, so
+  `model:signature-bases` does not read this slot.
+
+  A record with `overloads` holds each signature's slots there, including
+  `modifiers`, and has none of those slots of its own.
 
   A profile that lets control flow leave several definitions of one entity
   possible states them in `alternatives`. A record with `alternatives` holds its
@@ -733,8 +744,9 @@ description: |
     and the canonical form of equivalent spellings.
   - Order stays where the language gives it meaning.
 
-  Equal facts are equal strings. Outside a string literal, `@{` does not occur in
-  the type syntax of the six languages.
+  Equal facts are equal strings. A string literal in a type text is double-quoted.
+  Outside a string literal, `@{` does not occur in the type syntax of the six
+  languages, and inside one it names nothing.
 
   A name written `@{id}` whose target has no consumer path shows that the
   signature exposes the target. The target stays a non-member.
@@ -749,12 +761,15 @@ description: |
   `type` is a key.
 
   Inferred types are in the v1 out-of-profile set. A profile moves the named
-  constructs it lists into its required categories by the rule of that set. An
-  observation of a type for a slot the record does not have is `out-of-profile`.
+  constructs it lists into its required categories by the rule of that set. Where
+  the profile's inference rule leaves a declaration's type unstated, an observation
+  of that type is `out-of-profile`. The slots of an extra parameter and a `bases`
+  key that the record does not have are `unexpected`, as Signature pairing states.
 
   A synthetic member has slots by the language rule that implies it, and each of
-  its type and value slots is `{inferred}`. A generated member whose code is not
-  an indexed document has slots by its expansion, and is written the same way.
+  its type and value slots is `{inferred}`. Its `parameter` entities are synthetic,
+  with the `anchor` of the member. A generated member whose code is not an indexed
+  document has slots by its expansion, and is written the same way.
 
   #### Value forms
 
@@ -785,8 +800,10 @@ description: |
   | `constructors[n]`, `call-signatures[n]`, `construct-signatures[n]`, `index-signatures[n]` | That constructor or unnamed callable entity |
   | `impl` | The `extension` entity, with its `type-parameter` entities |
   | `bases[k]` | The `extension` entity for an implementation; the member otherwise |
+  | `implementations[k]` | The `extension` entity |
   | `underlying` | The member and its field entities |
-  | `get`, `set`, `init`, `delete` | The property entity. An accessor record has no parameter list. |
+  | A `type-parameters` entry for a name the declaration does not declare | That name's declaration, where the profile gives one: a Python `TypeVar` |
+  | `get`, `set`, `init`, `add`, `remove`, `delete` | The property entity. An accessor record has no parameter list. |
   | `alternatives[n]` | The definition at its `at` |
 
   - `model:signature-slots`: each member has the slots its kind and profile
@@ -794,7 +811,8 @@ description: |
   - `model:signature-canonical`: a type text is in canonical spelling, and each
     `@{id}` resolves.
   - `model:signature-parameters`: the `name` values and order of a parameter list
-    equal the `parameter` entities of its source declaration, by site.
+    equal the `parameter` entities of its source declaration, by site. On a synthetic
+    member the comparison is by name and order, because those entities have no site.
   - `model:signature-references`: each `@{id}` in a declared type text has a `type`
     reference fact whose `from` is the slot's source declaration or an entity
     inside it by `parent`, and each such reference inside a parameter has its
@@ -1100,13 +1118,14 @@ description: |
   - A pair whose value differs is `wrong-value`. A value with an unresolved name,
     `@?{name}`, is `wrong-value` with reason `unresolved`. An observation equal to
     an already matched one is `duplicate`.
-  - A `bases` entry is keyed by its `type` and `self-type`, written in the slot path:
-    `bases[@{Trait}<u8>].where`, and `bases[@{Trait}<u8>, @{Self}<T>].where` for an
-    entry with a `self-type`. A wrong `where` or binding is `wrong-value` on that
+  - A `bases` or `implementations` entry is keyed by its `type` and `self-type`,
+    written in the slot path: `bases[@{Trait}<u8>].where`, and
+    `bases[@{Trait}<u8>, @{Self}<T>].where` for an entry with a `self-type`. A wrong `where` or binding is `wrong-value` on that
     slot. A wrong `type` is a different key, so it is `unexpected` and the expected
     entry's slots are `missing`.
   - Relation units do not read signatures, so an adapter that reports relations and
-    no signatures is graded on relations, and its `bases` slots are `unsupported`.
+    no signatures is graded on relations, and its `bases` and `implementations` slots
+    are `unsupported`.
   - Every alternative is expected, and each of its slots is a unit. An observation
     with `at` pairs with that alternative. An observation without `at` pairs in the
     exact pass with the first unpaired alternative in canonical order that has its
@@ -1120,7 +1139,7 @@ description: |
   | Reports no signatures | Every signature unit is `unsupported`, including `bases`. Rates for the group are undefined, the report lists the count, and no other group changes. |
   | Reports declared types and no inference | Declared units are graded. `{inferred}` units are `unsupported`. |
   | Declares inference and omits a slot | `missing`. |
-  | Reports a type for a slot the record does not have | `out-of-profile`. |
+  | Reports a type that the profile's inference rule leaves unstated | `out-of-profile`. |
 
   ### Dispositions
 
@@ -1188,7 +1207,9 @@ description: |
   | `returns: "@{Beta}"` | `returns: "@?{Beta}"` | one `wrong-value (unresolved)` |
   | parameters `a`, `b` | parameter `a` only | `a` `matched`; `b` `missing` on each slot |
   | `returns: {inferred: string}`, adapter without `signature-inferred-type` | none | one `unsupported` |
-  | no `returns` slot | `returns: int` | one `out-of-profile` |
+  | no `returns` slot, because the profile leaves it unstated | `returns: int` | one `out-of-profile` |
+  | no type slot on parameter `a`, because the profile leaves it unstated | `parameters[0].type: int` | one `out-of-profile` |
+  | parameter `a: int` | `a: int`, and an extra parameter with `type: str` | `a` `matched`; one `unexpected` on each slot of the extra parameter |
   | alternatives A `returns: int`, B `returns: str` | `returns: int`, no `at` | A `matched`; B `missing` |
   | alternatives A `returns: int`, B `returns: str` | `returns: int` at A, `returns: str` at B | two `matched` |
   | alternatives A `returns: int`, B `returns: str` | `returns: bytes`, no `at` | one `unexpected`; A and B `missing` |

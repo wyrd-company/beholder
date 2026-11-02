@@ -259,27 +259,33 @@ description: |
 
   | `language-kind` | Slots |
   | --- | --- |
-  | `fn`, `method`, `foreign-fn` | `type-parameters`, `where`, `impl`, `parameters`, `returns`, `modifiers` |
+  | `fn`, `method`, `foreign-fn` | `type-parameters`, `where`, `impl`, `abi`, `parameters`, `returns`, `modifiers` |
   | `struct`, `enum`, `union` | `type-parameters`, `where`, `bases`, `modifiers` |
-  | `trait` | `type-parameters`, `where`, `bases`, `modifiers` |
+  | `trait` | `type-parameters`, `where`, `bases`, `implementations`, `modifiers` |
   | `type` | `type-parameters`, `where`, `type` |
   | `associated-type` | `type-parameters`, `where`, `bounds`, `type` as its default |
   | `field` | `type` |
   | `static`, `static-mut`, `foreign-static` | `type`, `modifiers` |
-  | `const` | `type`, `value` |
+  | `const` | `type`, `value`, `modifiers` |
   | `variant` | `value`, for an enum whose variants are all units or that states a discriminant |
 
-  `returns` is absent for a callable that returns `()`. `value` of a variant is
+  `abi` is a callable's ABI string, absent for the Rust ABI: `C` for `extern "C" fn`,
+  `extern fn` and a function in an `extern "C"` block. `returns` is absent for a
+  callable that returns `()`. `value` of a variant is
   its discriminant, stated or implicit. A `macro_rules!` matcher is a grammar,
   and membership states the macro.
 
   Parameter modes: `self-ref` for `&self` and `self: &Self`, `self-mut-ref` for
   `&mut self` and `self: &mut Self`. A `self` taken by value is `{name: self}`. A
   receiver with a lifetime or another type has `type`, such as `&'a Self`. A
-  parameter whose pattern is not one identifier has no `name`.
+  parameter whose pattern is not one identifier has no `name`. The tail `...` of a C
+  variadic function is a last entry `{mode: c-variadic}`, and has no `parameter`
+  entity.
 
   Modifiers: `unsafe`, `const`, `async`, `non_exhaustive`, `provided` for a trait
-  item with a default body, and `auto`. Rust `async` is a modifier, because the
+  item with a default body, and `auto`. `provided` on an associated constant holds
+  whether or not the default has a `value` slot, so that `const PAIR: (u8, u8) = (0,
+  0);` is `{type: "(u8, u8)", modifiers: [provided]}`. Rust `async` is a modifier, because the
   declared return type does not state its effect on a caller.
 
   Bounds have one form. A bound on a bare parameter, inline or in a `where` clause,
@@ -302,8 +308,21 @@ description: |
   `impl Trait<u8> for X` and `impl Trait<u16> for X` are one relation and two
   entries. An entry has `type-parameters` and `self-type` when the block has binders
   or a specialized self type, `where`, and `bindings`, sorted by `name`, for the
-  associated types and constants the block sets. A blanket implementation has no
-  self type that a relation can state, and has no entry.
+  associated types and constants the block sets.
+
+  `implementations` of a trait holds one entry per implementation whose self type no
+  `implements` relation can start from: a type parameter, as in a blanket
+  implementation, or a type that is not a project type. An entry has the slots of a
+  `bases` entry, with `self-type` always:
+
+  ```yaml
+  - entity: labels.ExtLabel
+    implementations:
+      - type: "@{labels.ExtLabel}"
+        type-parameters:
+          - {name: T, kind: type, bounds: "@{ext.core.fmt.Display}"}
+        self-type: T
+  ```
 
   ```yaml
   - entity: api.Entry
@@ -330,6 +349,8 @@ description: |
     `impl @{ext.core.clone.Clone} + use<'a, T, N>`. The hidden type and the auto
     traits it leaks are not recorded.
   - A generic argument the source omits for a defaulted parameter stays omitted.
+  - A redundant type parenthesis is removed: `u8` for `(u8)`. A tuple keeps its
+    parentheses: `(u8,)` and `()`.
 
   Inference: item signatures state their types, and no slot of a source entity is
   `{inferred}`. A generated member whose code is not an indexed document has

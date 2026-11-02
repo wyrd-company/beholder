@@ -323,6 +323,46 @@ fn list<'a>(value: &'a Value, key: &str) -> &'a [Value] {
         .unwrap_or(&[])
 }
 
+/// Signature members that hold no type or value text.
+const SLOTS_WITHOUT_NAMES: [&str; 13] = [
+    "abi",
+    "access",
+    "at",
+    "contexts",
+    "delete",
+    "entity",
+    "kind",
+    "mode",
+    "modifiers",
+    "name",
+    "position",
+    "tag",
+    "variance",
+];
+
+/// The ids that `@{id}` names in a type or value text. A double-quoted string
+/// literal names nothing.
+fn named_ids(slot: &str) -> Vec<&str> {
+    let mut ids = Vec::new();
+    let mut literal = false;
+    let mut chars = slot.char_indices();
+    while let Some((i, c)) = chars.next() {
+        match c {
+            '"' => literal = !literal,
+            '\\' if literal => {
+                chars.next();
+            }
+            '@' if !literal && slot[i..].starts_with("@{") => {
+                if let Some(end) = slot[i..].find('}') {
+                    ids.push(&slot[i + 2..i + end]);
+                }
+            }
+            _ => {}
+        }
+    }
+    ids
+}
+
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
 }
@@ -1593,33 +1633,36 @@ impl<'a> Checker<'a> {
                     &format!("the unit of `{id}`"),
                 );
                 self.check_exists(format!("{at}/entity"), id, &contexts);
+                self.site_owners = self.owner_units(id);
+                for (k, alternative) in list(signature, "alternatives").iter().enumerate() {
+                    if let Some(site) = alternative.get("at") {
+                        self.check_locator(format!("{at}/alternatives/{k}/at"), site, &contexts);
+                    }
+                }
+                self.site_owners.clear();
             }
             self.use_externals_named_in(signature);
         }
     }
 
-    /// Marks each external that a `@{id}` in a slot of `value` names.
+    /// Marks each external that a `@{id}` in a type or value slot of `value`
+    /// names.
     fn use_externals_named_in(&mut self, value: &'a Value) {
         match value {
             Value::String(slot) => {
-                let mut rest = slot.as_str();
-                while let Some(start) = rest.find("@{") {
-                    rest = &rest[start + 2..];
-                    let Some(end) = rest.find('}') else {
-                        break;
-                    };
-                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(&rest[..end]) {
+                for id in named_ids(slot) {
+                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(id) {
                         self.used_externals.insert(id);
                     }
-                    rest = &rest[end + 1..];
                 }
             }
             Value::Array(items) => items
                 .iter()
                 .for_each(|item| self.use_externals_named_in(item)),
             Value::Object(members) => members
-                .values()
-                .for_each(|member| self.use_externals_named_in(member)),
+                .iter()
+                .filter(|(slot, _)| !SLOTS_WITHOUT_NAMES.contains(&slot.as_str()))
+                .for_each(|(_, member)| self.use_externals_named_in(member)),
             _ => {}
         }
     }

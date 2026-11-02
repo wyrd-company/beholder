@@ -511,6 +511,41 @@ entities:
       unit: all
       project: none
       external: none
+  - id: geometry.shapes.Area.SCALE
+    kind: constant
+    language-kind: const
+    name: SCALE
+    path: geometry::shapes::Area::SCALE
+    unit: geometry-lib
+    parent: geometry.shapes.Area
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [3, 11], end: [3, 16], text: SCALE}
+    declared-visibility: {value: inherited, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: geometry.shapes.impl-Area-for-T
+    kind: extension
+    language-kind: trait-impl
+    path: geometry::shapes::impl geometry::shapes::Area for T#1
+    unit: geometry-lib
+    parent: geometry.shapes
+    origin: source
+    definitions: []
+    declared-visibility: {value: private, explicit: false}
+    effective-visibility:
+      unit: {access: scoped, scope: [geometry.shapes]}
+      project: none
+      external: none
+  - id: geometry.shapes.impl-Area-for-T.T
+    kind: type-parameter
+    language-kind: type-param
+    name: T
+    path: geometry::shapes::impl geometry::shapes::Area for T#1::<T>
+    unit: geometry-lib
+    parent: geometry.shapes.impl-Area-for-T
+    origin: source
+    definitions:
+      - at: {path: src/shapes.rs, start: [24, 6], end: [24, 7], text: T}
 
 externals:
   - id: ext.std
@@ -654,6 +689,14 @@ references:
     from: geometry.shapes.Pair
     target: ext.core.clone.Clone
     role: type
+  - at: {path: src/shapes.rs, start: [24, 9], end: [24, 16], text: Display}
+    from: geometry.shapes.impl-Area-for-T
+    target: ext.core.fmt.Display
+    role: type
+  - at: {path: src/shapes.rs, start: [24, 18], end: [24, 22], text: Area}
+    from: geometry.shapes.impl-Area-for-T
+    target: geometry.shapes.Area
+    role: type
 
 relations:
   - kind: implements
@@ -702,6 +745,7 @@ public-api:
       contexts: [build-extras]
     - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
     - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+    - {distribution: geometry, entity: 'geometry.shapes.Area.SCALE', paths: ['geometry::shapes::Area::SCALE'], access: all}
   signatures:
     - entity: geometry.ORIGIN
       type: u32
@@ -720,6 +764,7 @@ public-api:
       bases:
         - {type: "@{geometry.shapes.Area}"}
     - entity: geometry.shapes.Area.area
+      abi: C
       modifiers: [provided]
       parameters:
         - {name: self, mode: self-ref}
@@ -731,6 +776,15 @@ public-api:
       type: f64
     - entity: geometry.Scale
       type: "@{geometry.shapes.Circle}"
+    - entity: geometry.shapes.Area
+      implementations:
+        - type: "@{geometry.shapes.Area}"
+          type-parameters:
+            - {name: T, kind: type, bounds: "@{ext.core.fmt.Display}"}
+          self-type: T
+    - entity: geometry.shapes.Area.SCALE
+      type: "(f64, f64)"
+      modifiers: [provided]
 
 extensions:
   rust:reachable-unnameable:

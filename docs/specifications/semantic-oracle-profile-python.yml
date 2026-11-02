@@ -263,9 +263,24 @@ description: |
   positions while the keys stay equal.
 
   A `type-parameters` slot lists the parameters a `def`, `class` or `type` statement
-  declares. A module-level `TypeVar` is written by its name in a type text, and the
-  statement that uses it has no `type-parameters` slot. A `TypeVarTuple` and a
-  `ParamSpec` keep their sigil in `name`, `*Ts` and `**P`.
+  declares, and the module-level `TypeVar`, `TypeVarTuple` and `ParamSpec` names its
+  signature uses, in order of first use. A type text writes each by its name. An entry
+  for a module-level name states its declaration's arguments, and that declaration is
+  the source declaration of the entry: `bound` is `bounds`, constraints are `bounds`
+  written `(int, str)` in sorted order, `covariant=True` is `variance: out`,
+  `contravariant=True` is `variance: in`, and `default` is `default`. So that a private
+  `_T` is stated, this repeats at each signature that uses the name:
+
+  ```yaml
+  - entity: atlas.convert
+    type-parameters:
+      - {name: T, kind: type, bounds: str}
+    parameters:
+      - {name: value, type: T}
+    returns: T
+  ```
+
+  A `TypeVarTuple` and a `ParamSpec` keep their sigil in `name`, `*Ts` and `**P`.
 
   Canonical spelling:
 
@@ -275,8 +290,9 @@ description: |
   - `int | None` for `Optional[int]`, `int | str` for `Union[int, str]`, and `list[int]`
     for `List[int]`. The reference audit does not expect a token that a canonical form
     removes. A string annotation is written as the type it spells.
-  - Union members are sorted. Text uses `, ` between arguments and ` | ` between union
-    members.
+  - A union is flattened, its duplicates are removed and its members are sorted: `int`
+    for `int | int`. Text uses `, ` between arguments and ` | ` between union members.
+  - A string in `Literal` is double-quoted.
 
   Inference: the profile records none. An unannotated parameter, return or variable has
   no type slot, because the typing specification leaves inference to each checker. An

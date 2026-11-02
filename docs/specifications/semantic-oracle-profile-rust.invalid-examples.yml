@@ -214,8 +214,8 @@ cases:
   - name: overloads-slot
     reason: 'A Rust path has one signature.'
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: add, path: /public-api/signatures/2/overloads, value: [{returns: u8}, {returns: u16}]}]
-    fails-at: /public-api/signatures/2/overloads
+    patch: [{op: add, path: /public-api/signatures/5/overloads, value: [{returns: u8}, {returns: u16}]}]
+    fails-at: /public-api/signatures/5/overloads
     keyword: falseSchema
   - name: alternatives-slot
     reason: '`alternatives` is a Python form.'
@@ -234,4 +234,10 @@ cases:
     base: semantic-oracle-profile-rust.example.yml
     patch: [{op: add, path: /public-api/signatures/4/type-parameters/0/variance, value: out}]
     fails-at: /public-api/signatures/4/type-parameters/0/variance
+    keyword: falseSchema
+  - name: event-accessor
+    reason: '`add` is a C# event accessor.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: add, path: /public-api/signatures/6/add, value: {type: u8}}]
+    fails-at: /public-api/signatures/6/add
     keyword: falseSchema

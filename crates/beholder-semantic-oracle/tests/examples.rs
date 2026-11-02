@@ -906,11 +906,11 @@ fn every_example_states_signatures_for_its_members() {
         "geometry.Pin",
         "geometry.Registry",
         "geometry.detail.Grid",
-        "geometry.shapes.Area",
         "atlas.portable.run",
         "stub.atlas.shapes.Shape",
         "Geometry.IShape",
         "Geometry.Generated.Metrics",
+        "Geometry.Header",
         "Geometry.Shape..ctor",
         "Geometry.Visitor",
         "ext.Legacy.Point",
@@ -958,6 +958,22 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
                 "parameters": [{"name": "self", "mode": "self-mut-ref"}, {"name": "n", "type": "u8"}],
                 "modifiers": ["async", "const", "unsafe"], "returns": "T"}),
         ),
+        // `extern "C" fn` and a C variadic tail.
+        (
+            "rust",
+            json!({"entity": "x", "abi": "C", "modifiers": ["unsafe"],
+                "parameters": [{"name": "count", "type": "i32"}, {"mode": "c-variadic"}]}),
+        ),
+        // An implementation that no type's `bases` holds: a blanket one, and one
+        // for an external self type.
+        (
+            "rust",
+            json!({"entity": "x", "implementations": [
+                {"type": "@{Tr}", "self-type": "T",
+                 "type-parameters": [{"name": "T", "kind": "type", "bounds": "@{D}"}],
+                 "bindings": [{"name": "Item", "type": "T"}]},
+                {"type": "@{Tr}", "self-type": "@{V}<T>", "where": "@{V}<T>: @{C}"}]}),
+        ),
         (
             "rust",
             json!({"entity": "x", "type-parameters": [
@@ -993,6 +1009,19 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
                 "modifiers": ["abstract", "optional", "static"]}),
         ),
         ("typescript", json!({"entity": "x", "value": "\"a\""})),
+        // A default before a required parameter emits no `?`.
+        (
+            "typescript",
+            json!({"entity": "x", "parameters": [
+                {"name": "first", "type": {"inferred": "number | undefined"}},
+                {"name": "second", "type": "string"}]}),
+        ),
+        // A legacy `TypeVar` with constraints, a variance and a default.
+        (
+            "python",
+            json!({"entity": "x", "type-parameters": [
+                {"name": "T", "kind": "type", "bounds": "(int, str)", "variance": "in", "default": "int"}]}),
+        ),
         (
             "python",
             json!({"entity": "x", "alternatives": [
@@ -1022,8 +1051,11 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
                 "parameters": [
                     {"name": "a", "mode": "ref readonly", "type": "string~"},
                     {"name": "b", "mode": "this ref", "type": "(int x, string? y)"},
-                    {"name": "c", "mode": "params", "type": "int[]", "default": "null"}],
+                    {"name": "c", "mode": "params", "type": "int[]", "default": "null"},
+                    {"name": "d", "mode": "scoped ref", "type": "@{S}"},
+                    {"name": "e", "mode": "scoped", "type": "@{S}"}],
                 "return-mode": "ref readonly", "returns": "int",
+                "add": {"type": "@{H}?"}, "remove": {"type": "@{H}?"},
                 "get": {"type": "int", "access": "protected internal", "modifiers": ["readonly"]},
                 "set": {"type": "int", "access": "private"}, "init": {"type": "int"},
                 "modifiers": ["override", "required", "sealed"]}),
@@ -1035,6 +1067,7 @@ fn every_signature_form_is_schema_valid_for_its_profile() {
                     {"name": "a", "mode": "optional", "default": "null"},
                     {"name": "b", "mode": "required-named", "type": {"inferred": "int"}, "default": {"inferred": "1"}}],
                 "underlying": "int", "get": {"type": "int"}, "set": {"type": "int", "modifiers": ["covariant"]},
+                "receiver": "@{List}<T>", "bounds": "@{Engine}",
                 "modifiers": ["abstract", "base", "const", "covariant", "external", "interface", "late", "mixin", "sealed", "static"]}),
         ),
     ];
@@ -1057,5 +1090,44 @@ fn a_bare_name_that_older_yaml_reads_as_a_boolean_is_a_string() {
     assert_eq!(
         value,
         json!({"name": "N", "kind": "const", "other": "y", "flag": true})
+    );
+}
+
+/// An alternative's site gets the same locator checks as any other site.
+#[test]
+fn an_alternative_site_is_an_ordinary_locator() {
+    let mut dataset = load("semantic-oracle-profile-python.example.yml");
+    let site = dataset["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entity| entity["id"] == "atlas.fast.run")
+        .unwrap()["definitions"][0]["at"]
+        .clone();
+    let mut reversed = site.clone();
+    reversed["start"] = json!([9, 2]);
+    reversed["end"] = json!([1, 1]);
+    let mut elsewhere = site.clone();
+    elsewhere["path"] = json!("other.py");
+    dataset["public-api"]["signatures"][0] = json!({"entity": "atlas.fast.run", "alternatives": [
+        {"at": reversed, "returns": "int"}, {"at": elsewhere, "returns": "str"}]});
+    let report = beholder_semantic_oracle::validate(&dataset, None);
+    let found: Vec<(&str, &str)> = report
+        .findings
+        .iter()
+        .map(|f| (f.rule.as_str(), f.at.as_str()))
+        .collect();
+    assert_eq!(
+        found,
+        vec![
+            (
+                "model:locator-order",
+                "/public-api/signatures/0/alternatives/0/at"
+            ),
+            (
+                "model:locator-document",
+                "/public-api/signatures/0/alternatives/1/at/path"
+            ),
+        ]
     );
 }

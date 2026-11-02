@@ -194,11 +194,21 @@ description: |
   | `field`, `fixed-buffer` | `type`, `modifiers` |
   | `const` | `type`, `value` |
   | `property`, `indexer` | `get`, `set`, `init`, `return-mode`, `modifiers`; `parameters` for an indexer |
-  | `event` | `type`, `modifiers` |
+  | `event` | `add`, `remove`, `modifiers` |
   | `enum-member` | `value` |
 
-  Parameter modes: `ref`, `out`, `in`, `ref readonly` and `params`, and for an extension
-  method's first parameter `this`, `this ref`, `this in` or `this ref readonly`. `return-mode`
+  An event's `add` and `remove` are accessors: each holds the delegate type in `type`,
+  as `add: {type: "@{ext.System.EventHandler}?"}`.
+
+  A `fixed-buffer`'s `type` is its element type with its length, `char[24]` for
+  `public fixed char Name[24]`. This is the oracle's spelling, because C# has no type
+  syntax for the length, and it states the layout that the length gives.
+
+  Parameter modes: `ref`, `out`, `in`, `ref readonly` and `params`; `scoped`, `scoped ref`,
+  `scoped in` and `scoped ref readonly`; and for an extension method's first parameter
+  `this`, `this ref`, `this in`, `this ref readonly`, `this scoped` or `this scoped ref`.
+  A mode is the effective one: `scoped out` is `out`, because an `out` parameter is
+  always scoped. `return-mode`
   is `ref` or `ref readonly`, and is absent for a return by value; `returns` holds the
   type without `ref`.
 
@@ -208,8 +218,9 @@ description: |
   or `protected internal`, when narrower than the member's, and `modifiers`, `readonly`.
 
   Every constraint is on a type parameter, so a type parameter's `bounds` holds its
-  `where` clause in its source order, and the profile has no `where` slot:
-  `class, @{IShape}, new()`. A type parameter has `variance`, `in` or `out`, when it
+  `where` clause, and the profile has no `where` slot. The language fixes a primary
+  constraint first and `new()` last, and the interface and type parameter constraints
+  between them are sorted: `class, @{IA}, @{IB}, new()`. A type parameter has `variance`, `in` or `out`, when it
   states one.
 
   `bases` holds the targets of the type's `inherits` and `implements` relations, with
@@ -236,7 +247,8 @@ description: |
 
   Inference: a declared member has no inferred type. A synthetic member, such as a
   record's copy constructor, `EqualityContract`, positional members or a delegate's
-  `Invoke`, has `{inferred: ...}` by the synthesis rule. `value` and `default` are the
+  `Invoke`, has `{inferred: ...}` by the synthesis rule, with a synthetic `parameter`
+  entity for each parameter. `value` and `default` are the
   constant's value under the specification's constant expression rules. C# `default` is
   written as the value it denotes for the type. A `decimal` is its exact decimal. An
   author derives these from the C# language specification, and a Roslyn compile probe

@@ -187,3 +187,15 @@ cases:
     patch: [{op: add, path: /public-api/signatures/1/bases/0/self-type, value: x}]
     fails-at: /public-api/signatures/1/bases/0/self-type
     keyword: falseSchema
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/abi, value: C}]
+    fails-at: /public-api/signatures/0/abi
+    keyword: falseSchema
+  - name: unknown-variance
+    reason: A `TypeVar` variance is `in` or `out`.
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: replace, path: /public-api/signatures/5/type-parameters/0/variance, value: both}]
+    fails-at: /public-api/signatures/5/type-parameters/0/variance
+    keyword: enum

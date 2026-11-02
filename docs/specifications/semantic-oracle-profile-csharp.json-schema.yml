@@ -186,6 +186,8 @@ $defs:
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      abi: false
+      implementations: false
       impl: false
       receiver: false
       overloads: false
@@ -200,6 +202,8 @@ $defs:
       get: {$ref: '#/$defs/accessor'}
       set: {$ref: '#/$defs/accessor'}
       init: {$ref: '#/$defs/accessor'}
+      add: {$ref: '#/$defs/accessor'}
+      remove: {$ref: '#/$defs/accessor'}
   type-parameter:
     properties:
       default: false
@@ -208,7 +212,7 @@ $defs:
       kind: {const: type}
   parameter:
     properties:
-      mode: {enum: [in, out, params, ref, 'ref readonly', this, 'this in', 'this ref', 'this ref readonly']}
+      mode: {enum: [in, out, params, ref, 'ref readonly', scoped, 'scoped in', 'scoped ref', 'scoped ref readonly', this, 'this in', 'this ref', 'this ref readonly', 'this scoped', 'this scoped ref']}
   base:
     properties:
       position: false

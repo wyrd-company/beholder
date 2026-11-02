@@ -157,13 +157,15 @@ description: |
   | --- | --- |
   | `function`, `method`, `operator` | `type-parameters`, `parameters`, `returns`, `modifiers` |
   | `constructor`, `factory` | `parameters`, `modifiers` |
-  | `class`, `mixin`, `mixin-class`, `enum` | `type-parameters`, `bases`, `modifiers` |
+  | `class`, `mixin-class`, `enum` | `type-parameters`, `bases`, `modifiers` |
+  | `mixin` | `type-parameters`, `bases`, `bounds`, `modifiers` |
+  | `extension` | `type-parameters`, `receiver` |
   | `extension-type` | `type-parameters`, `bases`, `underlying`, `modifiers` |
   | `typedef` | `type-parameters`, `type` |
   | `field`, `variable`, `final`, `late` | `type`, `modifiers` |
   | `accessor` | `get`, `set`, `modifiers` |
   | `const` | `type`, `value` |
-  | `enum-value` | None |
+  | `enum-value` | `type`, for a value of a generic enum |
 
   Parameter modes: `optional` for an optional positional parameter, `named` for an
   optional named parameter and `required-named` for a `required` one. A required
@@ -179,12 +181,31 @@ description: |
 
   `underlying` of an extension type is its representation type.
 
+  `bounds` of a mixin holds its `on` clause, sorted and separated by `, `, with type
+  arguments, because `on` limits which classes can apply the mixin. An `on` clause is
+  no relation, and `model:signature-bases` does not read `bounds`.
+
+  `receiver` of a named extension is its `on` type, and its `type-parameters` are the
+  extension's own:
+
+  ```yaml
+  - entity: ops.BoundedOps
+    type-parameters:
+      - {name: T, kind: type, bounds: num}
+    receiver: "@{ext.dart.core.List}<T>"
+  ```
+
+  `type` of a value of a generic enum is its instantiated type, because a consumer reads
+  the value's members at that type: `@{Wrapped}<int>` for `intWrapper<int>(0)`, and
+  `{inferred: "@{Wrapped}<int>"}` for `intWrapper(0)`.
+
   Canonical spelling:
 
   - Core names are written bare: `bool`, `double`, `dynamic`, `int`, `Never`, `Null`,
     `num`, `Object`, `String` and `void`.
-  - `T?` for a nullable type. A function type is `int Function(String)`, with parameter
-    names as the source writes them. Type aliases stay as written.
+  - `T?` for a nullable type. A function type is `int Function(String)`: a positional
+    parameter's label is omitted and a named parameter's label stays, as
+    `int Function(String, {int width})`. Type aliases stay as written.
   - Text uses `, ` between arguments and no space before `<`.
 
   Inference: an unannotated top-level variable, field, return, parameter or accessor is

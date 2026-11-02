@@ -455,6 +455,36 @@ entities:
     origin: source
     definitions:
       - at: {path: src/atlas/shapes.pyi, start: [5, 18], end: [5, 22], text: self}
+  - id: atlas.shapes.Circle.refresh.value
+    kind: parameter
+    language-kind: param
+    name: value
+    path: atlas.shapes.Circle.refresh.(value)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.refresh
+    origin: source
+    definitions:
+      - at: {path: src/atlas/shapes.py, start: [22, 29], end: [22, 34], text: value}
+  - id: atlas.shapes.Circle.__init__.self
+    kind: parameter
+    language-kind: param
+    name: self
+    path: atlas.shapes.Circle.__init__.(self)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.__init__
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/atlas/shapes.py, start: [12, 7], end: [12, 13], text: Circle}
+  - id: atlas.shapes.Circle.__init__.radius
+    kind: parameter
+    language-kind: param
+    name: radius
+    path: atlas.shapes.Circle.__init__.(radius)
+    unit: shapes-mod
+    parent: atlas.shapes.Circle.__init__
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/atlas/shapes.py, start: [12, 7], end: [12, 13], text: Circle}
 
 externals:
   - id: ext.importlib
@@ -653,8 +683,11 @@ public-api:
       type: float
     - entity: atlas.shapes.Circle.refresh
       contexts: [runtime]
+      type-parameters:
+        - {name: T, kind: type, bounds: float, variance: out}
       parameters:
         - {name: self}
+        - {name: value, type: T}
       returns: None
     - entity: stub.atlas.shapes.Shape.describe
       contexts: [typing]

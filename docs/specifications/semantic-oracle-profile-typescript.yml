@@ -296,8 +296,10 @@ description: |
   its synthetic constructor, with its inherited parameters as `{inferred}` slots. That
   entry's source declaration is the owning class.
 
-  Parameter modes: `optional` and `rest`. A parameter with a default has mode
-  `optional`, as the declaration emit states it, and no `default` slot. A `this`
+  Parameter modes: `optional` and `rest`. A parameter with a default has no `default`
+  slot, and its mode follows the `?` that the declaration emit states: a default
+  before a required parameter emits no `?`, so `f(first: number = 1, second: string)`
+  has `{name: first, type: {inferred: "number | undefined"}}` and no mode. A `this`
   parameter is the first entry, named `this`. A destructured parameter has no `name`.
 
   Modifiers: `abstract`, `optional`, `readonly` and `static`. `optional` is distinct

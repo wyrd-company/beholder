@@ -501,6 +501,30 @@ entities:
     origin: source
     definitions:
       - at: {path: lib/src/shapes.dart, start: [16, 31], end: [16, 36], text: scale}
+  - id: shapes.DoubleOps
+    kind: extension
+    language-kind: extension
+    name: DoubleOps
+    path: 'package:geometry/src/shapes.dart::DoubleOps'
+    unit: shapes-lib
+    parent: shapes-library
+    origin: source
+    definitions:
+      - at: {path: lib/src/shapes.dart, start: [31, 11], end: [31, 20], text: DoubleOps}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: shapes.DoubleOps.doubled
+    kind: callable
+    language-kind: method
+    name: doubled
+    path: 'package:geometry/src/shapes.dart::DoubleOps.doubled'
+    unit: shapes-lib
+    parent: shapes.DoubleOps
+    origin: source
+    definitions:
+      - at: {path: lib/src/shapes.dart, start: [32, 10], end: [32, 17], text: doubled}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
 
 externals:
   - id: ext.dart.core.double
@@ -614,6 +638,10 @@ references:
     from: shapes.Circle.plus
     target: shapes.Circle
     role: type
+  - at: {path: lib/src/shapes.dart, start: [31, 24], end: [31, 30], text: double}
+    from: shapes.DoubleOps
+    target: ext.dart.core.double
+    role: type
 
 relations:
   - id: circle-extends-shape
@@ -641,6 +669,11 @@ relations:
     to: shapes.Circle
     name: Circle
     at: {path: lib/geometry.dart, start: [1, 31], end: [1, 37], text: Circle}
+  - kind: exports
+    from: geometry-library
+    to: shapes.DoubleOps
+    name: DoubleOps
+    at: {path: lib/geometry.dart, start: [1, 39], end: [1, 48], text: DoubleOps}
 
 public-api:
   members:
@@ -650,6 +683,8 @@ public-api:
     - {distribution: geometry, entity: 'shapes.Circle.plus', paths: ['package:geometry/geometry.dart::Circle.+'], access: all}
     - {distribution: geometry, entity: 'shapes.Circle.unit', paths: ['package:geometry/geometry.dart::Circle.unit'], access: all}
     - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
+    - {distribution: geometry, entity: shapes.DoubleOps, paths: ['package:geometry/geometry.dart::DoubleOps'], access: all}
+    - {distribution: geometry, entity: shapes.DoubleOps.doubled, paths: ['package:geometry/geometry.dart::DoubleOps.doubled'], access: all}
   signatures:
     - entity: shapes.Circle
       bases:
@@ -667,6 +702,10 @@ public-api:
     - entity: shapes.Circle.unit
       parameters:
         - {name: scale, type: double, mode: named, default: "1.0"}
+    - entity: shapes.DoubleOps
+      receiver: double
+    - entity: shapes.DoubleOps.doubled
+      returns: double
 
 extensions:
   dart:visibility-annotation:

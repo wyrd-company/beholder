@@ -155,3 +155,9 @@ cases:
     patch: [{op: add, path: /public-api/signatures/4/type-parameters/0/variance, value: both}]
     fails-at: /public-api/signatures/4/type-parameters/0/variance
     keyword: enum
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/abi, value: C}]
+    fails-at: /public-api/signatures/1/abi
+    keyword: falseSchema

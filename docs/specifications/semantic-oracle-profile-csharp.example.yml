@@ -549,6 +549,52 @@ entities:
       - at: {path: tests/Geometry.Tests/ShapeTests.cs, start: [3, 14], end: [3, 24], text: ShapeTests}
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: all, external: none}
+  - id: Geometry.Visitor.Invoke
+    kind: callable
+    language-kind: method
+    name: Invoke
+    path: Geometry.Visitor.Invoke
+    unit: geometry-lib
+    parent: Geometry.Visitor
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Visitor.Invoke.shape
+    kind: parameter
+    language-kind: param
+    name: shape
+    path: Geometry.Visitor.Invoke.shape
+    unit: geometry-lib
+    parent: Geometry.Visitor.Invoke
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
+  - id: Geometry.Header
+    kind: type
+    language-kind: struct
+    name: Header
+    path: Geometry.Header
+    unit: geometry-lib
+    parent: Geometry
+    origin: source
+    definitions:
+      - at: {path: src/Geometry/Shapes.cs, start: [40, 22], end: [40, 28], text: Header}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Header.Name
+    kind: field
+    language-kind: fixed-buffer
+    name: Name
+    path: Geometry.Header.Name
+    unit: geometry-lib
+    parent: Geometry.Header
+    origin: source
+    definitions:
+      - at: {path: src/Geometry/Shapes.cs, start: [41, 23], end: [41, 27], text: Name}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
 
 externals:
   - id: ext.System.Object.ToString
@@ -684,6 +730,9 @@ public-api:
     - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
     - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
     - {distribution: geometry, entity: 'Geometry', paths: ['Geometry'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Visitor.Invoke', paths: ['Geometry.Visitor.Invoke'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Header', paths: ['Geometry.Header'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Header.Name', paths: ['Geometry.Header.Name'], access: all}
   signatures:
     - entity: Geometry.Shape
       modifiers: [abstract]
@@ -705,7 +754,8 @@ public-api:
       modifiers: [override]
       get: {type: double}
     - entity: Geometry.Circle.Changed
-      type: "@{ext.System.EventHandler}?"
+      add: {type: "@{ext.System.EventHandler}?"}
+      remove: {type: "@{ext.System.EventHandler}?"}
     - entity: Geometry.Circle.ToString
       modifiers: [override]
       returns: {inferred: string}
@@ -722,6 +772,12 @@ public-api:
       returns: double
     - entity: Geometry.ShapeExtensions
       modifiers: [static]
+    - entity: Geometry.Visitor.Invoke
+      parameters:
+        - {name: shape, type: {inferred: "@{Geometry.Shape}"}}
+      returns: {inferred: void}
+    - entity: Geometry.Header.Name
+      type: char[24]
 
 extensions:
   csharp:type-forward:

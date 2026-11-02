@@ -198,6 +198,8 @@ $defs:
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      add: false
+      remove: false
       receiver: false
       overloads: false
       underlying: false
@@ -212,6 +214,7 @@ $defs:
       delete: false
       impl: {properties: {type-parameters: {items: {$ref: '#/$defs/type-parameter'}}}}
       bases: {items: {$ref: '#/$defs/base'}}
+      implementations: {items: {$ref: '#/$defs/base'}}
   type-parameter:
     properties:
       variance: false
@@ -219,7 +222,7 @@ $defs:
   parameter:
     properties:
       default: false
-      mode: {enum: [self-mut-ref, self-ref]}
+      mode: {enum: [c-variadic, self-mut-ref, self-ref]}
   base:
     properties:
       position: false

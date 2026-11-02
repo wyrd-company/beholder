@@ -161,8 +161,8 @@ cases:
   - name: overloads-slot
     reason: 'Each C# overload is its own entity.'
     base: semantic-oracle-profile-csharp.example.yml
-    patch: [{op: add, path: /public-api/signatures/2/overloads, value: [{returns: int}, {returns: long}]}]
-    fails-at: /public-api/signatures/2/overloads
+    patch: [{op: add, path: /public-api/signatures/3/overloads, value: [{returns: int}, {returns: long}]}]
+    fails-at: /public-api/signatures/3/overloads
     keyword: falseSchema
   - name: where-slot
     reason: 'Every C# constraint is on a type parameter, in `bounds`.'
@@ -175,4 +175,16 @@ cases:
     base: semantic-oracle-profile-csharp.example.yml
     patch: [{op: add, path: /public-api/signatures/4/delete, value: present}]
     fails-at: /public-api/signatures/4/delete
+    keyword: falseSchema
+  - name: implementations-slot
+    reason: '`implementations` is a Rust slot.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/implementations, value: [{type: 'x', self-type: 'y'}]}]
+    fails-at: /public-api/signatures/0/implementations
+    keyword: falseSchema
+  - name: abi-slot
+    reason: '`abi` is a Rust slot.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/1/abi, value: C}]
+    fails-at: /public-api/signatures/1/abi
     keyword: falseSchema
