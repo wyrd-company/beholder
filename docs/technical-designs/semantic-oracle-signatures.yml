@@ -244,7 +244,7 @@ proposed-design:
     | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` (TypeScript `const`) |
     | Accessor (`get`, `set`, `init`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
     | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
-    | Base (`bases`) | `type`, the type text with its arguments; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
+    | Base (`bases`) | `type`, the type text with its arguments; `position` for a Python base or a Dart mixin application; for a Rust trait implementation, `type-parameters`, `self-type`, `where`, `bindings` |
     | Binding (`bindings`) | `name`, `type-parameters`, `where`, and `type` or `value` |
 
     Order is significant in `parameters`, `type-parameters`, `overloads`,
@@ -284,6 +284,12 @@ proposed-design:
     `impl Trait<u8> for X` and `impl Trait<u16> for X` are one relation and two
     `bases` entries.
 
+    Base order changes behavior in two languages. A Python base's `position` is its
+    index in the class's base list, which sets the method resolution order, and a
+    Dart mixin's `position` is its index in the `with` clause. `position` is a
+    compared slot, so that reversing `class C(A, B)` is a `SlotChanged` on both
+    entries while their keys stay equal.
+
     A member of an inherent Rust implementation has the `impl` slot when the block
     has binders or a specialized self type, because the block decides when a
     consumer can call the member: `impl<T: Clone> Container<T>` is
@@ -301,7 +307,8 @@ proposed-design:
     `access` when it is `protected` or `private`, so that restricted construction
     stays visible. A class that declares no constructor has one `constructors`
     entry for its synthetic constructor, with its inherited parameters as
-    `{inferred}` slots.
+    `{inferred}` slots. That entry's source declaration is the owning class, and the
+    audit reads the class and the synthesis rule.
 
     Rust bounds have one form: a bound on a bare parameter, inline or in a `where`
     clause, is in that parameter's sorted `bounds`, and `where` holds other
@@ -424,6 +431,7 @@ proposed-design:
     | alternatives A and B, both `returns: int` | `returns: int`, no `at`, three times | two `matched`, one `duplicate` |
     | `bases` `@{T}<u8>` and `@{T}<u16>`, each `where: W` | both types, each `where: Z` | two `wrong-value` |
     | `bases` `@{T}<u8>` | `@{T}<u16>` | `type` `unexpected`; `@{T}<u8>` `type` `missing` |
+    | `bases` `@{A}` position 0, `@{B}` position 1 | `@{A}` position 1, `@{B}` position 0 | two `wrong-value` |
     | `implements X→T`, `bases` `@{T}<u8>`, adapter with relations only | `implements X→T` | relation `matched`; `bases` slot `unsupported` |
 
     Validation and audit check:
@@ -443,7 +451,9 @@ proposed-design:
       inference rule by `profile:signature-probe`. An `{inferred}` slot on a synthetic
       entity is audited against its `anchor` and synthesis rule.
     - `model:signature-bases`: the targets of `bases` equal the member's `inherits`
-      and `implements` relations.
+      and `implements` relations. A base that the profile's structural rule gives, such
+      as a Go `implements` pair, has no source token, and the audit reads its method
+      sets instead of a reference.
 
     The source declaration of a slot is:
 
@@ -494,8 +504,9 @@ proposed-design:
     - The pairing is one global pass. The candidates are all pairs of the same kind
       with at least one shared consumer path, ordered by the most shared paths, then
       the first shared path, then the two canonical paths. Each candidate in order
-      pairs when neither side has a pair. Entities with no pair then pair by equal
-      canonical path and kind, and the rest are `MemberAdded` and `MemberRemoved`.
+      pairs when neither side has a pair, and a tie that remains orders by the full
+      entity key. Entities with no pair then pair by equal full entity key, and the
+      rest are `MemberAdded` and `MemberRemoved`.
       For A {a,b,c}, B {d,e}, X {a,b,d,e}, Y {c}: A pairs with X, B is removed, and Y
       is added. A signature that names a target with no pair reports `SlotChanged`.
     - A type parameter compares by position, so that a rename of `T` is no change.
