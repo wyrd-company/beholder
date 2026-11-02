@@ -651,27 +651,29 @@ relations:
     contexts: [build-extras]
 
 public-api:
-  - {distribution: geometry, entity: geometry.crate, paths: [geometry], access: all}
-  - {distribution: geometry, entity: geometry.ORIGIN, paths: ['geometry::ORIGIN'], access: all}
-  - {distribution: geometry, entity: geometry.Pin, paths: ['geometry::Pin'], access: all}
-  - {distribution: geometry, entity: geometry.Registry, paths: ['geometry::Registry'], access: all}
-  - {distribution: geometry, entity: geometry.make_hidden, paths: ['geometry::make_hidden'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Kind, paths: ['geometry::shapes::Kind'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Kind.Round, paths: ['geometry::shapes::Kind::Round'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Pair, paths: ['geometry::shapes::Pair'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Solid, paths: ['geometry::shapes::Solid'], access: all}
-  - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Circle, paths: ['geometry::shapes::Circle'], access: all}
-  - {distribution: geometry, entity: geometry.shapes.Circle.radius, paths: ['geometry::shapes::Circle::radius'], access: all}
-  - distribution: geometry
-    entity: geometry.detail.Grid
-    paths: ['geometry::Lattice']
-    access: all
-    contexts: [build-extras]
-  - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
-  - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+  members:
+    - {distribution: geometry, entity: geometry.crate, paths: [geometry], access: all}
+    - {distribution: geometry, entity: geometry.ORIGIN, paths: ['geometry::ORIGIN'], access: all}
+    - {distribution: geometry, entity: geometry.Pin, paths: ['geometry::Pin'], access: all}
+    - {distribution: geometry, entity: geometry.Registry, paths: ['geometry::Registry'], access: all}
+    - {distribution: geometry, entity: geometry.make_hidden, paths: ['geometry::make_hidden'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Kind, paths: ['geometry::shapes::Kind'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Kind.Round, paths: ['geometry::shapes::Kind::Round'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Pair, paths: ['geometry::shapes::Pair'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Solid, paths: ['geometry::shapes::Solid'], access: all}
+    - {distribution: geometry, entity: geometry.shapes, paths: ['geometry::shapes'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Area, paths: ['geometry::shapes::Area'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Area.area, paths: ['geometry::shapes::Area::area'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Circle, paths: ['geometry::shapes::Circle'], access: all}
+    - {distribution: geometry, entity: geometry.shapes.Circle.radius, paths: ['geometry::shapes::Circle::radius'], access: all}
+    - distribution: geometry
+      entity: geometry.detail.Grid
+      paths: ['geometry::Lattice']
+      access: all
+      contexts: [build-extras]
+    - {distribution: geometry, entity: geometry.Scale, paths: ['geometry::Scale'], access: all}
+    - {distribution: geometry, entity: geometry.square, paths: ['geometry::square'], access: all}
+  signatures: []
 
 extensions:
   rust:reachable-unnameable:

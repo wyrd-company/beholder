@@ -629,28 +629,30 @@ relations:
     contexts: [esm]
 
 public-api:
-  - distribution: geometry
-    entity: shapes.Circle
-    paths: ['import:@acme/geometry#Circle', 'require:@acme/geometry#Circle']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.area
-    paths: ['import:@acme/geometry#Circle.area', 'require:@acme/geometry#Circle.area']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.diameter
-    paths: ['import:@acme/geometry#Circle.diameter', 'require:@acme/geometry#Circle.diameter']
-    access: all
-  - distribution: geometry
-    entity: shapes.Circle.radius
-    paths: ['import:@acme/geometry#Circle.radius', 'require:@acme/geometry#Circle.radius']
-    access: all
-  - distribution: geometry
-    entity: shapes.makeShape
-    paths: ['import:@acme/geometry#default', 'require:@acme/geometry#default']
-    access: all
-    contexts: [esm]
-  - {distribution: geometry, entity: 'index', paths: ['import:@acme/geometry', 'require:@acme/geometry'], access: all}
+  members:
+    - distribution: geometry
+      entity: shapes.Circle
+      paths: ['import:@acme/geometry#Circle', 'require:@acme/geometry#Circle']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.area
+      paths: ['import:@acme/geometry#Circle.area', 'require:@acme/geometry#Circle.area']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.diameter
+      paths: ['import:@acme/geometry#Circle.diameter', 'require:@acme/geometry#Circle.diameter']
+      access: all
+    - distribution: geometry
+      entity: shapes.Circle.radius
+      paths: ['import:@acme/geometry#Circle.radius', 'require:@acme/geometry#Circle.radius']
+      access: all
+    - distribution: geometry
+      entity: shapes.makeShape
+      paths: ['import:@acme/geometry#default', 'require:@acme/geometry#default']
+      access: all
+      contexts: [esm]
+    - {distribution: geometry, entity: 'index', paths: ['import:@acme/geometry', 'require:@acme/geometry'], access: all}
+  signatures: []
 
 extensions:
   typescript:module-format:

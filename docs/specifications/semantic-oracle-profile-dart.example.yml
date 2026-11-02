@@ -612,12 +612,14 @@ relations:
     at: {path: lib/geometry.dart, start: [1, 31], end: [1, 37], text: Circle}
 
 public-api:
-  - {distribution: geometry, entity: shapes.Circle, paths: ['package:geometry/geometry.dart::Circle'], access: all}
-  - {distribution: geometry, entity: shapes.Circle.radius, paths: ['package:geometry/geometry.dart::Circle.radius'], access: all}
-  - {distribution: geometry, entity: shapes.Circle.area, paths: ['package:geometry/geometry.dart::Circle.area'], access: all}
-  - {distribution: geometry, entity: 'shapes.Circle.plus', paths: ['package:geometry/geometry.dart::Circle.+'], access: all}
-  - {distribution: geometry, entity: 'shapes.Circle.unit', paths: ['package:geometry/geometry.dart::Circle.unit'], access: all}
-  - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
+  members:
+    - {distribution: geometry, entity: shapes.Circle, paths: ['package:geometry/geometry.dart::Circle'], access: all}
+    - {distribution: geometry, entity: shapes.Circle.radius, paths: ['package:geometry/geometry.dart::Circle.radius'], access: all}
+    - {distribution: geometry, entity: shapes.Circle.area, paths: ['package:geometry/geometry.dart::Circle.area'], access: all}
+    - {distribution: geometry, entity: 'shapes.Circle.plus', paths: ['package:geometry/geometry.dart::Circle.+'], access: all}
+    - {distribution: geometry, entity: 'shapes.Circle.unit', paths: ['package:geometry/geometry.dart::Circle.unit'], access: all}
+    - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
+  signatures: []
 
 extensions:
   dart:visibility-annotation:

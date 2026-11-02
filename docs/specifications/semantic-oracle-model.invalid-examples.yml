@@ -556,20 +556,20 @@ cases:
   - name: public-api-access-none
     reason: Public API access is `all` or `subtypes`.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/access, value: none}]
-    fails-at: /public-api/0/access
+    patch: [{op: replace, path: /public-api/members/0/access, value: none}]
+    fails-at: /public-api/members/0/access
     keyword: enum
   - name: public-api-without-paths
     reason: A public API membership has at least one consumer path.
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/paths, value: []}]
-    fails-at: /public-api/0/paths
+    patch: [{op: replace, path: /public-api/members/0/paths, value: []}]
+    fails-at: /public-api/members/0/paths
     keyword: minItems
   - name: public-api-single-path-string
     reason: '`paths` is a list.'
     base: semantic-oracle-profile-rust.example.yml
-    patch: [{op: replace, path: /public-api/0/paths, value: 'geometry::shapes'}]
-    fails-at: /public-api/0/paths
+    patch: [{op: replace, path: /public-api/members/0/paths, value: 'geometry::shapes'}]
+    fails-at: /public-api/members/0/paths
     keyword: type
 
   # ------------------------------------------------------------- extensions

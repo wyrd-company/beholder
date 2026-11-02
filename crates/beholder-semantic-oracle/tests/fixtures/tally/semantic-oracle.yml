@@ -90,7 +90,9 @@ references:
     role: construct
 relations: []
 public-api:
-  - {distribution: tally, entity: tally.Counter, paths: ['tally::Counter'], access: all}
-  - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
-  - {distribution: tally, entity: tally.crate, paths: [tally], access: all}
+  members:
+    - {distribution: tally, entity: tally.Counter, paths: ['tally::Counter'], access: all}
+    - {distribution: tally, entity: tally.make, paths: ['tally::make'], access: all}
+    - {distribution: tally, entity: tally.crate, paths: [tally], access: all}
+  signatures: []
 extensions: {}

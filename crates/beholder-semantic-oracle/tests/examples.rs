@@ -363,17 +363,17 @@ fn valid_examples_pass_validation_and_audit_without_project_files() {
 fn every_profile_recomputes_public_api() {
     for example in assets(".example.yml") {
         let mut dataset = load(&example);
-        let entries = dataset["public-api"].as_array_mut().unwrap();
+        let entries = dataset["public-api"]["members"].as_array_mut().unwrap();
         let removed = entries.pop().expect("the example states public API");
         let report = beholder_semantic_oracle::validate(&dataset, None);
         let recomputed: Vec<_> = report
             .findings
             .iter()
-            .filter(|f| f.rule == "model:public-api-recomputed")
+            .filter(|f| f.rule == "model:public-api-membership-recomputed")
             .collect();
         assert_eq!(recomputed.len(), 1, "{example}: {recomputed:#?}");
         let entity = removed["entity"].as_str().unwrap();
-        assert_eq!(recomputed[0].at, "/public-api", "{example}");
+        assert_eq!(recomputed[0].at, "/public-api/members", "{example}");
         assert!(
             recomputed[0].message.contains(&format!("`{entity}`")),
             "{example}: {}",
@@ -387,7 +387,7 @@ fn recomputed(dataset: &Value) -> Vec<String> {
     beholder_semantic_oracle::validate(dataset, None)
         .findings
         .into_iter()
-        .filter(|f| f.rule == "model:public-api-recomputed")
+        .filter(|f| f.rule == "model:public-api-membership-recomputed")
         .map(|f| format!("{} {}", f.at, f.message))
         .collect()
 }
@@ -701,7 +701,7 @@ fn a_go_package_without_exported_names_is_a_member() {
 #[test]
 fn an_internal_go_package_is_not_a_member() {
     let dataset = load("semantic-oracle-profile-go.example.yml");
-    let entries = dataset["public-api"].as_array().unwrap();
+    let entries = dataset["public-api"]["members"].as_array().unwrap();
     assert!(entries.iter().all(|entry| entry["entity"] != "calc"));
     assert_eq!(recomputed(&dataset), Vec::<String>::new());
 }

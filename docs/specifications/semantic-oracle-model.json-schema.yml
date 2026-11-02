@@ -96,7 +96,7 @@ $defs:
       externals: {type: array, items: {$ref: '#/$defs/external'}}
       references: {type: array, items: {$ref: '#/$defs/reference'}}
       relations: {type: array, items: {$ref: '#/$defs/relation'}}
-      public-api: {type: array, items: {$ref: '#/$defs/public-api-membership'}}
+      public-api: {$ref: '#/$defs/public-api'}
       extensions: {$ref: '#/$defs/extensions'}
 
   # --------------------------------------------------------------- scalars
@@ -462,6 +462,14 @@ $defs:
     else: {properties: {name: false, visibility: false}}
 
   # ------------------------------------------------------------- public API
+  public-api:
+    type: object
+    required: [members, signatures]
+    additionalProperties: false
+    properties:
+      members: {type: array, items: {$ref: '#/$defs/public-api-membership'}}
+      signatures: {type: array, items: {type: object}}
+
   public-api-membership:
     type: object
     required: [distribution, entity, paths, access]

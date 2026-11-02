@@ -390,6 +390,14 @@ impl<'a> Checker<'a> {
         list(self.dataset, key)
     }
 
+    /// The membership entries of `public-api`.
+    fn public_api_members(&self) -> &'a [Value] {
+        self.dataset
+            .get("public-api")
+            .map(|public_api| list(public_api, "members"))
+            .unwrap_or(&[])
+    }
+
     fn error(&mut self, rule: &str, at: String, message: String) {
         self.findings.push(error(rule, at, message));
     }
@@ -1490,8 +1498,8 @@ impl<'a> Checker<'a> {
 
     fn check_public_api(&mut self) {
         let mut seen: BTreeMap<(&'a str, &'a str), Vec<Contexts<'a>>> = BTreeMap::new();
-        for (i, membership) in self.list("public-api").iter().enumerate() {
-            let at = format!("/public-api/{i}");
+        for (i, membership) in self.public_api_members().iter().enumerate() {
+            let at = format!("/public-api/members/{i}");
             let distribution = text(membership, "distribution").unwrap_or_default();
             let resolved = self
                 .expect(

@@ -581,29 +581,31 @@ relations:
     at: {path: shapes.go, start: [37, 2], end: [37, 7], text: Shape}
 
 public-api:
-  - {distribution: geometry-module, entity: geometry.Shape, paths: [example.com/geometry.Shape], access: all}
-  - {distribution: geometry-module, entity: geometry.Circle, paths: [example.com/geometry.Circle], access: all}
-  - {distribution: geometry-module, entity: geometry.Base.Label, paths: [example.com/geometry.Base.Label, example.com/geometry.Circle.Label], access: all}
-  - distribution: geometry-module
-    entity: geometry.Platform.linux
-    paths: [example.com/geometry.Platform]
-    access: all
-    contexts: [linux, linux-test]
-  - distribution: geometry-module
-    entity: geometry.Platform.darwin
-    paths: [example.com/geometry.Platform]
-    access: all
-    contexts: [darwin]
-  - {distribution: geometry-module, entity: 'geometry.Base', paths: ['example.com/geometry.Base'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Circle.Area', paths: ['example.com/geometry.Circle.Area'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Circle.Base', paths: ['example.com/geometry.Circle.Base'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Meters', paths: ['example.com/geometry.Meters'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Pair', paths: ['example.com/geometry.Pair'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Pi', paths: ['example.com/geometry.Pi'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Shape.Area', paths: ['example.com/geometry.Shape.Area'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Solid', paths: ['example.com/geometry.Solid'], access: all}
-  - {distribution: geometry-module, entity: 'geometry.Table', paths: ['example.com/geometry.Table'], access: all}
-  - {distribution: geometry-module, entity: 'geometry', paths: ['example.com/geometry'], access: all}
+  members:
+    - {distribution: geometry-module, entity: geometry.Shape, paths: [example.com/geometry.Shape], access: all}
+    - {distribution: geometry-module, entity: geometry.Circle, paths: [example.com/geometry.Circle], access: all}
+    - {distribution: geometry-module, entity: geometry.Base.Label, paths: [example.com/geometry.Base.Label, example.com/geometry.Circle.Label], access: all}
+    - distribution: geometry-module
+      entity: geometry.Platform.linux
+      paths: [example.com/geometry.Platform]
+      access: all
+      contexts: [linux, linux-test]
+    - distribution: geometry-module
+      entity: geometry.Platform.darwin
+      paths: [example.com/geometry.Platform]
+      access: all
+      contexts: [darwin]
+    - {distribution: geometry-module, entity: 'geometry.Base', paths: ['example.com/geometry.Base'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Circle.Area', paths: ['example.com/geometry.Circle.Area'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Circle.Base', paths: ['example.com/geometry.Circle.Base'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Meters', paths: ['example.com/geometry.Meters'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Pair', paths: ['example.com/geometry.Pair'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Pi', paths: ['example.com/geometry.Pi'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Shape.Area', paths: ['example.com/geometry.Shape.Area'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Solid', paths: ['example.com/geometry.Solid'], access: all}
+    - {distribution: geometry-module, entity: 'geometry.Table', paths: ['example.com/geometry.Table'], access: all}
+    - {distribution: geometry-module, entity: 'geometry', paths: ['example.com/geometry'], access: all}
+  signatures: []
 
 extensions:
   go:embeds:

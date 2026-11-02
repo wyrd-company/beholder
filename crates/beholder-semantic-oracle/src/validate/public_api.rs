@@ -1,6 +1,6 @@
 //! Public API recomputation: model validation criterion 7.
 //!
-//! The model requires every `public-api` entry to agree with the membership
+//! The model requires every `public-api` membership to agree with the membership
 //! recomputed from `exports`, `parent`, visibility and the profile's public
 //! API rule. This module walks each distribution's consumer paths by the
 //! profile rule, context by context, and compares the result with the
@@ -1014,7 +1014,7 @@ impl<'a> Checker<'a> {
     /// The dataset's `public-api` entries, by member and context.
     fn stated_public_api(&self) -> Stated<'a> {
         let mut stated: Stated<'a> = BTreeMap::new();
-        for (i, entry) in self.list("public-api").iter().enumerate() {
+        for (i, entry) in self.public_api_members().iter().enumerate() {
             let (Some(distribution), Some(id)) =
                 (text(entry, "distribution"), text(entry, "entity"))
             else {
@@ -1072,7 +1072,7 @@ impl<'a> Checker<'a> {
                 let (at, message) = match (wanted, had) {
                     (None, None) => continue,
                     (Some(member), None) => (
-                        "/public-api".to_owned(),
+                        "/public-api/members".to_owned(),
                         format!(
                             "the profile rule makes `{id}` a member of `{distribution}` with \
                              paths {} and access `{}`; no entry states it",
@@ -1089,7 +1089,7 @@ impl<'a> Checker<'a> {
                         continue
                     }
                     (None, Some((i, _))) => (
-                        format!("/public-api/{i}"),
+                        format!("/public-api/members/{i}"),
                         format!(
                             "the profile rule gives `{id}` no consumer path in `{distribution}`"
                         ),
@@ -1109,7 +1109,7 @@ impl<'a> Checker<'a> {
                             }
                             grouped
                                 .entry((
-                                    format!("/public-api/{i}/paths"),
+                                    format!("/public-api/members/{i}/paths"),
                                     format!(
                                         "the profile rule gives `{id}` the paths {}: {}",
                                         path_list(&member.paths),
@@ -1122,7 +1122,7 @@ impl<'a> Checker<'a> {
                         if member.access != stated.access {
                             grouped
                                 .entry((
-                                    format!("/public-api/{i}/access"),
+                                    format!("/public-api/members/{i}/access"),
                                     format!(
                                         "the profile rule gives `{id}` access `{}`",
                                         member.access.as_str()
@@ -1142,7 +1142,7 @@ impl<'a> Checker<'a> {
         }
         for ((at, message), contexts) in grouped {
             self.error(
-                "model:public-api-recomputed",
+                "model:public-api-membership-recomputed",
                 at,
                 format!("{message} in {}", names(&contexts)),
             );
