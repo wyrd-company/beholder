@@ -33,6 +33,8 @@ properties:
     items:
       properties:
         kind: {enum: [implements, inherits, overrides, aliases]}
+        # The profile gives export bindings no visibility.
+        visibility: false
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:

@@ -276,8 +276,7 @@ entities:
     unit: geometry-lib
     parent: geometry.shapes.Pair
     origin: source
-    definitions:
-      - at: {path: src/shapes.rs, start: [11, 24], end: [11, 25], text: T}
+    definitions: []
     declared-visibility: {value: 'pub(super)', explicit: true}
     effective-visibility:
       unit: {access: scoped, scope: [geometry.crate]}

@@ -172,3 +172,16 @@ cases:
     patch: [{op: replace, path: /extensions/rust:macro-expansion/0/invocation, value: geometry.marker}]
     fails-at: /extensions/rust:macro-expansion/0/invocation
     keyword: type
+  - name: exports-without-visibility
+    reason: A Rust `exports` relation states the visibility of its `use` item.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /relations/4/visibility}]
+    fails-at: /relations/4
+    keyword: required
+    member: visibility
+  - name: unknown-exports-visibility
+    reason: '`public` is not a Rust visibility.'
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: replace, path: /relations/4/visibility, value: public}]
+    fails-at: /relations/4/visibility
+    keyword: anyOf

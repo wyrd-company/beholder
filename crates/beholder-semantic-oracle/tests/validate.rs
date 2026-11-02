@@ -1284,35 +1284,6 @@ fn a_private_item_has_no_consumer_path() {
 }
 
 #[test]
-fn a_rust_exports_relation_states_its_visibility() {
-    let mut dataset = dataset();
-    push(
-        &mut dataset,
-        "/relations",
-        json!({"kind": "exports", "from": "tally.crate", "to": "tally.Counter", "name": "Tally"}),
-    );
-    push(
-        &mut dataset,
-        "/relations",
-        json!({
-            "kind": "exports", "from": "tally.crate", "to": "tally.make",
-            "name": "build", "visibility": "public",
-        }),
-    );
-    expect(
-        &validate_with(&dataset, &files()),
-        &[
-            ("error", "rust:exports-visibility", "/relations/0"),
-            (
-                "error",
-                "rust:exports-visibility",
-                "/relations/1/visibility",
-            ),
-        ],
-    );
-}
-
-#[test]
 fn a_definition_site_holds_in_contexts_of_its_entity() {
     let mut dataset = dataset();
     set(

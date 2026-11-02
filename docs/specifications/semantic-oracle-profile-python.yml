@@ -51,11 +51,34 @@ description: |
 
   Every Python project has one `runtime` context and one `typing` context
   with the interpreter and platform the fixture plan declares. The
-  `search-path` is the project root, written `.`, followed by every root the project's
-  configuration, `.pth` files in the project, or task commands add, in the
-  order the import system consults them. Each command in the project's
-  `build` and `test` tasks that runs Python with a different parameter value
-  defines a further `runtime` context.
+  `search-path` is the project's import root followed by every root
+  that the project's configuration or task commands add, and every root
+  that a `.pth` file adds when it lies in a site directory that the
+  configuration or a task command establishes, in the order the import
+  system consults them. A `.pth` file outside such a site directory adds
+  no root. Each command in the project's `build` and `test` tasks that runs
+  Python with a different parameter value defines a further `runtime`
+  context; a command that only compiles files, such as `compileall`, runs
+  no project module and defines none. The `typing` context's `command` is
+  `none` when no project command runs a type checker.
+
+  The import root is the directory that holds the project's top-level
+  packages and modules: the package directory the build configuration
+  declares, such as `src` for a src layout, and otherwise the project root,
+  written `.`.
+
+  A search path that a function body changes at run time, through
+  `sys.path`, `site.addsitedir` or a package's `__path__`, is outside every
+  context. Code that a module runs when it is imported is not: a package
+  `__init__` that extends its own `__path__` at module level adds those
+  directories as portions of the package in `runtime` contexts.
+
+  A branch whose test the typing specification evaluates statically, a
+  comparison of `sys.platform` or `sys.version_info`, `TYPE_CHECKING`, or
+  the literal `True` or `False`, holds only in the contexts whose
+  `platform`, `python` or `mode` take it. Facts whose sites lie in a branch
+  that a context does not take do not hold in that context. Other
+  conditional code holds in every context.
 
   `runtime` facts state what the import system and execution model do when
   the project's modules are imported and its declared entry points run.
@@ -80,7 +103,16 @@ description: |
   `kind: python-distribution`, `name` and `version` from that table. Its
   units are the modules of the import packages and modules its build
   configuration includes, by the build backend's declared or default package
-  discovery.
+  discovery. When discovery fails, as setuptools' automatic discovery does
+  for a flat layout with several top-level packages, the distribution has no
+  units.
+
+  Every directory below a `search-path` root that has no `__init__.py` and
+  holds a Python module at some depth is a portion of a namespace package.
+  A namespace package's `units` lists its own unit and the units of the
+  modules, packages and namespace packages directly inside its portions. A
+  module entity is the root of its unit and has no `parent`; its module
+  name states its package.
 
   ## Documents
 
@@ -136,9 +168,16 @@ description: |
   its module name, with `units` listing the directories' modules that
   contribute portions.
 
-  A module that the project implements in another language, such as a
-  compiled extension module, is an external entity whose distribution is the
-  project distribution.
+  A module that the project provides only in compiled form, such as an
+  extension module compiled from another language or a source-less bytecode
+  file, is an external entity whose distribution is the project
+  distribution.
+
+  The attributes that the import system sets on a module (`__name__`,
+  `__file__`, `__package__`, `__spec__`, `__loader__`, `__path__`,
+  `__dict__`) and that a class statement sets on a class (`__module__`,
+  `__qualname__`, `__dict__`, `__class__`) are not entities. A reference to
+  one is out-of-profile, unless the project binds the name itself.
 
   ## Declared visibility
 
@@ -195,17 +234,19 @@ description: |
 
   Attribute references are in profile when their receiver is a module, a
   class, `self` or `cls` inside a method of the class, or `super()`. In
-  `typing` contexts, attribute references on a receiver whose type an
-  annotation or a called project callable's return annotation fixes are also
-  in profile, resolved on that type by the method resolution order. Other
-  attribute references are out-of-profile.
+  `typing` contexts, attribute references are also in profile when the
+  receiver is a name whose declaration has a type annotation, or a direct
+  call of a project callable that has a return annotation; they resolve on
+  that type by the method resolution order. Other attribute references,
+  including those on a receiver that is itself an attribute or call chain,
+  are out-of-profile.
 
   | Occurrence | Role |
   | --- | --- |
   | Module name segment in `import` or `from ... import` | `import`, or `qualifier` for non-final segments |
   | Imported name in `from ... import` | `import` |
   | Callee of a call expression | `call`, or `construct` when the target is a class |
-  | Name in an annotation, base class list, `isinstance` or `issubclass` second argument | `type` |
+  | Name in an annotation, base class list, `except` clause, `isinstance` or `issubclass` second argument | `type` |
   | Name or attribute used as a value | `read` |
   | Assignment, `del` or augmented-assignment target that rebinds an in-profile entity | `write`, or `read-write` for augmented assignment |
   | Class or value pattern in `match` | `pattern` |
@@ -219,16 +260,20 @@ description: |
   name; for `runpy.run_module` this is the module it executes. Calls that
   take a filesystem location or only search for a module, such as
   `runpy.run_path`, `importlib.util.spec_from_file_location` and
-  `importlib.util.find_spec`, are out-of-profile as references. A literal or
-  a value composed only of literals and module-level names bound once to
-  literals is `resolved`. A value chosen among such literals by run-time
+  `importlib.util.find_spec`, are out-of-profile as references. Dynamic
+  import value sites hold in `runtime` contexts only. A literal, or a value
+  composed only of literals and names bound once to literals at module
+  level or in the enclosing function, is `resolved`. A value chosen among such literals by run-time
   conditions is `candidates`. A name that resolves to no module, in a
   handler for the failure, is `nonexistent`. A value read from files,
   environment, arguments or other input is `indeterminate`.
 
   An import after the project assigns a module object into `sys.modules`
   under that name targets the assigned object's module, with
-  `basis: dynamic`.
+  `basis: dynamic`. When the assigned object is one that the project
+  creates at run time, such as a `types.ModuleType` instance, it is not an
+  entity and the import has no reference. An import that only a search
+  path changed by a function body can satisfy is `indeterminate`.
 
   ## Relations
 
@@ -243,7 +288,9 @@ description: |
     names.
   - `exports`: each name a module-level or class-level import statement
     binds, from the module or class to the target, with `name` the bound
-    name; each name a star import binds. `visibility` is `re-export` when
+    name; each name a star import binds, with `at` on the `*` token. Every
+    import statement is a binding, so two star imports that bind one name
+    give two relations. `visibility` is `re-export` when
     the import is a re-export form of the library interface rules
     (`import a as a`, `from m import a as a`, `from . import a`,
     `from m import *`), and `import` otherwise.
@@ -255,9 +302,14 @@ description: |
     `__eq__` and the methods its options enable) when the class does not
     declare them, anchored on the class name; named-tuple fields and methods
     created by `NamedTuple` class syntax.
-  - External key path: the fully qualified name at the defining module.
-    `distribution` is the distribution that provides the module, or `stdlib`
-    for the standard library and `builtins` for built-in names.
+  - External key path: the fully qualified name at the defining module: the
+    module whose source defines the name, after following import bindings,
+    in the CPython standard library source for standard library names, such
+    as `importlib._abc.Loader` for a name written `importlib.abc.Loader`.
+    The same external serves `typing` contexts. A built-in name's path is
+    its bare name, such as `dict`. `distribution` is the distribution that
+    provides the module, or `stdlib` for the standard library and
+    `builtins` for built-in names.
 
   ## Dispositions
 

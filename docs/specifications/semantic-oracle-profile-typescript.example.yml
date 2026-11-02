@@ -237,7 +237,7 @@ entities:
     kind: field
     language-kind: static-field
     name: count
-    path: '"src/shapes.ts"#Base.count'
+    path: '"src/shapes.ts"#Base.static:count'
     unit: shapes-ts
     parent: shapes.Base
     origin: source

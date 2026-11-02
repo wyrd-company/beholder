@@ -135,8 +135,8 @@ description: |
   same name in the same module is a redeclaration form; the second and later
   definitions append `#<n>`.
 
-  A crate root and an implementation block have no name token, so they have
-  no definition site and no `anchor`.
+  A crate root, an implementation block and a tuple field have no name
+  token, so they have no definition site and no `anchor`.
 
   A consumer path is the path a downstream crate writes, beginning with the
   dependency's crate name.

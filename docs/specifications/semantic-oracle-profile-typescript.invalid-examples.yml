@@ -105,3 +105,9 @@ cases:
     fails-at: /extensions/typescript:augments/0
     keyword: required
     member: at
+  - name: exports-visibility
+    reason: Every TypeScript export specifier exports; export bindings have no visibility.
+    base: semantic-oracle-profile-typescript.example.yml
+    patch: [{op: add, path: /relations/4/visibility, value: exported}]
+    fails-at: /relations/4/visibility
+    keyword: falseSchema

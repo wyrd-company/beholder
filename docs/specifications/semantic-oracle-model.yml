@@ -214,7 +214,9 @@ description: |
   - `command` names the project's declared build or analysis invocation that
     realizes the context. Contexts come from the project's own build
     declarations and the profile's derivation rule; an author does not invent
-    a context the project does not declare.
+    a context the project does not declare. A context that the profile
+    requires for every project and no project command realizes has
+    `command: none`.
 
   A context fixes which documents are compiled, into which units, and under
   which language options. Every fact is evaluated within one context at a
@@ -308,9 +310,9 @@ description: |
       value: {unit: all, project: all, external: all}
   ```
 
-  Every other entity member holds in all of the entity's contexts. A
-  difference in unit, path, kind, parent or definition sites is a different
-  record, by the identity rules below.
+  Every other entity member holds in all of the entity's contexts, except a
+  definition site that lists its own `contexts`. A difference in unit,
+  path, kind or parent is a different record, by the identity rules below.
 
   ### Common entity kinds
 
@@ -504,7 +506,8 @@ description: |
 
   - `at` is the site that establishes the relation, when one exists: the
     base-type token, the implemented-interface token, the re-exported name.
-    Structural relations with no establishing token have no `at`.
+    When several tokens establish one relation, `at` is the first in source
+    order. Structural relations with no establishing token have no `at`.
   - `exports` has a `name` member: the name under which consumers of the
     container see the target. A container's own declarations are members of
     its namespace through `parent`; `exports` records every other member
@@ -624,7 +627,7 @@ description: |
   | `external` | The language fixes exactly one external entity. | `target` |
   | `candidates` | The language selects the target at run time from a finite set that project source and contexts determine. | `candidates`, `reason` |
   | `nonexistent` | The language semantics establish that no entity is denoted, and the program handles that outcome. | `reason` |
-  | `indeterminate` | The target depends on input that neither project source nor any context determines. | `reason` |
+  | `indeterminate` | The target depends on input that neither project source nor any context determines, or on run-time state that the profile names as outside every context, such as a search path that a function body changes. | `reason` |
 
   A difference between contexts is never a disposition: it is expressed as
   context-qualified facts. Valid source does not contain a reference whose
@@ -762,7 +765,7 @@ description: |
   | --- | --- |
   | `document` | `path`, `sha256` when the index records it. |
   | `membership` | `path`, unit key. |
-  | `definition` | `at`, entity key. |
+  | `definition` | `at`, entity key; no `at` for an entity with neither a definition site nor an anchor. |
   | `reference` | `at`, target key, `role` when known, `from` key when known. |
   | `relation` | `kind`, `from` key, `to` key, `name` for `exports`. |
   | `visibility` | entity key, boundary and access, or the declared value. |
@@ -841,7 +844,7 @@ description: |
   | Form | Pairing key | Compared members |
   | --- | --- | --- |
   | membership | `path` | unit |
-  | definition | site | entity key, then kind |
+  | definition | site; the entity key for a fact unit with neither site nor anchor | entity key, then kind |
   | reference | site; where several unpaired facts remain at the site, the one whose `from` equals the observation's `from` | target, then role, then `from` |
   | relation | `(kind, from)`; `(kind, from, name)` for `exports` | `to` |
   | declared visibility | entity | value |

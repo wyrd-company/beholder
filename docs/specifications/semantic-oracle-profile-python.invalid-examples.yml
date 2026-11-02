@@ -143,3 +143,9 @@ cases:
     fails-at: /extensions/python:stub-of/0
     keyword: required
     member: stub
+  - name: unknown-exports-visibility
+    reason: An import binding is a `re-export` or an `import`.
+    base: semantic-oracle-profile-python.example.yml
+    patch: [{op: replace, path: /relations/3/visibility, value: public}]
+    fails-at: /relations/3/visibility
+    keyword: enum

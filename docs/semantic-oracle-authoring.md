@@ -151,7 +151,6 @@ against source, build configuration and the language specification.
 | `model:relation-duplicate`, `model:public-api-duplicate` | No relation or public API membership is stated twice in a context. |
 | `model:public-api-distribution`, `model:public-api-access` | A member belongs to a unit of its distribution, and its `access` agrees with the entity's effective `external` access in every context. |
 | `model:public-api-recomputed` | The membership the profile's public API rule gives, recomputed in every context from `parent`, `exports`, visibility and the profile's entry facts, equals the `public-api` entries: the same members, each with the same complete path list and access. For Rust, `project` and `external` access are `all` exactly for entities with a consumer path; trait implementation items are exempt. |
-| `rust:exports-visibility`, `python:exports-visibility`, `<language>:exports-visibility` | Rust and Python `exports` relations have a `visibility` of the profile's vocabulary; other profiles' have none. |
 | `model:extension-key`, `<language>:extension-target` | Extension keys, by the profile's key members, are unique per context; an extension member names a record of the kind the profile states. An extension fact without `contexts` holds where the unit of its first entity or unit member is built. |
 | `<language>:sorted` | Lists the profile states are sorted are sorted. |
 

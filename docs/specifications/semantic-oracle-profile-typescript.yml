@@ -104,15 +104,17 @@ description: |
     such as `"src/shapes.ts"`. An ambient module declared with
     `declare module "x"` has the path `ambient:"x"`.
   - A declaration path is `<module path>#<name>` followed by `.`-separated
-    member names, such as `"src/shapes.ts"#Circle.area`. Static members use
-    `.` as well; their `language-kind` is `static-method`, `static-field` or
+    member names, such as `"src/shapes.ts"#Circle.area`. A static member's
+    segment is `static:<name>`, such as `"src/shapes.ts"#Circle.static:unit`,
+    so that a static and an instance member of one name have distinct
+    paths; its `language-kind` is `static-method`, `static-field` or
     `static-accessor`.
   - A default export is `#default`; an `export =` target is `#export=`.
   - A private name `#x` keeps its `#` in the member segment.
   - A global declaration is `global#<name>`.
   - Signatures of an overloaded function belong to one entity.
   - A consumer path is `<mode>:<specifier>#<export>` followed by member
-    names, where `<mode>` is `import` or `require` and `<specifier>` is the
+    segments as declaration paths write them, where `<mode>` is `import` or `require` and `<specifier>` is the
     package name followed by an exported subpath, such as
     `import:@scope/pkg/utils#format`.
 
@@ -209,8 +211,9 @@ description: |
      `require`. The entry is found by TypeScript's type-first exports
      resolution: keys are visited in object order; an enabled key's target
      is resolved, recursively for nested condition objects, and succeeds
-     only when TypeScript's extension substitution finds a TypeScript or
-     declaration file for it; when it does not, resolution continues with
+     only when TypeScript's extension substitution finds a file the
+     program can contain for it: a TypeScript or declaration file, or a
+     JavaScript file when `allowJs` holds; when it does not, resolution continues with
      the next enabled key; a `null` target ends resolution with no entry.
      The enabled conditions are those the TypeScript Modules Reference lists for the context's
      `moduleResolution`, plus `customConditions` and `default`: `types`,
@@ -323,7 +326,7 @@ description: |
   | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 
   All four extensions are required. A subpath and mode whose resolution
-  yields no TypeScript or declaration file has no `typescript:entry` fact.
+  yields no file the program can contain has no `typescript:entry` fact.
 
   ## Authoring obligation
 

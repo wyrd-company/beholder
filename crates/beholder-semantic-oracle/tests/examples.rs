@@ -587,3 +587,24 @@ fn a_python_class_level_import_is_a_class_member() {
         "{findings}"
     );
 }
+
+#[test]
+fn a_typescript_static_member_has_a_static_segment() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let mut member = entity(
+        "shapes.Circle.static-unit",
+        "field",
+        "static-field",
+        "\"src/shapes.ts\"#Circle.static:unit",
+        "shapes.Circle",
+        "shapes-ts",
+    );
+    member["name"] = json!("unit");
+    member["declared-visibility"] = json!({"value": "public", "explicit": false});
+    push(&mut dataset, "/entities", member);
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("[`import:@acme/geometry#Circle.static:unit`, `require:@acme/geometry#Circle.static:unit`]"),
+        "{findings}"
+    );
+}

@@ -32,6 +32,13 @@ properties:
     items:
       properties:
         kind: {enum: [inherits, implements, overrides, aliases, exports]}
+        # The `use` item's visibility, written as declared visibility.
+        visibility:
+          anyOf:
+            - enum: [pub, pub(crate), pub(self), pub(super)]
+            - {type: string, pattern: '^pub\(in \S+\)$'}
+      if: {properties: {kind: {const: exports}}, required: [kind]}
+      then: {required: [visibility]}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:

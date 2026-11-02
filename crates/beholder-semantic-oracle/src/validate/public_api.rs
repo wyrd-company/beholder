@@ -305,9 +305,15 @@ impl<'c, 'a> Walk<'c, 'a> {
                 _ if kind == "enum-member" => access,
                 _ => continue,
             };
-            if let (Some(child_id), Some(name)) = (text(child, "id"), text(child, "name")) {
-                self.add(child_id, format!("{path}.{name}"), member_access);
-            }
+            let Some((child_id, name)) = text(child, "id").zip(text(child, "name")) else {
+                continue;
+            };
+            // A static member's segment is `static:<name>`.
+            let segment = match self.language_kind(child) {
+                Some(kind) if kind.starts_with("static-") => format!("static:{name}"),
+                _ => name.to_owned(),
+            };
+            self.add(child_id, format!("{path}.{segment}"), member_access);
         }
         self.stack.pop();
     }

@@ -139,7 +139,6 @@ entities:
     name: shapes
     path: atlas.shapes
     unit: shapes-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -328,7 +327,6 @@ entities:
     name: shapes
     path: atlas.shapes
     unit: shapes-stub
-    parent: atlas
     origin: source
     contexts: [typing]
     definitions: []
@@ -366,7 +364,6 @@ entities:
     name: loader
     path: atlas.loader
     unit: loader-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -377,7 +374,6 @@ entities:
     name: fast
     path: atlas.fast
     unit: fast-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -400,7 +396,6 @@ entities:
     name: portable
     path: atlas.portable
     unit: portable-mod
-    parent: atlas
     origin: source
     definitions: []
     declared-visibility: {value: public, explicit: true}
@@ -433,7 +428,6 @@ entities:
     name: extra
     path: plugins.extra
     unit: extra-mod
-    parent: plugins
     origin: generated
     definitions: []
     declared-visibility: {value: public, explicit: true}

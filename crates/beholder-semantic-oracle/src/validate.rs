@@ -28,7 +28,7 @@ use crate::{
     dataset_validator,
     locator::{Locator, LocatorError, Position, SourceText},
     project::{sha256_hex, ProjectFiles, DATASET_FILE},
-    rules::{ExportsVisibility, Names, ProfileRules},
+    rules::{Names, ProfileRules},
     Profile, MODEL_VERSION,
 };
 
@@ -1424,7 +1424,6 @@ impl<'a> Checker<'a> {
                 self.check_locator(format!("{at}/at"), site, &contexts);
                 self.site_owners.clear();
             }
-            self.check_exports_visibility(&at, relation);
             let key = [
                 text(relation, "kind").unwrap_or_default(),
                 from,
@@ -1440,34 +1439,6 @@ impl<'a> Checker<'a> {
                 );
             }
             earlier.push(contexts);
-        }
-    }
-
-    /// The `visibility` member of an `exports` relation, by the profile.
-    fn check_exports_visibility(&mut self, at: &str, relation: &'a Value) {
-        if text(relation, "kind") != Some("exports") {
-            return;
-        }
-        let rule = self.rules.exports_visibility;
-        let rule_name = self.profile_rule("exports-visibility");
-        match (rule, text(relation, "visibility")) {
-            (ExportsVisibility::Absent, Some(_)) => self.error(
-                &rule_name,
-                format!("{at}/visibility"),
-                "the profile gives export bindings no visibility".into(),
-            ),
-            (ExportsVisibility::Absent, None) => {}
-            (_, None) => self.error(
-                &rule_name,
-                at.to_owned(),
-                "an `exports` relation of this profile has `visibility`".into(),
-            ),
-            (_, Some(value)) if !rule.admits(value) => self.error(
-                &rule_name,
-                format!("{at}/visibility"),
-                format!("`{value}` is not an export binding visibility of the profile"),
-            ),
-            _ => {}
         }
     }
 

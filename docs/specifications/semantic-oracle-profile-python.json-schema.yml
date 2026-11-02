@@ -31,6 +31,9 @@ properties:
     items:
       properties:
         kind: {enum: [inherits, overrides, aliases, exports]}
+        visibility: {enum: [re-export, import]}
+      if: {properties: {kind: {const: exports}}, required: [kind]}
+      then: {required: [visibility]}
   extensions: {$ref: '#/$defs/extensions'}
 
 $defs:
