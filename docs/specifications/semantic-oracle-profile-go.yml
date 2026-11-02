@@ -144,8 +144,10 @@ description: |
 
   ## Public API
 
-  A distribution's public API in a context is every entity of its `package`
-  units outside `internal` directories that is `exported` and is a
+  A distribution's public API in a context is every `package` unit's package
+  outside `internal` directories, because a consumer can name it, even when
+  it has no exported names, with its import path as consumer path, and every
+  entity of those units that is `exported` and is a
   package-level declaration, or an exported field or method of an exported
   type, or an exported field or method promoted into an exported struct type
   through an embedded field. A promoted member's consumer path is

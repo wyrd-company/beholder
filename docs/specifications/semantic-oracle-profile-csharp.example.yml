@@ -670,6 +670,7 @@ public-api:
   - {distribution: geometry, entity: 'Geometry.ShapeExtensions.extension-IShape.Doubled', paths: ['Geometry.ShapeExtensions.extension(Geometry.IShape).Doubled'], access: all}
   - {distribution: geometry, entity: 'Geometry.ShapeExtensions', paths: ['Geometry.ShapeExtensions'], access: all}
   - {distribution: geometry, entity: 'Geometry.Visitor', paths: ['Geometry.Visitor'], access: all}
+  - {distribution: geometry, entity: 'Geometry', paths: ['Geometry'], access: all}
 
 extensions:
   csharp:type-forward:

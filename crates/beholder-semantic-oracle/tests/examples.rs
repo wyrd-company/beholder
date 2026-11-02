@@ -661,3 +661,171 @@ fn ambient_module_entries_of_one_distribution_have_distinct_keys() {
         .collect();
     assert!(keys.is_empty(), "{keys:#?}");
 }
+
+/// A unit with its root entity, which has no public names.
+fn empty_container(dataset: &mut Value, unit_id: &str, unit: Value, root: Value) {
+    let mut record = unit;
+    record["id"] = json!(unit_id);
+    push(dataset, "/units", record);
+    push(dataset, "/entities", root);
+}
+
+#[test]
+fn a_go_package_without_exported_names_is_a_member() {
+    let mut dataset = load("semantic-oracle-profile-go.example.yml");
+    let mut root = entity(
+        "empty",
+        "module",
+        "package",
+        "example.com/geometry/empty",
+        "x",
+        "empty-pkg",
+    );
+    root.as_object_mut().unwrap().remove("parent");
+    empty_container(
+        &mut dataset,
+        "empty-pkg",
+        json!({"kind": "package", "name": "example.com/geometry/empty",
+               "distribution": "geometry-module", "root": "empty", "package-name": "empty"}),
+        root,
+    );
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains(
+            "makes `empty` a member of `geometry-module` with paths [`example.com/geometry/empty`]"
+        ),
+        "{findings}"
+    );
+}
+
+#[test]
+fn an_internal_go_package_is_not_a_member() {
+    let dataset = load("semantic-oracle-profile-go.example.yml");
+    let entries = dataset["public-api"].as_array().unwrap();
+    assert!(entries.iter().all(|entry| entry["entity"] != "calc"));
+    assert_eq!(recomputed(&dataset), Vec::<String>::new());
+}
+
+#[test]
+fn a_dart_library_without_public_names_is_a_member() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    let mut root = entity(
+        "empty-library",
+        "module",
+        "library",
+        "package:geometry/empty.dart",
+        "x",
+        "empty-lib",
+    );
+    root["declared-visibility"] = json!({"value": "public", "explicit": true});
+    root.as_object_mut().unwrap().remove("parent");
+    empty_container(
+        &mut dataset,
+        "empty-lib",
+        json!({"kind": "library", "name": "package:geometry/empty.dart",
+               "distribution": "geometry", "root": "empty-library", "language-version": "3.12"}),
+        root,
+    );
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("makes `empty-library` a member of `geometry` with paths [`package:geometry/empty.dart`]"),
+        "{findings}"
+    );
+}
+
+#[test]
+fn a_typescript_entry_module_without_exports_is_a_member() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let mut root = entity(
+        "empty",
+        "module",
+        "module",
+        "\"src/empty.ts\"",
+        "x",
+        "empty-ts",
+    );
+    root.as_object_mut().unwrap().remove("parent");
+    empty_container(
+        &mut dataset,
+        "empty-ts",
+        json!({"kind": "module", "name": "src/empty.ts", "distribution": "geometry", "root": "empty"}),
+        root,
+    );
+    for mode in ["import", "require"] {
+        push(
+            &mut dataset,
+            "/extensions/typescript:entry",
+            json!({"distribution": "geometry", "mode": mode, "subpath": "./empty", "module": "empty"}),
+        );
+    }
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains(
+            "makes `empty` a member of `geometry` with paths [`import:@acme/geometry/empty`, `require:@acme/geometry/empty`]"
+        ),
+        "{findings}"
+    );
+}
+
+#[test]
+fn a_csharp_namespace_is_a_member_through_a_public_type() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    let namespace = |id: &str, path: &str, parent: &str| {
+        let mut record = entity(id, "namespace", "namespace", path, parent, "geometry-lib");
+        record.as_object_mut().unwrap().remove("unit");
+        record["units"] = json!(["geometry-lib"]);
+        record["declared-visibility"] = json!({"value": "public", "explicit": false});
+        record
+    };
+    push(
+        &mut dataset,
+        "/entities",
+        namespace("Geometry.Outer", "Geometry.Outer", "Geometry"),
+    );
+    push(
+        &mut dataset,
+        "/entities",
+        namespace(
+            "Geometry.Outer.Inner",
+            "Geometry.Outer.Inner",
+            "Geometry.Outer",
+        ),
+    );
+    push(
+        &mut dataset,
+        "/entities",
+        namespace("Geometry.Hidden", "Geometry.Hidden", "Geometry"),
+    );
+    let mut public_type = entity(
+        "Geometry.Outer.Inner.Visible",
+        "type",
+        "class",
+        "Geometry.Outer.Inner.Visible",
+        "Geometry.Outer.Inner",
+        "geometry-lib",
+    );
+    public_type["declared-visibility"] = json!({"value": "public", "explicit": true});
+    push(&mut dataset, "/entities", public_type);
+    let mut internal_type = entity(
+        "Geometry.Hidden.Secret",
+        "type",
+        "class",
+        "Geometry.Hidden.Secret",
+        "Geometry.Hidden",
+        "geometry-lib",
+    );
+    internal_type["declared-visibility"] = json!({"value": "internal", "explicit": true});
+    internal_type["effective-visibility"] =
+        json!({"unit": "all", "project": "none", "external": "none"});
+    push(&mut dataset, "/entities", internal_type);
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains("makes `Geometry.Outer` a member"),
+        "{findings}"
+    );
+    assert!(
+        findings.contains("makes `Geometry.Outer.Inner` a member"),
+        "{findings}"
+    );
+    assert!(!findings.contains("Geometry.Hidden"), "{findings}");
+}

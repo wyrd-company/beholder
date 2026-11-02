@@ -168,8 +168,10 @@ description: |
   `external` access is `all` or includes `subtypes`, together with every
   type the unit forwards with `TypeForwardedTo`. A forwarded type is a member
   with the consumer path of the forwarded type, and the
-  `csharp:type-forward` extension records the forward. Namespaces and
-  extension blocks are not members; the members of an extension block are.
+  `csharp:type-forward` extension records the forward. A namespace is a
+  member when it, or a namespace nested inside it, holds a public type of
+  the distribution, because a consumer can name it. Other namespaces are
+  not members. An extension block is not a member; its members are.
 
   ## References
 

@@ -477,7 +477,9 @@ impl<'c, 'a> Walk<'c, 'a> {
 
     /// An exported package-level declaration, and for an exported type its
     /// exported fields and methods, including promoted ones.
-    fn go_package(&mut self, package: &'a str) {
+    fn go_package(&mut self, package: &'a str, import_path: &str) {
+        // A consumer can name the package, whatever it exports.
+        self.add(package, import_path.to_owned(), Access::All);
         for child in self.children(package) {
             let kind = text(child, "kind").unwrap_or_default();
             if matches!(kind, "parameter" | "type-parameter") {
@@ -556,6 +558,8 @@ impl<'c, 'a> Walk<'c, 'a> {
     /// A public library's export namespace and the public members of the
     /// classes, mixins, enums, extensions and extension types it exports.
     fn dart_library(&mut self, library: &'a str, uri: &str) {
+        // A consumer can name the library, whatever it exports.
+        self.add(library, uri.to_owned(), Access::All);
         for child in self.children(library) {
             let kind = text(child, "kind").unwrap_or_default();
             if matches!(kind, "parameter" | "type-parameter") {
@@ -632,8 +636,8 @@ impl<'a> Checker<'a> {
             let (Some(id), Some(path)) = (text(entity, "id"), text(entity, "path")) else {
                 continue;
             };
-            // Namespaces are not members, and an extension block is not a
-            // name a consumer writes; its members are.
+            // An extension block is not a name a consumer writes; its members
+            // are. A namespace is a member through its public types, below.
             if matches!(
                 text(entity, "kind"),
                 Some("namespace" | "extension" | "parameter" | "type-parameter")
@@ -668,6 +672,11 @@ impl<'a> Checker<'a> {
                             access,
                         },
                     );
+                    // A consumer can name each namespace that holds a public
+                    // type, directly or through a nested namespace.
+                    if access == Access::All && text(entity, "kind") == Some("type") {
+                        self.csharp_namespaces(entity, distribution, context, membership);
+                    }
                 }
             }
         }
@@ -703,6 +712,35 @@ impl<'a> Checker<'a> {
             .and_then(|c| c.get("parameters"))
             .and_then(|p| text(p, "mode"))
             == Some("typing")
+    }
+
+    /// Adds the namespaces that contain a public type of a distribution.
+    fn csharp_namespaces(
+        &self,
+        public_type: &'a Value,
+        distribution: &'a str,
+        context: &'a str,
+        membership: &mut Membership<'a>,
+    ) {
+        let mut parent = text(public_type, "parent");
+        while let Some(id) = parent {
+            let Some((Class::Entity, namespace)) = self.ids.get(id) else {
+                return;
+            };
+            if text(namespace, "kind") != Some("namespace") {
+                return;
+            }
+            if let Some(path) = text(namespace, "path") {
+                membership.entry((distribution, id)).or_default().insert(
+                    context,
+                    Member {
+                        paths: BTreeSet::from([path.to_owned()]),
+                        access: Access::All,
+                    },
+                );
+            }
+            parent = text(namespace, "parent");
+        }
     }
 
     /// The names a module's static `__all__` lists in a context.
@@ -785,12 +823,16 @@ impl<'a> Checker<'a> {
                             walk.rust_member(root, name.to_owned());
                         }
                         Entry::TypeScript { module, prefix } => {
+                            // A consumer can name the entry module, whatever
+                            // it exports.
+                            let path = prefix.strip_suffix('#').unwrap_or(&prefix);
+                            walk.add(module, path.to_owned(), Access::All);
                             walk.typescript_exports(module, &prefix, "");
                         }
                         Entry::PythonModule { module, name } => {
                             walk.python_module(module, name);
                         }
-                        Entry::GoPackage { root } => walk.go_package(root),
+                        Entry::GoPackage { root, name } => walk.go_package(root, name),
                         Entry::DartLibrary { root, uri } => walk.dart_library(root, uri),
                     }
                 }
@@ -931,7 +973,7 @@ impl<'a> Checker<'a> {
                         entries
                             .entry(distribution)
                             .or_default()
-                            .push(Entry::GoPackage { root });
+                            .push(Entry::GoPackage { root, name });
                     }
                 }
             }
@@ -1178,7 +1220,7 @@ enum Entry<'a> {
     /// A public Python module and its module name.
     PythonModule { module: &'a str, name: &'a str },
     /// A Go `package` unit outside `internal` directories.
-    GoPackage { root: &'a str },
+    GoPackage { root: &'a str, name: &'a str },
     /// A public Dart library and its canonical URI.
     DartLibrary { root: &'a str, uri: &'a str },
 }

@@ -603,6 +603,7 @@ public-api:
   - {distribution: geometry-module, entity: 'geometry.Shape.Area', paths: ['example.com/geometry.Shape.Area'], access: all}
   - {distribution: geometry-module, entity: 'geometry.Solid', paths: ['example.com/geometry.Solid'], access: all}
   - {distribution: geometry-module, entity: 'geometry.Table', paths: ['example.com/geometry.Table'], access: all}
+  - {distribution: geometry-module, entity: 'geometry', paths: ['example.com/geometry'], access: all}
 
 extensions:
   go:embeds:

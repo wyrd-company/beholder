@@ -617,6 +617,9 @@ description: |
   - An entity is a member when at least one consumer path exists in the
     context. An entity a consumer can reach only as the type of a value,
     with no path that names it, is not a member.
+  - Every importable container of a distribution is a member, because a
+    consumer can name it, whether or not it has public names. The profile
+    states which containers these are and their consumer paths.
   - The profile defines consumer paths: which units and modules a
     distribution exposes, which export maps or layout conventions apply, and
     which entity kinds can be members.

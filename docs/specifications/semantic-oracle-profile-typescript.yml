@@ -118,7 +118,8 @@ description: |
   - A global declaration is `global#<name>`.
   - Signatures of an overloaded function belong to one entity.
   - A consumer path is `<mode>:<specifier>#<export>` followed by member
-    segments as declaration paths write them, where `<mode>` is `import` or `require` and `<specifier>` is the
+    segments as declaration paths write them, and an entry module's own
+    consumer path is `<mode>:<specifier>`, where `<mode>` is `import` or `require` and `<specifier>` is the
     package name followed by an exported subpath, such as
     `import:@scope/pkg/utils#format`.
 
@@ -240,7 +241,9 @@ description: |
      entry module for both modes; without them, the package directory's
      `index` file does, as TypeScript resolves it. A deep import of another
      file of such a package is not a consumer path.
-  3. The members are the entry module's export namespace: its declarations
+  3. The members are the entry module itself, under each subpath and mode
+     that selects it, because a consumer can name it, even when it has no
+     exports, and its export namespace: its declarations
      whose declared visibility is `exported`, under their names, or
      `exported-default`, under `default`, and every name an `exports`
      relation adds, with `export *` and re-exports followed. A member module
