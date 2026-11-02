@@ -85,6 +85,39 @@ case('unannotated-return','python','an unannotated return follows the body',
 case('moved-behind-reexport','rust','a type moves between private modules; the re-export keeps its consumer path',
  'mod d1{pub struct Grid;}\npub use d1::Grid;\npub fn f()->Grid{Grid}\n','mod d2{pub struct Grid;}\npub use d2::Grid;\npub fn f()->Grid{Grid}\n',
  'fn main(){let _:lib::Grid=lib::f();}',{'returns':'@{lib::Grid}'},{'returns':'@{lib::Grid}'})
+case('earlier-reexport-added','rust','a re-export adds an earlier-sorting path; the old path stays',
+ 'pub mod z{pub struct Widget;}\npub use z::Widget;\npub fn f()->Widget{Widget}\n','pub mod z{pub struct Widget;}\npub use z::Widget;\npub use z::Widget as Alias;\npub fn f()->Widget{Widget}\n',
+ 'fn main(){let _:lib::Widget=lib::f();}',{'returns':'@{lib::Widget}'},{'returns':'@{lib::Widget}'})
+# Slot regressions: real breaks that an earlier slot list had no slot for. Not in the comparison table,
+# because the text extractor reads declaration headers and these changes sit in bodies.
+REG=[]
+def reg(*a):
+    n=len(C); case(*a); REG.append(C.pop(n))
+reg('trait-binding','rust','an implementation changes an associated type',
+ 'pub trait R{type K;}\npub struct E;\nimpl R for E{type K=u32;}\n','pub trait R{type K;}\npub struct E;\nimpl R for E{type K=u64;}\n',
+ 'use lib::R;\nfn main(){let _:<lib::E as R>::K=1u32;}',{'bindings':[('K','u32')]},{'bindings':[('K','u64')]})
+reg('inherent-impl-bound','rust','an inherent implementation gains a bound',
+ 'pub struct C<T>(pub T);\nimpl<T> C<T>{pub fn u(self){}}\n','pub struct C<T>(pub T);\nimpl<T:Clone> C<T>{pub fn u(self){}}\n',
+ 'struct N;\nfn main(){lib::C(N).u();}',{'impl':{'bounds':None}},{'impl':{'bounds':'Clone'}})
+reg('constructor','ts','a class constructor changes a parameter type',
+ 'export class I{constructor(v:string){}}\n','export class I{constructor(v:number){}}\n',
+ 'import {I} from "./lib.js";new I("a");',{'constructors':[('v','string')]},{'constructors':[('v','number')]})
+reg('call-signature','ts','an interface call signature changes',
+ 'export interface H{(v:string):string}\n','export interface H{(v:number):string}\n',
+ 'import type {H} from "./lib.js";declare const h:H;h("a");',{'call':[('v','string')]},{'call':[('v','number')]})
+reg('setter-type','ts','a setter narrows; the getter does not change',
+ 'export class B{get v():string{return ""} set v(x:string|number){}}\n','export class B{get v():string{return ""} set v(x:string){}}\n',
+ 'import {B} from "./lib.js";new B().v=1;',{'get':'string','set':'number | string'},{'get':'string','set':'string'})
+reg('optional-member','ts','an optional member becomes required',
+ 'export interface S{v?:string}\n','export interface S{v:string}\n',
+ 'import type {S} from "./lib.js";const s:S={};export {s};',{'type':'string','modifiers':['optional']},{'type':'string','modifiers':[]})
+reg('literal-overload-order','ts','call signatures of a type literal swap',
+ 'export type H={(v:string):string;(v:number):number}\n','export type H={(v:number):number;(v:string):string}\n',
+ 'import type {H} from "./lib.js";const r:ReturnType<H>=1;export {r};',{'type':'{ (v: string): string; (v: number): number }'},{'type':'{ (v: number): number; (v: string): string }'})
+reg('array-length','go','a defined array type changes length',
+ 'package lib\ntype P [2]int\n','package lib\ntype P [3]int\n','package main\nimport "m/lib"\nvar _ lib.P = [2]int{}\nfunc main(){}\n',{'underlying':'[2]int'},{'underlying':'[3]int'})
+reg('constraint-terms','go','a named constraint loses a term',
+ 'package lib\ntype N interface{ ~int | ~string }\nfunc F[T N](x T){}\n','package lib\ntype N interface{ ~int }\nfunc F[T N](x T){}\n','package main\nimport "m/lib"\nfunc main(){lib.F("a")}\n',{'underlying':'interface { ~int | ~string }'},{'underlying':'interface { ~int }'})
 def build(c,src):
     d=tempfile.mkdtemp(); l=c['lang']
     if l=='rust':
@@ -127,4 +160,10 @@ for r in res: print(f"{r['lang']:7}{r['id']:24}{'Y' if r['breaks'] else '-':6}{'
 for k in ['text','normalized','as_written','structured']:
     fp=[f"{r['lang']}:{r['id']}" for r in res if r[k] and not r['breaks']]; fn=[f"{r['lang']}:{r['id']}" for r in res if not r[k] and r['breaks']]
     print(f'{k}: false change {len(fp)}, missed {len(fn)}\n  false: {fp}\n  missed: {fn}')
+regbad=[]
+for c in REG:
+    rc1,_=build(c,c['v1']); rc2,_=build(c,c['v2'])
+    print(f"slot regression {c['lang']:7}{c['id']:24} valid={rc1==0} breaks={rc2!=0} slot-change={c['f1']!=c['f2']}")
+    if rc1 or not rc2 or c['f1']==c['f2']: regbad.append(c['id'])
+print('slot regressions',len(REG),'failed',regbad)
 print('cases',len(res),'breaking',sum(r['breaks'] for r in res),'invalid v1',[r['id'] for r in res if not r['v1ok']])

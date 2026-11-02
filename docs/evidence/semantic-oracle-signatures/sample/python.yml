@@ -34,8 +34,9 @@ signatures:
       - {name: message, type: str, default: '"deprecated toolkit API"'}
     returns: None
   - entity: redefinition.WithPropertyAccessor.value
-    type: int
-    accessors: [delete, get, set]
+    get: {type: int}
+    set: {type: int}
+    delete: present
   - entity: logging_hierarchy.demo_filter_and_extra
     returns: "dict[str, object]"
   - entity: import_failures.all_import_failure_demos

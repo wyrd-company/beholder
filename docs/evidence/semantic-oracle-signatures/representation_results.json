@@ -317,5 +317,16 @@
   "structured": false,
   "as_written": true,
   "v1ok": true
+ },
+ {
+  "lang": "rust",
+  "id": "earlier-reexport-added",
+  "what": "a re-export adds an earlier-sorting path; the old path stays",
+  "breaks": false,
+  "text": false,
+  "normalized": false,
+  "structured": false,
+  "as_written": false,
+  "v1ok": true
  }
 ]

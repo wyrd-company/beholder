@@ -23,7 +23,10 @@ signatures:
     type: "@{local-packages.transitive-dep.index.d.ts#TransitiveMarker}"
   - entity: packages.dual-pkg.dist-types.index.d.mts#dualValue
     type: string
-  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken                         # members carry their own facts
+  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken
+    constructors:
+      - parameters:
+          - {name: value, type: string}
   - entity: packages.exports-map.dist-types.utils.extra.d.ts#extraUtils
     parameters:
       - {name: value, type: string}
@@ -46,9 +49,6 @@ signatures:
     parameters:
       - {name: platform, type: '@{generated.platform-generated.index.d.ts#PlatformGeneratedMarker}["platform"]'}
     returns: string
-  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken.constructor
-    parameters:
-      - {name: value, type: string}
   - entity: packages.sensitive-lib.index.d.ts#SensitiveToken.getValue
     returns: string
   - entity: packages.sensitive-lib.index.d.ts#tokenV1

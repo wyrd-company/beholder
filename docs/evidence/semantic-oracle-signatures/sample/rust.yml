@@ -84,16 +84,15 @@ signatures:
   - entity: capture_2021.captures_all
     type-parameters:
       - {name: "'a", kind: lifetime}
-      - {name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}
+      - {name: T, kind: type, bounds: "'a + @{ext.core.clone.Clone}"}
       - {name: N, kind: const, type: usize}
-    where: ["T: 'a"]
     parameters:
       - {name: value, type: "&'a T"}
     returns: "impl @{ext.core.clone.Clone} + use<'a, T, N>"
   - entity: generics.bounds.where_bound
+    # first draft omitted Debug: found on review of the source
     type-parameters:
-      - {name: T, kind: type}
-    where: ["T: @{ext.core.clone.Clone} + @{ext.core.fmt.Debug}"]  # first draft omitted Debug: found on review of the source
+      - {name: T, kind: type, bounds: "@{ext.core.clone.Clone} + @{ext.core.fmt.Debug}"}
     parameters:
       - {name: value, type: T}
     returns: T

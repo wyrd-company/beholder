@@ -121,10 +121,14 @@ proposed-design:
     - An alias is not expanded. `f(a: Id)` has `@{Id}`, and `Id` has its own
       `type` slot.
     - Each profile fixes one spelling: spacing, the order of members of a set
-      (union members, type literal members), and the canonical form of
-      equivalent spellings, such as `string[]` for `Array<string>`, `any` for
-      `interface{}`, `int | None` for `Optional[int]`, and the type name for
-      `Self` in an implementation.
+      (union members, property members of a type literal), and the canonical form
+      of equivalent spellings, such as `string[]` for `Array<string>`, `any` for
+      `interface{}`, `int | None` for `Optional[int]`, the type name for `Self` in
+      an implementation, and `<T as Tr>::Item` for `T::Item`.
+    - Order stays where the language gives it meaning. Call and construct
+      signatures and repeated method signatures of a TypeScript type literal keep
+      their effective overload order, including the precedence of merged
+      declarations.
 
     The notation keeps one spelling for each meaning, as the model's visibility
     values do, so equal facts are equal strings. Outside a string literal, `@{`
@@ -141,9 +145,8 @@ proposed-design:
     - entity: capture_2021.captures_all
       type-parameters:
         - {name: "'a", kind: lifetime}
-        - {name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}
+        - {name: T, kind: type, bounds: "'a + @{ext.core.clone.Clone}"}
         - {name: N, kind: const, type: usize}
-      where: ["T: 'a"]
       parameters:
         - {name: value, type: "&'a T"}
       returns: "impl @{ext.core.clone.Clone} + use<'a, T, N>"
@@ -173,7 +176,7 @@ proposed-design:
     ```
 
     The test `representation_test.py` compiles or runs a real consumer against
-    29 before-and-after pairs in Rust, TypeScript, Go and Python, and asks
+    30 before-and-after pairs in Rust, TypeScript, Go and Python, and asks
     whether each representation reports a change. A change that does not break
     the consumer counts as false, and a break with no reported change counts as
     missed. The pairs were chosen to test the representations, so the counts
@@ -203,6 +206,14 @@ proposed-design:
       `impl Trait` leaks, a default that follows a private name in Python, and a
       Python return with no annotation. The inference table below states them.
 
+    The same script holds 9 slot regressions: consumer breaks in a trait
+    implementation's associated type, an inherent implementation's bound, a
+    constructor, a call signature, a setter, an optional member, the order of a
+    type literal's call signatures, a Go array length and a Go constraint's terms.
+    Each one breaks a real consumer and changes a slot. They stay out of the table,
+    because the script's text extractor reads declaration headers and these changes
+    are in bodies.
+
     The considered forms:
 
     | Form | Result | `Option<Beta>` |
@@ -216,11 +227,11 @@ proposed-design:
 
     | Member kind | Slots |
     | --- | --- |
-    | `callable` | `type-parameters`, `where`, `receiver` (Go), `parameters`, `returns`, `modifiers`; `overloads` holding these slots when one entity has several signatures |
-    | `type` | `type-parameters`, `where`, `modifiers` |
-    | `type-alias` | `type-parameters`, `type`; for a Rust associated type, `bounds` and `type` as its default |
+    | `callable` | `type-parameters`, `where`, `impl`, `receiver` (Go), `parameters`, `returns`, `return-mode` (C#), `modifiers`; `overloads` holding these slots when one entity has several signatures |
+    | `type` | `type-parameters`, `where`, `underlying`, `modifiers`; for TypeScript, `constructors`, `call-signatures`, `construct-signatures` and `index-signatures` |
+    | `type-alias` | `type-parameters`, `where`, `type`; for a Rust associated type, `bounds` and `type` as its default |
     | `field` | `type`, `tag` (Go), `modifiers` |
-    | `property` | `type`, `parameters` for an indexer, `accessors`, `modifiers` |
+    | `property` | `get`, `set`, `init` (C#), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
     | `variable` | `type`, `modifiers` |
     | `constant` | `type`, `value` |
     | `enum-member` | `value` |
@@ -230,38 +241,89 @@ proposed-design:
     | Nested record | Slots |
     | --- | --- |
     | Parameter | `name`, `type`, `mode` (profile vocabulary: `optional`, `rest`, `ref`, `out`, `in`, `params`, `self-ref`, `keyword-only`, `positional-only`, `named`, `required-named`, and similar), `default` |
-    | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance` |
+    | Type parameter | `name`, `kind` (`type`, `lifetime`, `const`), `type` for a const parameter, `bounds`, `default`, `variance`, `modifiers` (TypeScript `const`) |
+    | Accessor (`get`, `set`, `init`, `delete`) | `type`, `access` when narrower than the member's, `modifiers` (Dart `covariant`). `delete` is the value `present`. |
+    | `impl` (Rust) | `type-parameters`, `self-type`, `where`, for a member of an inherent implementation with binders or a specialized self type |
+    | Relation addition | `type`, `type-parameters`, `self-type`, `where`, `bindings` |
 
-    Order is significant in `parameters`, `type-parameters` and `overloads`.
-    `modifiers` and `accessors` are sets. A profile lists its modifiers, and a
-    modifier is listed when it changes what a consumer can do:
+    Order is significant in `parameters`, `type-parameters`, `overloads`,
+    `constructors`, `call-signatures` and `construct-signatures`. `modifiers` is a
+    set. A profile lists its modifiers, and a modifier is listed when it changes
+    what a consumer can do:
 
     | Language | Modifiers |
     | --- | --- |
     | C# | `abstract`, `sealed`, `static`, `virtual`, `override`, `readonly`, `required` |
-    | Dart | `abstract`, `base`, `final`, `interface`, `sealed`, `mixin`, `late`, `covariant`, `external` |
+    | Dart | `abstract`, `base`, `const`, `covariant`, `external`, `final`, `interface`, `late`, `mixin`, `sealed`, `static` |
     | Go | none; a pointer receiver is the `receiver` slot |
-    | Python | `abstract`, `final`, `classvar`; `classmethod` and `staticmethod` are `language-kind` values |
+    | Python | `abstract`, `final`, `classvar`, `not-required` (a `TypedDict` key that is effectively not required, by `total` of its own class, `Required` and `NotRequired`); `classmethod` and `staticmethod` are `language-kind` values |
     | Rust | `unsafe`, `const`, `async`, `non_exhaustive`, `provided` (a trait item with a default body), `auto` |
 
     C# and TypeScript `async` is not a modifier, because the return type states
     its effect on a caller. Rust `async` is one, because the declared return type
-    does not.
-    | TypeScript | `abstract`, `readonly`, `static` |
+    does not. TypeScript `optional` is distinct from `undefined` in the type,
+    because a required member can have that type.
+    | TypeScript | `abstract`, `optional`, `readonly`, `static` |
 
-    Base types stay relations. `inherits` and `implements` relations whose `from`
-    is a member gain `type`, the type text with its arguments, such as
-    `@{Trait}<u8>`, and `where` for a conditional implementation. `type` joins
-    the relation's identity, so that `impl Trait<u8> for X` and
-    `impl Trait<u16> for X` are two facts.
+    Base types stay relations. An `inherits` or `implements` relation whose `from`
+    is a member gains `type`, the type text with its arguments, such as
+    `@{Trait}<u8>`. A Rust trait implementation also gains `type-parameters`,
+    `self-type`, `where` and `bindings`, the associated types and constants the
+    implementation sets:
+
+    ```yaml
+    - kind: implements
+      from: api.Entry
+      to: api.Record
+      type: "@{api.Record}"
+      bindings:
+        - {name: Key, type: u32}
+    ```
+
+    `type` and `self-type` join the relation's identity, so that
+    `impl Trait<u8> for X` and `impl Trait<u16> for X` are two facts.
+
+    A member of an inherent Rust implementation has the `impl` slot when the block
+    has binders or a specialized self type, because the block decides when a
+    consumer can call the member: `impl<T: Clone> Container<T>` is
+    `impl: {type-parameters: [{name: T, kind: type, bounds: "@{ext.core.clone.Clone}"}], self-type: "@{Container}<T>"}`.
+
+    `underlying` states the type a declaration is defined over, when no other slot
+    states it: the full underlying type of a Go defined type, with struct field
+    order, unexported fields, tags and interface type sets, such as `[2]int` or
+    `interface { ~int | ~string }`; a C# enum's integral type; and a Dart extension
+    type's representation.
+
+    TypeScript constructors and unnamed members are not public API members. Their
+    signatures are slots of the owning type, in effective order, with `access` for
+    a `protected` constructor.
+
+    Rust bounds have one form: a bound on a bare parameter, inline or in a `where`
+    clause, is in that parameter's sorted `bounds`, and `where` holds other
+    predicates only.
+
+    C# type text states the effective nullable annotation of each reference type
+    occurrence: `string?` annotated, `string` not annotated, and `string~` oblivious,
+    the form Roslyn's public API files use. `#nullable` warning state is not
+    recorded. Tuple element names stay in the type text.
+
+    Go tags are compared by decoded value. A promoted member's signature stays the
+    declaration's signature, with its type parameters, and the embedding type's
+    `underlying` states how they bind. Promotion creates no record.
+
+    For a partial C# member, the defining declaration supplies the parameter names
+    and order.
 
     A synthetic member has slots by the language rule that implies it: a default
     constructor, a Python dataclass `__init__`, a C# record's positional members.
 
-    Constant and enum values have one form: integers in decimal, booleans,
-    strings as JSON strings, floats as the shortest round-trip decimal, and Go
-    untyped constants as `go/constant` exact strings. A constant of any other
-    type has no `value` slot.
+    Constant, enum and default values have one form: `null`; integers in decimal;
+    booleans; strings and chars as JSON strings; floats as the shortest round-trip
+    decimal; C# `decimal` as its exact decimal; an enum value as `@{id}`; and all Go
+    numeric constants as `go/constant` exact strings, such as `1/3` or
+    `(5/2 + 3i)`. C# `default` is written as the value it denotes for the type, and
+    a Dart optional parameter with no default has `default: null`. A constant of any
+    other type has no `value` slot.
 
     An entity reached only as the type of a value stays a non-member. A `@{id}`
     whose target has no consumer path shows that the signature exposes it, and
@@ -269,18 +331,18 @@ proposed-design:
   inferred-types: |
     "Inferred types" stays in the model's out-of-profile set. A profile moves
     the named constructs below into its required categories by the model's
-    existing rule. A slot whose type no source token states is written
-    `{inferred: <type text>}`, and an observation of a type for an absent slot
-    is `out-of-profile`.
+    existing rule. A slot whose type no source token states, because inference or
+    a synthesis rule gives it, is written `{inferred: <type text>}`. An observation
+    of a type for an absent slot is `out-of-profile`.
 
     | Profile | What it records | How an author derives it |
     | --- | --- | --- |
     | `rust/1` | Nothing is inferred: item signatures must state their types. `impl Trait` is recorded as written, `impl @{Clone} + use<'a>`. The hidden type and the auto traits it leaks are not recorded. Lifetimes are as written, with no elision expansion. | Source and the Rust Reference (Items, Lifetime elision). `value` from the Reference's constant evaluation rules; a `const` assertion probe confirms it. |
     | `typescript/1` | `{inferred: ...}` for an unannotated return, `const`, `let`, field or accessor of a member, with the type that `tsc --declaration` emits for the context's options and compiler version, in canonical spelling. `/*elided*/ any` in that emit is written as `any`. A `.d.ts` member is all declared. | The Handbook's inference rules applied to source, confirmed by the declaration emit of the reference compiler outside the tree. A consumer of a published package compiles against that emit, so the emit defines the surface. |
-    | `python/1` | No inference. An unannotated parameter, return or variable has no type slot, because the typing specification leaves inference to each checker. `default` is the literal in canonical form, or `present` when the default is not a literal. `@overload` stubs are `overloads` in `typing` contexts and the implementation signature is the record in `runtime` contexts. A redefined name has the signature of the final binding; when control flow leaves several definitions possible, the record has `candidates`, each with its `at`. Decorators other than the ones the profile names leave the signature as written. | The Language Reference and typing specification applied to source. `inspect.signature` run outside the tree confirms names, order, kinds, defaults and annotations. |
-    | `go/1` | A constant's `type` is its declared type or its kind: `untyped bool`, `untyped rune`, `untyped int`, `untyped float`, `untyped complex`, `untyped string`. `value` is exact, with `iota` and implicit repetition applied. `var X = expr` has `{inferred: ...}`, the expression's type or its kind's default type. Function signatures are always declared. Result names are not recorded. | The Go specification (Constants, Iota, Variable declarations). A `go/types` probe outside the tree confirms it. |
-    | `csharp/1` | Nothing is inferred at member level. Nullable annotations are as written, and the `Nullable` setting's effect is a context difference. `value` and `default` are the constant's value under the specification's constant expression rules. | The C# language specification and a Roslyn compile probe outside the tree. |
-    | `dart/1` | `{inferred: ...}` for an unannotated top-level variable, field, or return, including types inherited from an overridden member and `this.` and `super.` parameters. `value` and `default` for constants in the common forms. | The Dart specification and its type inference document, confirmed by a compile-only probe that assigns the member to a declared function or variable type. |
+    | `python/1` | No inference. An unannotated parameter, return or variable has no type slot, because the typing specification leaves inference to each checker. `default` is the literal in canonical form, or `present` when the default is not a literal. `@overload` stubs are `overloads` in `typing` contexts and the implementation signature is the record in `runtime` contexts. A redefined name has the signature of the final binding. When control flow leaves several definitions possible, the record has `alternatives`, each with its `at` and slots. A `TypedDict` key's requiredness is a modifier. Decorators other than the ones the profile names leave the signature as written. | The Language Reference and typing specification applied to source. `inspect.signature` run outside the tree confirms names, order, kinds, defaults and annotations. |
+    | `go/1` | A constant's `type` is its declared type or its kind: `untyped bool`, `untyped rune`, `untyped int`, `untyped float`, `untyped complex`, `untyped string`. `value` is exact for typed and untyped constants, with `iota` and implicit repetition applied. `var X = expr` has `{inferred: ...}`, the expression's type or its kind's default type. Function signatures are always declared. Result names are not recorded. | The Go specification (Constants, Iota, Variable declarations). A `go/types` probe outside the tree confirms it. |
+    | `csharp/1` | A declared member has no inferred type. A synthetic member, such as a record's copy constructor or `EqualityContract`, has `{inferred: ...}` by the synthesis rule. Nullable state is the effective annotation at each type occurrence, including local `#nullable` directives. `value` and `default` are the constant's value under the specification's constant expression rules. | The C# language specification and a Roslyn compile probe outside the tree. |
+    | `dart/1` | `{inferred: ...}` for an unannotated top-level variable, field, return, parameter or accessor, including types inherited from an overridden member. `this.` and `super.` parameters have `{inferred: ...}` for their type, and a forwarded default has `{inferred: ...}` for its value. Each accessor half has its own type, including a half inherited from another supertype. `value` and `default` by the value form above. | The Dart specification and its type inference document, confirmed by a compile-only probe that assigns the member to a declared function or variable type. |
 
     A compile probe is the reference compiler's own output, so it agrees with
     the model's authoring independence rule. SCIP and every evaluated language
@@ -290,17 +352,28 @@ proposed-design:
 
     | Form | Members |
     | --- | --- |
-    | `signature` | entity key, overload ordinal, slot path, value. A type text names entities by key in `@{}`. |
+    | `signature` | entity key, slot path, value, and `at` for an alternative. A slot path includes the overload ordinal and the signature group, such as `constructors[0].parameters[1].type`. A type text names entities by key in `@{}`. |
 
     | Unit | Identity | Pairing key | Compared members |
     | --- | --- | --- | --- |
-    | signature | `(entity, overload, slot)` | same | value |
+    | signature | `(entity, alternative, slot path)`; `alternative` is the `at` of a Python alternative | same | value |
 
     A parameter pairs by position. A missing parameter is `missing` on each of
     its slots, and an extra parameter is `unexpected` on each of its slots. A
     pair whose value differs is `wrong-value`. A value with a name the indexer
     could not resolve, written `@?{name}`, is `wrong-value` with reason
-    `unresolved`.
+    `unresolved`. An observation equal to an already matched one is `duplicate`.
+
+    Alternatives follow the model's rule for several definition sites: every
+    alternative is expected, and each slot is a unit. An observation with `at` pairs
+    with that alternative. An observation without `at` pairs in the exact pass with
+    the first alternative in canonical order that has its value, and otherwise
+    stays unpaired when several alternatives remain.
+
+    The relation additions are compared members of the existing relation unit, and
+    a difference in them is `wrong-value`. `bindings`, `where`, `self-type` and
+    `type-parameters` report under `signature-shape` or `signature-declared-type`
+    by what they hold.
 
     An adapter declares four capabilities: `signature-shape` (names, order,
     modes, modifiers, accessors), `signature-declared-type`,
@@ -327,6 +400,10 @@ proposed-design:
     | parameters `a`, `b` | parameter `a` only | `a` `matched`; `b` `missing` on each slot |
     | `returns: {inferred: string}`, adapter without `signature-inferred-type` | none | one `unsupported` |
     | no `returns` slot (Python) | `returns: int` | one `out-of-profile` |
+    | alternatives A `returns: int`, B `returns: str` | `returns: int`, no `at` | A `matched`; B `missing` |
+    | alternatives A `returns: int`, B `returns: str` | `returns: int` at A, `returns: str` at B | two `matched` |
+    | alternatives A `returns: int`, B `returns: str` | `returns: bytes`, no `at` | one `unexpected`; A and B `missing` |
+    | alternatives A `returns: int`, B `returns: str` | `returns: int` at A, twice | one `matched`, one `duplicate`; B `missing` |
 
     Validation and audit check:
 
@@ -338,7 +415,9 @@ proposed-design:
       the member's `parameter` entities by site.
     - `model:signature-references`: each `@{id}` in a declared type text has a
       `type` reference fact from the member or one of its parameters, and each
-      such reference inside a parameter has its `@{id}`.
+      such reference inside a parameter has its `@{id}`. `{inferred}` slots and
+      synthetic members have no source token, so the audit checks them against the
+      member's `anchor` and its synthesis rule instead.
     - `profile:signature-probe`: an optional audit step compares facts with the
       reference toolchain, where the corpus toolchains are installed: rustdoc
       JSON, `tsc --declaration`, `go/types`, `inspect.signature`, Roslyn and the
@@ -349,7 +428,8 @@ proposed-design:
     ```rust
     pub struct ApiSnapshot { pub revision: String, pub context: ContextId, pub distributions: Vec<DistributionApi> }
     pub struct DistributionApi { pub key: DistributionKey, pub members: Vec<ApiMember> }
-    pub struct ApiMember { pub entity: EntityKey, pub kind: EntityKind, pub paths: Vec<String>, pub access: Access, pub signatures: Vec<Signature> }
+    pub struct ApiMember { pub entity: EntityKey, pub kind: EntityKind, pub paths: Vec<String>, pub access: Access, pub signatures: Vec<Signature>, pub relations: Vec<ApiRelation> }
+    pub struct ApiRelation { pub kind: RelationKind, pub target: EntityKey, pub slots: Vec<Slot> }
 
     pub fn snapshot(analysis: &Analysis, context: &ContextSpec) -> ApiSnapshot;
     pub fn compare(before: &ApiSnapshot, after: &ApiSnapshot) -> ApiDelta;
@@ -361,21 +441,32 @@ proposed-design:
         PathRemoved { member: EntityKey, path: String },
         AccessChanged { member: EntityKey, before: Access, after: Access },
         SlotChanged { member: EntityKey, slot: SlotPath, before: Option<Value>, after: Option<Value> },
+        RelationAdded { member: EntityKey, relation: ApiRelation },
+        RelationRemoved { member: EntityKey, relation: ApiRelation },
         SlotUnknown { member: EntityKey, slot: SlotPath },
     }
     ```
 
     - `compare` runs per distribution and context. A context in one snapshot only
       is reported, and its members are not.
-    - Members pair by consumer path and kind, not by `symbol_id`. A move behind an
-      unchanged re-export is no change. An `@{id}` compares by the target's first
-      consumer path in sorted order, or by its canonical path when it has none.
-      A type parameter compares by position, so that a rename of `T` is no change.
+    - Members pair by shared consumer path and kind, not by `symbol_id`. A move
+      behind an unchanged re-export is no change. A member with no shared path pairs
+      by canonical path.
+    - `compare` first pairs every entity across the snapshots this way, and an
+      `@{id}` compares through that pairing. Adding a re-export is a `PathAdded` and
+      changes no signature that names the target.
+    - When paths split or merge, so that a member's paths are shared with more than
+      one member of the other snapshot, the pair with the most shared paths wins,
+      ties go to the first shared path in sorted order, and the others are
+      `MemberAdded` and `MemberRemoved`. A signature that names a target with no
+      pair reports `SlotChanged`.
+    - A type parameter compares by position, so that a rename of `T` is no change.
     - Each slot value carries its evidence as `EdgeRecord` does: `resolved`,
       `syntactic` or `unknown`. A slot that the library cannot state is
       `SlotUnknown`, never a change.
-    - `ApiSnapshot::observations()` yields `public-api-member` and `signature`
-      observations, so that the Beholder adapter grades the data a consumer gets.
+    - `ApiSnapshot::observations()` yields `public-api-member`, `signature` and
+      `relation` observations, so that the Beholder adapter grades the data a
+      consumer gets.
     - `compare` reports facts. A consumer classifies them, such as breaking or
       harmless.
     - The 84 answer keys measure snapshot accuracy on one revision. `compare` is a
@@ -396,23 +487,27 @@ proposed-design:
     | wyrd-company/beholder#18 | The `signature` form, comparison unit, capabilities and controlled cases in the comparison engine and the SCIP adapter. |
     | A new issue | The library surface above, its Beholder adapter, and the controlled pairs for `compare`. It can start after the fact shape is in the contract. |
   cost: |
-    The sample is 89 members written by hand by one agent: 32 Rust members from
-    `modules-visibility-and-resolution`, 29 TypeScript members from
-    `package-publishing-ecosystem`, and 28 Python members from
-    `diagnostics-toolkit`, with a seeded random 18 per language and the rest
-    chosen as hard forms, including forms from outside these projects. The sample
-    is in `docs/evidence/semantic-oracle-signatures/sample/`.
+    The sample is 88 records for 87 members, written by hand by one agent: Rust from
+    `modules-visibility-and-resolution`, TypeScript from
+    `package-publishing-ecosystem`, and Python from `diagnostics-toolkit`, with a
+    seeded random 18 per language and the rest chosen as hard forms, including forms
+    from outside these projects. The sample is in
+    `docs/evidence/semantic-oracle-signatures/sample/`, and `count_sample.py` counts
+    it.
 
     | Measure | Rust | TypeScript | Python | All |
     | --- | --- | --- | --- | --- |
-    | Members | 32 | 29 | 28 | 89 |
-    | Members with no slot to state | 6 | 7 | 4 | 17 |
-    | Slots | 72 | 51 | 57 | 180 |
-    | YAML lines | 99 | 86 | 85 | 270 |
-    | Agent wall clock from the start of reading source to the end of writing | 29 s | 21 s | 36 s | 86 s |
+    | Records | 32 | 28 | 28 | 88 |
+    | Records with no slot | 6 | 6 | 4 | 16 |
+    | Slots | 71 | 51 | 56 | 178 |
+    | YAML lines, without the header | 98 | 86 | 86 | 270 |
+    | Agent wall clock for the first draft, from reading source to writing | 29 s | 21 s | 36 s | 86 s |
 
     The wall clock is agent time, excluding study of the contract. It does not
-    predict human time.
+    predict human time. The sample's projects have few of the forms that the scope
+    gained from review: generic implementations, constructors, accessor types,
+    `underlying`, and implementation bindings. It measures the common forms, and it
+    has no C#, Go or Dart member.
 
     Difficulty: most members need one read of one declaration. The difficult
     forms, each with its rule in this design:
@@ -426,7 +521,7 @@ proposed-design:
 
     Errors:
 
-    - 1 fact of 89 was wrong: a `where` clause missed `Debug`, because the first
+    - 1 fact of 88 was wrong: a `where` clause missed `Debug`, because the first
       read stopped at the first line of the clause. Rereading the source found it.
     - 1 notation defect: `{id}` collided with TypeScript type literals. The
       reference check found it, and the delimiter became `@{id}`.
@@ -441,7 +536,17 @@ proposed-design:
     | `inspect.signature`, Python | 21 of 21 compared records agree. |
     | rustdoc JSON, Rust | 18 of 22 compared records agree. The other 4 are the check script's own limits (`Self`, an associated type name) and rustdoc reporting no implicit discriminant. |
     | `tsc --declaration`, TypeScript inferred | 4 of 4 hand derivations agree, apart from the sort order of literal members. |
-    | Reference facts, Rust and TypeScript | 29 of 29 and 27 of 27 records with ids in the answer key agree. |
+    | Reference facts, Rust and TypeScript | 29 of 29 and 26 of 26 records with ids in the answer key agree. This compares target ids only. |
+
+    The checks cover named fields only:
+
+    | Slot field | Checked by |
+    | --- | --- |
+    | Python parameter names, annotations, defaults, returns | `check_python_sample.py` |
+    | Rust parameter names and types other than `self`, returns, field types, constant values, alias types, `non_exhaustive` | `check_rust_sample.py` |
+    | TypeScript inferred returns | comparison by eye with `tsc --declaration` |
+    | Target ids in type text, Rust and TypeScript | `check_sample_references.py` |
+    | Rust `self-ref` and `provided`, Python parameter kinds and accessors, TypeScript declared types | No script. Read against source. |
 
     Effect on the 84 answer keys:
 
@@ -449,19 +554,18 @@ proposed-design:
       830 lines on 8337, 10 percent. TypeScript pilot: 91 members, about 270
       lines on 10398, 3 percent. Python `diagnostics-toolkit`: 165 members, about
       500 lines.
-    - Corpus: a rough count finds at most 13,500 member declarations (Python 3,335
-      by syntax tree; Rust 1,846, C# 3,205, Dart 1,943, TypeScript 2,393 and Go
-      761 by pattern). The Rust pattern gives 299 on the pilot against 276 in its
-      key. TypeScript and Python overcount, because package entries and working
-      packaging limit membership. The upper bound is about 40,000 lines. If the
-      pilots are typical, the keys total about 940,000 lines, which is 4 percent.
-    - Review: of the 180 slots, 47 names are recomputed, 106 declared types are
-      cross-checked against reference facts and probes, 4 inferred types and 23
-      modes, modifiers, defaults and values are checked by probes. Each slot class
-      has a mechanical check where the toolchain is installed. This test ran the
-      Rust, TypeScript and Python probes on the sample only. The C# and Dart probes
-      are untested, because neither toolchain is in this environment
-      (wyrd-company/beholder#63).
+    - Corpus: a rough estimate is 13,500 member declarations (Python 3,335 by syntax
+      tree; Rust 1,846, C# 3,205, Dart 1,943, TypeScript 2,393 and Go 761 by pattern).
+      It is not a bound. The Rust pattern gives 299 on the pilot against 276 in its
+      key, and the patterns both overcount (TypeScript and Python declarations
+      outside package entries) and miss forms (Rust trait methods and variants,
+      TypeScript class and interface members). At 3 lines each that is about 40,000
+      lines. If the pilots are typical, the keys total about 940,000 lines, so the
+      growth is near 4 percent, with the same uncertainty.
+    - Review: of the 178 slots, 47 are names, which `model:signature-parameters`
+      recomputes; 103 are declared types and 4 are inferred types; 24 are modes,
+      modifiers, defaults and values. `profile:signature-probe` is designed to check
+      the last three groups. The table above states what has been run.
     - Reference toolchain coverage: rustdoc JSON finds 259 of the 276 Rust pilot
       members by site.
 
