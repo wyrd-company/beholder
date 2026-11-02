@@ -447,6 +447,12 @@ description: |
   that is not itself an entity in the language is never a target. A profile
   names the binding forms that are entities in its language.
 
+  The name that an import or export statement introduces for a binding, such
+  as `b` in `a as b`, a default import's name or a namespace import's name,
+  declares the binding and is not a reference site. The name that denotes
+  the target in its source, `a`, is. Later uses of the binding are
+  references to its target.
+
   One site in one context has at most one reference fact for each `from`
   entity. A document compiled into several units, or mounted at several
   module positions, has one reference per enclosing entity at each site.

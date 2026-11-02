@@ -351,6 +351,16 @@ description: |
   | `typescript:type-only` | `reference`: the id of an import, export or module-specifier reference that is elided from emit | `reference` | none |
   | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 
+  A unit's module format in a context is the format TypeScript gives the
+  file: `esm` for `.mts`, `.d.mts` and `.mjs` files and `cjs` for `.cts`,
+  `.d.cts` and `.cjs` files in every context; for other files, under
+  `module` `node16` or `nodenext`, the format Node.js detects from the
+  nearest `package.json` `type`; under any other `module` setting, the
+  format of the configured `module` emit, `esm` for the ECMAScript module
+  settings and `cjs` for `commonjs`. `script`, `declaration-script` and
+  `json-module` units have no module format and no `typescript:module-format`
+  fact.
+
   All four extensions are required. A subpath and mode whose resolution
   yields no file the program can contain has no `typescript:entry` fact.
 
