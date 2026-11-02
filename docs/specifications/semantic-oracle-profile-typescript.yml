@@ -257,7 +257,11 @@ description: |
   another: an `@types` package is imported by the name of the package it
   types (`@types/scope__name` as `@scope/name`), and an ambient module that
   a distribution declares is imported by its module name. A
-  `typescript:entry` fact then states that specifier.
+  `typescript:entry` fact then states that specifier. Each ambient module
+  that a file of the entry selection declares is an entry of its own: its
+  fact has the subpath of that selection, the ambient module entity as
+  `module` and its module name as `specifier`, so that several ambient
+  modules of one distribution have distinct facts.
 
   ## References
 
@@ -343,7 +347,7 @@ description: |
   | Kind | Members | Key | Compared |
   | --- | --- | --- | --- |
   | `typescript:module-format` | `unit`, `format`: `esm` or `cjs`, and the fact's `contexts` | `unit` | `format` |
-  | `typescript:entry` | `distribution`, `mode`: `import` or `require`, `subpath`: `.` or `./<subpath>` as `exports` writes it after pattern expansion, `.` when Public API rule 2 applies, `specifier`: the specifier consumers write, where Public API states one, `module`: the entry module entity | `distribution`, `mode`, `subpath` | `module` |
+  | `typescript:entry` | `distribution`, `mode`: `import` or `require`, `subpath`: `.` or `./<subpath>` as `exports` writes it after pattern expansion, `.` when Public API rule 2 applies, `specifier`: the specifier consumers write, where Public API states one, `module`: the entry module entity | `distribution`, `mode`, `subpath`, `specifier` | `module` |
   | `typescript:type-only` | `reference`: the id of an import, export or module-specifier reference that is elided from emit | `reference` | none |
   | `typescript:augments` | `entity`: a member an augmentation adds, `target`: the external declaration it augments, `at`: the augmentation block's name site | `entity` | `target` |
 

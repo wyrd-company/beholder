@@ -295,7 +295,7 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
         Extension {
             kind: "typescript:entry",
             members: &[("distribution", Distribution), ("module", Entity)],
-            key: &["distribution", "mode", "subpath"],
+            key: &["distribution", "mode", "subpath", "specifier"],
         },
         Extension {
             kind: "typescript:augments",

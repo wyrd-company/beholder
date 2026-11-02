@@ -642,3 +642,22 @@ fn a_rust_type_alias_names_the_inherent_items_of_its_type() {
         "{findings}"
     );
 }
+
+#[test]
+fn ambient_module_entries_of_one_distribution_have_distinct_keys() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    for specifier in ["alpha", "beta"] {
+        push(
+            &mut dataset,
+            "/extensions/typescript:entry",
+            json!({"distribution": "geometry", "mode": "import", "subpath": ".",
+                   "specifier": specifier, "module": "shapes"}),
+        );
+    }
+    let keys: Vec<_> = beholder_semantic_oracle::validate(&dataset, None)
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == "model:extension-key")
+        .collect();
+    assert!(keys.is_empty(), "{keys:#?}");
+}
