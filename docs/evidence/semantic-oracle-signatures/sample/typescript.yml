@@ -1,0 +1,91 @@
+# ---
+# relationships:
+#   references:
+#     - semantic-oracle-signatures
+# ---
+# Hand-written sample. Not an answer key. Random members from seed 62, then chosen hard forms.
+signatures:
+  # random sample
+  - entity: ambient.scope.name#readScoped
+    parameters:
+      - {name: value, type: string}
+    returns: string
+  - entity: packages.dual-pkg.dist-types.types-only.d.ts#DescribeTypesOnly
+    type: "(value: @{packages.dual-pkg.dist-types.types-only.d.ts#TypesOnlyMarker}) => string"
+  - entity: packages.typed-via-exports.dist-types.index.d.ts#ViaExportsMarker        # nothing to state
+  - entity: packages.types-versions-pkg.dist-types.v5.index.d.ts#VersionedMarker.modern
+    type: "true"
+  - entity: packages.atypes-generic-ambient.index.d.ts#GenericAmbientMarker          # nothing to state
+  - entity: packages.workspace-b.dist.index.d.ts#WorkspaceBMarker                    # nothing to state
+  - entity: packages.custom-conditions-dep.dist-types.workspace.d.ts#CustomDepDefault
+    type: '{ extra: string; kind: "workspace" }'
+  - entity: local-packages.direct-dep.index.d.ts#DirectMarker.transitive
+    type: "@{local-packages.transitive-dep.index.d.ts#TransitiveMarker}"
+  - entity: packages.dual-pkg.dist-types.index.d.mts#dualValue
+    type: string
+  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken                         # members carry their own facts
+  - entity: packages.exports-map.dist-types.utils.extra.d.ts#extraUtils
+    parameters:
+      - {name: value, type: string}
+    returns: string
+  - entity: packages.typed-conventional.index.d.ts#ConventionalMarker                # nothing to state
+  - entity: packages.typed-via-typings.dist.index.d.ts#ViaTypingsMarker              # nothing to state
+  - entity: packages.exports-map.dist-types.bundle.d.mts#bundleFeature
+    parameters:
+      - {name: value, type: string}
+    returns: string
+  - entity: packages.dual-pkg.dist-types.index.d.mts#DualMarkerMts                   # nothing to state
+  - entity: packages.dual-pkg.dist-types.types-only.d.ts#TypesOnlyMarker.value
+    type: string
+  - entity: packages.legacy-fallback.dist.index.d.ts#legacyValue
+    type: string
+  - entity: ambient.scope.name#ScopedMarker.source
+    type: '"scoped-atypes"'
+  # chosen hard forms in the pilot
+  - entity: generated.platform-generated.index.d.ts#describeGeneratedPlatform
+    parameters:
+      - {name: platform, type: '@{generated.platform-generated.index.d.ts#PlatformGeneratedMarker}["platform"]'}
+    returns: string
+  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken.constructor
+    parameters:
+      - {name: value, type: string}
+  - entity: packages.sensitive-lib.index.d.ts#SensitiveToken.getValue
+    returns: string
+  - entity: packages.sensitive-lib.index.d.ts#tokenV1
+    type: "@{packages.sensitive-lib.index.d.ts#SensitiveToken}"
+  # inferred forms in the pilot; these files are not package entries, so they are not members today
+  - entity: src.declaration-emit.inferred-public.ts#buildCatalogLabel
+    parameters:
+      - {name: item, type: "@{src.declaration-emit.authored-source.ts#BeaconCatalogItem}"}
+    returns: {inferred: string}
+  - entity: src.declaration-emit.inferred-public.ts#wrapValue
+    type-parameters:
+      - {name: T, kind: type}
+    parameters:
+      - {name: value, type: T}
+    returns: {inferred: '{ kind: "wrapped"; value: T }'}
+  - entity: src.declaration-emit.inferred-public.ts#WrappedCatalog
+    type: "@{ext.lib.es5.ReturnType}<typeof @{src.declaration-emit.inferred-public.ts#wrapValue}<@{src.declaration-emit.authored-source.ts#BeaconCatalogItem}>>"
+  - entity: src.declaration-emit.leaked-private.ts#acquireHiddenLedger
+    parameters:
+      - {name: token, type: number}
+    returns: {inferred: "@{src.declaration-emit.leaked-private.ts#HiddenLedgerRef}"}
+  - entity: src.declaration-emit.leaked-private.ts#LedgerHolder.ref
+    type: "@{ext.lib.es5.ReturnType}<typeof @{src.declaration-emit.leaked-private.ts#acquireHiddenLedger}>"
+  # chosen hard forms outside the pilot; ids are placeholders, no answer key exists
+  - entity: polymorphic-this.Timestamped
+    type-parameters:
+      - {name: TBase, kind: type, bounds: "@{polymorphic-this.Constructor}"}
+    parameters:
+      - {name: Base, type: TBase}
+    returns: {inferred: "{ new (...args: any[]): { getTimestamp(): number; timestamp: number } } & TBase"}
+  - entity: polymorphic-this.overloaded
+    overloads:
+      - type-parameters:
+          - {name: T, kind: type}
+        parameters:
+          - {name: value, type: T}
+        returns: T
+      - parameters:
+          - {name: value, type: string}
+        returns: string
