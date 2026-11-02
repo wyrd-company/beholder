@@ -11,7 +11,12 @@ parameter names, kinds, defaults and annotations, and return annotations. Import
 runs the project's module-level code, so run it on a project you trust. It writes no
 bytecode into the project tree.
 
-  report-python.py --search-path DIR[:DIR] --context ID --out FILE
+  report-python.py --search-path DIR[:DIR] --context ID --out FILE --python VERSION
+
+VERSION is the context's interpreter, such as `3.14`. The script runs under
+`pythonVERSION`, and stops with exit 2 and no report when that interpreter is absent,
+so that a report never states one version's view for another's context. The report
+states what it ran under.
 
 Python has no reference type checker, so this covers the runtime's view only, and is
 for a `runtime` context. A slot it cannot state is `unchecked` in the audit. A module that fails to
@@ -28,6 +33,7 @@ import os
 import pkgutil
 import platform
 import re
+import shutil
 import sys
 import types
 import typing
@@ -304,12 +310,26 @@ def modules_under(search_path):
             yield found.name
 
 
+def run_under(version):
+    """Continues under the context's interpreter, whichever one started this script."""
+    running = f"{sys.version_info.major}.{sys.version_info.minor}"
+    if running == version:
+        return
+    interpreter = shutil.which(f"python{version}")
+    if interpreter is None:
+        print(f"report-python: the context's interpreter python{version} is absent", file=sys.stderr)
+        sys.exit(2)
+    os.execv(interpreter, [interpreter, "-B", os.path.abspath(__file__), *sys.argv[1:]])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--search-path", required=True)
     parser.add_argument("--context", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--python", required=True)
     arguments = parser.parse_args()
+    run_under(arguments.python)
     search_path = [os.path.abspath(p) for p in arguments.search_path.split(os.pathsep)]
     out = os.path.abspath(arguments.out)
     if any(out.startswith(directory + os.sep) for directory in search_path):
@@ -336,7 +356,7 @@ def main():
                 "format": "semantic-oracle-compiler-report/1",
                 "language": "python",
                 "context": arguments.context,
-                "tool": {"name": "inspect.signature", "version": platform.python_version()},
+                "tool": {"name": "inspect.signature", "version": platform.python_version(), "interpreter": sys.executable},
                 "covers": COVERS,
                 "members": sorted(report.members.values(), key=lambda member: member["path"]),
                 "failed": failed,
@@ -345,7 +365,7 @@ def main():
             indent=1,
             sort_keys=True,
         )
-    print(json.dumps({"members": len(report.members), "failed": len(failed)}))
+    print(json.dumps({"members": len(report.members), "failed": len(failed), "python": platform.python_version(), "interpreter": sys.executable}))
 
 
 if __name__ == "__main__":

@@ -16,9 +16,12 @@ import sys
 import tempfile
 import time
 
+sys.dont_write_bytecode = True
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCRIPTS = os.path.join(ROOT, "scripts", "semantic-oracle")
 TIMES = {}
+RUNNING = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def write(root, files):
@@ -490,7 +493,7 @@ class Point:
     })
     before = listing(project)
     out = os.path.join(tmp, "python.json")
-    _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out], tmp, out)
+    _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out, "--python", RUNNING], tmp, out)
     tree_unchanged(project, before)
     # The written name, resolved: the runtime's expansion is not the slot's text.
     expect(found, "pkg.mod.uses_alias", "parameters[0].type", "@{pkg.mod.Status}")
@@ -501,6 +504,7 @@ class Point:
     assert "parameters[0].type" not in found["pkg.mod.unresolvable"]["slots"]
     assert found["pkg.mod.unresolvable"]["unstated"] == ["parameters[0].type"], found["pkg.mod.unresolvable"]
     python_without_written_text(project)
+    python_interpreter(project, tmp)
     expect(found, "pkg.mod.plain", "parameters[0].type", "int")
     expect(found, "pkg.mod.plain", "parameters[1].type", "str")
     expect(found, "pkg.mod.plain", "parameters[1].default", '"x"')
@@ -514,6 +518,25 @@ class Point:
     expect(found, "pkg.mod.Color.RED", "value", "1")
     expect(found, "pkg.mod.Point.__init__", "parameters[1].type", "int")
     expect(found, "pkg.mod.Point.norm", "get.type", "float")
+
+
+def python_interpreter(project, tmp):
+    """A report runs under the context's interpreter, says so, and never under another."""
+    script = [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime"]
+    out = os.path.join(tmp, "python-running.json")
+    report, _ = run("python", script + ["--out", out, "--python", RUNNING], tmp, out)
+    assert report["tool"]["version"].startswith(RUNNING + "."), report["tool"]
+    assert report["tool"]["interpreter"], report["tool"]
+    absent = os.path.join(tmp, "python-absent.json")
+    failure(script + ["--out", absent, "--python", "3.99"], tmp, absent, ["python3.99 is absent"])
+    # Another interpreter on PATH answers for its version, whichever started the script.
+    other = next((v for v in ("3.14", "3.15", "3.13", "3.12") if v != RUNNING and shutil.which(f"python{v}")), None)
+    if other is None:
+        print("python_interpreter: no second interpreter on PATH, re-execution not exercised")
+        return
+    out = os.path.join(tmp, "python-other.json")
+    report, _ = run("python", script + ["--out", out, "--python", other], tmp, out)
+    assert report["tool"]["version"].startswith(other + "."), report["tool"]
 
 
 def python_without_written_text(project):

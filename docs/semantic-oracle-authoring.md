@@ -132,7 +132,7 @@ A compiler report is a JSON file that a script produces outside the project tree
 | --- | --- | --- |
 | `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>] [NO_DEFAULT_FEATURES=1] [ALL_FEATURES=1] [CFG=<a b>]` | rustdoc JSON, and a generated probe crate for `auto-traits`. One `cargo check` reports every failing claim; a line that fails for another reason is set aside and the check repeats, at most five times. | A Rust toolchain. It works on a copy of the project, with the toolchain the project selects, and sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
 | `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
-| `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file>` | `inspect.signature`, for a `runtime` context | Python. It imports the project's modules, which runs their module-level code. |
+| `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file> PYTHON=<version>` | `inspect.signature`, for a `runtime` context | `python<version>`, the context's `python` parameter. An absent interpreter exits nonzero, and the report's `tool` states what it ran under. It imports the project's modules, which runs their module-level code. |
 | `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
 
 Run one report per context, and pass each to `audit`:

@@ -134,14 +134,17 @@ tasks:
     desc: Write a Python compiler report from inspect.signature
     summary: |
       Imports the project's modules, which runs their module-level code. SEARCH_PATH
-      lists the context's search path, CONTEXT its id, and OUT lies outside the tree.
+      lists the context's search path, CONTEXT its id, PYTHON its `python` parameter,
+      and OUT lies outside the tree. It runs under that interpreter, and an absent one
+      exits nonzero and writes no report.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
-      vars: [SEARCH_PATH, CONTEXT, OUT]
+      vars: [SEARCH_PATH, CONTEXT, OUT, PYTHON]
     cmds:
       - >-
         python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-python.py")}}
         --search-path {{shellQuote .SEARCH_PATH}} --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+        --python {{shellQuote .PYTHON}}
 
   semantic-oracle:report:typescript:
     desc: Write a TypeScript compiler report from tsc --declaration
