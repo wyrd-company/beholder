@@ -464,6 +464,9 @@ def python(tmp):
     project = os.path.join(tmp, "python")
     write(project, {
         "pkg/__init__.py": "",
+        "pkg/raises/__init__.py": "raise RuntimeError('on purpose')\n",
+        "pkg/raises/child.py": "VALUE = 1\n",
+        "pkg/exits/__init__.py": "raise SystemExit(3)\n",
         "pkg/aliases.py": """
 from typing import TypeAlias
 FLAG = True
@@ -536,7 +539,10 @@ class Point:
     })
     before = listing(project)
     out = os.path.join(tmp, "python.json")
-    _, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out, "--python", RUNNING], tmp, out)
+    report, found = run("python", [sys.executable, os.path.join(SCRIPTS, "report-python.py"), "--search-path", project, "--context", "runtime", "--out", out, "--python", RUNNING], tmp, out)
+    # A package that raises on import is listed, and the report goes on.
+    failed = " ".join(report["failed"])
+    assert "pkg.raises: RuntimeError" in failed and "pkg.exits: SystemExit" in failed, report["failed"]
     tree_unchanged(project, before)
     # A declared alias keeps the name written, not its value and not another alias
     # of the same value.

@@ -412,10 +412,17 @@ class Report:
                 self.klass(path, value)
 
 
-def modules_under(search_path):
-    for directory in search_path:
-        for found in pkgutil.walk_packages([directory]):
-            yield found.name
+def modules_under(paths, prefix=""):
+    """Every module under some paths. A package whose import raises has no submodules
+    to list, and the caller records its failure when it imports it."""
+    for found in pkgutil.iter_modules(paths, prefix):
+        yield found.name
+        if found.ispkg:
+            try:
+                package = importlib.import_module(found.name)
+            except BaseException:  # A project module can raise anything on import.
+                continue
+            yield from modules_under(list(package.__path__), f"{found.name}.")
 
 
 def run_under(version):
