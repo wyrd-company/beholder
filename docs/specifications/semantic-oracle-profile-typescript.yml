@@ -320,7 +320,11 @@ description: |
   - Union and intersection members are sorted within one operator. Property members of
     a type literal are sorted by name, as `{ extra: string; kind: "workspace" }`.
     Call and construct signatures and repeated method signatures of a type literal keep
-    their effective overload order.
+    their effective overload order. A member sorts by its name however it is written:
+    `readonly a` and `"a"` are both named `a`, so `{ f(): X; "f"(): Y }` is one method's
+    overloads, in order.
+  - A literal type is syntax, not a name, and is written as itself: `true`, `false`,
+    `1`, `-1`, `1n`, or a string in double quotes.
   - A string literal type uses double quotes. A type literal uses `{ a: T; b?: U }`, a
     function type `(x: T) => U`, and `, ` between arguments.
   - `/*elided*/ any` in a declaration emit is written `any`.

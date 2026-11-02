@@ -101,7 +101,8 @@ tasks:
     desc: Write a Rust compiler report from rustdoc JSON and a generated auto-trait probe
     summary: |
       Needs a Rust toolchain. PROJECT, CONTEXT and OUT are required; OUT lies
-      outside the project tree. FEATURES selects the context's features.
+      outside the project tree. FEATURES, NO_DEFAULT_FEATURES and ALL_FEATURES select
+      the context's features. A build that fails exits nonzero and writes no report.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
       vars: [PROJECT, CONTEXT, OUT]
@@ -110,6 +111,8 @@ tasks:
         python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-rust.py")}}
         --project {{shellQuote .PROJECT}} --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
         {{if .FEATURES}}--features {{shellQuote .FEATURES}}{{end}}
+        {{if .NO_DEFAULT_FEATURES}}--no-default-features{{end}}
+        {{if .ALL_FEATURES}}--all-features{{end}}
 
   semantic-oracle:report:go:
     desc: Write a Go compiler report from go/types

@@ -6,12 +6,19 @@
 # ---
 """Writes a Rust compiler report for `semantic-oracle audit --report`.
 
-Reads rustdoc JSON for each `lib` target, then compiles a generated probe crate
-that depends on the project, to verify `auto-traits`. Every output, build
-artifact and probe source stays outside the project tree. One compile reports
-every failing probe, by line, so that the run needs at most a few compiles.
+Copies the project outside its tree, reads rustdoc JSON for each `lib` target,
+then compiles a generated probe crate that depends on the copy, to verify
+`auto-traits`. The project tree gets no build output and no lockfile. One compile
+reports every failing probe, by line. A line that fails for a reason other than the
+trait is set aside and the compile repeats, at most five times.
 
-  report-rust.py --project DIR --context ID --out FILE [--features a,b]
+A build that fails is an error: this script exits 2 and writes no report. A report
+never states what a failed build did not check.
+
+  report-rust.py --project DIR --context ID --out FILE
+      [--features a,b] [--no-default-features] [--all-features]
+
+All of these use one toolchain, the one the project selects.
 
 Not stated, so `unchecked` in the audit: an opaque occurrence of a callable the
 probe cannot name or call by shape, and a condition that is not the same trait
@@ -54,30 +61,69 @@ COVERS = [
 ]
 
 
+# The toolchain the project selects, for every command, so that a probe and its
+# report's version come from the same compiler as rustdoc's.
+TOOLCHAIN = {}
+
+
 def run(command, cwd, env=None):
-    merged = {**os.environ, **(env or {})}
+    merged = {**os.environ, **TOOLCHAIN, **(env or {})}
     return subprocess.run(command, cwd=cwd, env=merged, capture_output=True, text=True)
 
 
+def fail(message):
+    """A build that failed stops the report: nothing it would state was checked."""
+    print(f"report-rust: {message}", file=sys.stderr)
+    sys.exit(2)
+
+
+def select_toolchain(project):
+    if not shutil.which("rustup"):
+        return
+    active = subprocess.run(["rustup", "show", "active-toolchain"], cwd=project, capture_output=True, text=True)
+    name = active.stdout.split()
+    if active.returncode == 0 and name:
+        TOOLCHAIN["RUSTUP_TOOLCHAIN"] = name[0]
+
+
 def cargo_metadata(project):
-    found = run(["cargo", "metadata", "--format-version", "1", "--no-deps"], project)
+    found = run(["cargo", "metadata", "--format-version", "1", "--no-deps", "--offline"], project)
     if found.returncode:
-        sys.exit(found.stderr)
+        fail(f"cargo metadata failed:\n{found.stderr}")
     return json.loads(found.stdout)
 
 
-def rustdoc_json(project, target_dir, features):
+def rustdoc_json(project, target_dir, selection):
     command = ["cargo", "doc", "--offline", "--no-deps", "--lib", "--workspace", "--target-dir", target_dir]
-    if features:
-        command += ["--features", features]
+    if selection.features:
+        command += ["--features", selection.features]
+    if selection.no_default_features:
+        command.append("--no-default-features")
+    if selection.all_features:
+        command.append("--all-features")
     env = {
         "RUSTC_BOOTSTRAP": "1",
         "RUSTDOCFLAGS": "-Z unstable-options --output-format json --document-private-items -A warnings",
     }
     built = run(command, project, env)
     if built.returncode:
-        sys.exit(built.stderr)
+        fail(f"rustdoc failed:\n{built.stderr}")
     return os.path.join(target_dir, "doc")
+
+
+def dependency_line(package, selection):
+    """A probe's dependency on a package, in the context's feature selection."""
+    wanted = [name for name in selection.features.split(",") if name]
+    if selection.all_features:
+        chosen = sorted(package["features"])
+    else:
+        chosen = sorted(name for name in wanted if name in package["features"])
+    parts = [f"path = {json.dumps(os.path.dirname(package['manifest_path']))}"]
+    if chosen:
+        parts.append(f"features = {json.dumps(chosen)}")
+    if selection.no_default_features:
+        parts.append("default-features = false")
+    return f"{json.dumps(package['name'])} = {{ {', '.join(parts)} }}"
 
 
 class Crate:
@@ -401,7 +447,17 @@ class Walker:
 
 def source_text(text):
     """A report's type text as Rust source: `@{a::b}` to `::a::b`."""
-    return re.sub(r"@\{([^}]*)\}", lambda m: "::" + rust_path(m.group(1)), text)
+    return re.sub(r"@\{([^}]*)\}", lambda m: "::" + rust_path(public_path(m.group(1))), text)
+
+
+def public_path(path):
+    """A standard library name by the path a consumer can write. Rustdoc gives the
+    defining path, whose inner modules are private: `core::future::future::Future`
+    is public as `core::future::Future`."""
+    parts = path.split("::")
+    if parts[0] in ("core", "alloc", "std") and len(parts) > 3:
+        return "::".join([parts[0], parts[1], parts[-1]])
+    return path
 
 
 def rust_path(path):
@@ -495,7 +551,7 @@ class Probes:
     them all and each failure names its claim."""
 
     def __init__(self):
-        self.lines = ["#![allow(warnings)]"]
+        self.lines = ["#![allow(warnings)]", "extern crate alloc;"]
         for trait, bound in BOUND.items():
             self.lines.append(f"fn need_{trait}<T: ?Sized + {bound}>() {{}}")
         self.claims = {}
@@ -663,24 +719,47 @@ def plan_opaque(probes, crate, path, function, call, owner_generics, self_type, 
                 probes.add(f"pub fn {name}{head}({', '.join(parameters)}){clause} {{ {body} }}", claim)
 
 
+PROBE_TARGET = "semantic_oracle_probe"
+
+
 def compile_probe(directory, target_dir):
+    """Checks the generated crate. Returns its `E0277` lines and its lines that fail
+    for another reason. Stops the report when the check says nothing about them: a
+    dependency that fails, an error outside the generated source, or a failure with
+    no diagnostic to attribute."""
     command = ["cargo", "check", "--offline", "--message-format=json", "--target-dir", target_dir]
     built = run(command, directory)
     failed, other = set(), set()
+    checked = False
     for line in built.stdout.splitlines():
         try:
             message = json.loads(line)
         except json.JSONDecodeError:
             continue
+        target = (message.get("target") or {}).get("name")
+        if message.get("reason") == "compiler-artifact" and target == PROBE_TARGET:
+            checked = True
         if message.get("reason") != "compiler-message":
             continue
         body = message["message"]
         if body.get("level") != "error":
             continue
-        spans = [s for s in body["spans"] if s.get("is_primary") and s["file_name"].endswith("src/lib.rs")]
+        if target != PROBE_TARGET:
+            fail(f"`{target}` failed to compile:\n{body.get('rendered', body.get('message'))}")
+        spans = [s for s in body["spans"] if s.get("is_primary") and s["file_name"] == "src/lib.rs"]
         code = (body.get("code") or {}).get("code")
+        if not spans:
+            # `aborting due to N previous errors`, which has no code, follows the others.
+            if code is None and (failed or other):
+                continue
+            fail(f"the probe failed with no generated line:\n{body.get('rendered', body.get('message'))}")
         for span in spans:
             (failed if code == "E0277" else other).add(span["line_start"])
+    if built.returncode == 0:
+        if not checked:
+            fail(f"cargo check reported success with no check of the probe:\n{built.stderr}")
+    elif not failed and not other:
+        fail(f"cargo check failed with no diagnostic for the probe:\n{built.stderr}")
     return failed, other
 
 
@@ -714,8 +793,9 @@ def settle(probes, failed, unusable, members, times):
     for claim in probes.claims.values():
         wanted = (claim["path"], claim.get("key", "auto-traits"), claim["label"])
         if claim.get("generic") and wanted not in best:
-            if wanted[1] not in members[claim["path"]]["unstated"]:
-                members[claim["path"]]["unstated"].append(wanted[1])
+            element = f"{wanted[1]}[{wanted[2]}]"
+            if element not in members[claim["path"]]["unstated"]:
+                members[claim["path"]]["unstated"].append(element)
     for (path, key, label), conditions in best.items():
         written = label + (" when " + ", ".join(conditions) if conditions else "")
         members[path]["slots"][f"{key}[{label}]"] = written
@@ -725,7 +805,7 @@ def settle(probes, failed, unusable, members, times):
                 del member["slots"][slot]
 
 
-def probe_auto_traits(crate_data, packages, members, target_dir):
+def probe_auto_traits(crate_data, packages, selection, members, target_dir):
     directory = tempfile.mkdtemp(prefix="semantic-oracle-probe-")
     times = {"compiles": 0, "seconds": 0.0, "probes": 0, "unusable": 0}
     try:
@@ -736,7 +816,7 @@ def probe_auto_traits(crate_data, packages, members, target_dir):
             for path, function, call, owner, self_type, key in plans["callables"]:
                 plan_opaque(probes, crate, path, function, call, owner, self_type, key, members)
         times["probes"] = len(probes.claims)
-        dependencies = "\n".join(f"{name} = {{ path = {json.dumps(where)} }}" for name, where in packages.items())
+        dependencies = "\n".join(dependency_line(package, selection) for package in packages)
         os.makedirs(os.path.join(directory, "src"), exist_ok=True)
         with open(os.path.join(directory, "Cargo.toml"), "w") as manifest:
             manifest.write(
@@ -744,6 +824,7 @@ def probe_auto_traits(crate_data, packages, members, target_dir):
                 f"[dependencies]\n{dependencies}\n[workspace]\n"
             )
         unusable, failed = set(), set()
+        settled = False
         for _ in range(5):
             with open(os.path.join(directory, "src", "lib.rs"), "w") as source:
                 for i, line in enumerate(probes.lines, 1):
@@ -753,8 +834,11 @@ def probe_auto_traits(crate_data, packages, members, target_dir):
             times["seconds"] += time.monotonic() - started
             times["compiles"] += 1
             if not other - unusable:
+                settled = True
                 break
             unusable |= other
+        if not settled:
+            fail(f"the probe still had unattributed failures after {times['compiles']} compiles")
         settle(probes, failed, unusable, members, times)
     finally:
         shutil.rmtree(directory, ignore_errors=True)
@@ -856,17 +940,28 @@ def main():
     parser.add_argument("--context", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--features", default="")
+    parser.add_argument("--no-default-features", action="store_true")
+    parser.add_argument("--all-features", action="store_true")
     arguments = parser.parse_args()
-    project = os.path.abspath(arguments.project)
-    target_dir = tempfile.mkdtemp(prefix="semantic-oracle-rust-")
+    original = os.path.abspath(arguments.project)
+    out = os.path.abspath(arguments.out)
+    if out == original or out.startswith(original + os.sep):
+        fail(f"--out {out} lies inside the project tree")
+    if os.path.exists(out):
+        os.remove(out)
+    work = tempfile.mkdtemp(prefix="semantic-oracle-rust-")
     started = time.monotonic()
     try:
+        project = os.path.join(work, "project")
+        shutil.copytree(original, project, symlinks=True, ignore=shutil.ignore_patterns("target", ".git"))
+        target_dir = os.path.join(work, "target")
+        select_toolchain(project)
         metadata = cargo_metadata(project)
-        doc_dir = rustdoc_json(project, target_dir, arguments.features)
+        doc_dir = rustdoc_json(project, target_dir, arguments)
         doc_seconds = time.monotonic() - started
         members = {}
         crate_data = []
-        packages = {}
+        packages = []
         format_version = None
         for package in metadata["packages"]:
             for target in package["targets"]:
@@ -884,9 +979,9 @@ def main():
                 members.update(walker.members)
                 if "proc-macro" not in target["kind"]:
                     crate_data.append((crate, collect_probe_plans(crate, members)))
-                    packages[package["name"]] = os.path.dirname(package["manifest_path"])
-        probe_target = os.path.join(target_dir, "probe")
-        times = probe_auto_traits(crate_data, packages, members, probe_target)
+                    packages.append(package)
+        probe_target = os.path.join(work, "probe-target")
+        times = probe_auto_traits(crate_data, packages, arguments, members, probe_target)
         version = run(["rustc", "--version"], project).stdout.strip()
         report = {
             "format": "semantic-oracle-compiler-report/1",
@@ -896,8 +991,8 @@ def main():
             "covers": COVERS,
             "members": sorted(members.values(), key=lambda member: member["path"]),
         }
-        with open(arguments.out, "w") as out:
-            json.dump(report, out, indent=1, sort_keys=True)
+        with open(out, "w") as written:
+            json.dump(report, written, indent=1, sort_keys=True)
         print(json.dumps({
             "members": len(members),
             "rustdoc_seconds": round(doc_seconds, 2),
@@ -908,7 +1003,7 @@ def main():
             "total_seconds": round(time.monotonic() - started, 2),
         }))
     finally:
-        shutil.rmtree(target_dir, ignore_errors=True)
+        shutil.rmtree(work, ignore_errors=True)
 
 
 if __name__ == "__main__":

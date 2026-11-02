@@ -278,8 +278,8 @@ func typeSlots(path string, object *types.TypeName) {
 }
 
 func check(fileset *token.FileSet, imports types.Importer, unit listed) error {
-	files := make([]*ast.File, 0, len(unit.GoFiles))
-	for _, name := range unit.GoFiles {
+	files := make([]*ast.File, 0, len(unit.GoFiles)+len(unit.CgoFiles))
+	for _, name := range append(append([]string{}, unit.GoFiles...), unit.CgoFiles...) {
 		file, err := parser.ParseFile(fileset, filepath.Join(unit.Dir, name), nil, 0)
 		if err != nil {
 			return err
@@ -315,6 +315,14 @@ func main() {
 	out := flag.String("out", "", "the report file")
 	tags := flag.String("tags", "", "build tags")
 	flag.Parse()
+	if absolute, err := filepath.Abs(*out); err == nil {
+		root, _ := os.Getwd()
+		if strings.HasPrefix(absolute, root+string(filepath.Separator)) {
+			fmt.Fprintln(os.Stderr, "report-go: -out", absolute, "lies inside the project tree")
+			os.Exit(2)
+		}
+		os.Remove(absolute)
+	}
 	arguments := []string{"list", "-json", "-e"}
 	if *tags != "" {
 		arguments = append(arguments, "-tags", *tags)
@@ -328,18 +336,20 @@ func main() {
 	decoder := json.NewDecoder(strings.NewReader(string(listing)))
 	fileset := token.NewFileSet()
 	imports := importer.ForCompiler(fileset, "source", nil)
-	unchecked := []string{}
 	for decoder.More() {
 		var unit listed
 		if err := decoder.Decode(&unit); err != nil {
 			fmt.Fprintln(os.Stderr, "go list:", err)
 			os.Exit(2)
 		}
-		if unit.Name == "main" || len(unit.GoFiles) == 0 {
+		if unit.Name == "main" || len(unit.GoFiles)+len(unit.CgoFiles) == 0 {
 			continue
 		}
+		// A package that fails to type-check stops the report: nothing it would
+		// state was checked.
 		if err := check(fileset, imports, unit); err != nil {
-			unchecked = append(unchecked, unit.ImportPath+": "+err.Error())
+			fmt.Fprintln(os.Stderr, "report-go:", unit.ImportPath+":", err)
+			os.Exit(2)
 		}
 	}
 	paths := make([]string, 0, len(members))
@@ -362,12 +372,11 @@ func main() {
 			"type-parameters[].bounds",
 		},
 		"members": ordered,
-		"failed":  unchecked,
 	}
 	encoded, _ := json.MarshalIndent(report, "", " ")
 	if err := os.WriteFile(*out, encoded, 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	fmt.Printf("{\"members\": %d, \"failed\": %d}\n", len(ordered), len(unchecked))
+	fmt.Printf("{\"members\": %d}\n", len(ordered))
 }

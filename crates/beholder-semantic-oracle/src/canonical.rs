@@ -17,16 +17,23 @@ use logos::Logos;
 /// What a text's `@{id}` names, for the rules that rewrite a spelling by its
 /// target, such as TypeScript's `Array<string>`.
 pub trait NameResolver {
-    /// The canonical path of the record `id` names.
-    fn path(&self, id: &str) -> Option<&str>;
+    /// The canonical path of an external record `id` names, for the rules that
+    /// rewrite a standard declaration. A project entity of the same name is
+    /// another type, so it returns `None` here.
+    fn standard_path<'r>(&'r self, id: &'r str) -> Option<&'r str>;
+
+    /// The `language-kind` of the record `id` names, where it is known.
+    fn language_kind(&self, _id: &str) -> Option<&str> {
+        None
+    }
 }
 
 /// A resolver for a text whose `@{...}` already holds a path.
 pub struct PathsAreIds;
 
 impl NameResolver for PathsAreIds {
-    fn path(&self, _: &str) -> Option<&str> {
-        None
+    fn standard_path<'r>(&'r self, id: &'r str) -> Option<&'r str> {
+        Some(id)
     }
 }
 
@@ -268,16 +275,27 @@ pub fn predeclared(name: &str) -> &'static [&'static str] {
 
 /// The ids that `@{id}` names in a type or value text. A string literal names
 /// nothing, and a char literal's quote opens no string.
-pub fn named_ids(text: &str) -> Vec<&str> {
-    let mut lexer = Lexeme::lexer(text);
+pub fn named_ids(language: &str, text: &str) -> Vec<String> {
+    let source = quoted_for(language, text);
+    let mut lexer = Lexeme::lexer(&source);
     let mut ids = Vec::new();
     while let Some(lexeme) = lexer.next() {
         if lexeme == Ok(Lexeme::Name) {
             let span = lexer.slice();
-            ids.push(&span[2..span.len() - 1]);
+            ids.push(span[2..span.len() - 1].to_owned());
         }
     }
     ids
+}
+
+/// A text with its string literals double-quoted, in the languages that also
+/// write them with single quotes. Rust's and C#'s `'` is a char or a lifetime.
+fn quoted_for(language: &str, text: &str) -> String {
+    if matches!(language, "typescript" | "python") {
+        normalize_quotes(text)
+    } else {
+        text.to_owned()
+    }
 }
 
 fn tokens(text: &str) -> Vec<(Lexeme, String)> {
@@ -345,21 +363,27 @@ fn is_op(node: &Node, op: &str) -> bool {
         if text == op && matches!(lexeme, Lexeme::Other | Lexeme::Operator))
 }
 
-/// The last segment of a path in any of the languages' path grammars.
-fn last_segment(path: &str) -> &str {
-    path.rsplit(['.', ':', '#', '/']).next().unwrap_or(path)
-}
-
-/// The written or resolved final name of a node.
-fn name_of<'n>(node: &'n Node, names: &'n dyn NameResolver) -> Option<&'n str> {
-    match node {
-        Node::Token(Lexeme::Word, text) => Some(text),
-        Node::Token(Lexeme::Name, text) => {
-            let id = &text[2..text.len() - 1];
-            Some(last_segment(names.path(id).unwrap_or(id)))
-        }
+/// The name a standard declaration goes by, for a path the language's standard
+/// library defines at that exact path.
+fn standard_name<'p>(language: &str, path: &'p str) -> Option<&'p str> {
+    match language {
+        "typescript" => path.strip_prefix("typescript/lib/lib.es5.d.ts#"),
+        "python" => path.strip_prefix("typing."),
+        // A generic metadata name ends in its arity: `System.Nullable`1`.
+        "csharp" => path
+            .strip_prefix("System.")
+            .map(|name| name.split('`').next().unwrap_or(name)),
         _ => None,
     }
+}
+
+/// A `@{id}` node's standard name. A bare word never is one, because a text
+/// writes a standard declaration by its id.
+fn standard_of<'n>(language: &str, node: &'n Node, names: &'n dyn NameResolver) -> Option<&'n str> {
+    let Node::Token(Lexeme::Name, text) = node else {
+        return None;
+    };
+    standard_name(language, names.standard_path(&text[2..text.len() - 1])?)
 }
 
 fn text_token(text: &str) -> Node {
@@ -501,7 +525,9 @@ fn drop_redundant_parentheses(nodes: Vec<Node>, language: &Language) -> Vec<Node
                         has_op(inner, &["|", "&", "=>", "?", ":"])
                             || word(inner.first()) == Some("new")
                     }
-                    _ => has_op(inner, &["|"]) && !next.is_none(),
+                    // A Python group of one union only groups it: an argument
+                    // separator after it is not an operator applied to it.
+                    _ => false,
                 };
                 !called && !function_shape && !separated && !operators
             }
@@ -520,14 +546,15 @@ fn rewrite(nodes: Vec<Node>, language: &Language, names: &dyn NameResolver) -> V
     let mut out: Vec<Node> = Vec::new();
     let mut iter = nodes.into_iter().peekable();
     while let Some(node) = iter.next() {
-        let named = name_of(&node, names).map(str::to_owned);
+        let standard = standard_of(language.name, &node, names).map(str::to_owned);
+        let written = word(Some(&node)).map(str::to_owned);
         let args = match iter.peek() {
             Some(Node::Group(open @ ('<' | '['), args)) if language.angle == (*open == '<') => {
                 Some(args.clone())
             }
             _ => None,
         };
-        let replaced = match (language.name, named.as_deref(), args) {
+        let replaced = match (language.name, standard.as_deref(), args) {
             ("typescript", Some("Array"), Some(args)) => {
                 iter.next();
                 Some(array_of(args, None))
@@ -566,20 +593,20 @@ fn rewrite(nodes: Vec<Node>, language: &Language, names: &dyn NameResolver) -> V
                 let inner = args.pop().expect("checked");
                 Some(vec![inner, op_token("?")])
             }
-            ("go", Some("interface"), _) if matches!(iter.peek(), Some(Node::Group('{', inner)) if inner.is_empty()) =>
-            {
-                iter.next();
-                Some(vec![text_token("any")])
-            }
-            ("go", Some("byte"), _) => Some(vec![text_token("uint8")]),
-            // `untyped rune` is a constant's kind, not the alias.
-            ("go", Some("rune"), _) if word(out.last()) != Some("untyped") => {
-                Some(vec![text_token("int32")])
-            }
-            ("csharp", Some(metadata), _)
-                if matches!(node, Node::Token(Lexeme::Name, _))
-                    && csharp_keyword(metadata).is_some() =>
-            {
+            ("go", _, _) => match written.as_deref() {
+                Some("interface") if matches!(iter.peek(), Some(Node::Group('{', inner)) if inner.is_empty()) =>
+                {
+                    iter.next();
+                    Some(vec![text_token("any")])
+                }
+                Some("byte") => Some(vec![text_token("uint8")]),
+                // `untyped rune` is a constant's kind, not the alias.
+                Some("rune") if word(out.last()) != Some("untyped") => {
+                    Some(vec![text_token("int32")])
+                }
+                _ => None,
+            },
+            ("csharp", Some(metadata), _) if csharp_keyword(metadata).is_some() => {
                 Some(vec![text_token(csharp_keyword(metadata).expect("checked"))])
             }
             _ => None,
@@ -668,7 +695,7 @@ fn drop_labels(nodes: Vec<Node>, language: &Language) -> Vec<Node> {
             let mut out: Vec<Node> = Vec::new();
             for node in nodes {
                 match node {
-                    Node::Group('(', inner) if word(out.last()) == Some("Function") => {
+                    Node::Group('(', inner) if follows_function_keyword(&out) => {
                         out.push(Node::Group('(', dart_unlabel(inner)));
                     }
                     other => out.push(other),
@@ -677,6 +704,15 @@ fn drop_labels(nodes: Vec<Node>, language: &Language) -> Vec<Node> {
             out
         }
         _ => nodes,
+    }
+}
+
+/// Whether the last node is `Function`, or `Function` and its generic binders.
+fn follows_function_keyword(out: &[Node]) -> bool {
+    match out {
+        [.., keyword, Node::Group('<', _)] => word(Some(keyword)) == Some("Function"),
+        [.., keyword] => word(Some(keyword)) == Some("Function"),
+        [] => false,
     }
 }
 
@@ -742,9 +778,46 @@ fn dart_unlabel(inner: Vec<Node>) -> Vec<Node> {
     out
 }
 
+/// A TypeScript member's name, whichever way it is spelled, or empty for a
+/// signature with no name. `readonly x` and `"x"` are both named `x`.
+fn member_name(member: &[Node]) -> String {
+    let mut nodes = member.iter().peekable();
+    while let Some(node) = nodes.next() {
+        match node {
+            Node::Token(Lexeme::Other, text) if matches!(text.as_str(), "+" | "-") => {}
+            Node::Token(Lexeme::Word, text) => {
+                let modifier = matches!(text.as_str(), "readonly" | "get" | "set" | "static")
+                    && matches!(
+                        nodes.peek(),
+                        Some(Node::Token(Lexeme::Word | Lexeme::Text | Lexeme::Number, _))
+                    );
+                if modifier {
+                    continue;
+                }
+                return if text == "new" {
+                    String::new()
+                } else {
+                    text.clone()
+                };
+            }
+            Node::Token(Lexeme::Text, text) => {
+                return serde_json::from_str(text).unwrap_or_else(|_| text.clone());
+            }
+            Node::Token(Lexeme::Number, text) => return text.clone(),
+            _ => return String::new(),
+        }
+    }
+    String::new()
+}
+
 /// Sorts a TypeScript type literal's named members, and a Go interface's
-/// methods and then its embedded elements.
-fn sort_members(open: char, inner: Vec<Node>, language: &Language) -> Vec<Node> {
+/// methods and then its embedded elements. A Go struct's order is its layout.
+fn sort_members(
+    open: char,
+    inner: Vec<Node>,
+    before: Option<&Node>,
+    language: &Language,
+) -> Vec<Node> {
     if open != '{' || inner.is_empty() {
         return inner;
     }
@@ -757,28 +830,15 @@ fn sort_members(open: char, inner: Vec<Node>, language: &Language) -> Vec<Node> 
                 .collect();
             // A signature with no name keeps its order, ahead of named ones;
             // repeated names keep theirs, because the sort is stable.
-            members.sort_by_key(|member| match member.first() {
-                Some(Node::Token(Lexeme::Word, text)) if text == "new" => String::new(),
-                Some(Node::Token(Lexeme::Word | Lexeme::Text, text)) => text.clone(),
-                _ => String::new(),
-            });
+            members.sort_by_key(|member| member_name(member));
             join_members(members)
         }
-        "go" => {
+        "go" if word(before) == Some("interface") => {
             let members: Vec<Vec<Node>> = inner
                 .split(|node| is_op(node, ";"))
                 .filter(|member| !member.is_empty())
                 .map(<[Node]>::to_vec)
                 .collect();
-            let is_struct = members.iter().any(|member| {
-                member.len() >= 2
-                    && word(member.first()).is_some()
-                    && !matches!(member.get(1), Some(Node::Group('(', _)))
-                    && !has_op(member, &["|"])
-            });
-            if is_struct {
-                return join_members(members);
-            }
             let (mut methods, mut embedded): (Vec<_>, Vec<_>) = members
                 .into_iter()
                 .partition(|member| matches!(member.get(1), Some(Node::Group('(', _))));
@@ -803,17 +863,18 @@ fn join_members(members: Vec<Vec<Node>>) -> Vec<Node> {
 }
 
 fn normalize(nodes: Vec<Node>, language: &Language, names: &dyn NameResolver) -> Vec<Node> {
-    let nodes = nodes
-        .into_iter()
-        .map(|node| match node {
+    let mut normalized: Vec<Node> = Vec::with_capacity(nodes.len());
+    for node in nodes {
+        let node = match node {
             Node::Group(open, inner) => {
                 let inner = normalize(inner, language, names);
-                Node::Group(open, sort_members(open, inner, language))
+                Node::Group(open, sort_members(open, inner, normalized.last(), language))
             }
             token => token,
-        })
-        .collect();
-    let nodes = rewrite(nodes, language, names);
+        };
+        normalized.push(node);
+    }
+    let nodes = rewrite(normalized, language, names);
     let nodes = drop_labels(nodes, language);
     let nodes = drop_redundant_parentheses(nodes, language);
     let nodes = flatten_unions(nodes, language);
@@ -985,7 +1046,7 @@ fn collect_bare(
                     && language.name == "go"
                     && i > 0
                     && word(nodes.get(i - 1)) == Some("struct");
-                let local_generics = language.name == "typescript"
+                let local_generics = matches!(language.name, "typescript" | "dart")
                     && *open == '<'
                     && matches!(next, Some(Node::Group('(', _)));
                 if local_generics {
@@ -1053,31 +1114,43 @@ fn is_label(nodes: &[Node], at: usize, language: &Language, in_struct: bool) -> 
 fn normalize_quotes(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut chars = text.chars();
-    let mut in_double = false;
+    let mut open: Option<char> = None;
     while let Some(c) = chars.next() {
-        match c {
-            '"' => {
-                in_double = !in_double;
+        match (open, c) {
+            // Inside a double-quoted or template literal, only its end matters.
+            (Some(quote), _) => {
+                out.push(c);
+                if c == '\\' {
+                    out.extend(chars.next());
+                } else if c == quote {
+                    open = None;
+                }
+            }
+            (None, '"' | '`') => {
+                open = Some(c);
                 out.push(c);
             }
-            '\\' if in_double => {
-                out.push(c);
-                out.extend(chars.next());
-            }
-            '\'' if !in_double => {
+            (None, '\'') => {
                 out.push('"');
-                for inner in chars.by_ref() {
-                    if inner == '\'' {
-                        break;
+                while let Some(inner) = chars.next() {
+                    match inner {
+                        '\'' => break,
+                        // An escaped apostrophe needs no escape in double quotes.
+                        '\\' => match chars.next() {
+                            Some('\'') => out.push('\''),
+                            Some(escaped) => {
+                                out.push('\\');
+                                out.push(escaped);
+                            }
+                            None => out.push('\\'),
+                        },
+                        '"' => out.push_str("\\\""),
+                        other => out.push(other),
                     }
-                    if inner == '"' {
-                        out.push('\\');
-                    }
-                    out.push(inner);
                 }
                 out.push('"');
             }
-            _ => out.push(c),
+            (None, other) => out.push(other),
         }
     }
     out
@@ -1093,11 +1166,7 @@ pub fn canonicalize(language_name: &str, text: &str, names: &dyn NameResolver) -
             ..Canonical::default()
         };
     };
-    let source = if matches!(language.name, "typescript" | "python") {
-        normalize_quotes(text)
-    } else {
-        text.to_owned()
-    };
+    let source = quoted_for(language.name, text);
     let mut issues = Vec::new();
     let stream = tokens(&source);
     if stream
@@ -1116,16 +1185,80 @@ pub fn canonicalize(language_name: &str, text: &str, names: &dyn NameResolver) -
     collect_bare(&nodes, language, false, &mut Vec::new(), &mut bare);
     bare.sort();
     bare.dedup();
-    let ids = named_ids(&rendered)
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
+    let ids = named_ids(language.name, &rendered);
     Canonical {
         text: rendered,
         ids,
         bare,
         issues,
     }
+}
+
+/// Canonicalizes a `bounds` slot, whose items a profile can order beyond the type
+/// syntax: C#'s constraint list, a Dart mixin's `on` clause and a Python
+/// `TypeVar`'s constraints.
+pub fn canonicalize_bounds(language: &str, text: &str, names: &dyn NameResolver) -> Canonical {
+    let whole = canonicalize(language, text, names);
+    let (prefix, inner, suffix) = match language {
+        "csharp" | "dart" => ("", whole.text.clone(), ""),
+        "python" => match whole
+            .text
+            .strip_prefix('(')
+            .and_then(|rest| rest.strip_suffix(')'))
+        {
+            Some(inner) => ("(", inner.to_owned(), ")"),
+            None => return whole,
+        },
+        _ => return whole,
+    };
+    let mut items: Vec<String> = split_top_level(&inner)
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    if language == "csharp" {
+        items = order_csharp_constraints(items, names);
+    } else {
+        items.sort();
+    }
+    Canonical {
+        text: format!("{prefix}{}{suffix}", items.join(", ")),
+        ..whole
+    }
+}
+
+/// The language fixes a primary constraint first, then `new()`, then
+/// `allows ref struct`; the constraints between are sorted.
+fn order_csharp_constraints(items: Vec<String>, names: &dyn NameResolver) -> Vec<String> {
+    let is_primary = |item: &str| {
+        let keyword = item.trim_end_matches('?');
+        matches!(
+            keyword,
+            "class" | "struct" | "unmanaged" | "notnull" | "default"
+        ) || item
+            .strip_prefix("@{")
+            .and_then(|rest| rest.split('}').next())
+            .and_then(|id| names.language_kind(id))
+            .is_some_and(|kind| matches!(kind, "class" | "record"))
+    };
+    let (mut first, mut middle, mut new, mut allows) = (vec![], vec![], vec![], vec![]);
+    for item in items {
+        if item == "new()" {
+            new.push(item);
+        } else if item.starts_with("allows ") {
+            allows.push(item);
+        } else if is_primary(&item) {
+            first.push(item);
+        } else {
+            middle.push(item);
+        }
+    }
+    middle.sort();
+    first
+        .into_iter()
+        .chain(middle)
+        .chain(new)
+        .chain(allows)
+        .collect()
 }
 
 /// `T::Item` for a bare parameter is written `<T as @{Tr}>::@{Tr.Item}`.
@@ -1157,30 +1290,101 @@ pub fn rust_opaque_types(text: &str) -> (usize, bool) {
     (count, whole)
 }
 
+/// A decimal integer with one spelling: no sign on zero, and no leading zero.
+fn is_decimal_integer(text: &str) -> bool {
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    let spelled = digits == "0" || digits.starts_with(|c: char| ('1'..='9').contains(&c));
+    spelled && digits.chars().all(|c| c.is_ascii_digit()) && text != "-0"
+}
+
+/// A decimal point form: an integer part with one spelling, and a fraction.
+fn split_decimal(text: &str) -> Option<(&str, &str)> {
+    let (whole, fraction) = text.strip_prefix('-').unwrap_or(text).split_once('.')?;
+    let spelled = whole == "0" || (is_decimal_integer(whole) && !whole.is_empty());
+    (spelled && !fraction.is_empty() && fraction.chars().all(|c| c.is_ascii_digit()))
+        .then_some((whole, fraction))
+}
+
+/// The shortest decimal that round-trips, in a point or exponent form.
+fn is_shortest_float(text: &str) -> bool {
+    if matches!(text, "NaN" | "inf" | "-inf" | "Infinity" | "-Infinity") {
+        return true;
+    }
+    let (significand, exponent) = match text.split_once(['e', 'E']) {
+        Some((significand, exponent)) => (significand, Some(exponent)),
+        None => (text, None),
+    };
+    if let Some(exponent) = exponent {
+        let digits = exponent.strip_prefix(['+', '-']).unwrap_or(exponent);
+        if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+            return false;
+        }
+    }
+    let fraction = match split_decimal(significand) {
+        Some((_, fraction)) => fraction,
+        None if exponent.is_some() && is_decimal_integer(significand) => "",
+        None => return false,
+    };
+    // A trailing zero adds nothing, except the one in `1.0`.
+    if fraction.len() > 1 && fraction.ends_with('0') {
+        return false;
+    }
+    let Ok(value) = text.parse::<f64>() else {
+        return false;
+    };
+    if !value.is_finite() {
+        return false;
+    }
+    let digits_of = |written: &str| -> String {
+        let digits: String = written.chars().filter(char::is_ascii_digit).collect();
+        let digits = digits.trim_start_matches('0').trim_end_matches('0');
+        digits.to_owned()
+    };
+    let shortest = format!("{:e}", value.abs());
+    let mantissa = shortest.split('e').next().unwrap_or_default();
+    digits_of(significand) == digits_of(mantissa)
+}
+
+/// `go/constant`'s exact string: an integer, a ratio, or `(re + imi)`.
+fn is_go_exact(text: &str) -> bool {
+    let rational = |part: &str| match part.split_once('/') {
+        Some((top, bottom)) => {
+            is_decimal_integer(top) && is_decimal_integer(bottom) && !bottom.starts_with('-')
+        }
+        None => is_decimal_integer(part),
+    };
+    match text
+        .strip_prefix('(')
+        .and_then(|rest| rest.strip_suffix("i)"))
+    {
+        Some(inner) => inner
+            .split_once(" + ")
+            .is_some_and(|(real, imaginary)| rational(real) && rational(imaginary)),
+        None => rational(text),
+    }
+}
+
 /// Whether a value is one of the model's value forms for a language.
 pub fn value_form_issue(language: &str, value: &str, is_default: bool) -> Option<String> {
-    let number = |text: &str| {
-        let digits = text.strip_prefix('-').unwrap_or(text);
-        !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())
+    let enum_value = {
+        let stream = tokens(value);
+        stream.len() == 1 && stream[0].0 == Lexeme::Name
     };
-    let float = |text: &str| {
-        let digits = text.strip_prefix('-').unwrap_or(text);
-        digits.parse::<f64>().is_ok() && digits.chars().any(|c| c.is_ascii_digit())
-            || matches!(text, "NaN" | "inf" | "-inf" | "Infinity" | "-Infinity")
-    };
-    let enum_value = value.starts_with("@{") && named_ids(value).len() == 1;
     let string = value.starts_with('"') && serde_json::from_str::<String>(value).is_ok();
     let literal = match language {
         "python" => matches!(value, "None" | "True" | "False"),
         _ => matches!(value, "null" | "true" | "false"),
     };
-    let go_exact = language == "go"
-        && !value.is_empty()
-        && value
-            .chars()
-            .all(|c| c.is_ascii_digit() || " ()+-/.ie".contains(c));
+    let number = match language {
+        "go" => is_go_exact(value),
+        // A C# `decimal` is its exact decimal, whose scale is part of the value.
+        "csharp" => {
+            is_decimal_integer(value) || split_decimal(value).is_some() || is_shortest_float(value)
+        }
+        _ => is_decimal_integer(value) || is_shortest_float(value),
+    };
     let present = language == "python" && is_default && value == "present";
-    if number(value) || float(value) || enum_value || string || literal || go_exact || present {
+    if enum_value || string || literal || number || present {
         None
     } else {
         Some(format!("`{value}` is not a value form of `{language}`"))
@@ -1232,17 +1436,27 @@ mod tests {
 
     struct Paths;
     impl NameResolver for Paths {
-        fn path(&self, id: &str) -> Option<&str> {
+        fn standard_path<'r>(&'r self, id: &'r str) -> Option<&'r str> {
             match id {
                 "arr" => Some("typescript/lib/lib.es5.d.ts#Array"),
                 "ro" => Some("typescript/lib/lib.es5.d.ts#ReadonlyArray"),
                 "opt" => Some("typing.Optional"),
                 "un" => Some("typing.Union"),
                 "lst" => Some("typing.List"),
-                "nullable" => Some("System.Nullable"),
+                "nullable" => Some("System.Nullable`1"),
                 "int32" => Some("System.Int32"),
+                // Project or other-package declarations of those names.
+                "my-arr" => Some("pkg/index.d.ts#Array"),
+                "my-opt" => Some("pkg.Optional"),
+                "my-lst" => Some("pkg.typing.List"),
+                "my-nullable" => Some("Example.Nullable"),
+                "my-int" => Some("Example.Int32"),
                 _ => None,
             }
+        }
+
+        fn language_kind(&self, id: &str) -> Option<&str> {
+            (id == "base").then_some("class")
         }
     }
 
@@ -1280,6 +1494,172 @@ mod tests {
                 ("impl @{C} + use<'a, T, N>", "impl @{C} + use<'a, T, N>"),
             ],
         );
+    }
+
+    /// A rewrite needs the standard declaration, and a same-named type keeps its id.
+    #[test]
+    fn a_declaration_of_a_standard_name_is_not_rewritten() {
+        check(
+            "typescript",
+            &[
+                ("@{my-arr}<string>", "@{my-arr}<string>"),
+                ("@{unknown}<string>", "@{unknown}<string>"),
+                ("@{my-arr}<@{arr}<string>>", "@{my-arr}<string[]>"),
+            ],
+        );
+        check(
+            "python",
+            &[
+                ("@{my-opt}[int]", "@{my-opt}[int]"),
+                ("@{my-lst}[int]", "@{my-lst}[int]"),
+                ("@{my-opt}[@{opt}[int]]", "@{my-opt}[None | int]"),
+            ],
+        );
+        check(
+            "csharp",
+            &[
+                ("@{my-nullable}<int>", "@{my-nullable}<int>"),
+                ("@{my-int}", "@{my-int}"),
+            ],
+        );
+        // A bare word is not a standard declaration either.
+        assert_eq!(
+            canonicalize("python", "Optional[int]", &Paths).text,
+            "Optional[int]"
+        );
+        assert_eq!(
+            canonicalize("python", "Optional[int]", &Paths).bare,
+            ["Optional"]
+        );
+        assert_eq!(
+            canonicalize("typescript", "Array<string>", &Paths).text,
+            "Array<string>"
+        );
+    }
+
+    /// Spelled either way, one method's overloads keep their order.
+    #[test]
+    fn typescript_members_sort_by_their_semantic_name() {
+        check(
+            "typescript",
+            &[
+                (
+                    "{ f(x: string): string; \"f\"(x: number): number }",
+                    "{ f(x: string): string; \"f\"(x: number): number }",
+                ),
+                (
+                    "{ \"f\"(x: number): number; f(x: string): string }",
+                    "{ \"f\"(x: number): number; f(x: string): string }",
+                ),
+                (
+                    "{ readonly b: string; readonly a: number }",
+                    "{ readonly a: number; readonly b: string }",
+                ),
+                (
+                    "{ readonly b: string; a: number }",
+                    "{ a: number; readonly b: string }",
+                ),
+                (
+                    "{ b: string; \"a\": number }",
+                    "{ \"a\": number; b: string }",
+                ),
+                (
+                    "{ readonly: string; a: number }",
+                    "{ a: number; readonly: string }",
+                ),
+            ],
+        );
+    }
+
+    /// A struct's field order is its layout, whatever its fields look like.
+    #[test]
+    fn a_go_struct_keeps_its_order() {
+        check(
+            "go",
+            &[
+                ("struct { @{B}; @{A} }", "struct { @{B}; @{A} }"),
+                ("struct { *@{B}; *@{A} }", "struct { *@{B}; *@{A} }"),
+                (
+                    "struct { @{B}; A int; @{C} }",
+                    "struct { @{B}; A int; @{C} }",
+                ),
+                ("interface { @{B}; @{A} }", "interface { @{A}; @{B} }"),
+            ],
+        );
+    }
+
+    #[test]
+    fn csharp_constraints_order_by_the_language_rule() {
+        let order = |text: &str| canonicalize_bounds("csharp", text, &Paths).text;
+        assert_eq!(
+            order("class, @{IB}, @{IA}, new()"),
+            "class, @{IA}, @{IB}, new()"
+        );
+        assert_eq!(
+            order("class, @{IA}, @{IB}, new()"),
+            "class, @{IA}, @{IB}, new()"
+        );
+        assert_eq!(order("@{IB}, T, @{IA}"), "@{IA}, @{IB}, T");
+        assert_eq!(order("@{base}, @{IB}, @{IA}"), "@{base}, @{IA}, @{IB}");
+        assert_eq!(
+            order("struct, @{IB}, @{IA}, allows ref struct"),
+            "struct, @{IA}, @{IB}, allows ref struct"
+        );
+        assert_eq!(
+            order("@{IB}, new(), allows ref struct"),
+            "@{IB}, new(), allows ref struct"
+        );
+    }
+
+    #[test]
+    fn dart_and_python_bound_lists_sort() {
+        assert_eq!(
+            canonicalize_bounds("dart", "@{B}, @{A}", &Paths).text,
+            "@{A}, @{B}"
+        );
+        assert_eq!(
+            canonicalize_bounds("python", "(str, int)", &Paths).text,
+            "(int, str)"
+        );
+        assert_eq!(canonicalize_bounds("python", "int", &Paths).text, "int");
+    }
+
+    #[test]
+    fn a_dart_generic_function_type_binds_its_parameters() {
+        check(
+            "dart",
+            &[
+                ("int Function<T>(T x)", "int Function<T>(T)"),
+                ("int Function<T>(T)", "int Function<T>(T)"),
+                (
+                    "int Function<T>(T Function<U>(U y) x)",
+                    "int Function<T>(T Function<U>(U))",
+                ),
+                (
+                    "int Function<T>(T, {T width})",
+                    "int Function<T>(T, {T width})",
+                ),
+            ],
+        );
+        let found = canonicalize("dart", "int Function<T>(T x)", &Paths);
+        assert_eq!(found.bare, Vec::<String>::new(), "{found:?}");
+        let found = canonicalize("dart", "T Function<U>(U)", &Paths);
+        assert_eq!(found.bare, ["T"], "{found:?}");
+    }
+
+    #[test]
+    fn escaped_quotes_convert_to_one_literal() {
+        check(
+            "typescript",
+            &[
+                ("'can\\'t'", "\"can't\""),
+                ("'say \"hi\"'", "\"say \\\"hi\\\"\""),
+                ("\"it's\"", "\"it's\""),
+                ("`it's`", "`it's`"),
+                ("'a' | 'b\\'c'", "\"a\" | \"b'c\""),
+            ],
+        );
+        check("python", &[("@{X}['can\\'t']", "@{X}[\"can't\"]")]);
     }
 
     #[test]
@@ -1366,6 +1746,9 @@ mod tests {
                 ("dict[str,int]", "dict[str, int]"),
                 ("@{X}['a']", "@{X}[\"a\"]"),
                 ("tuple[int, ...]", "tuple[int, ...]"),
+                ("tuple[(str | int), bytes]", "tuple[int | str, bytes]"),
+                ("tuple[str | int, bytes]", "tuple[int | str, bytes]"),
+                ("list[(int)]", "list[int]"),
             ],
         );
     }
@@ -1426,10 +1809,23 @@ mod tests {
 
     #[test]
     fn named_ids_skip_literals() {
-        assert_eq!(named_ids("@{a}<'\"', @{b}>"), ["a", "b"]);
-        assert_eq!(named_ids("\"@{a}\" | @{b}"), ["b"]);
-        assert_eq!(named_ids("&'a @{b}"), ["b"]);
-        assert_eq!(named_ids("'\\u{22}' @{b}"), ["b"]);
+        assert_eq!(named_ids("rust", "@{a}<'\"', @{b}>"), ["a", "b"]);
+        assert_eq!(named_ids("rust", "\"@{a}\" | @{b}"), ["b"]);
+        assert_eq!(named_ids("rust", "&'a @{b}"), ["b"]);
+        assert_eq!(named_ids("rust", "'\\u{22}' @{b}"), ["b"]);
+        for language in ["typescript", "python"] {
+            assert_eq!(
+                named_ids(language, "'can\\'t @{ghost}' | @{b}"),
+                ["b"],
+                "{language}"
+            );
+            assert_eq!(
+                named_ids(language, "\"it's @{ghost}\" | @{b}"),
+                ["b"],
+                "{language}"
+            );
+        }
+        assert_eq!(named_ids("typescript", "`it's @{ghost}` | @{b}"), ["b"]);
     }
 
     #[test]
@@ -1454,6 +1850,42 @@ mod tests {
         ] {
             assert_eq!(
                 value_form_issue(language, value, true),
+                None,
+                "{language} {value}"
+            );
+        }
+        for (language, value) in [
+            ("rust", "@{x} + 1"),
+            ("rust", "01"),
+            ("rust", "-0"),
+            ("rust", "1.00"),
+            ("rust", ".5"),
+            ("rust", "1.50"),
+            ("rust", "+1"),
+            ("rust", "0.30000000000000004000"),
+            ("go", "+"),
+            ("go", "1.5"),
+            ("go", "(1/2 + i)"),
+            ("go", "1/"),
+            ("python", "1.00"),
+        ] {
+            assert!(
+                value_form_issue(language, value, false).is_some(),
+                "{language} {value}"
+            );
+        }
+        for (language, value) in [
+            ("rust", "1.0"),
+            ("rust", "0.1"),
+            ("rust", "1e300"),
+            ("rust", "1.5e-7"),
+            ("python", "1e+300"),
+            ("csharp", "1.50"),
+            ("go", "(1 + -2i)"),
+            ("go", "-1/3"),
+        ] {
+            assert_eq!(
+                value_form_issue(language, value, false),
                 None,
                 "{language} {value}"
             );

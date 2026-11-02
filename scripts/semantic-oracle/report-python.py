@@ -14,7 +14,9 @@ bytecode into the project tree.
   report-python.py --search-path DIR[:DIR] --context ID --out FILE
 
 Python has no reference type checker, so this covers the runtime's view only, and is
-for a `runtime` context. A slot it cannot state is `unchecked` in the audit.
+for a `runtime` context. A slot it cannot state is `unchecked` in the audit. A module that fails to
+import is listed under `failed`, as its project may intend, and its slots stay
+`unchecked`.
 """
 import argparse
 import enum
@@ -207,6 +209,11 @@ def main():
     parser.add_argument("--out", required=True)
     arguments = parser.parse_args()
     search_path = [os.path.abspath(p) for p in arguments.search_path.split(os.pathsep)]
+    out = os.path.abspath(arguments.out)
+    if any(out.startswith(directory + os.sep) for directory in search_path):
+        sys.exit(f"report-python: --out {out} lies inside the project tree")
+    if os.path.exists(out):
+        os.remove(out)
     sys.path[:0] = search_path
     report = Report()
     failed = []
@@ -215,7 +222,7 @@ def main():
             report.module(importlib.import_module(name))
         except BaseException as cause:  # A project module can raise anything on import.
             failed.append(f"{name}: {type(cause).__name__}: {cause}")
-    with open(arguments.out, "w") as out:
+    with open(out, "w") as written:
         json.dump(
             {
                 "format": "semantic-oracle-compiler-report/1",
@@ -226,7 +233,7 @@ def main():
                 "members": sorted(report.members.values(), key=lambda member: member["path"]),
                 "failed": failed,
             },
-            out,
+            written,
             indent=1,
             sort_keys=True,
         )

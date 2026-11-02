@@ -19,8 +19,10 @@
 //! `path` is the entity's canonical path, a report's `@{...}` holds a canonical
 //! path, and a slot key is the model's slot path. `covers` lists the slot shapes,
 //! with each bracket's content removed, that the report can state; `unstated`
-//! lists those it could not state for one member. A slot outside both is
-//! unchecked and has not passed. Where a report covers a slot and states another
+//! lists a shape prefix or an exact slot path it could not state for one member,
+//! such as `auto-traits` or `auto-traits[Unpin]`. A slot outside `covers` or in
+//! `unstated` is unchecked and has not passed. A build that fails produces no
+//! report. `failed` lists what a report could not read, as a warning. Where a report covers a slot and states another
 //! value, or states one the record lacks, that is a disagreement to settle
 //! against the language's rule.
 
@@ -30,7 +32,7 @@ use serde_json::Value;
 
 use super::{list, text, Checker, Class, Contexts, Unchecked};
 use crate::{
-    canonical::{canonical_auto_trait, canonicalize, PathsAreIds},
+    canonical::{canonical_auto_trait, canonicalize, canonicalize_bounds, PathsAreIds},
     signature::{slots, SlotClass},
 };
 
@@ -71,8 +73,12 @@ struct Reported<'r> {
 /// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names.
 fn to_paths(checker: &Checker<'_>, text_value: &str) -> String {
     let mut out = text_value.to_owned();
-    for id in crate::canonical::named_ids(text_value) {
-        if let Some(path) = checker.ids.get(id).and_then(|(_, r)| text(r, "path")) {
+    for id in crate::canonical::named_ids(checker.rules.language, text_value) {
+        if let Some(path) = checker
+            .ids
+            .get(id.as_str())
+            .and_then(|(_, r)| text(r, "path"))
+        {
             out = out.replace(&format!("@{{{id}}}"), &format!("@{{{path}}}"));
         }
     }
@@ -105,6 +111,13 @@ impl<'a> Checker<'a> {
                 self.error(RULE, at, message);
                 continue;
             };
+            for failed in list(report, "failed").iter().filter_map(Value::as_str) {
+                self.warning(
+                    RULE,
+                    format!("/reports/{i}"),
+                    format!("the report could not read `{failed}`; its slots are unchecked"),
+                );
+            }
             let members = list(report, "members")
                 .iter()
                 .filter_map(|member| Some((text(member, "path")?, member)))
@@ -208,7 +221,7 @@ impl<'a> Checker<'a> {
             let unstated = list(member, "unstated")
                 .iter()
                 .filter_map(Value::as_str)
-                .any(|prefix| shape.starts_with(prefix));
+                .any(|unstated| shape.starts_with(unstated) || slot.path == unstated);
             if unstated || !report.covers.contains(shape.as_str()) {
                 reasons.push(format!("{} cannot state this slot", report.tool));
                 continue;
@@ -239,10 +252,17 @@ impl<'a> Checker<'a> {
     fn comparable(&self, slot: &crate::signature::Slot<'_>, reported: &str) -> (String, String) {
         let fact = to_paths(self, &slot.text);
         match slot.class {
-            SlotClass::DeclaredType | SlotClass::InferredType => (
-                canonicalize(self.rules.language, &fact, &PathsAreIds).text,
-                canonicalize(self.rules.language, reported, &PathsAreIds).text,
-            ),
+            SlotClass::DeclaredType | SlotClass::InferredType => {
+                let spell = if slot.path.ends_with("bounds") {
+                    canonicalize_bounds
+                } else {
+                    canonicalize
+                };
+                (
+                    spell(self.rules.language, &fact, &PathsAreIds).text,
+                    spell(self.rules.language, reported, &PathsAreIds).text,
+                )
+            }
             SlotClass::AutoTrait => (
                 canonical_auto_trait(&fact, &PathsAreIds),
                 canonical_auto_trait(reported, &PathsAreIds),

@@ -130,10 +130,10 @@ A compiler report is a JSON file that a script produces outside the project tree
 
 | Task | Comes from | Needs |
 | --- | --- | --- |
-| `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>]` | rustdoc JSON, and a generated probe crate that one `cargo check` compiles, for `auto-traits` | A Rust toolchain. It sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
+| `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>] [NO_DEFAULT_FEATURES=1] [ALL_FEATURES=1]` | rustdoc JSON, and a generated probe crate for `auto-traits`. One `cargo check` reports every failing claim; a line that fails for another reason is set aside and the check repeats, at most five times. | A Rust toolchain. It works on a copy of the project, with the toolchain the project selects, and sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
 | `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
 | `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file>` | `inspect.signature`, for a `runtime` context | Python. It imports the project's modules, which runs their module-level code. |
-| `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API | Node and the `typescript` module. |
+| `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
 
 Run one report per context, and pass each to `audit`:
 
@@ -142,6 +142,12 @@ $ task semantic-oracle:report:rust PROJECT=fixtures/tally CONTEXT=default OUT=/t
 $ semantic-oracle audit fixtures/tally --report /tmp/tally.json
 {"summary":{"agreed":6,"errors":0,"unchecked":0,"warnings":0}}
 ```
+
+A build that fails produces no report. Each script exits nonzero, names the failure,
+and removes any earlier report at `OUT`, so that a failed run certifies nothing. Run
+`audit` only after each report task succeeds. `OUT` lies outside the project tree, and a
+script refuses a path inside it. `REPORTS` splits on spaces, so use repeated `--report`
+for a path with a space.
 
 A report's `covers` lists the slot shapes it can state, and `members` holds what it
 states for each entity path, with each `@{...}` holding a canonical path:
@@ -170,7 +176,8 @@ These stay `unchecked`:
 - every slot of a C# or Dart dataset, until those toolchains have a report;
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
 - each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
-- Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a condition that is not the same trait on those parameters, and a form that fails to compile for another reason. A default-bodied trait method is one of these;
+- Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;
+- a Python module that fails to import, which the report lists under `failed` as a warning, because a project can intend it;
 - Python's typing contexts, because `inspect.signature` states the runtime's view only.
 
 Write declared slots before you run a report, and do not read a report while you

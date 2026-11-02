@@ -75,6 +75,10 @@ pub fn pair() -> (impl Clone, impl Clone) { (1u8, Rc::new(())) }
 pub async fn plain_async() -> u8 { 1 }
 pub async fn opaque_async() -> impl Clone { Rc::new(()) }
 pub fn borrowed(x: u32, y: &str) -> impl Clone { let _ = y; x }
+pub async fn owned_argument(x: String, y: &String) -> usize { x.len() + y.len() }
+pub async fn takes_future<F: std::future::Future<Output = u8> + Send>(f: F) -> u8 { f.await }
+pub fn vector() -> Vec<impl Clone> { vec![String::new()] }
+pub fn iterates() -> impl Iterator<Item = impl Clone> { std::iter::once(Rc::new(())) }
 pub fn generic<T: Clone>(t: T) -> impl Clone { t }
 pub unsafe extern "C" fn convert(x: i32) -> i32 { x }
 mod hidden { pub struct Reexported(pub std::rc::Rc<u8>); }
@@ -84,7 +88,6 @@ pub trait Tr { fn made() -> impl Clone; }
 impl Tr for Item { fn made() -> impl Clone { Rc::new(()) } }
 """,
     })
-    subprocess.run(["cargo", "generate-lockfile", "--offline"], cwd=project, capture_output=True)
     before = listing(project)
     out = os.path.join(tmp, "rust.json")
     _, found = run("rust", [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", project, "--context", "default", "--out", out], tmp, out)
@@ -105,6 +108,15 @@ impl Tr for Item { fn made() -> impl Clone { Rc::new(()) } }
     expect(found, "sample::plain_async", "auto-traits[Send]", "Send")
     assert "auto-traits[Unpin]" not in found["sample::plain_async"]["slots"]
     expect(found, "sample::borrowed", "auto-traits[Send]", "Send")
+    # A standard library name by a public path, and an argument `alloc` defines.
+    expect(found, "sample::owned_argument", "auto-traits[Send]", "Send")
+    assert not found["sample::owned_argument"]["unstated"]
+    expect(found, "sample::takes_future", "auto-traits[Send]", "Send")
+    # A generic future with no passing line for a trait states only that it could not tell.
+    assert found["sample::takes_future"]["unstated"] == ["auto-traits[Unpin]"], found["sample::takes_future"]
+    expect(found, "sample::vector", "auto-traits[#0 Send]", "#0 Send")
+    expect(found, "sample::iterates", "auto-traits[#0 Unpin]", "#0 Unpin")
+    assert "auto-traits[#1 Send]" not in found["sample::iterates"]["slots"]
     expect(found, "sample::generic", "auto-traits[Send]", "Send when T: Send")
     binding = "bases[@{sample::Tr}].bindings[made].auto-traits"
     expect(found, "sample::Item", f"{binding}[Unpin]", "Unpin")
@@ -113,6 +125,123 @@ impl Tr for Item { fn made() -> impl Clone { Rc::new(()) } }
     expect(found, "sample::Kind::Square", "value", "1")
     expect(found, "sample::convert", "abi", "C")
     expect(found, "sample::Plain::radius", "type", "f64")
+
+
+def failure(command, cwd, out, words):
+    """A script that cannot check its project exits 2 and writes no report."""
+    done = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
+    # `go run` reports any failure of its program as exit status 1.
+    assert done.returncode != 0, f"{done.stdout} {done.stderr}"
+    assert not os.path.exists(out), "a failed build wrote a report"
+    for word in words:
+        assert word in done.stderr, done.stderr
+
+
+def rust_build_failures(tmp):
+    project = os.path.join(tmp, "rust-features")
+    write(project, {
+        "Cargo.toml": '[package]\nname = "sample"\nversion = "0.1.0"\nedition = "2021"\n[lib]\n[features]\nchecked = []\n[workspace]\n',
+        "src/lib.rs": """
+#[cfg(feature = "checked")]
+pub fn make() -> impl Clone { 1u8 }
+#[cfg(not(feature = "checked"))]
+pub fn make() -> impl Clone { std::rc::Rc::new(()) }
+""",
+    })
+    script = [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", project, "--context", "default"]
+    # Two valid configurations with different auto traits: the probe reads the
+    # configuration the context selects.
+    out = os.path.join(tmp, "with.json")
+    done = subprocess.run(script + ["--out", out, "--features", "checked"], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    _, found = members(out)
+    expect(found, "sample::make", "auto-traits[Send]", "Send")
+    out = os.path.join(tmp, "without.json")
+    done = subprocess.run(script + ["--out", out], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    _, found = members(out)
+    assert "auto-traits[Send]" not in found["sample::make"]["slots"]
+
+    # A dependency that does not build certifies nothing.
+    broken = os.path.join(tmp, "rust-broken")
+    write(broken, {
+        "Cargo.toml": '[package]\nname = "sample"\nversion = "0.1.0"\nedition = "2021"\n[lib]\n[features]\nchecked = []\n[workspace]\n',
+        "src/lib.rs": """
+#[cfg(all(not(doc), not(feature = "checked")))]
+compile_error!("checked feature required");
+pub fn make() -> impl Clone { std::rc::Rc::new(()) }
+""",
+    })
+    out = os.path.join(tmp, "broken.json")
+    command = [sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", broken, "--context", "default", "--out", out]
+    failure(command, tmp, out, ["checked feature required"])
+    # A stale report does not survive a failed run.
+    with open(out, "w") as stale:
+        stale.write("{}")
+    failure(command, tmp, out, [])
+    # A report never lands in the project tree.
+    inside = os.path.join(broken, "report.json")
+    failure([sys.executable, os.path.join(SCRIPTS, "report-rust.py"), "--project", broken, "--context", "default", "--out", inside], tmp, inside, ["inside the project tree"])
+
+
+def go_build_failure(tmp):
+    project = os.path.join(tmp, "go-broken")
+    write(project, {
+        "go.mod": "module example.com/sample\n\ngo 1.21\n",
+        "sample.go": "package sample\n\nvar X int = \"text\"\n",
+    })
+    out = os.path.join(tmp, "go-broken.json")
+    failure(["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "default", "-out", out], project, out, ["report-go"])
+
+
+def typescript_build_failures(tmp):
+    script = ["node", os.path.join(SCRIPTS, "report-typescript.cjs")]
+    project = os.path.join(tmp, "ts-broken")
+    write(project, {
+        "tsconfig.json": json.dumps({"compilerOptions": {"noEmitOnError": True, "strict": True}, "include": ["input.ts"]}),
+        "input.ts": "export const x: string = 1;\n",
+    })
+    out = os.path.join(tmp, "ts-broken.json")
+    failure(script + ["--project", project, "--context", "x", "--out", out], tmp, out, ["TS2322"])
+    project = os.path.join(tmp, "ts-bad-config")
+    write(project, {"tsconfig.json": '{"compilerOptions": {"target": "nonsense"}}', "input.ts": "export const x = 1;\n"})
+    out = os.path.join(tmp, "ts-bad-config.json")
+    failure(script + ["--project", project, "--context", "x", "--out", out], tmp, out, ["report-typescript"])
+    # Each of the project's own emit destinations stays empty.
+    for name, options in (("decl", {"declarationDir": "decl"}), ("out", {"outFile": "bundle.js", "module": "amd"})):
+        project = os.path.join(tmp, f"ts-{name}")
+        write(project, {
+            "tsconfig.json": json.dumps({"compilerOptions": {"strict": True, "target": "es2022", **options}, "include": ["input.ts"]}),
+            "input.ts": "export const x = 1;\nexport function y() { return 'a'; }\n",
+        })
+        before = listing(project)
+        out = os.path.join(tmp, f"ts-{name}.json")
+        _, found = run("typescript", script + ["--project", project, "--context", "x", "--out", out], tmp, out)
+        tree_unchanged(project, before)
+        assert '"input.ts"#y' in found and found['"input.ts"#y']["slots"]["returns"] == "string", found
+
+
+def typescript_declaration_files(tmp):
+    """A declaration-file project is checked, whichever way a file got in."""
+    project = os.path.join(tmp, "ts-declarations")
+    write(project, {
+        "tsconfig.json": json.dumps({"compilerOptions": {"strict": True, "target": "es2022", "module": "commonjs", "moduleResolution": "node10", "noEmit": False, "types": []}, "include": ["src/*.ts", "ambient/*.d.ts"]}),
+        "src/use.ts": "import { read } from '../packages/lib/dist';\nimport { readScoped } from '@scope/name';\nexport const a = read('x');\nexport const b = readScoped('y');\n",
+        "packages/lib/dist/index.d.ts": "export declare function read(value: string): string;\nexport interface Marker { readonly modern: true; }\n",
+        "ambient/scope.d.ts": "declare module '@scope/name' {\n  export function readScoped(value: string): string;\n  export interface ScopedMarker { source: 'scoped'; }\n}\n",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "ts-declarations.json")
+    _, found = run("typescript", ["node", os.path.join(SCRIPTS, "report-typescript.cjs"), "--project", project, "--context", "x", "--out", out], tmp, out)
+    tree_unchanged(project, before)
+    # Reached only by resolution, and not a root.
+    expect(found, '"packages/lib/dist/index.d.ts"#read', "returns", "string")
+    expect(found, '"packages/lib/dist/index.d.ts"#Marker.modern', "type", "true")
+    # An emitted declaration's import resolves as it does for a consumer.
+    expect(found, '"src/use.ts"#a', "type", "string")
+    # A member of an ambient module, under its `ambient:` path.
+    expect(found, 'ambient:"@scope/name"#readScoped', "parameters[0].type", "string")
+    expect(found, 'ambient:"@scope/name"#ScopedMarker.source', "type", "'scoped'")
 
 
 def go(tmp):
@@ -245,7 +374,7 @@ export function dflt(first: number = 1, second: string): string { return second;
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
-        for test in (rust, go, python, typescript):
+        for test in (rust, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

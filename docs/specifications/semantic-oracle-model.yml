@@ -995,6 +995,9 @@ description: |
   state, or a language whose toolchain is absent, is `unchecked` in the audit
   output.
 
+  A project that fails to build produces no report, and a failed script is an error
+  of the audit run. A report states only what its compiler checked.
+
   A compiler that an evaluated indexer wraps can share an error with it. Only the
   compiler-supplied slots carry that exposure, and the report's `slot-class`
   grouping keeps them separate from the slots an author wrote.

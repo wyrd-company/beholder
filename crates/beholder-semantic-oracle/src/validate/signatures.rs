@@ -14,8 +14,8 @@ use serde_json::Value;
 use super::{list, names, overlap, text, Checker, Class, Contexts};
 use crate::{
     canonical::{
-        auto_trait_key, canonical_auto_trait, canonicalize, predeclared, rust_opaque_types,
-        value_form_issue, NameResolver,
+        auto_trait_key, canonical_auto_trait, canonicalize, canonicalize_bounds, named_ids,
+        predeclared, rust_opaque_types, value_form_issue, NameResolver,
     },
     signature::{base_key, slots, Slot, SlotClass, Source},
 };
@@ -52,11 +52,18 @@ const NOT_SLOTS: [&str; 3] = ["entity", "contexts", "alternatives"];
 struct Ids<'a, 'c>(&'c Checker<'a>);
 
 impl NameResolver for Ids<'_, '_> {
-    fn path(&self, id: &str) -> Option<&str> {
+    fn standard_path<'r>(&'r self, id: &'r str) -> Option<&'r str> {
+        match self.0.ids.get(id) {
+            Some((Class::External, record)) => text(record, "path"),
+            _ => None,
+        }
+    }
+
+    fn language_kind(&self, id: &str) -> Option<&str> {
         self.0
             .ids
             .get(id)
-            .and_then(|(_, record)| text(record, "path"))
+            .and_then(|(_, record)| text(record, "language-kind"))
     }
 }
 
@@ -397,7 +404,11 @@ impl<'a> Checker<'a> {
             match slot.class {
                 SlotClass::DeclaredType | SlotClass::InferredType => {
                     let resolver = Ids(self);
-                    let found = canonicalize(language, &slot.text, &resolver);
+                    let found = if slot.path.ends_with("bounds") {
+                        canonicalize_bounds(language, &slot.text, &resolver)
+                    } else {
+                        canonicalize(language, &slot.text, &resolver)
+                    };
                     if found.text != slot.text {
                         findings.push((
                             at.clone(),
@@ -436,8 +447,11 @@ impl<'a> Checker<'a> {
                     if let Some(issue) = value_form_issue(language, &slot.text, slot.is_default) {
                         findings.push((at.clone(), issue));
                     }
-                    for id in crate::canonical::named_ids(&slot.text) {
-                        if !matches!(self.ids.get(id), Some((Class::Entity | Class::External, _))) {
+                    for id in named_ids(language, &slot.text) {
+                        if !matches!(
+                            self.ids.get(id.as_str()),
+                            Some((Class::Entity | Class::External, _))
+                        ) {
                             findings
                                 .push((at.clone(), format!("`@{{{id}}}` resolves to no entity")));
                         }
@@ -516,13 +530,24 @@ impl<'a> Checker<'a> {
                 findings.push((format!("{at}/{key}"), "one element per trait".to_owned()));
             }
         }
-        if let Some(members) = body.as_object() {
-            for key in ["bases", "implementations", "overloads", "alternatives"] {
-                if let Some(Value::Array(entries)) = members.get(key) {
+        // Every nested record has these lists too: an accessor, a binding, a group
+        // entry, a parameter.
+        let Some(members) = body.as_object() else {
+            return;
+        };
+        for (key, member) in members {
+            match member {
+                Value::Object(_) if key != "at" => {
+                    self.sorted_lists(member, &format!("{at}/{key}"), findings);
+                }
+                Value::Array(entries) => {
                     for (i, entry) in entries.iter().enumerate() {
-                        self.sorted_lists(entry, &format!("{at}/{key}/{i}"), findings);
+                        if entry.is_object() {
+                            self.sorted_lists(entry, &format!("{at}/{key}/{i}"), findings);
+                        }
                     }
                 }
+                _ => {}
             }
         }
     }
@@ -725,33 +750,140 @@ impl<'a> Checker<'a> {
         false
     }
 
-    fn is_inside_extension(&self, from: &str) -> bool {
-        let mut current = Some(from);
-        let mut guard = BTreeSet::new();
-        while let Some(id) = current {
-            if !guard.insert(id) {
-                return false;
-            }
-            let record = self.ids.get(id).map(|(_, record)| *record);
-            if record.and_then(|r| text(r, "kind")) == Some("extension") {
-                return true;
-            }
-            current = record.and_then(|r| text(r, "parent"));
-        }
-        false
+    /// The site range `[nth site, next site)` of a member with several signature
+    /// sites, and whether a reference's site lies in it.
+    fn in_site_range(&self, reference: &Value, sites: &[SiteKey<'a>], start: SiteKey<'a>) -> bool {
+        let Some(site) = reference.get("at") else {
+            return false;
+        };
+        let key = site_key(site);
+        let end = sites.iter().copied().find(|other| *other > start);
+        key >= start && end.is_none_or(|end| key < end)
     }
 
-    /// Whether a `type` reference from `from` can state a slot from `source`.
-    fn reference_states_slot(&self, from: &str, record: &Record<'a>, source: Source<'_>) -> bool {
-        match source {
-            Source::Member | Source::Overload(_) | Source::Group(..) => {
-                self.is_inside(from, record.id)
+    /// The entities of a type's signature group, in source order. An entity can
+    /// declare several signatures of a group by its sites.
+    fn group_children(&self, owner: &str, group: &str) -> Vec<&'a Value> {
+        let kind = match group {
+            "constructors" => "constructor",
+            "call-signatures" => "call-signature",
+            "construct-signatures" => "construct-signature",
+            _ => "index-signature",
+        };
+        let mut children: Vec<&'a Value> = self
+            .list("entities")
+            .iter()
+            .filter(|entity| {
+                text(entity, "parent") == Some(owner) && self.language_kinds(entity).contains(&kind)
+            })
+            .collect();
+        children.sort_by_key(|entity| definition_sites(entity).first().copied());
+        children
+    }
+
+    /// The `trait-impl` blocks an implementation entry can be: those whose own
+    /// `type` references name each entity its `type` and `self-type` name, and for
+    /// a type's `bases`, the type itself.
+    fn implementation_blocks(
+        &self,
+        member: &str,
+        is_base: bool,
+        entry: &Value,
+        references: &[&'a Value],
+    ) -> Vec<&'a str> {
+        let language = self.rules.language;
+        let mut needed: Vec<String> = Vec::new();
+        for key in ["type", "self-type"] {
+            if let Some(written) = text(entry, key) {
+                needed.extend(named_ids(language, written));
+            }
+        }
+        if is_base {
+            needed.push(member.to_owned());
+        }
+        self.list("entities")
+            .iter()
+            .filter(|entity| self.language_kinds(entity).contains(&"trait-impl"))
+            .filter_map(|entity| text(entity, "id"))
+            .filter(|block| {
+                needed.iter().all(|id| {
+                    references.iter().any(|reference| {
+                        text(reference, "target") == Some(id.as_str())
+                            && text(reference, "from")
+                                .is_some_and(|from| self.is_inside(from, block))
+                    })
+                })
+            })
+            .collect()
+    }
+
+    /// Whether a `type` reference lies in the declaration that states a slot:
+    /// the model's Source declarations table.
+    fn reference_states_slot(
+        &self,
+        reference: &Value,
+        record: &Record<'a>,
+        slot: &Slot<'_>,
+        references: &[&'a Value],
+    ) -> bool {
+        let Some(from) = text(reference, "from") else {
+            return false;
+        };
+        let inside_member = self.is_inside(from, record.id);
+        if let Some(alternative) = slot.alternative {
+            let site = list(record.record, "alternatives")
+                .get(alternative)
+                .and_then(|entry| entry.get("at"));
+            return inside_member
+                && site.is_some_and(|site| {
+                    self.in_site_range(reference, &definition_sites(record.entity), site_key(site))
+                });
+        }
+        match slot.source {
+            Source::Member => inside_member,
+            Source::Overload(n) => {
+                let sites = definition_sites(record.entity);
+                inside_member
+                    && sites
+                        .get(n)
+                        .is_some_and(|site| self.in_site_range(reference, &sites, *site))
+            }
+            Source::Group(group, n) => {
+                let children = self.group_children(record.id, group);
+                match children.as_slice() {
+                    // A synthetic constructor's declaration is the owning class.
+                    [] => inside_member,
+                    [only] if definition_sites(only).len() > 1 => {
+                        let sites = definition_sites(only);
+                        text(only, "id").is_some_and(|child| self.is_inside(from, child))
+                            && sites
+                                .get(n)
+                                .is_some_and(|site| self.in_site_range(reference, &sites, *site))
+                    }
+                    children => children
+                        .get(n)
+                        .and_then(|child| text(child, "id"))
+                        .is_some_and(|child| self.is_inside(from, child)),
+                }
             }
             Source::Impl => {
                 text(record.entity, "parent").is_some_and(|block| self.is_inside(from, block))
             }
-            Source::Implementation => self.is_inside_extension(from),
-            Source::Base => self.is_inside(from, record.id) || self.is_inside_extension(from),
+            Source::Base | Source::Implementation => {
+                let is_trait = self.language_kinds(record.entity).contains(&"trait");
+                let is_base = slot.source == Source::Base;
+                // Only a Rust implementation has a block; another language's base
+                // is in the member's own declaration, as is a Rust supertrait.
+                if self.rules.language != "rust" || (is_base && is_trait) {
+                    return inside_member;
+                }
+                let Some(entry) = entry_of(record.record, &slot.pointer) else {
+                    return false;
+                };
+                self.implementation_blocks(record.id, is_base, entry, references)
+                    .iter()
+                    .any(|block| self.is_inside(from, block))
+            }
         }
     }
 
@@ -795,9 +927,14 @@ impl<'a> Checker<'a> {
             if slot.class != SlotClass::DeclaredType || record_is_synthetic(record.entity) {
                 continue;
             }
-            if slot.path.ends_with(".type") && slot.path.starts_with("bases[") {
-                let head = crate::canonical::named_ids(&slot.text);
-                if head.first().is_some_and(|id| structural.contains(*id)) {
+            // A structural base has no source token, so its entry has no source
+            // declaration to read.
+            if slot.source == Source::Base {
+                let head = entry_of(record.record, &slot.pointer)
+                    .and_then(|entry| text(entry, "type"))
+                    .map(|written| named_ids(language, written))
+                    .and_then(|ids| ids.into_iter().next());
+                if head.is_some_and(|id| structural.contains(id.as_str())) {
                     continue;
                 }
             }
@@ -807,10 +944,10 @@ impl<'a> Checker<'a> {
             for id in ids {
                 let stated = references.iter().any(|reference| {
                     text(reference, "target") == Some(id.as_str())
-                        && text(reference, "from").is_some_and(|from| {
-                            declaration.is_some_and(|d| self.is_inside(from, d))
-                                || self.reference_states_slot(from, record, slot.source)
-                        })
+                        && (declaration.is_some_and(|declared| {
+                            text(reference, "from")
+                                .is_some_and(|from| self.is_inside(from, declared))
+                        }) || self.reference_states_slot(reference, record, &slot, &references))
                 });
                 if !stated {
                     problems.push((
@@ -887,14 +1024,24 @@ impl<'a> Checker<'a> {
             || (self.rules.language == "csharp" && path.starts_with("System."))
     }
 
-    /// Targets of a member's relations that no source token establishes.
+    /// Targets of a member's relations that no type token establishes: a structural
+    /// relation has no `at`, and a derive's `at` is the derive's name.
     fn structural_bases(&self, id: &str) -> BTreeSet<&'a str> {
+        let type_sites: BTreeSet<SiteKey<'a>> = self
+            .list("references")
+            .iter()
+            .filter(|reference| text(reference, "role") == Some("type"))
+            .filter_map(|reference| reference.get("at"))
+            .map(site_key)
+            .collect();
         self.list("relations")
             .iter()
             .filter(|relation| {
                 matches!(text(relation, "kind"), Some("inherits" | "implements"))
                     && text(relation, "from") == Some(id)
-                    && relation.get("at").is_none()
+                    && relation
+                        .get("at")
+                        .is_none_or(|at| !type_sites.contains(&site_key(at)))
             })
             .filter_map(|relation| text(relation, "to"))
             .collect()
@@ -968,8 +1115,8 @@ impl<'a> Checker<'a> {
 
     /// The head of a base's type text: an id, or a bare name a target's path ends in.
     fn base_head(&self, ty: &str, targets: &BTreeSet<&'a str>) -> Option<String> {
-        if let Some(id) = crate::canonical::named_ids(ty).first() {
-            return Some((*id).to_owned());
+        if let Some(id) = named_ids(self.rules.language, ty).into_iter().next() {
+            return Some(id);
         }
         let head: String = ty
             .chars()
@@ -1046,6 +1193,7 @@ impl<'a> Checker<'a> {
         members: &BTreeMap<&'a str, Contexts<'a>>,
     ) {
         let rule = "rust:reachable-unnameable";
+        let language = self.rules.language;
         let distributions = self.member_distributions();
         // (target, distribution) -> the members whose signatures expose it.
         let mut exposed: BTreeMap<(String, &'a str), BTreeSet<&'a str>> = BTreeMap::new();
@@ -1060,8 +1208,8 @@ impl<'a> Checker<'a> {
                 ) {
                     continue;
                 }
-                for id in crate::canonical::named_ids(&slot.text) {
-                    let Some((Class::Entity, target)) = self.ids.get(id).copied() else {
+                for id in named_ids(language, &slot.text) {
+                    let Some((Class::Entity, target)) = self.ids.get(id.as_str()).copied() else {
                         continue;
                     };
                     let nominal = matches!(text(target, "kind"), Some("type" | "type-alias"))
@@ -1069,11 +1217,11 @@ impl<'a> Checker<'a> {
                             .and_then(|parent| self.ids.get(parent))
                             .is_none_or(|(_, parent)| text(parent, "kind") == Some("module"));
                     let named = members
-                        .get(id)
+                        .get(id.as_str())
                         .is_some_and(|contexts| !contexts.is_disjoint(&record.contexts));
                     if nominal && !named {
                         exposed
-                            .entry((id.to_owned(), distribution))
+                            .entry((id, distribution))
                             .or_default()
                             .insert(record.id);
                     }
@@ -1133,6 +1281,14 @@ impl<'a> Checker<'a> {
 
 fn record_is_synthetic(entity: &Value) -> bool {
     text(entity, "origin") == Some("synthetic")
+}
+
+/// The `bases` or `implementations` entry a slot's pointer lies in.
+fn entry_of<'r>(record: &'r Value, pointer: &str) -> Option<&'r Value> {
+    let mut parts = pointer.trim_start_matches('/').split('/');
+    let key = parts.next()?;
+    let index: usize = parts.next()?.parse().ok()?;
+    list(record, key).get(index)
 }
 
 type SiteKey<'a> = (&'a str, u64, u64);

@@ -1156,3 +1156,383 @@ fn an_auto_traits_entry_may_state_a_condition() {
     let found = errors(&validator, &dataset);
     assert!(found.is_empty(), "{}", describe(&found));
 }
+
+// ------------------------------------------------- the source-declaration table
+
+/// The messages of one rule on a dataset, without project files.
+fn rule_messages(dataset: &Value, rule: &str) -> Vec<String> {
+    beholder_semantic_oracle::validate(dataset, None)
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == rule)
+        .map(|f| format!("{} {}", f.at, f.message))
+        .collect()
+}
+
+const REFERENCES: &str = "model:signature-references";
+
+fn type_reference(
+    path: &str,
+    line: u64,
+    column: u64,
+    name: &str,
+    from: &str,
+    target: &str,
+) -> Value {
+    json!({
+        "at": {"path": path, "start": [line, column], "end": [line, column + name.len() as u64], "text": name},
+        "from": from, "target": target, "role": "type",
+    })
+}
+
+/// Sets a value at a pointer, adding it to its object when it is new.
+fn set_at(dataset: &mut Value, pointer: &str, value: Value) {
+    if let Some(found) = dataset.pointer_mut(pointer) {
+        *found = value;
+        return;
+    }
+    let (parent, member) = pointer.rsplit_once('/').expect("a pointer has a member");
+    dataset
+        .pointer_mut(parent)
+        .and_then(Value::as_object_mut)
+        .unwrap_or_else(|| panic!("no object {parent}"))
+        .insert(member.to_owned(), value);
+}
+
+/// The index of a member's signature record.
+fn record_of(dataset: &Value, entity: &str) -> usize {
+    dataset["public-api"]["signatures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|record| record["entity"] == entity)
+        .unwrap_or_else(|| panic!("no record of {entity}"))
+}
+
+/// Constructor 1 reads constructor 1's references, not constructor 0's.
+#[test]
+fn a_group_entry_reads_its_own_constructor() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let mut second = dataset["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["id"] == "shapes.Circle.constructor")
+        .unwrap()
+        .clone();
+    second["id"] = json!("shapes.Circle.constructor2");
+    second["path"] = json!("\"src/shapes.ts\"#Circle.constructor#2");
+    second["definitions"] = json!([{"at": {"path": "src/shapes.ts", "start": [12, 3], "end": [12, 14], "text": "constructor"}}]);
+    push(&mut dataset, "/entities", second);
+    let at = record_of(&dataset, "shapes.Circle");
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/constructors"),
+        json!([
+            {"parameters": [{"name": "radius", "type": "number"}]},
+            {"returns": "@{shapes.Kind}"},
+        ]),
+    );
+    let mut sibling = dataset.clone();
+    push(
+        &mut sibling,
+        "/references",
+        type_reference(
+            "src/shapes.ts",
+            11,
+            40,
+            "Kind",
+            "shapes.Circle.constructor",
+            "shapes.Kind",
+        ),
+    );
+    let found = rule_messages(&sibling, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("constructors/1/returns")),
+        "a reference under constructor 0 does not state constructor 1: {found:#?}"
+    );
+    let mut own = dataset.clone();
+    push(
+        &mut own,
+        "/references",
+        type_reference(
+            "src/shapes.ts",
+            12,
+            40,
+            "Kind",
+            "shapes.Circle.constructor2",
+            "shapes.Kind",
+        ),
+    );
+    assert_eq!(rule_messages(&own, REFERENCES), Vec::<String>::new());
+}
+
+/// Overload 1 reads the references at its own signature site.
+#[test]
+fn an_overload_reads_its_own_signature_site() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let entities = dataset["entities"].as_array_mut().unwrap();
+    let area = entities
+        .iter_mut()
+        .find(|e| e["id"] == "shapes.Circle.area")
+        .unwrap();
+    area["definitions"] = json!([
+        {"at": {"path": "src/shapes.ts", "start": [13, 3], "end": [13, 7], "text": "area"}},
+        {"at": {"path": "src/shapes.ts", "start": [15, 3], "end": [15, 7], "text": "area"}},
+    ]);
+    let at = record_of(&dataset, "shapes.Circle.area");
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}"),
+        json!({"entity": "shapes.Circle.area", "overloads": [
+            {"returns": "number"}, {"returns": "@{shapes.Kind}"}]}),
+    );
+    let mut first_site = dataset.clone();
+    push(
+        &mut first_site,
+        "/references",
+        type_reference(
+            "src/shapes.ts",
+            13,
+            12,
+            "Kind",
+            "shapes.Circle.area",
+            "shapes.Kind",
+        ),
+    );
+    let found = rule_messages(&first_site, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("overloads/1/returns")),
+        "{found:#?}"
+    );
+    let mut own_site = dataset.clone();
+    push(
+        &mut own_site,
+        "/references",
+        type_reference(
+            "src/shapes.ts",
+            15,
+            12,
+            "Kind",
+            "shapes.Circle.area",
+            "shapes.Kind",
+        ),
+    );
+    assert_eq!(rule_messages(&own_site, REFERENCES), Vec::<String>::new());
+}
+
+/// An alternative reads the references at its own definition.
+#[test]
+fn an_alternative_reads_its_own_definition() {
+    let mut dataset = load("semantic-oracle-profile-python.example.yml");
+    let first = json!({"path": "src/atlas/fast.py", "start": [3, 5], "end": [3, 8], "text": "run"});
+    let second =
+        json!({"path": "src/atlas/fast.py", "start": [6, 5], "end": [6, 8], "text": "run"});
+    let entities = dataset["entities"].as_array_mut().unwrap();
+    let run = entities
+        .iter_mut()
+        .find(|e| e["id"] == "atlas.fast.run")
+        .unwrap();
+    run["definitions"] = json!([{"at": first}, {"at": second}]);
+    let at = record_of(&dataset, "atlas.fast.run");
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}"),
+        json!({"entity": "atlas.fast.run", "alternatives": [
+            {"at": first, "returns": "None"},
+            {"at": second, "returns": "@{ext.builtins.float}"}]}),
+    );
+    let mut wrong = dataset.clone();
+    push(
+        &mut wrong,
+        "/references",
+        type_reference(
+            "src/atlas/fast.py",
+            3,
+            15,
+            "float",
+            "atlas.fast.run",
+            "ext.builtins.float",
+        ),
+    );
+    let found = rule_messages(&wrong, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("alternatives/1/returns")),
+        "{found:#?}"
+    );
+    let mut own = dataset.clone();
+    push(
+        &mut own,
+        "/references",
+        type_reference(
+            "src/atlas/fast.py",
+            6,
+            15,
+            "float",
+            "atlas.fast.run",
+            "ext.builtins.float",
+        ),
+    );
+    assert_eq!(rule_messages(&own, REFERENCES), Vec::<String>::new());
+}
+
+/// A Rust base entry reads the implementation of that trait for that type, not
+/// another extension in the dataset.
+#[test]
+fn a_rust_base_reads_its_own_implementation() {
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    let at = record_of(&dataset, "geometry.shapes.Circle");
+    // `ext.core.fmt.Display` has a reference only in `impl<T: Display> Area for T`.
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/bases/0/where"),
+        json!("@{ext.core.fmt.Display}: @{geometry.shapes.Area}"),
+    );
+    let found = rule_messages(&dataset, REFERENCES);
+    assert!(
+        found
+            .iter()
+            .any(|m| m.contains("bases/0/where") && m.contains("ext.core.fmt.Display")),
+        "{found:#?}"
+    );
+    push(
+        &mut dataset,
+        "/references",
+        type_reference(
+            "src/shapes.rs",
+            17,
+            30,
+            "Display",
+            "geometry.shapes.impl-Area-for-Circle",
+            "ext.core.fmt.Display",
+        ),
+    );
+    assert_eq!(rule_messages(&dataset, REFERENCES), Vec::<String>::new());
+}
+
+/// A trait's `implementations` entry reads its own block too.
+#[test]
+fn an_implementations_entry_reads_its_own_block() {
+    let dataset = load("semantic-oracle-profile-rust.example.yml");
+    let at = record_of(&dataset, "geometry.shapes.Area");
+    let mut other = dataset.clone();
+    // `ext.core.clone.Clone` has references only in `Pair`.
+    set_at(
+        &mut other,
+        &format!("/public-api/signatures/{at}/implementations/0"),
+        json!({"type": "@{geometry.shapes.Area}", "self-type": "T", "where": "T: @{ext.core.clone.Clone}"}),
+    );
+    let found = rule_messages(&other, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("implementations/0/where")),
+        "{found:#?}"
+    );
+}
+
+/// An `impl` slot reads its own block.
+#[test]
+fn an_impl_slot_reads_the_member_block() {
+    let mut dataset = load("semantic-oracle-profile-rust.example.yml");
+    let block = json!({"id": "geometry.shapes.impl-Pair", "kind": "extension", "language-kind": "impl",
+        "path": "geometry::shapes::impl geometry::shapes::Pair#1", "unit": "geometry-lib",
+        "parent": "geometry.shapes", "origin": "source", "definitions": [],
+        "declared-visibility": {"value": "private", "explicit": false},
+        "effective-visibility": {"unit": {"access": "scoped", "scope": ["geometry.shapes"]},
+                                 "project": "none", "external": "none"}});
+    let method = json!({"id": "geometry.shapes.Pair.get", "kind": "callable", "language-kind": "method",
+        "name": "get", "path": "geometry::shapes::Pair::get", "unit": "geometry-lib",
+        "parent": "geometry.shapes.impl-Pair", "origin": "source",
+        "definitions": [{"at": {"path": "src/shapes.rs", "start": [30, 12], "end": [30, 15], "text": "get"}}],
+        "declared-visibility": {"value": "pub", "explicit": true},
+        "effective-visibility": {"unit": "all", "project": "all", "external": "all"}});
+    push(&mut dataset, "/entities", block);
+    push(&mut dataset, "/entities", method);
+    push(
+        &mut dataset,
+        "/public-api/members",
+        json!({"distribution": "geometry", "entity": "geometry.shapes.Pair.get",
+               "paths": ["geometry::shapes::Pair::get"], "access": "all"}),
+    );
+    push(
+        &mut dataset,
+        "/public-api/signatures",
+        json!({"entity": "geometry.shapes.Pair.get",
+               "impl": {"self-type": "@{geometry.shapes.Pair}<T>"}, "returns": "u8"}),
+    );
+    let found = rule_messages(&dataset, REFERENCES);
+    assert!(
+        found.iter().any(|m| m.contains("/impl/self-type")),
+        "{found:#?}"
+    );
+    let mut own = dataset.clone();
+    push(
+        &mut own,
+        "/references",
+        type_reference(
+            "src/shapes.rs",
+            29,
+            6,
+            "Pair",
+            "geometry.shapes.impl-Pair",
+            "geometry.shapes.Pair",
+        ),
+    );
+    assert_eq!(rule_messages(&own, REFERENCES), Vec::<String>::new());
+}
+
+/// A same-named project type keeps its `@{id}` through the validator's resolver.
+#[test]
+fn the_validator_rewrites_only_a_standard_external() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let at = record_of(&dataset, "shapes.Circle.area");
+    // `ext.lib.es5.Array` is the standard declaration, so its spelling is `string[]`.
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/returns"),
+        json!("@{ext.lib.es5.Array}<string>"),
+    );
+    let found = rule_messages(&dataset, "model:signature-canonical");
+    assert!(
+        found
+            .iter()
+            .any(|m| m.contains("its one spelling is `string[]`")),
+        "{found:#?}"
+    );
+    // A project type's path can end in the same name.
+    let mut project = load("semantic-oracle-profile-typescript.example.yml");
+    set_at(
+        &mut project,
+        &format!("/public-api/signatures/{at}/returns"),
+        json!("@{shapes.Array}<string>"),
+    );
+    let mut entity = project["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["id"] == "shapes.Shape")
+        .unwrap()
+        .clone();
+    entity["id"] = json!("shapes.Array");
+    entity["name"] = json!("Array");
+    entity["path"] = json!("typescript/lib/lib.es5.d.ts#Array");
+    push(&mut project, "/entities", entity);
+    let found = rule_messages(&project, "model:signature-canonical");
+    assert_eq!(found, Vec::<String>::new());
+}
+
+/// Nested sets are sorted at every level, in a group entry too.
+#[test]
+fn a_group_entry_has_sorted_modifiers() {
+    let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
+    let at = record_of(&dataset, "shapes.Circle");
+    set_at(
+        &mut dataset,
+        &format!("/public-api/signatures/{at}/constructors/0/modifiers"),
+        json!(["static", "abstract"]),
+    );
+    let found = rule_messages(&dataset, "model:signature-canonical");
+    assert!(
+        found.iter().any(|m| m.contains("constructors/0/modifiers")),
+        "{found:#?}"
+    );
+}

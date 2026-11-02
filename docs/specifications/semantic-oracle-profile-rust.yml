@@ -429,6 +429,9 @@ description: |
   a consumer that requires a trait the slot does not list.
 
   The compiler report comes from rustdoc JSON, with that compile check for `auto-traits`.
+A report's probes and rustdoc read one copy of the project, with the context's features
+  and the toolchain the project selects. A compile that fails for any reason other than a
+  probed trait produces no report.
 
   ## References
 

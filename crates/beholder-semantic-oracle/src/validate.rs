@@ -1698,8 +1698,8 @@ impl<'a> Checker<'a> {
     fn use_externals_named_in(&mut self, value: &'a Value) {
         match value {
             Value::String(slot) => {
-                for id in crate::canonical::named_ids(slot) {
-                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(id) {
+                for id in crate::canonical::named_ids(self.rules.language, slot) {
+                    if let Some((id, (Class::External, _))) = self.ids.get_key_value(id.as_str()) {
                         self.used_externals.insert(id);
                     }
                 }

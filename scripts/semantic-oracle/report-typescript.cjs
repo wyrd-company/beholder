@@ -7,9 +7,10 @@
 //
 // Writes a TypeScript compiler report for `semantic-oracle audit --report`.
 //
-// Emits declarations with the project's own options into a temporary directory,
-// the same emit as `tsc --declaration`, then reads that emit with the compiler's
-// API. The project tree gets no output.
+// Emits declarations with the project's own options to memory, the same emit as
+// `tsc --declaration`, then reads that emit and every declaration file of the project
+// in the program with the compiler's API. The project tree gets no output. A program
+// with an error is an error: this script exits 2 and writes no report.
 //
 //   report-typescript.cjs --project DIR --tsconfig FILE --context ID --out FILE
 //
@@ -17,7 +18,6 @@
 // from the project's node_modules or the global npm root.
 "use strict";
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
 
@@ -44,39 +44,80 @@ function loadTypescript() {
 }
 const ts = loadTypescript();
 
+function fail(message) {
+  console.error(`report-typescript: ${message}`);
+  process.exit(2);
+}
+
+function printDiagnostics(diagnostics) {
+  return ts.formatDiagnostics(diagnostics, {
+    getCanonicalFileName: (name) => name,
+    getCurrentDirectory: () => project,
+    getNewLine: () => "\n",
+  });
+}
+
+if (outFile === project || outFile.startsWith(project + path.sep)) {
+  fail(`--out ${outFile} lies inside the project tree`);
+}
+fs.rmSync(outFile, { force: true });
+
 const parsed = ts.getParsedCommandLineOfConfigFile(configFile, {}, {
   ...ts.sys,
-  onUnRecoverableConfigFileDiagnostic: (d) => {
-    console.error(ts.flattenDiagnosticMessageText(d.messageText, "\n"));
-    process.exit(2);
-  },
+  onUnRecoverableConfigFileDiagnostic: (d) => fail(ts.flattenDiagnosticMessageText(d.messageText, "\n")),
 });
-const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "semantic-oracle-ts-"));
+if (parsed.errors.length) fail(printDiagnostics(parsed.errors));
+
+// The emit goes to memory, beside its source's path, so that what a declaration
+// imports resolves as it does for a consumer of the project. Every emit destination
+// of the project's own options is cleared.
 const options = {
   ...parsed.options,
   declaration: true,
   emitDeclarationOnly: true,
   noEmit: false,
-  outDir,
+  noEmitOnError: false,
+  outDir: project,
   rootDir: project,
+  outFile: undefined,
+  declarationDir: undefined,
   declarationMap: false,
+  sourceMap: false,
   composite: false,
   incremental: false,
   tsBuildInfoFile: undefined,
 };
 const emitting = ts.createProgram(parsed.fileNames, options);
-emitting.emit();
+const emitted = new Map();
+const compiled = new Set();
+const result = emitting.emit(undefined, (name, text, _bom, _onError, sources) => {
+  const normal = path.resolve(name);
+  emitted.set(normal, text);
+  for (const source of sources || []) compiled.add(path.resolve(source.fileName));
+});
+const diagnostics = ts.getPreEmitDiagnostics(emitting).concat(result.diagnostics);
+const errors = diagnostics.filter((d) => d.category === ts.DiagnosticCategory.Error);
+// A program that fails to compile stops the report: nothing it would state was checked.
+if (errors.length) fail(`the program has errors:\n${printDiagnostics(errors)}`);
+if (result.emitSkipped) fail("the compiler skipped its emit");
 
-// Maps an emitted declaration file back to the document that a dataset names.
+const isProjectFile = (file) => {
+  const normal = path.resolve(file);
+  return normal.startsWith(project + path.sep) && !normal.includes(`${path.sep}node_modules${path.sep}`);
+};
+// Every declaration file of the project in the program, however it got there.
+const declarations = emitting
+  .getSourceFiles()
+  .map((file) => path.resolve(file.fileName))
+  .filter((name) => /\.d\.(m|c)?ts$/.test(name) && isProjectFile(name));
+
 function documentOf(file) {
   const normal = path.resolve(file);
-  if (normal.startsWith(outDir + path.sep)) {
-    const relative = path.relative(outDir, normal).split(path.sep).join("/");
-    const stem = relative.replace(/\.d\.(m|c)?ts$/, "");
+  if (emitted.has(normal)) {
+    const stem = path.relative(project, normal).split(path.sep).join("/").replace(/\.d\.(m|c)?ts$/, "");
     for (const suffix of [".ts", ".tsx", ".mts", ".cts"]) {
       if (fs.existsSync(path.join(project, stem + suffix))) return stem + suffix;
     }
-    return relative;
   }
   if (normal.startsWith(project + path.sep)) {
     const relative = path.relative(project, normal).split(path.sep).join("/");
@@ -90,18 +131,32 @@ function documentOf(file) {
   return normal;
 }
 
-function walkFiles(directory, found = []) {
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) walkFiles(full, found);
-    else if (/\.d\.(m|c)?ts$/.test(entry.name)) found.push(full);
+// A program over the emit and the project's declaration files. A compiled source is
+// hidden, so that an import of it resolves to its emit.
+const readingOptions = { ...parsed.options, noEmit: true };
+const host = ts.createCompilerHost(readingOptions);
+const hostFileExists = host.fileExists.bind(host);
+const hostReadFile = host.readFile.bind(host);
+const hostGetSourceFile = host.getSourceFile.bind(host);
+host.fileExists = (name) =>
+  emitted.has(path.resolve(name)) || (!compiled.has(path.resolve(name)) && hostFileExists(name));
+host.readFile = (name) => emitted.get(path.resolve(name)) ?? hostReadFile(name);
+host.getSourceFile = (name, version, ...rest) => {
+  const text = emitted.get(path.resolve(name));
+  return text !== undefined ? ts.createSourceFile(name, text, version, true) : hostGetSourceFile(name, version, ...rest);
+};
+host.writeFile = () => fail("the reading program tried to write");
+const reading = ts.createProgram([...emitted.keys(), ...declarations], readingOptions, host);
+const checker = reading.getTypeChecker();
+
+// The string name of the ambient module around a declaration, if any.
+function ambientModuleOf(declaration) {
+  let found;
+  for (let node = declaration; node; node = node.parent) {
+    if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) found = node.name.text;
   }
   return found;
 }
-
-const roots = walkFiles(outDir).concat(parsed.fileNames.filter((name) => /\.d\.(m|c)?ts$/.test(name)));
-const reading = ts.createProgram(roots, { ...parsed.options, noEmit: true, types: parsed.options.types });
-const checker = reading.getTypeChecker();
 
 function symbolPath(symbol) {
   let target = symbol;
@@ -109,13 +164,16 @@ function symbolPath(symbol) {
   const declaration = target.declarations && target.declarations[0];
   if (!declaration) return undefined;
   const document = documentOf(declaration.getSourceFile().fileName);
-  const isProject = !path.isAbsolute(document) && !document.startsWith("typescript/") && !document.includes("/node_modules/");
   const qualified = checker.getFullyQualifiedName(target).replace(/^"[^"]*"\./, "");
-  const local = document.startsWith("typescript/") || document.includes("@types/") ? `${document}#${qualified}` : `${isProject && fs.existsSync(path.join(project, document)) ? `"${document}"` : document}#${qualified}`;
-  return local;
+  const ambient = ambientModuleOf(declaration);
+  if (ambient !== undefined && !ts.isExternalModule(declaration.getSourceFile())) {
+    return `ambient:"${ambient}"#${qualified}`;
+  }
+  const isProject = !path.isAbsolute(document) && !document.startsWith("typescript/");
+  const inTree = isProject && fs.existsSync(path.join(project, document));
+  return `${inTree ? `"${document}"` : document}#${qualified}`;
 }
 
-// A node's text, with each name that denotes a declaration as `@{path}`.
 function typeText(node) {
   if (!node) return undefined;
   const source = node.getSourceFile();
@@ -266,7 +324,7 @@ function declare(memberPath, symbol) {
 }
 
 for (const file of reading.getSourceFiles()) {
-  if (reading.isSourceFileFromExternalLibrary(file) || reading.isSourceFileDefaultLibrary(file)) continue;
+  if (reading.isSourceFileDefaultLibrary(file) || !isProjectFile(file.fileName)) continue;
   const document = documentOf(file.fileName);
   const module = checker.getSymbolAtLocation(file);
   if (!module) continue;
@@ -274,6 +332,16 @@ for (const file of reading.getSourceFiles()) {
     let target = symbol;
     if (target.flags & ts.SymbolFlags.Alias) continue;
     declare(`"${document}"#${symbol.name}`, target);
+  }
+}
+
+// A member of an ambient module that a project file declares.
+for (const module of checker.getAmbientModules()) {
+  const inProject = (module.declarations || []).some((d) => isProjectFile(d.getSourceFile().fileName));
+  if (!inProject) continue;
+  for (const symbol of checker.getExportsOfModule(module)) {
+    if (symbol.flags & ts.SymbolFlags.Alias) continue;
+    declare(`ambient:${module.name}#${symbol.name}`, symbol);
   }
 }
 
@@ -296,5 +364,4 @@ const report = {
   members: [...members.values()].sort((a, b) => (a.path < b.path ? -1 : 1)),
 };
 fs.writeFileSync(outFile, JSON.stringify(report, null, 1));
-fs.rmSync(outDir, { recursive: true, force: true });
 console.log(JSON.stringify({ members: members.size }));

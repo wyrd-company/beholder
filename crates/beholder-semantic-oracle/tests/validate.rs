@@ -1593,6 +1593,49 @@ fn signature_slots_requires_what_the_kind_always_has() {
     });
 }
 
+/// A record that exists and lacks the slot, not a member with no record: a constant
+/// can hold `value` alone by the schema, and always has `type`.
+#[test]
+fn signature_slots_requires_a_record_to_hold_what_the_kind_always_has() {
+    let constant = |d: &mut Value| {
+        let entity = json!({"id": "tally.LIMIT", "kind": "constant", "language-kind": "const",
+            "name": "LIMIT", "path": "tally::LIMIT", "unit": "tally-lib", "parent": "tally.crate",
+            "origin": "source", "definitions": [],
+            "declared-visibility": {"value": "pub", "explicit": true},
+            "effective-visibility": {"unit": "all", "project": "all", "external": "all"}});
+        push(d, "/entities", entity);
+        push(
+            d,
+            "/public-api/members",
+            json!({"distribution": "tally", "entity": "tally.LIMIT",
+                   "paths": ["tally::LIMIT"], "access": "all"}),
+        );
+    };
+    let mut control = dataset();
+    constant(&mut control);
+    push(
+        &mut control,
+        "/public-api/signatures",
+        json!({"entity": "tally.LIMIT", "type": "u8", "value": "1"}),
+    );
+    assert_eq!(
+        rule_findings(&control, "model:signature-slots"),
+        Vec::<String>::new()
+    );
+    let mut lacking = dataset();
+    constant(&mut lacking);
+    push(
+        &mut lacking,
+        "/public-api/signatures",
+        json!({"entity": "tally.LIMIT", "value": "1"}),
+    );
+    let found = rule_findings(&lacking, "model:signature-slots");
+    assert!(
+        found.iter().any(|m| m.contains("always has `type`")),
+        "{found:#?}"
+    );
+}
+
 #[test]
 fn signature_slots_checks_auto_trait_ordinals() {
     let pair = json!("(impl @{tally.Counter}, impl @{tally.Counter})");
@@ -1702,6 +1745,42 @@ fn signature_canonical_rejects_an_unsorted_set() {
             d,
             "/public-api/signatures/1/auto-traits",
             json!(["Send when U: Send, T: Send"]),
+        );
+    });
+}
+
+#[test]
+fn signature_canonical_rejects_an_unsorted_set_below_the_record() {
+    fails_rule(
+        "model:signature-canonical",
+        "/bindings/0/auto-traits",
+        |d| {
+            set(
+                d,
+                "/public-api/signatures/1/bases",
+                json!([{"type": "@{tally.make}", "bindings": [
+                {"name": "m", "auto-traits": ["Send", "RefUnwindSafe"]}]}]),
+            );
+        },
+    );
+    fails_rule("model:signature-canonical", "/bases/0/bindings", |d| {
+        set(
+            d,
+            "/public-api/signatures/1/bases",
+            json!([{"type": "@{tally.make}", "bindings": [
+                {"name": "z", "type": "u8"}, {"name": "a", "type": "u8"}]}]),
+        );
+    });
+}
+
+/// A C# `bounds` slot sorts by the language's rule, not by its text.
+#[test]
+fn signature_canonical_reads_a_bounds_slot_by_its_rule() {
+    fails_rule("model:signature-canonical", "its one spelling is", |d| {
+        set(
+            d,
+            "/public-api/signatures/0/type-parameters",
+            json!([{"name": "T", "kind": "type", "bounds": "@{tally.make} + @{tally.Counter}"}]),
         );
     });
 }
