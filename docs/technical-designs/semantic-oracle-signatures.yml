@@ -356,15 +356,52 @@ proposed-design:
     | Profile | What it records | How an author derives it |
     | --- | --- | --- |
     | `rust/1` | Nothing is inferred: item signatures must state their types. `impl Trait` is recorded as written, `impl @{Clone} + use<'a>`. The hidden type and the auto traits it leaks are not recorded. Lifetimes are as written, with no elision expansion. | Source and the Rust Reference (Items, Lifetime elision). `value` from the Reference's constant evaluation rules; a `const` assertion probe confirms it. |
-    | `typescript/1` | `{inferred: ...}` for an unannotated return, `const`, `let`, field or accessor of a member, with the type that `tsc --declaration` emits for the context's options and compiler version, in canonical spelling. `/*elided*/ any` in that emit is written as `any`. A `.d.ts` member is all declared. | The Handbook's inference rules applied to source, confirmed by the declaration emit of the reference compiler outside the tree. A consumer of a published package compiles against that emit, so the emit defines the surface. |
+    | `typescript/1` | `{inferred: ...}` for an unannotated return, `const`, `let`, field or accessor of a member, with the type that `tsc --declaration` emits for the context's options and compiler version, in canonical spelling. `/*elided*/ any` in that emit is written as `any`. A `.d.ts` member is all declared. | The compiler supplies it: `tsc --declaration` outside the tree. TypeScript has no current language specification, and a consumer of a published package compiles against that emit, so the compiler defines the answer. |
     | `python/1` | No inference. An unannotated parameter, return or variable has no type slot, because the typing specification leaves inference to each checker. `default` is the literal in canonical form, or `present` when the default is not a literal. `@overload` stubs are `overloads` in `typing` contexts and the implementation signature is the record in `runtime` contexts. A redefined name has the signature of the final binding. When control flow leaves several definitions possible, the record has `alternatives`, each with its `at` and slots. A `TypedDict` key's requiredness is a modifier. Decorators other than the ones the profile names leave the signature as written. | The Language Reference and typing specification applied to source. `inspect.signature` run outside the tree confirms names, order, kinds, defaults and annotations. |
     | `go/1` | A constant's `type` is its declared type or its kind: `untyped bool`, `untyped rune`, `untyped int`, `untyped float`, `untyped complex`, `untyped string`. `value` is exact for typed and untyped constants, with `iota` and implicit repetition applied. `var X = expr` has `{inferred: ...}`, the expression's type or its kind's default type. Function signatures are always declared. Result names are not recorded. | The Go specification (Constants, Iota, Variable declarations). A `go/types` probe outside the tree confirms it. |
     | `csharp/1` | A declared member has no inferred type. A synthetic member, such as a record's copy constructor or `EqualityContract`, has `{inferred: ...}` by the synthesis rule. Nullable state is the effective annotation at each type occurrence, including local `#nullable` directives. `value` and `default` are the constant's value under the specification's constant expression rules. | The C# language specification and a Roslyn compile probe outside the tree. |
     | `dart/1` | `{inferred: ...}` for an unannotated top-level variable, field, return, parameter or accessor, including types inherited from an overridden member. `this.` and `super.` parameters have `{inferred: ...}` for their type, and a forwarded default has `{inferred: ...}` for its value. Each accessor half has its own type, including a half inherited from another supertype. `value` and `default` by the value form above. | The Dart specification and its type inference document, confirmed by a compile-only probe that assigns the member to a declared function or variable type. |
 
-    A compile probe is the reference compiler's own output, so it agrees with
-    the model's authoring independence rule. SCIP and every evaluated language
-    service remain excluded.
+    The Authoring section states who writes each fact and what the compiler does.
+  authoring: |
+    An author writes what the source states. A compiler checks all of it. A compiler
+    supplies an inferred type only where it defines the answer.
+
+    | Step | Who | Input | Output |
+    | --- | --- | --- | --- |
+    | Declared slots | The author | Source, build configuration, the language specification | Slots, including types, modes, modifiers, defaults and values |
+    | Inferred slots with a specification | The author | The specification's inference rule applied to source: Go and Dart | `{inferred: ...}` slots |
+    | Inferred slots the compiler defines | The compiler | `tsc --declaration` for the context's options and version: TypeScript | `{inferred: ...}` slots, in canonical spelling |
+    | Check | The compiler | The project, for each context | A compiler report that the audit compares with every slot it can state |
+
+    The author does not read a compiler report or a compiler draft of a declared slot
+    while writing it, so that writing and checking stay separate and a disagreement
+    shows. A disagreement is a finding to settle against the language's rule. It
+    is never settled by copying the compiler's value.
+
+    The compiler report is a JSON file that a per-language script produces outside
+    the project tree, and that `semantic-oracle audit` reads. The crate runs no
+    compiler. The scripts are development tools, run from Taskfile.
+
+    | Language | Compiler report comes from |
+    | --- | --- |
+    | Rust | rustdoc JSON |
+    | TypeScript | `tsc --declaration` |
+    | Go | `go/types` |
+    | Python | `inspect.signature`, for names, kinds, defaults and annotations |
+    | C# | Roslyn; the toolchain is tracked in wyrd-company/beholder#63 |
+    | Dart | The Dart front end; the toolchain is tracked in wyrd-company/beholder#63 |
+
+    Python has no reference type checker, so its report covers the runtime's view
+    only. A slot that a report cannot state, or a language whose toolchain is absent,
+    is `unchecked` in the audit output.
+
+    Independence: SCIP, Beholder and every evaluated indexer or language service are
+    never an input, to authoring or to the check. A compiler that an evaluated indexer
+    wraps can share an error with it, as `scip-typescript` shares `tsc`. Only the
+    compiler-supplied slots carry that exposure, and the report's `slot-class` grouping
+    keeps them separate from the slots an author wrote. The model's authoring
+    independence rule gains these statements.
   comparison-and-scoring: |
     Evaluation adds one observation form and one comparison unit.
 
@@ -448,7 +485,7 @@ proposed-design:
       a parameter has its `@{id}`.
     - `model:signature-inference`: an `{inferred}` slot on a source entity has no such
       reference requirement, and is audited at its definition site against the
-      inference rule by `profile:signature-probe`. An `{inferred}` slot on a synthetic
+      inference rule by `profile:signature-compiler`. An `{inferred}` slot on a synthetic
       entity is audited against its `anchor` and synthesis rule.
     - `model:signature-bases`: the targets of `bases` equal the member's `inherits`
       and `implements` relations. A base that the profile's structural rule gives, such
@@ -467,10 +504,9 @@ proposed-design:
     | `underlying` | The member and its field entities |
     | `get`, `set`, `init`, `delete` | The property entity. An accessor record has no parameter list, so that the parameter audit does not read a property's parameters. |
 
-    - `profile:signature-probe`: an optional audit step compares facts with the
-      reference toolchain, where the corpus toolchains are installed: rustdoc
-      JSON, `tsc --declaration`, `go/types`, `inspect.signature`, Roslyn and the
-      Dart front end.
+    - `profile:signature-compiler`: facts agree with the language's compiler report,
+      as the Authoring section states. A language with no report is listed as
+      `unchecked`, and never as passed.
   library-surface: |
     A consumer works with these types, for each context:
 
@@ -614,7 +650,7 @@ proposed-design:
       growth is near 4 percent, with the same uncertainty.
     - Review: of the 178 slots, 47 are names, which `model:signature-parameters`
       recomputes; 103 are declared types and 4 are inferred types; 24 are modes,
-      modifiers, defaults and values. `profile:signature-probe` is designed to check
+      modifiers, defaults and values. `profile:signature-compiler` is designed to check
       the last three groups. The table above states what has been run.
     - Reference toolchain coverage: rustdoc JSON finds 259 of the 276 Rust pilot
       members by site.
@@ -641,6 +677,11 @@ proposed-design:
       member needs a compiler probe per type. The missed change is stated above.
     - **`present` for a non-literal Python default.** Comparing expression text
       brings back the problems of source text. The missed change is stated above.
+    - **The author writes declared slots, not a compiler draft.** A draft from the
+      compiler is cheaper, and reviewing a draft tends to accept it, which leaves an
+      error shared with a compiler-backed indexer invisible. Writing and checking
+      separately shows disagreements. Reproducing `tsc` inference by reasoning adds
+      cost and no independence, so that one case is compiler-supplied.
     - **Macro matchers out of profile.** A `macro_rules!` matcher is a grammar, not
       a type, and membership states the macro.
   contract-changes: |
@@ -657,5 +698,5 @@ proposed-design:
       `public-api` restructuring.
     - `docs/semantic-oracle-authoring.md`, `semantic-oracle`, and the fixtures'
       `AGENTS.md` vocabulary.
-    - The three pilot answer keys. Python's pilot has an empty public API, so the
-      pilot set needs a project with working packaging for signature facts.
+    - The three pilot answer keys, and a second Python pilot,
+      `diagnostics-toolkit`, because `plugin-content-library` has an empty public API.
