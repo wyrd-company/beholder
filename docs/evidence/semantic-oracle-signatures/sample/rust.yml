@@ -1,0 +1,103 @@
+# ---
+# relationships:
+#   references:
+#     - semantic-oracle-signatures
+# ---
+# Hand-written sample. Not an answer key. Random members from seed 62, then chosen hard forms.
+signatures:
+  # random sample
+  - entity: mvr.visibility_restricted.PublicItem     # struct: nothing to state; no record needed
+  - entity: mvr.glob_ambiguity.source_b.Option.0
+    type: u32
+  - entity: mvr.custom_mapped.nested.NestedType      # nothing to state
+  - entity: mvr.namespaces.import_demo.uses_multi_namespace
+    returns: "(@{mvr.namespaces.Beta}, @{mvr.namespaces.Gamma})"
+  - entity: mvr.standalone_file.inner_child.ChildType.x
+    type: u32
+  - entity: mvr.preludes.core_vs_std_paths
+    returns: "(@{ext.core.option.Option}<u32>, @{ext.core.option.Option}<u32>)"
+  - entity: mvr.raw_identifiers.gen
+    returns: u32
+  - entity: mvr.glob_ambiguity.source_b.Option       # nothing to state
+  - entity: mvr.visibility_fields.MixedStruct        # nothing to state; private fields are field entities
+  - entity: mvr.intra_doc_links.LinkDemo             # nothing to state
+  - entity: mvr.glob_ambiguity.source_b.CollidingEnum # nothing to state; values on the variants
+  - entity: mvr.glob_ambiguity.source_b.CollidingEnum.VariantA
+    value: "0"
+  - entity: mvr.glob_ambiguity.source_b.CollidingEnum.VariantB
+    value: "1"
+  - entity: direct.DirectType.value
+    type: u32
+  - entity: mvr.path_roots.PathTrait.trait_fn
+    returns: u32
+  - entity: transitive.TransitiveType.new
+    parameters:
+      - {name: v, type: u32}
+    returns: "@{transitive.TransitiveType}"
+  - entity: mvr.glob_ambiguity.glob_user_shadowed.shadow_via_local.uses_local_shadow
+    returns: "@{mvr.glob_ambiguity.glob_user_shadowed.shadow_via_local.CollidingType}"
+  - entity: ed2015.cross_edition_type
+    returns: "@{direct.DirectType}"
+  - entity: mvr.use_forms.importer.child.child_underscore_not_inherited
+    returns: u32
+  - entity: mvr.visibility_fields.NonExhaustiveEnum
+    modifiers: [non_exhaustive]
+  # chosen hard forms in the pilot
+  - entity: mvr.preludes.prelude_trait_usage
+    parameters:
+      - {name: v, type: "@{ext.alloc.vec.Vec}<u32>"}
+    returns: usize
+  - entity: mvr.preludes.core_prelude_demo.core_prelude_copy
+    type-parameters:
+      - {name: T, kind: type, bounds: "@{ext.core.marker.Copy}"}
+    parameters:
+      - {name: x, type: T}
+    returns: T
+  - entity: mvr.namespaces.lifetime_and_label_demo
+    type-parameters:
+      - {name: "'demo", kind: lifetime}
+    parameters:
+      - {name: input, type: "&'demo str"}
+    returns: "&'demo str"
+  - entity: mvr.path_roots.associated_type_demo
+    returns: "<@{mvr.path_roots.PathRootDemo} as @{mvr.path_roots.PathTrait}>::@{mvr.path_roots.PathTrait.Assoc}"
+  - entity: mvr.path_roots.QualifiedAssocAlias
+    type: "<@{mvr.path_roots.PathRootDemo} as @{mvr.path_roots.PathTrait}>::@{mvr.path_roots.PathTrait.Assoc}"
+  - entity: mvr.path_roots.uses_qualified_assoc
+    parameters:
+      - {name: alias, type: "@{mvr.path_roots.QualifiedAssocAlias}"}
+    returns: "@{mvr.path_roots.QualifiedAssocAlias}"
+  - entity: downstream.downstream_uses_trait
+    parameters:
+      - {name: item, type: "&dyn @{mvr.visibility_fields.VisibleTrait}"}
+    returns: u32
+  - entity: mvr.visibility_fields.InherentDemo.public_method
+    parameters:
+      - {name: self, mode: self-ref}
+    returns: u32
+  - entity: mvr.visibility_fields.VisibleTrait.default_method
+    modifiers: [provided]
+    parameters:
+      - {name: self, mode: self-ref}
+    returns: u32
+  # chosen hard forms outside the pilot; ids are placeholders, no answer key exists
+  - entity: capture_2021.captures_all
+    type-parameters:
+      - {name: "'a", kind: lifetime}
+      - {name: T, kind: type, bounds: "'a + @{ext.core.clone.Clone}"}
+      - {name: N, kind: const, type: usize}
+    parameters:
+      - {name: value, type: "&'a T"}
+    returns: "impl @{ext.core.clone.Clone} + use<'a, T, N>"
+  - entity: generics.bounds.where_bound
+    # first draft omitted Debug: found on review of the source
+    type-parameters:
+      - {name: T, kind: type, bounds: "@{ext.core.clone.Clone} + @{ext.core.fmt.Debug}"}
+    parameters:
+      - {name: value, type: T}
+    returns: T
+  - entity: generics.generic_params.Repository
+    type-parameters:
+      - {name: "'a", kind: lifetime}
+      - {name: T, kind: type, default: "@{ext.alloc.string.String}"}
+      - {name: LIMIT, kind: const, type: usize, default: "10"}

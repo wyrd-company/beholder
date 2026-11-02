@@ -25,7 +25,7 @@ background:
     The per-language fixture corpus holds 84 projects: C# 14, Dart 12, Go 8,
     Python 14, Rust 17 and TypeScript 19. Each project is valid source with
     its own build configuration and declared build contexts. The corpus and
-    its datasets live in the private repository `wyrd-company/beholder-fixtures`,
+    its datasets live in the repository `wyrd-company/beholder-fixtures`,
     which this repository links as the submodule `fixtures/`; a normal clone
     does not check it out, and `task fixtures:init` does.
 
