@@ -42,7 +42,7 @@ def command(directory, name, script):
 def tools(directory, sysroot, omit=()):
     os.makedirs(directory, exist_ok=True)
     stand_ins = {
-        "dotnet": 'echo "8.0.204 [/sdk]"; echo "9.0.100 [/sdk]"\n',
+        "dotnet": 'echo "8.0.204 [/sdk]"; echo "9.0.100 [/sdk]"; echo "9.0.200-preview.1.24101.2 [/sdk]"\n',
         "dart": 'echo "Dart SDK version: 3.5.0 (stable) (Tue Jul 30 2024) on \\"linux_x64\\""\n',
         "go": 'if [ "$1" = env ]; then echo "${GOTOOLCHAIN:-auto}"; '
               'else echo "go version go1.23.1 linux/amd64"; fi\n',
@@ -68,6 +68,9 @@ CORPUS = {
     "csharp/projects/exact/A.csproj": "<Project><PropertyGroup><TargetFramework>net8.0</TargetFramework>"
                                       "</PropertyGroup></Project>",
     "csharp/projects/null-sdk/global.json": '{"sdk": null}',
+    "csharp/projects/no-prerelease/global.json": '{"sdk": {"version": "8.0.100", "rollForward": "latestMajor", '
+                                                 '"allowPrerelease": false}}',
+    "csharp/projects/stable-only/global.json": '{"sdk": {"allowPrerelease": false}}',
     "csharp/projects/future/A.csproj": "<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework>"
                                        "</PropertyGroup></Project>",
     # Dart
@@ -82,6 +85,7 @@ CORPUS = {
     "go/projects/toolchain/go.mod": "module a\n\ngo 1.22\n\ntoolchain go1.22.5\n",
     "go/projects/too-new/go.mod": "module a\n\ngo 1.21\n",
     "go/projects/too-new/inner/go.mod": "module b\n\ngo 1.24rc1\n",
+    "go/projects/default/go.mod": "module a\n\ngo 1.99.0\n\ntoolchain default\n",
     # Rust
     "rust/projects/pinned/rust-toolchain.toml": '[toolchain]\nchannel = "1.80.0"\n',
     "rust/projects/pinned/Cargo.toml": '[package]\nname = "a"\nedition = "2021"\nrust-version = "1.70"\n',
@@ -94,6 +98,11 @@ CORPUS = {
     "rust/projects/msrv/Cargo.toml": '[package]\nname = "a"\nedition = "2021"\nrust-version = "1.90"\n',
     "rust/projects/target/rust-toolchain.toml": '[toolchain]\ntargets = ["wasm32-unknown-unknown"]\n',
     "rust/projects/target/Cargo.toml": '[package]\nname = "a"\nedition = "2021"\n',
+    "rust/projects/legacy/rust-toolchain": "1.80.0\n",
+    "rust/projects/legacy-toml/rust-toolchain": '[toolchain]\nchannel = "1.82.0"\n',
+    "rust/projects/both/rust-toolchain.toml": '[toolchain]\nchannel = "1.82"\n',
+    "rust/projects/both/rust-toolchain": "1.80.0\n",
+    "rust/projects/legacy-garbled/rust-toolchain": "1.80.0\nstable\n",
     "rust/projects/nightly/rust-toolchain.toml": '[toolchain]\nchannel = "nightly-2024-10-16"\n',
     "rust/projects/numeric-channel/rust-toolchain.toml": '[toolchain]\nchannel = 1.82\n',
     "go/projects/toolchain/semantic-oracle.yml": "profile: go/1\ncontexts:\n  - id: default\n    parameters:\n"
@@ -131,8 +140,15 @@ CORPUS = {
 EXPECTED = {
     "csharp/rolls": ("ok", "global.json selects SDK 8.0.204"),
     "csharp/exact": ("unsupported", "selects SDK 8.0.100 (rollForward disable)"),
-    "csharp/future": ("unsupported", "net10.0 needs SDK 10, have 9.0.100"),
+    "csharp/future": ("unsupported", "net10.0 needs SDK 10, have 9.0.200-preview.1.24101.2"),
     "csharp/null-sdk": ("unsupported", "cannot read a declaration: global.json sdk is not a table: None"),
+    "csharp/no-prerelease": ("ok", "global.json selects SDK 9.0.100"),
+    "csharp/stable-only": ("ok", "global.json selects SDK 9.0.100"),
+    "go/default": ("unsupported", "go.mod go 1.99.0 is newer than go1.23.1, and go.mod sets toolchain default"),
+    "rust/legacy": ("pin-not-honoured", "rust-toolchain channel 1.80.0, rustup is not installed"),
+    "rust/legacy-toml": ("ok", "rust-toolchain channel 1.82.0 is rustc 1.82.0 stable (2024-10-15)"),
+    "rust/both": ("ok", "rust-toolchain.toml channel 1.82 is rustc 1.82.0 stable"),
+    "rust/legacy-garbled": ("unsupported", "rust-toolchain is neither TOML nor a single channel name"),
     "dart/garbled": ("unsupported", "cannot parse SDK constraint '>=3.0.0 <4.0.0 or so' at 'or so'"),
     "dart/caret": ("ok", "Dart 3.5.0 satisfies 1 pubspec"),
     "dart/legacy-upper": ("ok", "Dart 3.5.0 satisfies 1 pubspec"),
@@ -191,9 +207,9 @@ def test_corpus(scratch):
     for project, (state, note) in EXPECTED.items():
         assert states[project][0] == state, f"{project}: {states[project]}, not {state}"
         assert note in states[project][1], f"{project}: {states[project][1]!r} lacks {note!r}"
-    assert "rust       missing-toolchain 1 unsupported 3 pin-not-honoured 2 ok 1; "\
+    assert "rust       missing-toolchain 1 unsupported 4 pin-not-honoured 3 ok 3; "\
         "contexts release-mismatch 1 ok 1" in done.stdout, done.stdout
-    assert "27 projects, 14 cannot be checked with the installed toolchains; 8 dataset contexts, "\
+    assert "34 projects, 16 cannot be checked with the installed toolchains; 8 dataset contexts, "\
         "3 release-mismatch" in done.stdout, done.stdout
 
 
@@ -213,6 +229,21 @@ def test_gotoolchain(scratch):
     command(os.path.join(scratch, "bin"), "go1.24rc1", "echo go version go1.24rc1 linux/amd64\n")
     done, states = report(corpus, os.path.join(scratch, "bin"), GOTOOLCHAIN="path")
     assert states["go/too-new"][0] == "ok" and states["go/too-new#default"][0] == "ok", states
+
+
+def test_unresolved_gotoolchain(scratch):
+    corpus = os.path.join(scratch, "fixtures")
+    write(corpus, {key: value for key, value in CORPUS.items() if key.startswith("go/projects/toolchain/")})
+    bin = os.path.join(scratch, "bin")
+    tools(bin, scratch)
+    command(bin, "go", 'if [ "$1" = env ]; then exit 1; else echo "go version go1.23.1 linux/amd64"; fi\n')
+    done, states = report(corpus, bin)
+    assert done.returncode == 1, done.stdout
+    assert states["go/toolchain"][0] == "unsupported", states
+    assert "GOTOOLCHAIN is unresolved: `go env GOTOOLCHAIN` failed" in states["go/toolchain"][1], states
+    command(bin, "go", 'if [ "$1" = env ]; then echo; else echo "go version go1.23.1 linux/amd64"; fi\n')
+    done, states = report(corpus, bin)
+    assert states["go/toolchain"] == ("ok", "1 go.mod(s) supported (local go1.23.1, GOTOOLCHAIN=auto)"), states
 
 
 def test_missing(scratch):
@@ -244,27 +275,36 @@ def test_empty(scratch):
 
 def test_versions(_):
     roll = toolchains.roll_forward
-    installed = [(8, 0, 204), (8, 0, 110), (9, 0, 100)]
-    assert roll((8, 0, 100), None, installed) == (8, 0, 110)
-    assert roll((8, 0, 100), "patch", installed) == (8, 0, 110)
-    assert roll((8, 0, 100), "feature", installed) == (8, 0, 110)
-    assert roll((8, 0, 100), "latestFeature", installed) == (8, 0, 204)
-    assert roll((8, 0, 300), "feature", installed) is None
-    assert roll((8, 0, 300), "major", installed) == (9, 0, 100)
-    assert roll((8, 0, 300), "latestMajor", installed) == (9, 0, 100)
-    assert roll((8, 0, 110), "disable", installed) == (8, 0, 110)
-    patches = [(8, 0, 110), (8, 0, 115), (8, 0, 120)]
-    assert roll((8, 0, 115), None, patches) == (8, 0, 115)
-    assert roll((8, 0, 115), "latestPatch", patches) == (8, 0, 120)
-    assert roll((8, 0, 112), "patch", patches) == (8, 0, 120)
-    assert roll((8, 0, 115), "feature", patches) == (8, 0, 120)
-    spread = [(8, 1, 100), (8, 1, 104), (8, 1, 200), (8, 2, 300), (9, 0, 100), (9, 0, 105), (10, 0, 100)]
-    assert roll((8, 0, 100), "feature", spread) is None
-    assert roll((8, 0, 100), "minor", spread) == (8, 1, 104)
-    assert roll((8, 0, 100), "latestMinor", spread) == (8, 2, 300)
-    assert roll((8, 3, 100), "minor", spread) is None
-    assert roll((8, 3, 100), "major", spread) == (9, 0, 105)
-    assert roll((8, 3, 100), "latestMajor", spread) == (10, 0, 100)
+    installed = ["8.0.204", "8.0.110", "9.0.100"]
+    assert roll("8.0.100", None, installed) == "8.0.110"
+    assert roll("8.0.100", "patch", installed) == "8.0.110"
+    assert roll("8.0.100", "feature", installed) == "8.0.110"
+    assert roll("8.0.100", "latestFeature", installed) == "8.0.204"
+    assert roll("8.0.300", "feature", installed) is None
+    assert roll("8.0.300", "major", installed) == "9.0.100"
+    assert roll("8.0.300", "latestMajor", installed) == "9.0.100"
+    assert roll("8.0.110", "disable", installed) == "8.0.110"
+    patches = ["8.0.110", "8.0.115", "8.0.120"]
+    assert roll("8.0.115", None, patches) == "8.0.115"
+    assert roll("8.0.115", "latestPatch", patches) == "8.0.120"
+    assert roll("8.0.112", "patch", patches) == "8.0.120"
+    assert roll("8.0.115", "feature", patches) == "8.0.120"
+    spread = ["8.1.100", "8.1.104", "8.1.200", "8.2.300", "9.0.100", "9.0.105", "10.0.100"]
+    assert roll("8.0.100", "feature", spread) is None
+    assert roll("8.0.100", "minor", spread) == "8.1.104"
+    assert roll("8.0.100", "latestMinor", spread) == "8.2.300"
+    assert roll("8.3.100", "minor", spread) is None
+    assert roll("8.3.100", "major", spread) == "9.0.105"
+    assert roll("8.3.100", "latestMajor", spread) == "10.0.100"
+    previews = ["8.0.204-preview.1.24101.1"]
+    assert roll("8.0.100", "latestFeature", previews) == "8.0.204-preview.1.24101.1"
+    assert roll("8.0.100", "latestFeature", previews, allow_prerelease=False) is None
+    mixed = ["8.0.110", "8.0.204-preview.1", "8.0.204"]
+    assert roll("8.0.200", "latestFeature", mixed) == "8.0.204"
+    assert roll("8.0.204-preview.1", "disable", mixed) == "8.0.204-preview.1"
+    assert roll("8.0.204-preview.1", "disable", mixed, allow_prerelease=False) is None
+    assert roll("8.0.200", "patch", ["8.0.204-rc.1", "8.0.203"]) == "8.0.204-rc.1"
+    assert roll("8.0.200", "patch", ["8.0.204-rc.1", "8.0.203"], allow_prerelease=False) == "8.0.203"
     select = toolchains.go_select
     assert select("go1.23.1", "local", "1.24", None)[2] == "unsupported"
     assert select("go1.23.1", "local", "1.22", "go1.24.0") == (
@@ -274,7 +314,10 @@ def test_versions(_):
     assert select("go1.23.1", "go1.22.5+auto", "1.22", None) == ("go1.22.5", None, "ok")
     assert select("go1.23.1", "go1.25.0", "1.24", "go1.26.0") == (
         "go1.25.0", "toolchain go1.26.0 is a suggestion GOTOOLCHAIN=go1.25.0 does not follow", "ok")
-    assert select("go1.23.1", "local+path", "1.24.2", "default") == ("go1.24.2", None, "ok")
+    assert select("go1.23.1", "local+path", "1.24.2", "default") == (
+        "go1.23.1", "go 1.24.2 is newer than go1.23.1, and go.mod sets toolchain default", "unsupported")
+    assert select("go1.27.3", "auto", "1.99.0", "default")[2] == "unsupported"
+    assert select("go1.27.3", "auto", "1.22", "default") == ("go1.27.3", None, "ok")
     stable = {"version": (1, 82, 0), "channel": "stable", "date": "2024-10-15", "active": None}
     nightly = dict(stable, version=(1, 84, 0), channel="nightly", date="2024-10-15")
     matches = toolchains.rust_pin_matches
@@ -290,6 +333,10 @@ def test_versions(_):
     assert npm("5.9.3", ">= 5.0.0") and npm("5.9.3", "5.0 - 5.9") and npm("5.9.3", "*")
     assert not npm("5.9.3", "~5.8") and not npm("5.9.3", "<5.9") and not npm("5.9.3", "^0.5.0")
     assert not npm("5.4.0", "5.4.0-dev.20240119") and npm("5.4.0-dev.20240119", "5.4.0-dev.20240119")
+    assert not npm("5.9.0-dev.20240101", "^5.4.0") and not npm("5.9.0-dev.20240101", ">=5.0.0 <6")
+    assert npm("5.9.0-dev.20240101", ">=5.9.0-dev.20231201 <6") and npm("5.9.0-beta", "^5.9.0-alpha")
+    assert not npm("5.9.1-beta", "^5.9.0-alpha") and npm("5.9.1-beta", "^5.9.0-alpha || >=5.9.1-alpha")
+    assert not npm("6.0.0-dev.1", "5.0 - 6.0.0")
     assert toolchains.framework_major("net8.0-windows") == 8
     assert toolchains.framework_major("netcoreapp3.1") == 3
     assert toolchains.framework_major("net472") == 0
@@ -326,7 +373,8 @@ def test_versions(_):
 
 def main():
     failed = 0
-    for test in (test_versions, test_corpus, test_gotoolchain, test_missing, test_passing, test_empty):
+    for test in (test_versions, test_corpus, test_gotoolchain, test_unresolved_gotoolchain, test_missing,
+                 test_passing, test_empty):
         with tempfile.TemporaryDirectory() as scratch:
             try:
                 test(scratch)

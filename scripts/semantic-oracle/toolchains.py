@@ -150,7 +150,10 @@ class Toolchains:
             out = run(["dotnet", "--list-sdks"], cwd=self.neutral)
             if out is None:
                 return None
-            return sorted(numbers(line) for line in out.splitlines() if re.match(r"\s*\d", line))
+            found = [line.split()[0] for line in out.splitlines() if re.match(r"\s*\d", line)]
+            for sdk in found:
+                dart_version(sdk)
+            return sorted(found, key=dart_version)
         return self.probe("dotnet", find)
 
     def dart(self):
@@ -171,9 +174,13 @@ class Toolchains:
             match = out and re.search(r"go version (go\S+)", out)
             if not match:
                 return None
-            setting = os.environ.get("GOTOOLCHAIN") or (
-                run(["go", "env", "GOTOOLCHAIN"], cwd=self.neutral) or "").strip()
-            return match.group(1), setting or "auto"
+            setting = os.environ.get("GOTOOLCHAIN")
+            if not setting:
+                # None when the command fails: the switching policy is unknown.
+                # An empty value is Go's default, auto.
+                out = run(["go", "env", "GOTOOLCHAIN"], cwd=self.neutral)
+                setting = None if out is None else (out.strip() or "auto")
+            return match.group(1), setting
         return self.probe("go", find)
 
     def rustup(self):
@@ -246,8 +253,13 @@ def read(path):
 # C# -----------------------------------------------------------------------
 
 def sdk_band(version):
-    major, minor, patch = padded(version)
+    """(major, minor, feature band) of an SDK version string."""
+    major, minor, patch = padded(numbers(version))
     return major, minor, patch // 100
+
+
+def sdk_prerelease(version):
+    return dart_version(version)[3] == 0
 
 
 # How far each policy may roll: the leading components of (major, minor,
@@ -256,30 +268,36 @@ ROLL_SCOPE = {"patch": 3, "feature": 2, "minor": 1, "major": 0,
               "latestPatch": 3, "latestFeature": 2, "latestMinor": 1, "latestMajor": 0}
 
 
-def roll_forward(requested, policy, installed):
-    """The SDK global.json selects, or None. Follows the .NET SDK's rules.
+def roll_forward(requested, policy, installed, allow_prerelease=True):
+    """The SDK version string global.json selects, or None. Follows the .NET
+    SDK's rules, on full versions including prerelease identifiers.
 
-    `patch`, the default, takes the requested version, or else the latest patch
-    in its feature band. `feature`, `minor` and `major` take the latest patch in
-    the requested band, or else in the nearest higher feature band, minor or
-    major they allow. The `latest*` policies take the highest SDK they allow."""
-    requested = padded(requested)
+    allowPrerelease defaults to true outside Visual Studio; false removes every
+    prerelease SDK before rolling forward. `patch`, the default, takes the
+    requested version, or else the latest patch in its feature band. `feature`,
+    `minor` and `major` take the latest patch in the requested band, or else in
+    the nearest higher feature band, minor or major they allow. The `latest*`
+    policies take the highest SDK they allow."""
+    want = dart_version(requested)
+    candidates = [sdk for sdk in installed if allow_prerelease or not sdk_prerelease(sdk)]
     policy = policy or "patch"
     if policy == "disable":
-        return requested if requested in map(padded, installed) else None
+        exact = [sdk for sdk in candidates if dart_version(sdk) == want]
+        return exact[0] if exact else None
     if policy not in ROLL_SCOPE:
         raise ValueError(f"unknown rollForward {policy!r}")
     scope = ROLL_SCOPE[policy]
-    allowed = [padded(sdk) for sdk in installed
-               if padded(sdk) >= requested and sdk_band(sdk)[:scope] == sdk_band(requested)[:scope]]
+    allowed = sorted((sdk for sdk in candidates
+                      if dart_version(sdk) >= want and sdk_band(sdk)[:scope] == sdk_band(requested)[:scope]),
+                     key=dart_version)
     if not allowed:
         return None
     if policy.startswith("latest"):
-        return max(allowed)
-    if policy == "patch" and requested in allowed:
-        return requested
+        return allowed[-1]
+    if policy == "patch" and any(dart_version(sdk) == want for sdk in allowed):
+        return next(sdk for sdk in allowed if dart_version(sdk) == want)
     nearest = min(sdk_band(sdk) for sdk in allowed)
-    return max(sdk for sdk in allowed if sdk_band(sdk) == nearest)
+    return [sdk for sdk in allowed if sdk_band(sdk) == nearest][-1]
 
 
 def framework_major(framework):
@@ -293,22 +311,30 @@ def check_csharp(project, tools, result):
     if not sdks:
         result.add("missing-toolchain", "no .NET SDK (dotnet --list-sdks)")
         return
-    selected = max(sdks)
+    selected = sdks[-1]
     for path in manifests(project, "global.json"):
         where = relative(path, project)
         sdk = typed(typed(json.loads(read(path)), dict, where).get("sdk", {}), dict, f"{where} sdk")
-        if "version" not in sdk:
-            continue
-        version = typed(sdk["version"], str, f"{where} sdk.version")
-        policy = sdk.get("rollForward")
-        if policy is not None:
-            typed(policy, str, f"{where} sdk.rollForward")
-        chosen = roll_forward(numbers(version), policy, sdks)
-        if chosen is None:
-            result.add("unsupported", f"{where} selects SDK {version} "
-                       f"(rollForward {policy or 'patch'}); installed {', '.join(map(shown, sdks))}")
+        allow = sdk.get("allowPrerelease", True)
+        if not isinstance(allow, bool):
+            raise ValueError(f"{where} sdk.allowPrerelease is not a boolean: {allow!r}")
+        if "version" in sdk:
+            version = typed(sdk["version"], str, f"{where} sdk.version")
+            policy = sdk.get("rollForward")
+            if policy is not None:
+                typed(policy, str, f"{where} sdk.rollForward")
+            chosen = roll_forward(version, policy, sdks, allow)
+            asked = f"SDK {version} (rollForward {policy or 'patch'}" + ("" if allow else ", no prerelease") + ")"
+        elif "allowPrerelease" in sdk:
+            # No version: the highest SDK allowPrerelease allows, as latestMajor.
+            chosen = next((candidate for candidate in reversed(sdks) if allow or not sdk_prerelease(candidate)), None)
+            asked = "the highest SDK" + ("" if allow else " that is not a prerelease")
         else:
-            result.add("ok", f"{where} selects SDK {shown(chosen)}")
+            continue
+        if chosen is None:
+            result.add("unsupported", f"{where} selects {asked}; installed {', '.join(sdks)}")
+        else:
+            result.add("ok", f"{where} selects SDK {chosen}")
             if os.path.dirname(path) == project:
                 selected = chosen
     frameworks = set()
@@ -318,13 +344,14 @@ def check_csharp(project, tools, result):
                               if item.strip() and "$" not in item)
     if not frameworks:
         result.add("ok", "no TargetFramework")
+    major = numbers(selected)[0]
     for framework in sorted(frameworks):
-        if framework_major(framework) > selected[0]:
-            result.add("unsupported", f"{framework} needs SDK {framework_major(framework)}, have {shown(selected)}")
-    result.releases = [shown(selected)]
-    supported = sorted(framework for framework in frameworks if framework_major(framework) <= selected[0])
+        if framework_major(framework) > major:
+            result.add("unsupported", f"{framework} needs SDK {framework_major(framework)}, have {selected}")
+    result.releases = [selected]
+    supported = sorted(framework for framework in frameworks if framework_major(framework) <= major)
     if supported:
-        result.add("ok", f"SDK {shown(selected)} targets {', '.join(supported)}")
+        result.add("ok", f"SDK {selected} targets {', '.join(supported)}")
 
 
 # Dart ---------------------------------------------------------------------
@@ -455,7 +482,11 @@ def go_select(local, setting, go, toolchain):
     base, mode = go_setting(setting)
     selected = local if base == "local" else base
     if toolchain == "default":
-        toolchain = None
+        # `toolchain default` keeps the base toolchain: no switching, and the go
+        # line is still a minimum.
+        if go and go_version(go) > go_version(selected):
+            return selected, f"go {go} is newer than {selected}, and go.mod sets toolchain default", "unsupported"
+        return selected, None, "ok"
     if mode:
         if toolchain and go_version(toolchain) > go_version(selected):
             selected = toolchain
@@ -476,6 +507,11 @@ def check_go(project, tools, result):
         result.add("missing-toolchain", "no Go (go version)")
         return
     local, setting = probed
+    if setting is None:
+        result.releases = [local]
+        result.add("unsupported", f"GOTOOLCHAIN is unresolved: `go env GOTOOLCHAIN` failed, so which toolchain "
+                   f"each go.mod selects is unknown (local {local})")
+        return
     releases = []
     passed = 0
     for path in manifests(project, "go.mod"):
@@ -532,6 +568,25 @@ def rust_pin_matches(pin, rustc):
     return False
 
 
+def rust_toolchain_file(project):
+    """(file name, [toolchain] table) of the project's toolchain file, or None.
+
+    rustup prefers rust-toolchain.toml. The legacy rust-toolchain holds either
+    the same TOML or a single line naming the channel."""
+    for name in ("rust-toolchain.toml", "rust-toolchain"):
+        path = os.path.join(project, name)
+        if not os.path.isfile(path):
+            continue
+        text = read(path)
+        if name == "rust-toolchain" and "[toolchain]" not in text:
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
+            if len(lines) != 1 or len(lines[0].split()) != 1:
+                raise ValueError(f"rust-toolchain is neither TOML nor a single channel name: {text.strip()!r}")
+            return name, {"channel": lines[0]}
+        return name, typed(tomllib.loads(text).get("toolchain", {}), dict, f"{name} [toolchain]")
+    return None
+
+
 def check_rust(project, tools, result):
     rustc = tools.rustc(project)
     if rustc is None:
@@ -541,18 +596,20 @@ def check_rust(project, tools, result):
     result.releases = [shown(installed)]
     identity = rustc["active"] or f"rustc {shown(installed)} {rustc['channel']}" + (
         f" ({rustc['date']})" if rustc["date"] else "")
-    toolchain = os.path.join(project, "rust-toolchain.toml")
-    if os.path.exists(toolchain):
-        table = typed(tomllib.loads(read(toolchain)).get("toolchain", {}), dict, "rust-toolchain.toml [toolchain]")
+    found = rust_toolchain_file(project)
+    if found:
+        name, table = found
         pin = table.get("channel")
         if pin is not None:
-            typed(pin, str, "rust-toolchain.toml channel")
+            typed(pin, str, f"{name} channel")
             if not rust_pin_matches(pin, rustc):
                 how = "rustup is not installed" if not tools.rustup() else "rustup did not select it"
-                result.add("pin-not-honoured", f"rust-toolchain.toml channel {pin}, {how}; {identity} is used")
-        for target in typed(table.get("targets", []), list, "rust-toolchain.toml targets"):
+                result.add("pin-not-honoured", f"{name} channel {pin}, {how}; {identity} is used")
+            else:
+                result.add("ok", f"{name} channel {pin} is {identity}")
+        for target in typed(table.get("targets", []), list, f"{name} targets"):
             if rustc["sysroot"] and not os.path.isdir(os.path.join(rustc["sysroot"], "lib", "rustlib", target)):
-                result.add("missing-toolchain", f"rust-toolchain.toml target {target} has no standard library installed")
+                result.add("missing-toolchain", f"{name} target {target} has no standard library installed")
     passed = 0
     for path in manifests(project, "Cargo.toml"):
         where = relative(path, project)
@@ -662,12 +719,16 @@ def check_python(project, tools, result):
 # TypeScript ---------------------------------------------------------------
 
 def npm_comparators(text):
-    """(operator, version) bounds for one space-separated npm comparator set."""
+    """(bounds, prereleases) for one space-separated npm comparator set: the
+    (operator, version) bounds, and the major.minor.patch of each comparator
+    written with a prerelease tag."""
     text = re.sub(r"(>=|<=|>|<|=|\^|~)\s+", r"\1", text.strip())
     hyphen = re.fullmatch(r"(\S+)\s+-\s+(\S+)", text)
     if hyphen:
-        return npm_comparators(">=" + hyphen.group(1)) + npm_comparators("<=" + hyphen.group(2))
+        low, high = npm_comparators(">=" + hyphen.group(1)), npm_comparators("<=" + hyphen.group(2))
+        return low[0] + high[0], low[1] | high[1]
     bounds = []
+    prereleases = set()
     for item in text.split():
         match = re.fullmatch(r"(>=|<=|>|<|=|\^|~)?v?(?:(\d+|[xX*])(?:\.(\d+|[xX*]))?(?:\.(\d+|[xX*]))?"
                              r"(-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)", item)
@@ -679,6 +740,8 @@ def npm_comparators(text):
         if given == 0:
             continue
         major, minor, patch = (part or 0 for part in parts)
+        if pre:
+            prereleases.add((major, minor, patch))
         low = f"{major}.{minor}.{patch}{pre or ''}"
         if given == 1:
             upper = f"{major + 1}.0.0-0"
@@ -702,12 +765,23 @@ def npm_comparators(text):
             bounds.append((">=", upper) if upper else (">", low))
         elif operator == "<=":
             bounds.append(("<", upper) if upper else ("<=", low))
-    return bounds
+    return bounds, prereleases
 
 
 def npm_satisfies(version, declared):
-    """Whether an installed version satisfies an npm version or range."""
-    return any(satisfies(version, npm_comparators(part), dart_version) for part in declared.split("||"))
+    """Whether an installed version satisfies an npm version or range.
+
+    As npm does, a prerelease is eligible for a comparator set only when a
+    comparator in that set names a prerelease of the same major.minor.patch;
+    ordering is checked separately."""
+    release = dart_version(version)
+    for part in declared.split("||"):
+        bounds, prereleases = npm_comparators(part)
+        if release[3] == 0 and tuple(release[:3]) not in prereleases:
+            continue
+        if satisfies(version, bounds, dart_version):
+            return True
+    return False
 
 
 def check_typescript(project, tools, result):
