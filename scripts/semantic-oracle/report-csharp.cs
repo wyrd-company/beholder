@@ -4,7 +4,8 @@
 //   references: semantic-oracle-profile-csharp
 // ---
 
-// Writes a C# compiler report for `semantic-oracle audit --report`, from Roslyn.
+// Writes a C# compiler report for `semantic-oracle audit --report`, from the
+// assemblies the context's build emits, as the .NET SDK's own Roslyn reads them.
 //
 // A .NET file-based app:
 //
@@ -16,17 +17,21 @@
 // `obj`, to a temporary directory and writes nothing into the project tree. There, with
 // MSBuild's API from the .NET SDK that `dotnet` resolves for DIR:
 //
-// 1. it restores and builds the entry as the context's command does, and a build that
-//    fails writes no report;
-// 2. it selects each built project's framework by NuGet nearest-framework selection for
-//    the context's `target-framework`, and leaves out a project with no compatible one;
-// 3. it reads each selected project's compiler arguments from its `CoreCompile` target,
-//    run with compiler execution skipped;
-// 4. it compiles those arguments with that SDK's own Roslyn, from `<sdk>/Roslyn/bincore`,
-//    and reads every signature slot of the project's symbols.
+// 1. it restores and builds the entry as the context's command does, with a binary log
+//    that records each task's inputs; a build that fails writes no report;
+// 2. it reads each `Csc` run from the log: its project instance, that instance's
+//    evaluated framework and configuration, its output assembly and its references;
+// 3. for each compiled project it takes the instance at the framework that NuGet
+//    nearest-framework selection picks for the context's `target-framework`, leaves out
+//    a project with no compatible framework, and stops when the build did not compile
+//    the instance the context requires;
+// 4. it loads that instance's implementation assembly, with its references, into the
+//    SDK's own Roslyn, from `<sdk>/Roslyn/bincore`, and reads every signature slot from
+//    the metadata symbols: what a consumer compiles against.
 //
 // The report's `release` is the SDK's version, and `tool` names the Roslyn build that
-// compiled. A compilation with an error writes no report.
+// read. Nothing is compiled again, so generated code, build-time properties and the
+// configuration and framework of each referenced project are the build's own.
 #:package Microsoft.Build.Locator@1.11.2
 #:package Microsoft.CodeAnalysis.CSharp@5.9.0
 #:property PublishAot=false
@@ -42,7 +47,6 @@ using System.Text.Json.Nodes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 return Bootstrap.Start(args);
 
@@ -156,7 +160,7 @@ static class Report
         File.Delete(outFile);
         properties["Configuration"] = configuration;
 
-        // The compiler that checks is the SDK's: refuse to report under another.
+        // The compiler that reads is the SDK's: refuse to report under another.
         var compiler = typeof(CSharpCompilation).Assembly;
         var bincore = Path.Combine(sdkPath, "Roslyn", "bincore");
         if (!string.Equals(Path.GetDirectoryName(compiler.Location), bincore.TrimEnd(Path.DirectorySeparatorChar), StringComparison.Ordinal))
@@ -168,50 +172,40 @@ static class Report
         var copy = Directory.CreateTempSubdirectory("semantic-oracle-csharp-").FullName;
         try
         {
-            CopyTree(projectRoot, copy);
-            root = copy;
-            var entryPath = Path.Combine(copy, entry);
+            var tree = Path.Combine(copy, "project");
+            CopyTree(projectRoot, tree);
+            root = tree;
+            var entryPath = Path.Combine(tree, entry);
             var msbuild = new MSBuild(sdkPath);
-            if (!msbuild.Build(entryPath, properties, ["Restore"], restore: true).Success)
+            if (!msbuild.Build(entryPath, properties, ["Restore"], restore: true))
             {
                 return Fail($"restoring {entry} failed");
             }
-            // The context's own build: what fails here is not a context that builds.
-            if (!msbuild.Build(entryPath, properties, ["Build"]).Success)
+            // The context's own build, logged so that each compilation it ran can be read.
+            var log = Path.Combine(copy, "build.binlog");
+            if (!msbuild.Build(entryPath, properties, ["Build"], binaryLog: log))
             {
                 return Fail($"building {entry} failed");
             }
-            var selected = msbuild.SelectProjects(entryPath, properties, framework);
+            var compilations = msbuild.Compilations(log);
+            var selected = Select(compilations, msbuild, framework, configuration, out var problem);
+            if (problem is not null)
+            {
+                return Fail(problem);
+            }
             if (selected.Count == 0)
             {
                 return Fail($"no project of {entry} has a framework compatible with {framework}");
             }
-            foreach (var (path, targetFramework) in selected)
+            foreach (var built in selected)
             {
-                var compile = new Dictionary<string, string?>(properties)
+                var assembly = Read(built, out var error);
+                if (assembly is null)
                 {
-                    ["TargetFramework"] = targetFramework,
-                    ["ProvideCommandLineArgs"] = "true",
-                    ["SkipCompilerExecution"] = "true",
-                    ["BuildProjectReferences"] = "false",
-                    // An output that never exists keeps CoreCompile from being skipped as up to date.
-                    ["NonExistentFile"] = "__NonExistentSubDir__/__NonExistentFile__",
-                };
-                // `Compile` resolves the references; `CoreCompile` returns the arguments.
-                var result = msbuild.Build(path, compile, ["Compile", "CoreCompile"]);
-                if (!result.Success)
-                {
-                    return Fail($"reading the compiler arguments of {Relative(path)} failed");
+                    return Fail(error!);
                 }
-                var compilation = Compile(path, result.Items("CoreCompile"), out var errors);
-                if (compilation is null)
-                {
-                    // Nothing a failed compilation states was checked.
-                    return Fail(string.Join("\n", errors.Take(20)));
-                }
-                var unit = new Unit(compilation.AssemblyName ?? Path.GetFileNameWithoutExtension(path),
-                    compilation.Assembly.Identity.Version.ToString(), Relative(path));
-                ReadNamespace(compilation.Assembly.GlobalNamespace, unit);
+                var unit = new Unit(assembly.Identity.Name, assembly.Identity.Version.ToString(), Relative(built.Project));
+                ReadNamespace(assembly.GlobalNamespace, unit);
             }
             var report = new JsonObject
             {
@@ -246,7 +240,7 @@ static class Report
 
     static int Fail(string message)
     {
-        Console.Error.WriteLine("report-csharp: " + message.Replace(root + "/", ""));
+        Console.Error.WriteLine("report-csharp: " + (root.Length > 0 ? message.Replace(root + "/", "") : message));
         return 2;
     }
 
@@ -270,47 +264,83 @@ static class Report
         }
     }
 
-    /// A compilation from a project's `csc` arguments, with the source generators those
-    /// arguments name, or null with the errors.
-    static CSharpCompilation? Compile(string projectPath, IReadOnlyList<string> arguments, out List<string> errors)
+    /// One `Csc` run of the build: the project instance that ran it, that instance's
+    /// evaluated framework and configuration, and the task's inputs.
+    sealed record Built(string Project, string TargetFramework, string TargetFrameworks, string Configuration,
+        string OutputAssembly, IReadOnlyList<string> References);
+
+    /// For each project the build compiled, the compilation the context means: the
+    /// instance at the framework that NuGet nearest-framework selection picks for the
+    /// context's `target-framework` from the project's frameworks. A project with no
+    /// compatible framework is not built in the context. When the build compiled that
+    /// framework in more than one configuration, the context's configuration decides.
+    /// An instance the rule requires that the build did not compile stops the report.
+    static List<Built> Select(List<Built> compilations, MSBuild msbuild, string framework, string configuration, out string? problem)
     {
-        var directory = Path.GetDirectoryName(projectPath)!;
-        var parsed = CSharpCommandLineParser.Default.Parse(arguments, directory, sdkDirectory: null);
-        errors = parsed.Errors.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()).ToList();
-        if (errors.Count > 0)
+        problem = null;
+        var selected = new List<Built>();
+        foreach (var group in compilations.GroupBy(c => c.Project).OrderBy(g => g.Key, StringComparer.Ordinal))
         {
-            return null;
+            var declared = group.Select(c => c.TargetFrameworks).FirstOrDefault(t => t.Length > 0)
+                ?? group.First().TargetFramework;
+            var candidates = declared.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct().ToList();
+            if (candidates.Count == 0)
+            {
+                candidates = group.Select(c => c.TargetFramework).Distinct().ToList();
+            }
+            var nearest = msbuild.Nearest(framework, candidates);
+            if (nearest is null)
+            {
+                continue;
+            }
+            var instances = group.Where(c => string.Equals(c.TargetFramework, nearest, StringComparison.OrdinalIgnoreCase))
+                .DistinctBy(c => c.OutputAssembly).ToList();
+            if (instances.Count == 0)
+            {
+                problem = $"the build compiled {Relative(group.Key)} only at {string.Join(", ", group.Select(c => c.TargetFramework).Distinct())}, not at {nearest}, which the context selects for {framework}";
+                return [];
+            }
+            if (instances.Count > 1)
+            {
+                instances = instances.Where(c => c.Configuration == configuration).ToList();
+                if (instances.Count != 1)
+                {
+                    problem = $"the build compiled {Relative(group.Key)} at {nearest} in several configurations, none of them uniquely {configuration}";
+                    return [];
+                }
+            }
+            selected.Add(instances[0]);
         }
-        var trees = parsed.SourceFiles.Select(file =>
-            CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(File.ReadAllText(file.Path), System.Text.Encoding.UTF8),
-                parsed.ParseOptions, file.Path)).ToList();
-        var references = parsed.MetadataReferences.Select(r =>
-            (MetadataReference)MetadataReference.CreateFromFile(Path.GetFullPath(r.Reference, directory), r.Properties)).ToList();
-        var options = parsed.CompilationOptions
-            .WithStrongNameProvider(new DesktopStrongNameProvider(parsed.KeyFileSearchPaths));
-        Compilation compilation = CSharpCompilation.Create(parsed.CompilationName, trees, references, options);
-        var loader = new AnalyzerLoader();
-        var generators = parsed.AnalyzerReferences
-            .Select(r => new AnalyzerFileReference(Path.GetFullPath(r.FilePath, directory), loader))
-            .SelectMany(r => r.GetGenerators(LanguageNames.CSharp))
-            .ToList();
-        if (generators.Count > 0)
-        {
-            CSharpGeneratorDriver.Create(generators, parseOptions: parsed.ParseOptions)
-                .RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var generated);
-            errors.AddRange(generated.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()));
-        }
-        errors.AddRange(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()));
-        return errors.Count == 0 ? (CSharpCompilation)compilation : null;
+        return selected;
     }
 
-    /// Loads a generator into this context, where its Roslyn is the SDK's.
-    sealed class AnalyzerLoader : IAnalyzerAssemblyLoader
+    /// The assembly a build emitted, as Roslyn reads it from metadata: the
+    /// implementation assembly, with the references its compilation used.
+    static IAssemblySymbol? Read(Built built, out string? error)
     {
-        public void AddDependencyLocation(string fullPath) { }
-
-        public Assembly LoadFromPath(string fullPath) =>
-            (AssemblyLoadContext.GetLoadContext(typeof(AnalyzerLoader).Assembly) ?? AssemblyLoadContext.Default).LoadFromAssemblyPath(fullPath);
+        error = null;
+        if (!File.Exists(built.OutputAssembly))
+        {
+            error = $"the build emitted no {Relative(built.OutputAssembly)}";
+            return null;
+        }
+        var output = MetadataReference.CreateFromFile(built.OutputAssembly);
+        var references = built.References
+            .Where(r => File.Exists(r))
+            .Select(r => (MetadataReference)MetadataReference.CreateFromFile(r))
+            .Prepend(output)
+            .ToList();
+        // Private and internal members too, so that paths and overloads see every member.
+        var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            .WithMetadataImportOptions(MetadataImportOptions.All);
+        var compilation = CSharpCompilation.Create("semantic-oracle-report", [], references, options);
+        if (compilation.GetAssemblyOrModuleSymbol(output) is not IAssemblySymbol assembly)
+        {
+            error = $"Roslyn could not read {Relative(built.OutputAssembly)}";
+            return null;
+        }
+        return assembly;
     }
 
     /// MSBuild from the SDK, in its own load context and called by reflection, so that no
@@ -341,18 +371,7 @@ static class Report
 
         static void ResetColor() { }
 
-        public sealed record Result(bool Success, object Raw)
-        {
-            /// The items a target returns, as their item specs.
-            public IReadOnlyList<string> Items(string target)
-            {
-                var byTarget = (System.Collections.IDictionary)Raw.GetType().GetProperty("ResultsByTarget")!.GetValue(Raw)!;
-                var items = (System.Collections.IEnumerable)byTarget[target]!.GetType().GetProperty("Items")!.GetValue(byTarget[target])!;
-                return items.Cast<object>().Select(i => (string)i.GetType().GetProperty("ItemSpec")!.GetValue(i)!).ToList();
-            }
-        }
-
-        public Result Build(string path, Dictionary<string, string?> properties, string[] targets, bool restore = false)
+        public bool Build(string path, Dictionary<string, string?> properties, string[] targets, bool restore = false, string? binaryLog = null)
         {
             var global = new Dictionary<string, string?>(properties);
             if (restore)
@@ -368,13 +387,25 @@ static class Report
                 typeof(MSBuild).GetMethod(nameof(SetColor), BindingFlags.NonPublic | BindingFlags.Static)!);
             var resetColor = Delegate.CreateDelegate(build.GetType("Microsoft.Build.Logging.ColorResetter", true)!,
                 typeof(MSBuild).GetMethod(nameof(ResetColor), BindingFlags.NonPublic | BindingFlags.Static)!);
-            var logger = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.ConsoleLogger", true)!,
+            var console = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.ConsoleLogger", true)!,
                 [verbosity, write, setColor, resetColor])!;
-            logger.GetType().GetProperty("Parameters")!.SetValue(logger, "ErrorsOnly");
+            console.GetType().GetProperty("Parameters")!.SetValue(console, "ErrorsOnly");
+            var loggerType = framework.GetType("Microsoft.Build.Framework.ILogger", true)!;
+            var list = new List<object> { console };
+            if (binaryLog is not null)
+            {
+                var binary = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.BinaryLogger", true)!)!;
+                binary.GetType().GetProperty("Parameters")!.SetValue(binary, binaryLog);
+                list.Add(binary);
+            }
+            var loggers = Array.CreateInstance(loggerType, list.Count);
+            for (var i = 0; i < list.Count; i++)
+            {
+                loggers.SetValue(list[i], i);
+            }
             var parameters = Activator.CreateInstance(build.GetType("Microsoft.Build.Execution.BuildParameters", true)!, [collection])!;
-            var loggers = Array.CreateInstance(framework.GetType("Microsoft.Build.Framework.ILogger", true)!, 1);
-            loggers.SetValue(logger, 0);
             parameters.GetType().GetProperty("Loggers")!.SetValue(parameters, loggers);
+            parameters.GetType().GetProperty("LogTaskInputs")!.SetValue(parameters, true);
             var request = Activator.CreateInstance(
                 build.GetType("Microsoft.Build.Execution.BuildRequestData", true)!,
                 [path, global, null, targets, null])!;
@@ -383,86 +414,109 @@ static class Report
             var result = manager.GetType().GetMethod("Build", [parameters.GetType(), request.GetType()])!
                 .Invoke(manager, [parameters, request])!;
             collection.GetType().GetMethod("UnloadAllProjects")!.Invoke(collection, null);
-            return new Result(result.GetType().GetProperty("OverallResult")!.GetValue(result)!.ToString() == "Success", result);
+            return result.GetType().GetProperty("OverallResult")!.GetValue(result)!.ToString() == "Success";
         }
 
-        /// The projects the entry builds, each at the framework that NuGet nearest-framework
-        /// selection picks for the context's `target-framework`. A project with no
-        /// compatible framework is not built, and its references are not followed.
-        public List<(string Path, string TargetFramework)> SelectProjects(string entryPath, Dictionary<string, string?> properties, string target)
+        static object? Get(object target, string property) => target.GetType().GetProperty(property)?.GetValue(target);
+
+        static int Id(object args, string property) => (int)Get(Get(args, "BuildEventContext")!, property)!;
+
+        static readonly List<object> Events = [];
+
+        static void Collect(object sender, object args) => Events.Add(args);
+
+        /// Every `Csc` run in a binary log, with its project instance's evaluated
+        /// framework and configuration.
+        public List<Built> Compilations(string binaryLog)
         {
-            var collection = Activator.CreateInstance(build.GetType("Microsoft.Build.Evaluation.ProjectCollection", true)!,
-                [new Dictionary<string, string?>(properties)])!;
-            var load = collection.GetType().GetMethod("LoadProject", [typeof(string), typeof(IDictionary<string, string>), typeof(string)])!;
+            Events.Clear();
+            var source = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.BinaryLogReplayEventSource", true)!)!;
+            var raised = source.GetType().GetEvent("AnyEventRaised")!;
+            raised.AddEventHandler(source, Delegate.CreateDelegate(raised.EventHandlerType!,
+                typeof(MSBuild).GetMethod(nameof(Collect), BindingFlags.NonPublic | BindingFlags.Static)!));
+            source.GetType().GetMethod("Replay", [typeof(string)])!.Invoke(source, [binaryLog]);
+
+            var evaluations = new Dictionary<int, Dictionary<string, string>>();
+            var projects = new Dictionary<int, (string File, int Evaluation)>();
+            var tasks = new Dictionary<(int, int), Dictionary<string, List<string>>>();
+            var csc = new List<(int Project, int Task)>();
+            foreach (var e in Events)
+            {
+                switch (e.GetType().Name)
+                {
+                    case "ProjectEvaluationFinishedEventArgs":
+                        var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var property in (System.Collections.IEnumerable?)Get(e, "Properties") ?? Array.Empty<object>())
+                        {
+                            var (key, value) = property switch
+                            {
+                                System.Collections.DictionaryEntry entry => (entry.Key?.ToString(), entry.Value?.ToString()),
+                                _ => ((Get(property, "Key") ?? Get(property, "Name"))?.ToString(),
+                                      (Get(property, "Value") ?? Get(property, "EvaluatedValue"))?.ToString()),
+                            };
+                            if (key is not null)
+                            {
+                                values[key] = value ?? "";
+                            }
+                        }
+                        evaluations[Id(e, "EvaluationId")] = values;
+                        break;
+                    case "ProjectStartedEventArgs":
+                        projects[Id(e, "ProjectContextId")] = ((string)Get(e, "ProjectFile")!, Id(e, "EvaluationId"));
+                        break;
+                    case "TaskStartedEventArgs" when (string?)Get(e, "TaskName") == "Csc":
+                        csc.Add((Id(e, "ProjectContextId"), Id(e, "TaskId")));
+                        break;
+                    case "TaskParameterEventArgs" when Get(e, "Kind")?.ToString() == "TaskInput":
+                        var key2 = (Id(e, "ProjectContextId"), Id(e, "TaskId"));
+                        if (!tasks.TryGetValue(key2, out var inputs))
+                        {
+                            inputs = [];
+                            tasks[key2] = inputs;
+                        }
+                        var items = ((System.Collections.IEnumerable?)Get(e, "Items") ?? Array.Empty<object>()).Cast<object>()
+                            .Select(i => i is string s ? s : (string?)Get(i, "ItemSpec") ?? i.ToString()!).ToList();
+                        inputs[(string)Get(e, "ParameterName")!] = items;
+                        break;
+                }
+            }
+            var found = new List<Built>();
+            foreach (var (projectId, taskId) in csc)
+            {
+                if (!projects.TryGetValue(projectId, out var started) || !tasks.TryGetValue((projectId, taskId), out var inputs)
+                    || !inputs.TryGetValue("OutputAssembly", out var output) || output.Count == 0)
+                {
+                    continue;
+                }
+                var evaluated = evaluations.GetValueOrDefault(started.Evaluation) ?? [];
+                var directory = Path.GetDirectoryName(started.File)!;
+                found.Add(new Built(
+                    started.File,
+                    evaluated.GetValueOrDefault("TargetFramework") ?? "",
+                    evaluated.GetValueOrDefault("TargetFrameworks") ?? "",
+                    evaluated.GetValueOrDefault("Configuration") ?? "",
+                    Path.GetFullPath(output[0], directory),
+                    inputs.GetValueOrDefault("References")?.Select(r => Path.GetFullPath(r, directory)).ToList() ?? []));
+            }
+            return found;
+        }
+
+        /// The framework NuGet nearest-framework selection picks for `target` among
+        /// `candidates`, or null when none is compatible.
+        public string? Nearest(string target, List<string> candidates)
+        {
             var frameworkType = nuget.GetType("NuGet.Frameworks.NuGetFramework", true)!;
             var parse = frameworkType.GetMethod("Parse", [typeof(string)])!;
             var reducer = Activator.CreateInstance(nuget.GetType("NuGet.Frameworks.FrameworkReducer", true)!)!;
             var nearest = reducer.GetType().GetMethod("GetNearest",
                 [frameworkType, typeof(IEnumerable<>).MakeGenericType(frameworkType)])!;
-            var wanted = parse.Invoke(null, [target])!;
-
-            object Evaluate(string path, Dictionary<string, string?> global) =>
-                load.Invoke(collection, [path, global.Where(p => p.Value is not null).ToDictionary(p => p.Key, p => p.Value!), null])!;
-            string Property(object project, string name) =>
-                (string)project.GetType().GetMethod("GetPropertyValue")!.Invoke(project, [name])!;
-
-            var queue = new Queue<string>(EntryProjects(entryPath));
-            var seen = new HashSet<string>();
-            var selected = new List<(string, string)>();
-            while (queue.Count > 0)
+            var parsed = Array.CreateInstance(frameworkType, candidates.Count);
+            for (var i = 0; i < candidates.Count; i++)
             {
-                var path = Path.GetFullPath(queue.Dequeue());
-                if (!seen.Add(path))
-                {
-                    continue;
-                }
-                var outer = Evaluate(path, properties);
-                var declared = Property(outer, "TargetFrameworks");
-                if (declared.Length == 0)
-                {
-                    declared = Property(outer, "TargetFramework");
-                }
-                var candidates = declared.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToList();
-                var parsed = Array.CreateInstance(frameworkType, candidates.Count);
-                for (var i = 0; i < candidates.Count; i++)
-                {
-                    parsed.SetValue(parse.Invoke(null, [candidates[i]]), i);
-                }
-                var chosen = nearest.Invoke(reducer, [wanted, parsed]);
-                if (chosen is null)
-                {
-                    continue;
-                }
-                var index = Array.IndexOf(parsed, chosen);
-                var targetFramework = candidates[index];
-                selected.Add((path, targetFramework));
-                var inner = Evaluate(path, new Dictionary<string, string?>(properties) { ["TargetFramework"] = targetFramework });
-                var items = (System.Collections.IEnumerable)inner.GetType().GetMethod("GetItems")!.Invoke(inner, ["ProjectReference"])!;
-                foreach (var item in items)
-                {
-                    var include = (string)item.GetType().GetProperty("EvaluatedInclude")!.GetValue(item)!;
-                    queue.Enqueue(Path.Combine(Path.GetDirectoryName(path)!, include.Replace('\\', '/')));
-                }
+                parsed.SetValue(parse.Invoke(null, [candidates[i]]), i);
             }
-            return selected;
-        }
-
-        IEnumerable<string> EntryProjects(string entryPath)
-        {
-            if (entryPath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) || entryPath.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase))
-            {
-                var solution = build.GetType("Microsoft.Build.Construction.SolutionFile", true)!.GetMethod("Parse", [typeof(string)])!.Invoke(null, [entryPath])!;
-                var projects = (System.Collections.IEnumerable)solution.GetType().GetProperty("ProjectsInOrder")!.GetValue(solution)!;
-                foreach (var project in projects)
-                {
-                    if (project.GetType().GetProperty("ProjectType")!.GetValue(project)!.ToString() == "KnownToBeMSBuildFormat")
-                    {
-                        yield return (string)project.GetType().GetProperty("AbsolutePath")!.GetValue(project)!;
-                    }
-                }
-                yield break;
-            }
-            yield return entryPath;
+            var chosen = nearest.Invoke(reducer, [parse.Invoke(null, [target]), parsed]);
+            return chosen is null ? null : candidates[Array.IndexOf(parsed, chosen)];
         }
     }
 
@@ -535,16 +589,73 @@ static class Report
         _ => "",
     };
 
-    static string MetadataTypePath(ITypeSymbol type) => type switch
+    /// A canonical metadata type path, by the profile's Paths table.
+    static string MetadataTypePath(ITypeSymbol type)
     {
-        IArrayTypeSymbol array => MetadataTypePath(array.ElementType) + "[" + new string(',', array.Rank - 1) + "]",
-        IPointerTypeSymbol pointer => MetadataTypePath(pointer.PointedAtType) + "*",
-        ITypeParameterSymbol parameter => parameter.Name,
-        INamedTypeSymbol named => TypePath(named) + (AllTypeArguments(named) is { Count: > 0 } arguments
-            ? "<" + string.Join(",", arguments.Select(MetadataTypePath)) + ">"
-            : ""),
-        _ => type.ToDisplayString(),
-    };
+        switch (type)
+        {
+            case IArrayTypeSymbol array:
+                // A jagged array keeps its rank specifiers in source order: `int[][,]`
+                // is an array of `int[,]`.
+                var ranks = new List<int>();
+                ITypeSymbol element = array;
+                while (element is IArrayTypeSymbol inner)
+                {
+                    ranks.Add(inner.Rank);
+                    element = inner.ElementType;
+                }
+                return MetadataTypePath(element) + string.Concat(ranks.Select(r => "[" + new string(',', r - 1) + "]"));
+            case IPointerTypeSymbol pointer:
+                return MetadataTypePath(pointer.PointedAtType) + "*";
+            case ITypeParameterSymbol parameter when parameter.TypeParameterKind == TypeParameterKind.Method:
+                return "``" + parameter.Ordinal;
+            case ITypeParameterSymbol parameter:
+                // Counted from 0 across every enclosing type, outer first.
+                var offset = 0;
+                for (var outer = parameter.DeclaringType?.ContainingType; outer is not null; outer = outer.ContainingType)
+                {
+                    offset += outer.TypeParameters.Length;
+                }
+                return "`" + (offset + parameter.Ordinal);
+            case IDynamicTypeSymbol:
+                return "System.Object";
+            case IFunctionPointerTypeSymbol pointer:
+                return FunctionPointerPath(pointer.Signature);
+            case INamedTypeSymbol named:
+                named = named.TupleUnderlyingType ?? named;
+                return TypePath(named) + (AllTypeArguments(named) is { Count: > 0 } arguments
+                    ? "<" + string.Join(",", arguments.Select(MetadataTypePath)) + ">"
+                    : "");
+            default:
+                return type.ToDisplayString();
+        }
+    }
+
+    /// `delegate* <convention><parameters..., return>`.
+    static string FunctionPointerPath(IMethodSymbol signature)
+    {
+        var convention = signature.CallingConvention switch
+        {
+            System.Reflection.Metadata.SignatureCallingConvention.Default => "managed",
+            System.Reflection.Metadata.SignatureCallingConvention.CDecl => "unmanaged[Cdecl]",
+            System.Reflection.Metadata.SignatureCallingConvention.StdCall => "unmanaged[Stdcall]",
+            System.Reflection.Metadata.SignatureCallingConvention.ThisCall => "unmanaged[Thiscall]",
+            System.Reflection.Metadata.SignatureCallingConvention.FastCall => "unmanaged[Fastcall]",
+            _ => signature.UnmanagedCallingConventionTypes.IsEmpty
+                ? "unmanaged"
+                : "unmanaged[" + string.Join(",", signature.UnmanagedCallingConventionTypes
+                    .Select(t => t.Name.StartsWith("CallConv", StringComparison.Ordinal) ? t.Name["CallConv".Length..] : t.Name)
+                    .Order(StringComparer.Ordinal)) + "]",
+        };
+        var parts = signature.Parameters.Select(p => RefPrefix(p.RefKind) + MetadataTypePath(p.Type)).ToList();
+        parts.Add(signature.RefKind switch
+        {
+            RefKind.Ref => "ref ",
+            RefKind.RefReadOnly => "ref readonly ",
+            _ => "",
+        } + MetadataTypePath(signature.ReturnType));
+        return "delegate* " + convention + "<" + string.Join(",", parts) + ">";
+    }
 
     static List<ITypeSymbol> AllTypeArguments(INamedTypeSymbol type)
     {
@@ -713,7 +824,10 @@ static class Report
             ReadMembers(type, ExtensionPath(type), unit);
             return;
         }
-        if (type.IsImplicitlyDeclared && type.Name.StartsWith('<'))
+        // Metadata holds types the compiler emits: unspeakable `<...>` types, which
+        // include file-local types under their mangled names, and the attribute types it
+        // embeds. None is an entity a consumer can name.
+        if (type.Name.StartsWith('<') || type.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Microsoft.CodeAnalysis.EmbeddedAttribute"))
         {
             return;
         }
@@ -747,7 +861,9 @@ static class Report
             {
                 name += child switch
                 {
-                    IMethodSymbol m => ParameterList(m.Parameters),
+                    // A generic method's name carries its arity, because `M()` and
+                    // `M<T>()` can overload each other.
+                    IMethodSymbol m => (m.Arity > 0 ? "``" + m.Arity : "") + ParameterList(m.Parameters),
                     IPropertySymbol p => ParameterList(p.Parameters),
                     _ => "",
                 };

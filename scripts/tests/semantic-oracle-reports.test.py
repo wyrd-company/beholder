@@ -975,12 +975,149 @@ def csharp_build_failure(tmp):
     failure(csharp_command(project, inside), tmp, inside, ["inside the project tree"])
 
 
+def csharp_generators(tmp):
+    """Generated code is read as the build emitted it, with its analyzer config and additional files."""
+    project = os.path.join(tmp, "csharp-generators")
+    write(project, {
+        "Gen/Gen.csproj": """<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup><PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" /></ItemGroup>
+</Project>
+""",
+        "Gen/G.cs": """using Microsoft.CodeAnalysis;
+[Generator]
+public sealed class G : IIncrementalGenerator
+{
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        var config = context.AnalyzerConfigOptionsProvider.Select((options, _) =>
+            options.GlobalOptions.TryGetValue("build_property.ChosenValue", out var value) ? value : "0");
+        var files = context.AdditionalTextsProvider.Collect().Select((texts, _) => texts.Length);
+        context.RegisterSourceOutput(config.Combine(files), (output, pair) => output.AddSource("Generated.g.cs",
+            "namespace N; public static class Generated { public const int Config = " + pair.Left + "; public const int Files = " + pair.Right + "; }"));
+    }
+}
+""",
+        "Sample/Sample.csproj": csproj("Sample", extra="""<PropertyGroup><ChosenValue>1</ChosenValue></PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="ChosenValue" />
+    <AdditionalFiles Include="data.txt" />
+    <ProjectReference Include="../Gen/Gen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>"""),
+        "Sample/data.txt": "data\n",
+        "Sample/S.cs": "namespace N;\npublic static class S { }\n",
+    })
+    out = os.path.join(tmp, "csharp-generators.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    expect(found, "N.Generated.Config", "value", "1")
+    expect(found, "N.Generated.Files", "value", "1")
+
+
+def csharp_build_targets(tmp):
+    """A target that only `Build` reaches shapes what the report reads."""
+    project = os.path.join(tmp, "csharp-build-targets")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample", extra='<Target Name="Choose" BeforeTargets="BeforeBuild"><PropertyGroup><DefineConstants>$(DefineConstants);CHOSEN</DefineConstants></PropertyGroup></Target>'),
+        "Sample/S.cs": "namespace N;\npublic static class S\n{\n#if CHOSEN\n    public const int Chosen = 1;\n#else\n    public const int Chosen = 2;\n#endif\n}\n",
+    })
+    out = os.path.join(tmp, "csharp-build-targets.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    expect(found, "N.S.Chosen", "value", "1")
+
+
+MODE = "namespace L;\npublic static class Mode\n{\n#if DEBUG\n    public const int Value = 1;\n#else\n    public const int Value = 2;\n#endif\n#if NET10_0\n    public const int Ten = 10;\n#else\n    public const int Eight = 8;\n#endif\n}\n"
+
+
+def csharp_traversal(tmp):
+    """Each referenced project is read as the build configured and targeted it."""
+    project = os.path.join(tmp, "csharp-traversal")
+    write(project, {
+        "Lib/Lib.csproj": csproj("Lib", "<TargetFrameworks>net8.0;net10.0</TargetFrameworks>"),
+        "Lib/Mode.cs": MODE,
+        "App/App.csproj": csproj("App", extra='<ItemGroup><ProjectReference Include="../Lib/Lib.csproj" AdditionalProperties="Configuration=Debug" /></ItemGroup>'),
+        "App/A.cs": "namespace A;\npublic static class Uses { public static int Mode => L.Mode.Value; }\n",
+        "Old/Old.csproj": csproj("Old", "<TargetFramework>net8.0</TargetFramework>", '<ItemGroup><ProjectReference Include="../Lib/Lib.csproj" /></ItemGroup>'),
+        "Old/O.cs": "namespace O;\npublic static class Uses { public static int Mode => L.Mode.Value; }\n",
+        "Mapped.slnx": """<Solution>
+  <Configurations><BuildType Name="Debug" /><BuildType Name="Release" /></Configurations>
+  <Project Path="Lib/Lib.csproj"><BuildType Solution="Release|*" Project="Debug" /></Project>
+</Solution>
+""",
+    })
+    out = os.path.join(tmp, "csharp-traversal.json")
+    # A ProjectReference that sets Configuration=Debug builds the library in Debug.
+    report, found = run("csharp", csharp_command(project, out, entry="App/App.csproj"), tmp, out)
+    lib = [m for m in report["members"] if m["path"] == "L.Mode.Value"]
+    assert [m["slots"]["value"] for m in lib] == ["1"], lib
+    # A solution that maps Release to the project's Debug.
+    _, found = run("csharp", csharp_command(project, out, entry="Mapped.slnx"), tmp, out)
+    expect(found, "L.Mode.Value", "value", "1")
+    # A net8.0 parent builds the library only at net8.0: the net8.0 context reads that
+    # instance, and the net10.0 context requires an instance the build did not compile.
+    _, found = run("csharp", csharp_command(project, out, entry="Old/Old.csproj", framework="net8.0"), tmp, out)
+    expect(found, "L.Mode.Eight", "value", "8")
+    assert "L.Mode.Ten" not in found, sorted(found)
+    failure(csharp_command(project, out, entry="Old/Old.csproj", framework="net10.0"), tmp, out,
+            ["report-csharp", "not at net10.0"])
+
+
+def csharp_paths(tmp):
+    """Overload parameter lists in canonical metadata type paths."""
+    project = os.path.join(tmp, "csharp-paths")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample", extra="<PropertyGroup><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>"),
+        "Sample/P.cs": """namespace N;
+public class Outer<A>
+{
+    public class Grid<T>
+    {
+        public void Put(T value) { }
+        public void Put(A value, int count) { }
+        public void Put<U>(U value, T other) { }
+    }
+}
+public static unsafe class Overloads
+{
+    public static void Map(int value) { }
+    public static void Map<T>(T value) { }
+    public static void Shape(int[][,] value) { }
+    public static void Shape(dynamic value) { }
+    public static void Shape((int x, string? y) value) { }
+    public static void Shape(delegate*<ref int, int> value) { }
+    public static void Shape(delegate* unmanaged[Cdecl, SuppressGCTransition]<int, void> value) { }
+    public static void Shape(nint value, int? other, Outer<string>.Grid<int> grid) { }
+    public static void Shape(in int value, params int[] rest) { }
+}
+""",
+    })
+    out = os.path.join(tmp, "csharp-paths.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    for path in (
+        "N.Outer`1.Grid`1.Put(`1)",
+        "N.Outer`1.Grid`1.Put(`0,System.Int32)",
+        "N.Outer`1.Grid`1.Put``1(``0,`1)",
+        "N.Overloads.Map(System.Int32)",
+        "N.Overloads.Map``1(``0)",
+        "N.Overloads.Shape(System.Int32[][,])",
+        "N.Overloads.Shape(System.Object)",
+        "N.Overloads.Shape(System.ValueTuple`2<System.Int32,System.String>)",
+        "N.Overloads.Shape(delegate* managed<ref System.Int32,System.Int32>)",
+        "N.Overloads.Shape(delegate* unmanaged[Cdecl,SuppressGCTransition]<System.Int32,System.Void>)",
+        "N.Overloads.Shape(System.IntPtr,System.Nullable`1<System.Int32>,N.Outer`1.Grid`1<System.String,System.Int32>)",
+        "N.Overloads.Shape(in System.Int32,System.Int32[])",
+    ):
+        assert path in found, (path, sorted(p for p in found if p.startswith("N.")))
+
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build, csharp_generators, csharp_build_targets, csharp_traversal, csharp_paths):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
