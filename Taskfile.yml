@@ -172,11 +172,35 @@ tasks:
       - cargo build -q --locked -p beholder-semantic-oracle-cli
       - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
 
+  semantic-oracle:report:csharp:
+    desc: Write a C# compiler report from Roslyn, through MSBuildWorkspace
+    summary: |
+      Needs a .NET SDK with file-based apps (10 or later); the first run restores the
+      Roslyn packages. PROJECT, ENTRY, CONTEXT and OUT are required: ENTRY is the
+      context's `entry`, relative to PROJECT, and OUT lies outside the project tree.
+      CONFIGURATION (default Debug), PROPERTIES, a space-separated list of NAME=VALUE,
+      and TARGET_FRAMEWORK select the context. It works on a copy of PROJECT, and a
+      project that fails to load or compile exits nonzero and writes no report.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [PROJECT, ENTRY, CONTEXT, OUT]
+    vars:
+      CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
+    cmds:
+      - >-
+        dotnet run --file {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-csharp.cs")}} --
+        --project {{shellQuote .PROJECT}} --entry {{shellQuote .ENTRY}}
+        --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+        --configuration {{shellQuote .CONFIGURATION}}
+        {{if .TARGET_FRAMEWORK}}--target-framework {{shellQuote .TARGET_FRAMEWORK}}{{end}}
+        {{range $p := splitList " " (.PROPERTIES | default "")}}{{if $p}}--property {{shellQuote $p}} {{end}}{{end}}
+
   test:oracle-reports:
     desc: Run each compiler report script on a small project
     summary: |
-      Needs rustc and cargo, go, python3, node and the `typescript` module. A missing
-      toolchain fails this task. C# and Dart have no script until their toolchains exist.
+      Needs rustc and cargo, go, python3, node and the `typescript` module, and a .NET
+      SDK. A missing toolchain fails this task. Dart has no script until its toolchain
+      exists.
     cmds:
       - python3 scripts/tests/semantic-oracle-reports.test.py
 

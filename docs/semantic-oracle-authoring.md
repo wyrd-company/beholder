@@ -32,7 +32,7 @@ call `task` in.
 | `task semantic-oracle:locate PROJECT=<dir> FILE=<path> TEXT=<text> [LINE=<n>] [COLUMN=<n>]` | `semantic-oracle locate <path> <text> [--line <n>] [--column <n>] --project <dir>` | Prints the locator of one span. |
 | `task semantic-oracle:validate PROJECT=<dir>` | `semantic-oracle validate <dir>` | Validates the dataset against the model, its profile and the project's files. |
 | `task semantic-oracle:audit PROJECT=<dir> [REPORTS="<file> <file>"]` | `semantic-oracle audit <dir> [--report <file>]...` | Validates, audits the dataset against its profile, and compares its signatures with compiler reports. |
-| `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python` or `typescript`. |
+| `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python`, `typescript` or `csharp`. |
 | `task semantic-oracle:corpus` | | Validates and audits the fixture corpus's adopted datasets. |
 | `task test:oracle-schema` | | Tests the schemas, the validator and the commands. |
 | `task test:oracle-reports` | | Runs each compiler report script on a small project. |
@@ -134,6 +134,7 @@ A compiler report is a JSON file that a script produces outside the project tree
 | `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
 | `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file> PYTHON=<version>` | `inspect.signature`, for a `runtime` context | `python<version>`, the context's `python` parameter. An absent interpreter exits nonzero, and the report's `tool` states what it ran under. It imports the project's modules, which runs their module-level code. |
 | `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
+| `semantic-oracle:report:csharp PROJECT=<dir> ENTRY=<file> CONTEXT=<id> OUT=<file> [CONFIGURATION=<name>] [PROPERTIES="<name>=<value> ..."] [TARGET_FRAMEWORK=<tfm>]` | Roslyn, as a library: MSBuildWorkspace opens the context's `entry` and each project's compilation states its symbols, synthetic members included. MSBuild's API restores the entry first. | A .NET SDK with file-based apps: the one `dotnet` resolves from the project directory, which `global.json` can select, and which the report's `release` names. It works on a copy of the project without `bin` and `obj`, and the first run restores the Roslyn packages from NuGet. The SDK's workload resolver is off, so a workload project does not load. |
 
 Run one report per context, and pass each to `audit`:
 
@@ -188,7 +189,12 @@ while a context is unchecked.
 
 These stay `unchecked`:
 
-- every slot of a C# or Dart dataset, until those toolchains have a report;
+- every slot of a Dart dataset, until its toolchain has a report;
+- C# `bases`, because a `bases` slot's key holds the dataset's ids, which a report cannot
+  write; `model:signature-bases` checks them against the `inherits` and `implements`
+  relations;
+- a C# constant or parameter default of an enum type or of `char`, or a parameter default
+  `default` of a struct type, which the report marks `unstated`;
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
 - each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
 - Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;

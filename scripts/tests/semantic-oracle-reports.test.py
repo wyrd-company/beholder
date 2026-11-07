@@ -5,8 +5,8 @@
 # ---
 """Exercises each compiler report script on a small project in a temporary
 directory, and checks slots it must state. Each script's toolchain is required: a
-missing one fails this test rather than skipping it, so that a pass means all four
-ran. C# and Dart have no script until their toolchains exist."""
+missing one fails this test rather than skipping it, so that a pass means all five
+ran. Dart has no script until its toolchain exists."""
 import importlib.util
 import json
 import os
@@ -727,12 +727,142 @@ export function dflt(first: number = 1, second: string): string { return second;
     expect(found, path + "Shape.label", "modifiers[optional]", "optional")
 
 
+CSPROJ = """<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Sample.Lib</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14.0</LangVersion>
+  </PropertyGroup>
+</Project>
+"""
+
+
+def csharp_command(project, out, entry="Sample/Sample.csproj"):
+    return ["dotnet", "run", "--file", os.path.join(SCRIPTS, "report-csharp.cs"), "--",
+            "--project", project, "--entry", entry, "--context", "release", "--out", out,
+            "--configuration", "Release"]
+
+
+def csharp(tmp):
+    project = os.path.join(tmp, "csharp")
+    write(project, {
+        "Sample/Sample.csproj": CSPROJ,
+        "Sample/Shapes.cs": """namespace Sample.Shapes;
+
+public delegate T Factory<out T>(int seed);
+
+public enum Kind : byte { Round = 1, Square = 4 }
+
+public interface INotifier { event Action<string>? Changed; }
+
+public abstract class Shape : INotifier
+{
+    public const string Label = "shape";
+    public const decimal Ratio = 1.50m;
+    public static readonly int Count;
+    protected Shape() { }
+    public event Action<string>? Changed;
+    event Action<string>? INotifier.Changed { add => Changed += value; remove => Changed -= value; }
+    public virtual event EventHandler? Moved { add { } remove { } }
+    public abstract double Area { get; }
+    public string Name { get; protected set; } = "";
+    public required int Sides { get; init; }
+    public int this[int index] => index;
+    public int this[string key, int offset] => offset;
+    public ref int Slot => ref _slot;
+    private int _slot;
+    public double Scale(double factor) => factor;
+    public double Scale(double factor, ref int count, string? name = null, int limit = 3) => factor;
+    public T Pick<T>(T value) where T : class, IComparable<T>, new() => value;
+    public (int x, string? y) Pair() => (1, null);
+    public List<string?> Names { get; } = [];
+}
+
+public readonly struct Measure
+{
+    public Measure(int value) => Value = value;
+    public int Value { get; }
+    public static Measure operator +(Measure left, Measure right) => new(left.Value + right.Value);
+    public static implicit operator Measure(int value) => new(value);
+}
+
+public sealed record Point(int X, int Y);
+
+public interface IAdditive<T> where T : IAdditive<T> { static abstract T operator +(T left, T right); }
+
+public static class Extensions
+{
+    public static int Twice(this int value) => value * 2;
+}
+""",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "csharp.json")
+    report, found = run("csharp", csharp_command(project, out), tmp, out)
+    tree_unchanged(project, before)
+    assert report["release"].count(".") >= 2, report["release"]
+    assert report["tool"]["name"] == "Roslyn", report["tool"]
+    path = "Sample.Shapes."
+    assert found[path + "Shape"]["unit"] == {"name": "Sample.Lib"}, found[path + "Shape"]
+    expect(found, path + "Factory`1", "type-parameters[0].variance", "out")
+    expect(found, path + "Factory`1.Invoke", "returns", "T")
+    expect(found, path + "Factory`1.BeginInvoke", "parameters[1].type", "@{System.AsyncCallback}~")
+    assert not any(k.startswith("modifiers") for k in found[path + "Factory`1.Invoke"]["slots"])
+    expect(found, path + "Kind", "underlying", "byte")
+    expect(found, path + "Kind.Square", "value", "4")
+    expect(found, path + "INotifier.Changed", "add.type", "@{System.Action`1}<string>?")
+    expect(found, path + "INotifier.Changed", "modifiers[abstract]", "abstract")
+    expect(found, path + "Shape", "modifiers[abstract]", "abstract")
+    expect(found, path + "Shape.Label", "value", '"shape"')
+    expect(found, path + "Shape.Ratio", "value", "1.50")
+    expect(found, path + "Shape.Count", "modifiers[readonly]", "readonly")
+    expect(found, path + "Shape.Changed", "remove.type", "@{System.Action`1}<string>?")
+    expect(found, path + "Shape.Sample.Shapes.INotifier.Changed", "add.type", "@{System.Action`1}<string>?")
+    expect(found, path + "Shape.Moved", "modifiers[virtual]", "virtual")
+    expect(found, path + "Shape.Area", "get.type", "double")
+    expect(found, path + "Shape.Name", "set.access", "protected")
+    expect(found, path + "Shape.Sides", "init.type", "int")
+    expect(found, path + "Shape.Sides", "modifiers[required]", "required")
+    expect(found, path + "Shape.this[](System.Int32)", "parameters[0].type", "int")
+    expect(found, path + "Shape.this[](System.String,System.Int32)", "get.type", "int")
+    expect(found, path + "Shape.Slot", "return-mode", "ref")
+    expect(found, path + "Shape.Scale(System.Double,ref System.Int32,System.String,System.Int32)", "parameters[1].mode", "ref")
+    expect(found, path + "Shape.Scale(System.Double,ref System.Int32,System.String,System.Int32)", "parameters[2].default", "null")
+    expect(found, path + "Shape.Scale(System.Double,ref System.Int32,System.String,System.Int32)", "parameters[3].default", "3")
+    expect(found, path + "Shape.Pick", "type-parameters[0].bounds", "class, @{System.IComparable`1}<T>, new()")
+    expect(found, path + "Shape.Pair", "returns", "(int x, string? y)")
+    expect(found, path + "Shape.Names", "get.type", "@{System.Collections.Generic.List`1}<string?>")
+    expect(found, path + "Measure", "modifiers[readonly]", "readonly")
+    expect(found, path + "Measure.op_Addition", "returns", "@{Sample.Shapes.Measure}")
+    expect(found, path + "Measure.op_Implicit", "parameters[0].type", "int")
+    assert path + "Measure..ctor" in found and "parameters[0].type" in found[path + "Measure..ctor"]["slots"]
+    expect(found, path + "Point", "modifiers[sealed]", "sealed")
+    expect(found, path + "Point.X", "init.type", "int")
+    expect(found, path + "Point.Deconstruct", "parameters[0].mode", "out")
+    expect(found, path + "Extensions.Twice", "parameters[0].mode", "this")
+    # A generic type named inside its own declaration keeps its type arguments.
+    expect(found, path + "IAdditive`1", "type-parameters[0].bounds", "@{Sample.Shapes.IAdditive`1}<T>")
+    expect(found, path + "IAdditive`1.op_Addition", "modifiers[abstract]", "abstract")
+    expect(found, path + "IAdditive`1.op_Addition", "modifiers[static]", "static")
+
+
+def csharp_build_failure(tmp):
+    project = os.path.join(tmp, "csharp-broken")
+    write(project, {"Sample/Sample.csproj": CSPROJ, "Sample/Broken.cs": "namespace Sample;\npublic static class Broken { public static int X = \"text\"; }\n"})
+    out = os.path.join(tmp, "csharp-broken.json")
+    failure(csharp_command(project, out), tmp, out, ["report-csharp", "CS0029"])
+    inside = os.path.join(project, "report.json")
+    failure(csharp_command(project, inside), tmp, inside, ["inside the project tree"])
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
