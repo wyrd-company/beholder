@@ -146,8 +146,9 @@ environment:
       https://github.com/wyrd-company/beholder/tree/8e8f1366120f045681e878cee5f4a2013d5b6896/docs/spikes/compiler-backed-code-graph
     - >-
       Related SCIP/tree-sitter research at commit
-      c98d422fc22b3bb93936c6d69bb888ae93efac30; artifact reference
-      scip-tree-sitter-spike.
+      c98d422fc22b3bb93936c6d69bb888ae93efac30; harness repository and setup
+      have not been recovered. The scip-tree-sitter-spike reference is not
+      available in this repository.
     - "https://refinery.systems/ontology/spike"
     - >-
       Official documentation, source repositories, specifications, and published papers
@@ -760,7 +761,11 @@ findings:
       results are not new validation of the current Beholder workspace.
 
       The six provider inputs came from related SCIP/tree-sitter harness commit
-      c98d422fc22b3bb93936c6d69bb888ae93efac30. In that research checkout, run:
+      c98d422fc22b3bb93936c6d69bb888ae93efac30. Its repository, harness source,
+      toolchain manifest and fixture setup have not been recovered in a
+      retrievable location. Regeneration is unavailable until that material is
+      recovered. The following is the recorded command, not a self-contained
+      reproduction procedure:
 
       ```sh
       RUN=after LANGUAGE=<rust|go|typescript|python|dart|csharp> scripts/harness-run.sh
@@ -769,10 +774,13 @@ findings:
       Outputs are oracle.scip, spike.scip, manifest.json and report.json under
       .work/harness/after/<language>/. Corpus names in language order are tagver,
       open-oscar-server, dub, fastmcp, dart-data and community.nservicebus.transport.nats.
-      The related research records toolchain versions and fixture setup. Scratch
-      manifests were not retained. Five inputs have pinned regeneration sources;
-      Dart is hash-verifiable only: both provider and corpus lack dependency locks,
-      and dart pub get prevents deterministic byte regeneration.
+      The source notes attribute toolchain versions and fixture setup to the
+      unavailable related research. Scratch manifests were not retained. Five
+      inputs have recorded corpus and provider revisions, but those pins alone
+      do not restore the missing harness and setup. Dart has an additional
+      limit: both provider and corpus lack dependency locks, and dart pub get
+      prevents deterministic byte regeneration. Its recorded digest can check a
+      recovered input; the input bytes are not retained by this artifact.
 
       Verify SHA-256 before import. Upstream scip lint at source commit
       f7c0b174aea88b51dbeef1b583844577efb989e0 failed on all six pinned inputs.
@@ -815,42 +823,42 @@ findings:
           input-sha256: "bbf519df55a9a2626a4a9ed9d6d86e330f03c15af9c3613e370aeebd137cb6e3"
           input-bytes: 368943
           lint-issue-lines: 1754
-          reproduction: "Pinned"
+          reproduction: "Source revisions recorded; harness and setup unavailable"
         go:
           corpus-commit: "ab70f80a630cf36c931ad174d51396e07e0103a0"
           provider-source-commit: "18c307a4ccef5654c866addb42a5e1f579dc4684"
           input-sha256: "a947beb54ef0c88efc7f45969e015750c1544ecbc6bf53bddc27cc2219d89339"
           input-bytes: 32238435
           lint-issue-lines: 51964
-          reproduction: "Pinned"
+          reproduction: "Source revisions recorded; harness and setup unavailable"
         typescript:
           corpus-commit: "b0836571a7dfb0c25e648764e47d97636b419fe8"
           provider-source-commit: "891eb4293709a6a587bf4468dfa1b45a85182fd9"
           input-sha256: "7b8344d3eb9d6f7fbf69e53f205bb42ae4131a95b298e2a5563c576b68765913"
           input-bytes: 68245465
           lint-issue-lines: 302319
-          reproduction: "Pinned"
+          reproduction: "Source revisions recorded; harness and setup unavailable"
         python:
           corpus-commit: "8a1820f1c38401fa02c8996a7a30e864561b80d3"
           provider-source-commit: "8b60bbce1f2a4c7a517776cb395bbafb2e731e4f"
           input-sha256: "9ca184fcf14b4514c8f254857c804c020df0e18283411e5b29d2928c924d813f"
           input-bytes: 38001306
           lint-issue-lines: 79321
-          reproduction: "Pinned"
+          reproduction: "Source revisions recorded; harness and setup unavailable"
         dart:
           corpus-commit: "7161db1bb0be31f8b9bd4f68f575b80680988936"
           provider-source-commit: "22a5bdb3c1cf6215117d2f406ae4cf0da685571e"
           input-sha256: "26fb908ba5312abf80a27476e535ab1604db54917e5c53c11397596f8ae11a36"
           input-bytes: 4577649
           lint-issue-lines: 1055
-          reproduction: "Non-deterministic without resolved locks"
+          reproduction: "Harness unavailable; also non-deterministic without resolved locks"
         csharp:
           corpus-commit: "2f4fc124dc42cd4f118c223015d5e716c0f08542"
           provider-source-commit: "47884461a79839fb74c99e6a0a7978cd7eb62476"
           input-sha256: "7cfa3ca0fb9a1f2a15c8f3fa6a91a1d587701e5b474de01f5908954d0f2dcd99"
           input-bytes: 363448
           lint-issue-lines: 1264
-          reproduction: "Pinned"
+          reproduction: "Source revisions recorded; harness and setup unavailable"
       focused-tests: 40
       exploratory-mutations: 17
 conclusion: >-
@@ -879,6 +887,9 @@ next-steps:
     Define provider conformance fixtures for repeated documents, external paths,
     compilation-unit variants, ambiguity, missing source context, target collisions, and
     incomplete dependency information across all six languages.
+  - >-
+    Recover and publish the SCIP/tree-sitter harness source, toolchain versions,
+    fixture setup and retained inputs before claiming reproducible regeneration.
   - >-
     Audit locked scip-dart dependencies and required notice bundles before any provider
     binary redistribution.
