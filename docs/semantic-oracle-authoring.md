@@ -34,8 +34,10 @@ call `task` in.
 | `task semantic-oracle:audit PROJECT=<dir> [REPORTS="<file> <file>"]` | `semantic-oracle audit <dir> [--report <file>]...` | Validates, audits the dataset against its profile, and compares its signatures with compiler reports. |
 | `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python` or `typescript`. |
 | `task semantic-oracle:corpus` | | Validates and audits the fixture corpus's adopted datasets. |
+| `task semantic-oracle:toolchains [FIXTURES=<dir>]` | | Reports, per fixture project, whether the installed toolchains support the versions it declares: `ok`, `unsupported`, `pin-not-honoured` (an exact Rust channel pin without rustup to select it) or `missing-toolchain`. Exits nonzero on `unsupported` or `missing-toolchain`. |
 | `task test:oracle-schema` | | Tests the schemas, the validator and the commands. |
 | `task test:oracle-reports` | | Runs each compiler report script on a small project. |
+| `task test:oracle-toolchains` | | Runs the toolchain report on a small corpus with stand-in toolchains. |
 
 `PROJECT` defaults to the current directory. `validate` and `audit` also
 accept the path of the dataset file itself.

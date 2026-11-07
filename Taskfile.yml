@@ -172,6 +172,28 @@ tasks:
       - cargo build -q --locked -p beholder-semantic-oracle-cli
       - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
 
+  semantic-oracle:toolchains:
+    desc: Report whether the installed toolchains can check each fixture project
+    summary: |
+      Reads the versions each project under FIXTURES (default fixtures) declares:
+      global.json and target frameworks, pubspec SDK constraints, go.mod go and
+      toolchain directives, rust-toolchain.toml and Cargo rust-version and edition,
+      requires-python, and the installed typescript with Node.js 22.6 or later. It
+      prints one line per project, ok, unsupported, pin-not-honoured or
+      missing-toolchain, and exits nonzero on unsupported or missing-toolchain.
+      pin-not-honoured marks an exact rust-toolchain.toml pin that no rustup can
+      select, so the installed rustc is used.
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      FIXTURES: '{{.FIXTURES | default (joinPath .ROOT_DIR "fixtures")}}'
+    cmds:
+      - python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/toolchains.py")}} --fixtures {{shellQuote .FIXTURES}}
+
+  test:oracle-toolchains:
+    desc: Run the toolchain report on a small corpus with stand-in toolchains
+    cmds:
+      - python3 scripts/tests/semantic-oracle-toolchains.test.py
+
   test:oracle-reports:
     desc: Run each compiler report script on a small project
     summary: |
@@ -249,6 +271,7 @@ tasks:
       - task: test
       - task: test:action
       - task: test:release
+      - task: test:oracle-toolchains
       - task: lint
       - task: lint:action
 
