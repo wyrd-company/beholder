@@ -700,9 +700,10 @@ impl<'a> Checker<'a> {
             };
             // An extension block is not a name a consumer writes; its members
             // are. A namespace is a member through its public types, below.
+            // The unit root, the assembly, is no member.
             if matches!(
                 text(entity, "kind"),
-                Some("namespace" | "extension" | "parameter" | "type-parameter")
+                Some("module" | "namespace" | "extension" | "parameter" | "type-parameter")
             ) || !self.entity_contexts(id).contains(context)
             {
                 continue;

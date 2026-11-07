@@ -73,9 +73,25 @@ description: |
   sets no `LangVersion`, it is the default C# version for the unit's target
   framework. When `LangVersion` is `default`, `latest`, `latestMajor` or
   `preview`, it is the version that the compiler of the context's `release`
-  resolves; `preview` is written `preview`. Two projects that produce one assembly name,
+  resolves; `preview` is written `preview`. `define-constants` is the list of
+  conditional compilation symbols the compiler receives, in the order MSBuild
+  passes them: the project's `DefineConstants` after the SDK adds its implicit
+  framework symbols, such as `NET`, `NET10_0` and `NET10_0_OR_GREATER`. Two projects that produce one assembly name,
   with equal or different versions, are two units. An adapter that knows
   only the assembly name and version supplies a partial unit key.
+
+  Each unit has a root entity, the assembly, which the unit names in `root`:
+  `kind: module`, `language-kind: assembly`, `name` the assembly name and
+  `path` the assembly name in brackets, `[Geometry]`, so that it never reads
+  as a namespace path. It has no definition site and no `anchor`, because
+  the language declares it without a name token. It is the `from` of each
+  site outside every namespace and type declaration: top-level `using`,
+  `global using` and `extern alias` directives, and `[assembly:]` and
+  `[module:]` attributes. It is no entity's `parent`, because namespaces are
+  project-merged across units, and it is not a public API member. Its
+  declared visibility is `public` with `explicit: false`; its effective
+  visibility is `all` at every boundary, except `external: none` for a unit
+  with no distribution.
 
   A distribution is a unit whose project is a library: `kind: assembly`,
   `name` the assembly name, `version` the assembly version. Projects with
@@ -103,11 +119,20 @@ description: |
     constructors `.cctor`; finalizers `Finalize`; operators and conversions
     their metadata names, such as `op_Addition`; indexers `this[]`.
   - Overloaded methods, constructors, indexers and operators append the
-    parameter list written with canonical type paths, such as
-    `Geometry.Shape.Scale(System.Double)`, with `ref`, `out` and `in`
-    prefixes and `params` omitted.
+    parameter list: each parameter's canonical metadata type path, separated
+    by `,` with no space, such as `Geometry.Shape.Scale(System.Double,System.Int32)`
+    and `Geometry.Grid`1.this[](System.String,System.Int32)`. A parameter
+    keeps a `ref `, `out `, `in ` or `ref readonly ` prefix and drops
+    `params`. A metadata type path is the type's path with its type arguments
+    in `<>` separated by `,`, such as `System.Func`2<System.Int32,System.String>`,
+    `[]` for an array, `*` for a pointer and the name for a type parameter;
+    nullable annotations are dropped, and `int?` is
+    `System.Nullable`1<System.Int32>`. A member is overloaded when another
+    entity of its type has the same member name.
   - Explicit interface implementations use `<Interface path>.<member>` as
-    the member name.
+    the member name, where the interface part is the implemented interface's
+    metadata type path with its type arguments, so that `I<int>.M` and
+    `I<string>.M` differ: `Geometry.Vector.Geometry.IAdditive`1<Geometry.Vector>.op_Addition`.
   - A file-local type appends `@<document path>`.
   - Members of an extension block use the block's receiver in the parent
     path: `<static class>.extension(<receiver type>).<member>`.
@@ -117,6 +142,7 @@ description: |
 
   | Construct | Kind | `language-kind` |
   | --- | --- | --- |
+  | assembly, the unit root | `module` | `assembly` |
   | namespace | `namespace` | `namespace` |
   | `class`, `record class` | `type` | `class` or `record` |
   | `struct`, `record struct`, `ref struct` | `type` | `struct`, `record-struct` or `ref-struct` |
@@ -140,6 +166,15 @@ description: |
   its declaring sites. Property and event accessors are part of their
   property entity.
 
+  Definition sites: a named declaration's site is its identifier; an
+  indexer's is `this`; a constructor's, static constructor's and finalizer's
+  is the type name it repeats; an operator's is its operator token, such as
+  `+`, `==`, `true` or the `+` of `operator checked +`; a conversion's is its
+  `implicit` or `explicit` keyword; a primary constructor's is the type name,
+  which it shares with the type. A primary constructor's parameters are
+  `parameter` entities at their identifiers. A delegate's declared
+  parameters are no entities; its synthetic members' parameters are.
+
   `using` alias directives and extern alias directives create bindings, not
   entities. Local functions and lambdas are out-of-profile.
 
@@ -148,7 +183,10 @@ description: |
   Values: `public`, `internal`, `protected`, `protected internal`,
   `private protected`, `private` and `file`. Defaults: `internal` for
   top-level types, `private` for class and struct members, `public` for
-  interface members, enum members and namespaces.
+  interface members, enum members and namespaces. A static constructor and an
+  explicit interface implementation are `private` with `explicit: false`. A
+  finalizer is `protected` with `explicit: false`, as the override of
+  `System.Object.Finalize`.
 
   ## Effective visibility
 
@@ -177,7 +215,8 @@ description: |
 
   A distribution's members in a context are every entity of its unit whose
   `external` access is `all` or includes `subtypes`, together with every
-  type the unit forwards with `TypeForwardedTo`. A forwarded type is a member
+  type the unit forwards with `TypeForwardedTo`. The unit root is not a
+  member. A forwarded type is a member
   with the consumer path of the forwarded type, and the
   `csharp:type-forward` extension records the forward. A namespace is a
   member when it, or a namespace nested inside it, holds a public type of
@@ -221,9 +260,17 @@ description: |
   is `ref` or `ref readonly`, and is absent for a return by value; `returns` holds the
   type without `ref`.
 
-  Modifiers: `abstract`, `sealed`, `static`, `virtual`, `override`, `readonly` and
-  `required`. `async` is not a modifier, because the return type states its effect on a
-  caller. An accessor has `access`, `internal`, `private`, `private protected`, `protected`
+  Modifiers: `abstract`, `sealed`, `static`, `virtual`, `override`, `readonly`,
+  `required` and, for a field, `volatile`, which the field's metadata signature carries,
+  so that adding or removing it is a break. `async` is not a modifier, because the return
+  type states its effect on a caller.
+
+  Implied modifiers are not recorded. A modifier is written where the language leaves
+  the choice to the declaration: a static class is `static` and not `abstract` or
+  `sealed`; a struct, record struct, enum or delegate is not `sealed`; a member of a
+  `readonly struct` is not `readonly`; and a delegate's synthetic members have no
+  modifiers. An interface member with no body is `abstract`, and a `static abstract`
+  member is `abstract` and `static`. An accessor has `access`, `internal`, `private`, `private protected`, `protected`
   or `protected internal`, when narrower than the member's, and `modifiers`, `readonly`.
 
   Every constraint is on a type parameter, so a type parameter's `bounds` holds its
@@ -261,7 +308,12 @@ description: |
   entity for each parameter. A delegate's constructor has parameters `object` and `method`,
   `BeginInvoke` adds `callback` and `object` to the delegate's parameters and returns
   `@{IAsyncResult}`, and `EndInvoke` keeps the delegate's by-reference parameters in order, adds `result`, and
-  returns the delegate's return with its `return-mode`. A compiler-supplied parameter name
+  returns the delegate's return with its `return-mode`. A record's `op_Equality` and
+  `op_Inequality` have parameters `left` and `right` of the record type, annotated `?`
+  for a record class, return `bool` and are `static`. A record struct's `Equals(object)`,
+  `ToString` and `PrintMembers` are nullable-oblivious, as the compiler emits them in
+  metadata: `object~`, `string~` and `@{StringBuilder}~`; a record class's are
+  `object?`, `string` and `@{StringBuilder}`. A compiler-supplied parameter name
   that collides with a delegate's parameter name takes the name the compiler gives it. These
   compiler-supplied reference types are oblivious, as `object~`. `value` and `default` are the
   constant's value under the specification's constant expression rules. C# `default` is
@@ -296,6 +348,19 @@ description: |
   | Attribute name | `attribute` |
   | `nameof` operand | `read` |
   | User-defined operator token that binds to a user-defined operator | `call` |
+  | `this` or `base` in a constructor initializer | `call` |
+  | `[` of an element access that binds to an indexer, including `base[i]` and an object initializer's `[i] = v` | `read`, `write` or `read-write`, by use |
+  | Interface name in an explicit interface member name | `type` |
+
+  A predefined type keyword is a reference to its `System` external: `int` to
+  `System.Int32`, `string` to `System.String`, and `void`, in a return type, to
+  `System.Void`, with the role of its position, such as `qualifier` for `string`
+  in `string.Empty`. A `this` or `base` constructor initializer targets the
+  constructor that overload resolution selects. An element access targets the
+  indexer that member lookup and overload resolution select; an access whose
+  receiver is an array, a pointer or a type with no indexer has no reference.
+  A user-defined conversion, `operator true` and `operator false` have no token
+  and no reference.
 
   An object creation targets the constructor that overload resolution
   selects. Equivalence rule `csharp:type-for-constructor`: an observation
@@ -329,8 +394,9 @@ description: |
   - Synthetic entities: the default constructor of a class or struct with no
     declared instance constructor; members the compiler declares for records
     (`Equals`, `GetHashCode`, `ToString`, `PrintMembers`, `Deconstruct`,
-    `EqualityContract`, the copy constructor and positional properties) when
-    the source does not declare them; the delegate members the compiler
+    `EqualityContract`, the copy constructor, positional properties, and the
+    `op_Equality` and `op_Inequality` operators) when the source does not
+    declare them; the delegate members the compiler
     declares (its constructor, `Invoke`, `BeginInvoke`, `EndInvoke`). Each is anchored on the
     declaring type's name.
   - External key path: the entity path at the defining assembly.
@@ -363,8 +429,9 @@ description: |
   2. Declare every context by the framework rule above.
   3. Declare every unit with its attributes, every distribution, and every
      `csharp:reference-alias` fact.
-  4. Record every entity of the kinds in the entity table, including all
-     partial sites, generated entities and synthetic entities.
+  4. Record every entity of the kinds in the entity table, including each
+     unit's root assembly, all partial sites, generated entities and
+     synthetic entities.
   5. Record every in-profile reference, including using directives,
      attributes, operator tokens and `nameof` operands, and every
      `csharp:extern-alias` fact.
