@@ -188,7 +188,8 @@ description: |
   coordinates equals `text`. A locator is stale when the digest or text check
   fails. A dataset with a stale locator is invalid.
 
-  A site is the locator of one name token. A definition site spans the
+  A site is the locator of one name token, or of one token site that the
+  profile defines (below). A definition site spans the
   declared name as written. A reference site spans the token that denotes
   the target. Where the language writes a name with a lexical prefix that is
   not part of the name, such as a raw-identifier or verbatim prefix, the
@@ -388,10 +389,13 @@ description: |
   - The canonical path is the path at the entity's definition. Paths through
     re-exports and aliases are consumer paths and appear in public API
     membership, not in identity.
-  - An entity that the language declares without a name token has no
-    definition site and no `anchor`: a unit root, a source-file module, and
-    each unnamed form the profile names, such as an implementation block.
-    Its key identifies it.
+  - An entity that the language declares without a name token, and for
+    which the profile defines no token site, has no definition site and no
+    `anchor`: a unit root, a source-file module, and each unnamed form the
+    profile names, such as an implementation block. Its key identifies it.
+    An entity whose declaration the profile marks with a token site, such
+    as a C# indexer's `this` or an operator's operator token, has that token
+    site as its definition site.
 
   ### Origins
 
