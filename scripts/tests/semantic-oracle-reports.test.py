@@ -5,8 +5,9 @@
 # ---
 """Exercises each compiler report script on a small project in a temporary
 directory, and checks slots it must state. Each script's toolchain is required: a
-missing one fails this test rather than skipping it, so that a pass means all four
-ran. C# and Dart have no script until their toolchains exist."""
+missing one fails this test rather than skipping it, so that a pass means all five
+ran. C# has no script until its toolchain exists. The Dart script's dependencies come
+from `dart pub get` in scripts/semantic-oracle."""
 import importlib.util
 import json
 import os
@@ -727,12 +728,133 @@ export function dflt(first: number = 1, second: string): string { return second;
     expect(found, path + "Shape.label", "modifiers[optional]", "optional")
 
 
+def dart_command(project, out, context, entry, *flags):
+    return ["dart", "run", os.path.join(SCRIPTS, "report-dart.dart"), "--project", project,
+            "--context", context, "--entry", entry, "--out", out, *flags]
+
+
+def dart(tmp):
+    project = os.path.join(tmp, "dart")
+    write(project, {
+        "pubspec.yaml": "name: sample\nversion: 1.0.0\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/sample.dart": """import 'platform_stub.dart' if (dart.library.io) 'platform_io.dart';
+part 'sample_part.dart';
+
+typedef Callback = int Function(String label, {required int width});
+const int answer = 42;
+const String greeting = 'hi';
+const double ratio = 1.5;
+final List<String>? names = null;
+enum Color { red, green }
+const Color favorite = Color.green;
+abstract base class Shape<T extends num> {
+  Shape.named(this.size);
+  factory Shape.unit() => throw UnimplementedError();
+  final T size;
+  static int count = 0;
+  int get area;
+  set area(covariant int value) {}
+  T scale([T? by, int times = 2]) => size;
+  Future<Map<String, T>> group({required String key, Color color = Color.red}) async => {};
+  static Shape<int>? make<U extends Object>(U seed) => null;
+}
+mixin Labelled on Object, Comparable<int> {}
+extension Doubling<E> on List<E> {
+  List<E> doubled() => [...this, ...this];
+}
+extension on int {
+  int get twice => this * 2;
+}
+extension type Meters(double value) {}
+(int, {String name}) pair() => (1, name: 'x');
+void ignore(int _, String _) {}
+String platformName() => selected();
+""",
+        "lib/sample_part.dart": "part of 'sample.dart';\n\nint fromPart() => 1;\n",
+        "lib/platform_stub.dart": "String selected() => 'stub';\n",
+        "lib/platform_io.dart": "String selected() => 'io';\n",
+        "lib/src/hidden.dart": "class Hidden {}\n",
+        "bin/main.dart": "import 'package:sample/sample.dart';\n\nvoid main() => print(answer);\n",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "dart.json")
+    report, found = run("dart", dart_command(project, out, "analysis", "analysis"), project, out)
+    tree_unchanged(project, before)
+    assert report["release"].startswith("3."), report["release"]
+    path = "package:sample/sample.dart::"
+    expect(found, path + "Callback", "type", "int Function(String, {required int width})")
+    expect(found, path + "answer", "type", "int")
+    expect(found, path + "answer", "value", "42")
+    expect(found, path + "greeting", "value", '"hi"')
+    expect(found, path + "ratio", "value", "1.5")
+    expect(found, path + "favorite", "value", "@{package:sample/sample.dart::Color.green}")
+    expect(found, path + "names", "type", "@{dart:core::List}<String>?")
+    expect(found, path + "names", "modifiers[final]", "final")
+    expect(found, path + "Color.values", "type", "@{dart:core::List}<@{package:sample/sample.dart::Color}>")
+    expect(found, path + "Shape", "modifiers[abstract]", "abstract")
+    expect(found, path + "Shape", "modifiers[base]", "base")
+    expect(found, path + "Shape", "type-parameters[0].bounds", "num")
+    expect(found, path + "Shape.named", "parameters[0].type", "T")
+    expect(found, path + "Shape.size", "type", "T")
+    expect(found, path + "Shape.count", "modifiers[static]", "static")
+    expect(found, path + "Shape.area", "get.type", "int")
+    expect(found, path + "Shape.area", "set.type", "int")
+    expect(found, path + "Shape.area", "set.modifiers[covariant]", "covariant")
+    expect(found, path + "Shape.scale", "parameters[0].mode", "optional")
+    expect(found, path + "Shape.scale", "parameters[0].default", "null")
+    expect(found, path + "Shape.scale", "parameters[1].default", "2")
+    expect(found, path + "Shape.scale", "returns", "T")
+    expect(found, path + "Shape.group", "parameters[0].mode", "required-named")
+    assert "parameters[0].default" not in found[path + "Shape.group"]["slots"]
+    expect(found, path + "Shape.group", "parameters[1].default", "@{package:sample/sample.dart::Color.red}")
+    expect(found, path + "Shape.group", "returns", "@{dart:async::Future}<@{dart:core::Map}<String, T>>")
+    expect(found, path + "Shape.make", "returns", "@{package:sample/sample.dart::Shape}<int>?")
+    expect(found, path + "Shape.make", "type-parameters[0].bounds", "Object")
+    expect(found, path + "Shape.make", "modifiers[static]", "static")
+    assert "modifiers[static]" not in found[path + "pair"]["slots"]
+    expect(found, path + "Labelled", "bounds", "@{dart:core::Comparable}<int>, Object")
+    expect(found, path + "Doubling", "receiver", "@{dart:core::List}<E>")
+    expect(found, path + "Doubling", "type-parameters[0].name", "E")
+    expect(found, path + "Doubling.doubled", "returns", "@{dart:core::List}<E>")
+    expect(found, path + "extension#1", "receiver", "int")
+    expect(found, path + "extension#1.twice", "get.type", "int")
+    expect(found, path + "Meters", "underlying", "double")
+    expect(found, path + "pair", "returns", "(int, {String name})")
+    # A wildcard parameter binds no name.
+    assert "parameters[0].name" not in found[path + "ignore"]["slots"]
+    expect(found, path + "ignore", "parameters[1].type", "String")
+    expect(found, path + "fromPart", "returns", "int")
+    assert "package:sample/src/hidden.dart::Hidden" in found
+    assert "bin/main.dart::main" not in found
+    # A context's entry reaches the libraries its directives select.
+    out = os.path.join(tmp, "dart-vm.json")
+    _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "--library-flag", "dart.library.io"), project, out)
+    assert "bin/main.dart::main" in found and "package:sample/platform_io.dart::selected" in found, sorted(found)
+    assert "package:sample/platform_stub.dart::selected" not in found
+    assert "package:sample/src/hidden.dart::Hidden" not in found
+    tree_unchanged(project, before)
+
+
+def dart_build_failure(tmp):
+    project = os.path.join(tmp, "dart-broken")
+    write(project, {
+        "pubspec.yaml": "name: broken\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/broken.dart": "int x = 'text';\n",
+    })
+    out = os.path.join(tmp, "dart-broken.json")
+    with open(out, "w") as stale:
+        stale.write("{}")
+    failure(dart_command(project, out, "analysis", "analysis"), project, out, ["report-dart", "broken.dart"])
+    failure(dart_command(project, os.path.join(project, "out.json"), "analysis", "analysis"), project,
+            os.path.join(project, "out.json"), ["inside the project tree"])
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

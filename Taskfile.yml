@@ -163,6 +163,26 @@ tasks:
         --project {{shellQuote .PROJECT}} --tsconfig {{shellQuote .TSCONFIG}}
         --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
 
+  semantic-oracle:report:dart:
+    desc: Write a Dart compiler report from the analyzer's resolved element model
+    summary: |
+      Needs the Dart SDK; `dart pub get` fetches package:analyzer into
+      scripts/semantic-oracle. PROJECT, CONTEXT, ENTRY and OUT are required; ENTRY is the
+      context's `entry` parameter, `analysis` or a project-relative path. DEFINES and
+      LIBRARY_FLAGS, space-separated lists, are its `defines` and `library-flags`. OUT lies
+      outside the project tree. A library with an error exits nonzero and writes no report.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [PROJECT, CONTEXT, ENTRY, OUT]
+    cmds:
+      - dart pub get --directory {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle")}} >/dev/null
+      - >-
+        dart run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-dart.dart")}}
+        --project {{shellQuote .PROJECT}} --context {{shellQuote .CONTEXT}}
+        --entry {{shellQuote .ENTRY}} --out {{shellQuote .OUT}}
+        {{range $define := splitList " " (.DEFINES | default "")}}{{if $define}}--define {{shellQuote $define}} {{end}}{{end}}
+        {{range $flag := splitList " " (.LIBRARY_FLAGS | default "")}}{{if $flag}}--library-flag {{shellQuote $flag}} {{end}}{{end}}
+
   semantic-oracle:corpus:
     desc: Validate and audit the fixture corpus's adopted datasets
     summary: |
@@ -175,9 +195,10 @@ tasks:
   test:oracle-reports:
     desc: Run each compiler report script on a small project
     summary: |
-      Needs rustc and cargo, go, python3, node and the `typescript` module. A missing
-      toolchain fails this task. C# and Dart have no script until their toolchains exist.
+      Needs rustc and cargo, go, python3, node and the `typescript` module, and the Dart
+      SDK. A missing toolchain fails this task. C# has no script until its toolchain exists.
     cmds:
+      - dart pub get --directory scripts/semantic-oracle
       - python3 scripts/tests/semantic-oracle-reports.test.py
 
   test:action:
