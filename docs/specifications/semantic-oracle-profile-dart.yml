@@ -45,14 +45,17 @@ description: |
   | `platform` | `vm`, `js` or `wasm`: the compilation or execution platform. |
   | `entry` | The project-relative path of the entry point the command compiles or runs, or `analysis` for whole-package analysis. |
   | `defines` | The sorted `-D` environment declarations. |
-  | `library-flags` | The sorted `dart.library.*` configuration values that are true on the platform. |
+  | `library-flags` | The sorted `dart.library.*` configuration values that are true for the command: every library the platform's SDK provides for that command, as the SDK's `libraries.json` lists them, so `dart.library.core` too. Empty for `entry: analysis`. |
   | `options` | The sorted command options that change semantics, such as `--enable-asserts`. |
   | `release` | The release parameter: the Dart SDK release as `3.N`, which decides the SDK libraries' members, and so which instance or extension member a reference resolves to, at any language version. |
 
   Each `dart run`, `dart compile` or `dart test` command in the project's
   `build` and `test` tasks defines a context, unless another command defines
   the same parameter values. `dart analyze` defines one context with
-  `entry: analysis` and `platform: vm`.
+  `entry: analysis` and `platform: vm`, the analyzer's SDK. The analyzer
+  treats no `dart.library.*` value as true, so `library-flags` is empty and
+  each configurable directive selects its default URI unless a `-D` in
+  `defines` selects another.
 
   ## Units and distributions
 
@@ -261,9 +264,11 @@ description: |
 
   A URI string is a value site that spans the string contents without
   quotes; an observation spanning the quotes is accepted. In a configurable
-  import or export, each URI is a site; the directive's selected library in
-  the context is the target of the reference at the selected URI, and the
-  prefix's references target that library.
+  import or export, each URI is a site in every context, an `import`
+  reference to the library that URI names, whether or not the context
+  selects it: the directive depends on every library it can select. The
+  directive's selected library is the one the prefix's references, its
+  combinators and the export namespace follow.
 
   A constructor invocation targets the constructor entity; the class name
   token in `C.named()` is a `qualifier` to the class. Equivalence rule
