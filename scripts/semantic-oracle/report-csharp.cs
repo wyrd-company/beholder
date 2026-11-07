@@ -273,8 +273,9 @@ static class Report
     }
 
     /// A member's name in its path. An explicit interface implementation is
-    /// `<interface path>.<member>`, where the interface path is the interface's
-    /// type path, without type arguments.
+    /// `<interface>.<member>`, where the interface part is the implemented
+    /// interface's metadata type path with its type arguments, so that `I<int>.M`
+    /// and `I<string>.M` differ.
     static string MemberName(ISymbol member)
     {
         var implemented = member switch
@@ -286,7 +287,7 @@ static class Report
         };
         if (implemented is not null)
         {
-            return TypePath(implemented.ContainingType) + "." + MemberName(implemented);
+            return MetadataTypePath(implemented.ContainingType) + "." + MemberName(implemented);
         }
         return member switch
         {
@@ -584,6 +585,11 @@ static class Report
         if (member is IPropertySymbol { IsRequired: true } or IFieldSymbol { IsRequired: true })
         {
             yield return "required";
+        }
+        // A volatile field's metadata signature carries `volatile`.
+        if (member is IFieldSymbol { IsVolatile: true })
+        {
+            yield return "volatile";
         }
     }
 

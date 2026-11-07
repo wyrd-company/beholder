@@ -792,6 +792,13 @@ public sealed record Point(int X, int Y);
 
 public interface IAdditive<T> where T : IAdditive<T> { static abstract T operator +(T left, T right); }
 
+public sealed class Fields { public volatile int Count; }
+
+public readonly struct Vector : IAdditive<Vector>
+{
+    static Vector IAdditive<Vector>.operator +(Vector left, Vector right) => left;
+}
+
 public static class Extensions
 {
     public static int Twice(this int value) => value * 2;
@@ -846,6 +853,12 @@ public static class Extensions
     expect(found, path + "IAdditive`1", "type-parameters[0].bounds", "@{Sample.Shapes.IAdditive`1}<T>")
     expect(found, path + "IAdditive`1.op_Addition", "modifiers[abstract]", "abstract")
     expect(found, path + "IAdditive`1.op_Addition", "modifiers[static]", "static")
+    expect(found, path + "Fields.Count", "modifiers[volatile]", "volatile")
+    # An explicit implementation names its interface with the type arguments.
+    expect(found, path + "Vector.Sample.Shapes.IAdditive`1<Sample.Shapes.Vector>.op_Addition", "returns", "@{Sample.Shapes.Vector}")
+    # A record's compiler-declared equality operators.
+    expect(found, path + "Point.op_Equality", "parameters[0].type", "@{Sample.Shapes.Point}?")
+    expect(found, path + "Point.op_Inequality", "modifiers[static]", "static")
 
 
 def csharp_build_failure(tmp):
