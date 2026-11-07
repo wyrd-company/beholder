@@ -45,7 +45,7 @@ description: |
   | `platform` | `vm`, `js` or `wasm`: the compilation or execution platform. |
   | `entry` | The project-relative path of the entry point the command compiles or runs, or `analysis` for whole-package analysis. |
   | `defines` | The sorted `-D` environment declarations. |
-  | `library-flags` | The sorted `dart.library.*` configuration values that are true for the command: every library the platform's SDK provides for that command, as the SDK's `libraries.json` lists them, so `dart.library.core` too. Empty for `entry: analysis`. |
+  | `library-flags` | The sorted `dart.library.*` configuration values that are true for the command: every public library the platform's SDK provides for conditional import in that command, as the SDK's `libraries.json` lists them, so `dart.library.core` too and no `_` library. Empty for `entry: analysis`. |
   | `options` | The sorted command options that change semantics, such as `--enable-asserts`. |
   | `release` | The release parameter: the Dart SDK release as `3.N`, which decides the SDK libraries' members, and so which instance or extension member a reference resolves to, at any language version. |
 
@@ -264,11 +264,13 @@ description: |
 
   A URI string is a value site that spans the string contents without
   quotes; an observation spanning the quotes is accepted. In a configurable
-  import or export, each URI is a site in every context, an `import`
-  reference to the library that URI names, whether or not the context
-  selects it: the directive depends on every library it can select. The
-  directive's selected library is the one the prefix's references, its
-  combinators and the export namespace follow.
+  import or export, each URI is a site: an `import` reference, or an
+  `export` reference for an export directive, to the library that URI
+  names, in every context that builds that library, whether or not the
+  context selects that URI. Across its contexts, the directive so depends
+  on every library it can select. The directive's selected library is the
+  one the prefix's references, its combinators and the export namespace
+  follow.
 
   A constructor invocation targets the constructor entity; the class name
   token in `C.named()` is a `qualifier` to the class. Equivalence rule
