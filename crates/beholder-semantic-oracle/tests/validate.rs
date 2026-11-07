@@ -1353,8 +1353,11 @@ fn a_csharp_unit_root_is_no_public_api_member() {
     );
     let report = validate(&dataset, None);
     assert!(
-        report.findings.iter().any(|f| f.rule == "model:public-api-membership-recomputed"
-            && f.message.contains("Geometry.assembly")),
+        report
+            .findings
+            .iter()
+            .any(|f| f.rule == "model:public-api-membership-recomputed"
+                && f.message.contains("Geometry.assembly")),
         "{:#?}",
         report.findings
     );
