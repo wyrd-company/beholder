@@ -769,6 +769,17 @@ extension type Meters(double value) {}
 (int, {String name}) pair() => (1, name: 'x');
 void ignore(int _, String _) {}
 String platformName() => selected();
+class Base<T> {
+  T get x => throw 0;
+  set y(T value) {}
+}
+class Sub extends Base<int> {
+  set x(int value) {}
+  int get y => 0;
+}
+mixin class Both {}
+mixin OnObject on Object {}
+mixin Plain {}
 """,
         "lib/sample_part.dart": "part of 'sample.dart';\n\nint fromPart() => 1;\n",
         "lib/platform_stub.dart": "String selected() => 'stub';\n",
@@ -827,6 +838,18 @@ String platformName() => selected();
     assert "parameters[0].name" not in found[path + "ignore"]["slots"]
     expect(found, path + "ignore", "parameters[1].type", "String")
     expect(found, path + "fromPart", "returns", "int")
+    # An accessor half the class does not declare comes from its inherited
+    # interface, with the supertype's type arguments substituted.
+    expect(found, path + "Sub.x", "get.type", "int")
+    expect(found, path + "Sub.x", "set.type", "int")
+    expect(found, path + "Sub.y", "get.type", "int")
+    expect(found, path + "Sub.y", "set.type", "int")
+    expect(found, path + "Base.x", "get.type", "T")
+    assert "set.type" not in found[path + "Base.x"]["slots"]
+    expect(found, path + "Both", "modifiers[mixin]", "mixin")
+    # A written `on Object` is a bound; the implicit constraint is none.
+    expect(found, path + "OnObject", "bounds", "Object")
+    assert "bounds" not in found[path + "Plain"]["slots"]
     assert "package:sample/src/hidden.dart::Hidden" in found
     assert "bin/main.dart::main" not in found
     # A context's entry reaches the libraries its directives select.
@@ -835,6 +858,11 @@ String platformName() => selected();
     assert "bin/main.dart::main" in found and "package:sample/platform_io.dart::selected" in found, sorted(found)
     assert "package:sample/platform_stub.dart::selected" not in found
     assert "package:sample/src/hidden.dart::Hidden" not in found
+    # A js context resolves against the analyzer's SDK when the platform provides
+    # every `dart:` library the context reaches.
+    out = os.path.join(tmp, "dart-js.json")
+    _, found = run("dart", dart_command(project, out, "js", "bin/main.dart", "--platform", "js"), project, out)
+    assert "package:sample/platform_stub.dart::selected" in found, sorted(found)
     tree_unchanged(project, before)
 
 
@@ -848,6 +876,17 @@ def dart_build_failure(tmp):
     with open(out, "w") as stale:
         stale.write("{}")
     failure(dart_command(project, out, "analysis", "analysis"), project, out, ["report-dart", "broken.dart"])
+    # `dart compile js` rejects a library the js platform does not provide.
+    mirrors = os.path.join(tmp, "dart-mirrors")
+    write(mirrors, {
+        "pubspec.yaml": "name: mirrors\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/reflect.dart": "import 'dart:mirrors';\n\nString name(Object o) => reflect(o).toString();\n",
+        "bin/main.dart": "import 'package:mirrors/reflect.dart';\n\nvoid main() => print(name(1));\n",
+    })
+    out = os.path.join(tmp, "dart-mirrors-js.json")
+    failure(dart_command(mirrors, out, "js", "bin/main.dart", "--platform", "js"), mirrors, out, ["dart:mirrors", "js"])
+    out = os.path.join(tmp, "dart-mirrors-vm.json")
+    run("dart", dart_command(mirrors, out, "vm", "bin/main.dart", "--platform", "vm"), mirrors, out)
     failure(dart_command(project, os.path.join(project, "out.json"), "analysis", "analysis"), project,
             os.path.join(project, "out.json"), ["inside the project tree"])
 

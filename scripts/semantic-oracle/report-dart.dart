@@ -8,7 +8,8 @@
 /// analyzer's resolved element model.
 ///
 ///     dart run report-dart.dart --project DIR --context ID --entry ENTRY --out FILE
-///         [--define NAME=VALUE]... [--library-flag dart.library.NAME]...
+///         [--platform vm|js|wasm] [--define NAME=VALUE]...
+///         [--library-flag dart.library.NAME]...
 ///
 /// ENTRY is a context's `entry` parameter: `analysis` reports every library under
 /// `lib/`, and a project-relative path reports the libraries that entry reaches
@@ -17,6 +18,12 @@
 /// project has no `.dart_tool/package_config.json`, the script writes one for a
 /// project without dependencies to a temporary directory. A library with an error
 /// is an error: this script exits 2 and writes no report.
+///
+/// The analyzer resolves against its own SDK on every platform, because the SDK
+/// libraries a platform shares have the same public API. For `--platform js` or
+/// `wasm`, each `dart:` library the reached libraries import or export must be one
+/// the platform's target in the SDK's lib/libraries.json provides; the first that
+/// is not exits 2 with no report, as the compiler rejects it.
 library;
 
 import 'dart:convert';
@@ -24,6 +31,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -68,6 +76,9 @@ const bare = {
   'String',
   'void',
 };
+
+/// The mixins whose declaration writes an `on` clause.
+final writtenOnClause = <Element>{};
 
 /// The directory of a package configuration written outside the project tree.
 Directory? temporary;
@@ -314,17 +325,46 @@ void property(String path, PropertyInducingElement element) {
   }
   var getter = element.getter;
   var setter = element.setter;
-  if (getter != null && getter.isOriginDeclaration) {
-    found.slots['get.type'] = typeText(getter.returnType);
+  var declaredGetter = getter != null && getter.isOriginDeclaration;
+  var declaredSetter = setter != null && setter.isOriginDeclaration;
+  // Each half has its own type, and a half the class does not declare comes from
+  // its inherited interface, with the supertype's type arguments substituted.
+  var owner = element.enclosingElement;
+  ExecutableElement? inheritedGetter;
+  ExecutableElement? inheritedSetter;
+  if (owner is InterfaceElement && !element.isStatic) {
+    var name = element.name!;
+    if (!declaredGetter) {
+      inheritedGetter = owner.getInheritedMember(
+        Name.forLibrary(owner.library, name),
+      );
+    }
+    if (!declaredSetter) {
+      inheritedSetter = owner.getInheritedMember(
+        Name.forLibrary(owner.library, '$name='),
+      );
+    }
   }
-  if (setter != null && setter.isOriginDeclaration) {
+  if (declaredGetter) {
+    found.slots['get.type'] = typeText(getter.returnType);
+  } else if (inheritedGetter != null) {
+    found.slots['get.type'] = typeText(inheritedGetter.returnType);
+  }
+  var inheritedParameter = inheritedSetter?.formalParameters.firstOrNull;
+  if (!declaredSetter && inheritedParameter != null) {
+    found.slots['set.type'] = typeText(inheritedParameter.type);
+    if (inheritedParameter.isCovariant) {
+      found.slots['set.modifiers[covariant]'] = 'covariant';
+    }
+  }
+  if (declaredSetter) {
     var parameter = setter.formalParameters.firstOrNull;
     if (parameter != null) found.slots['set.type'] = typeText(parameter.type);
     if (parameter != null && parameter.isCovariant) {
       found.slots['set.modifiers[covariant]'] = 'covariant';
     }
   }
-  var accessor = getter != null && getter.isOriginDeclaration ? getter : setter;
+  var accessor = declaredGetter ? getter : (declaredSetter ? setter : null);
   if (accessor != null) {
     modifiers(found, [
       if (accessor.isAbstract) 'abstract',
@@ -375,14 +415,16 @@ void library(LibraryElement library) {
             if (element.isBase) 'base',
             if (element.isFinal) 'final',
             if (element.isInterface) 'interface',
+            if (element.isMixinClass) 'mixin',
             if (element.isSealed) 'sealed',
           ]);
         }
         if (element is MixinElement) {
           modifiers(found, [if (element.isBase) 'base']);
           var constraints = element.superclassConstraints;
-          if (!(constraints.length == 1 &&
-              constraints.single.isDartCoreObject)) {
+          // A mixin without an `on` clause has the implicit constraint Object, and
+          // no bounds; a written `on Object` is a bound.
+          if (writtenOnClause.contains(element)) {
             var texts = constraints.map(typeText).toList()..sort();
             found.slots['bounds'] = texts.join(', ');
           }
@@ -401,6 +443,28 @@ void library(LibraryElement library) {
         property('$uri::${element.name}', element);
     }
   }
+}
+
+/// The `dart:` libraries a target of the SDK's lib/libraries.json provides,
+/// with the targets it includes.
+Set<String> platformLibraries(String target) {
+  var sdk = p.dirname(p.dirname(Platform.resolvedExecutable));
+  var file = File(p.join(sdk, 'lib', 'libraries.json'));
+  if (!file.existsSync()) fail('the SDK has no ${file.path}');
+  var specification = jsonDecode(file.readAsStringSync()) as Map;
+  Set<String> collect(String name) {
+    var section = specification[name];
+    if (section is! Map) fail('libraries.json has no target `$name`');
+    var found = <String>{
+      ...((section['libraries'] as Map?) ?? const {}).keys.cast<String>(),
+    };
+    for (var include in (section['include'] as List?) ?? const []) {
+      found.addAll(collect((include as Map)['target'] as String));
+    }
+    return found;
+  }
+
+  return collect(target);
 }
 
 String? argument(List<String> arguments, String name) {
@@ -473,6 +537,17 @@ Future<void> main(List<String> arguments) async {
       ).firstMatch(pubspec.readAsStringSync())?[1] ??
       fail('pubspec.yaml has no name');
 
+  // The analyzer resolves against its own SDK, whose shared libraries have the
+  // same public API on every platform. A js or wasm context's libraries must
+  // also be ones that platform provides, or the command would not compile.
+  var platform = argument(arguments, 'platform') ?? 'vm';
+  var provided = switch (platform) {
+    'vm' => null,
+    'js' => platformLibraries('dart2js'),
+    'wasm' => platformLibraries('wasm'),
+    _ => fail('--platform $platform is not vm, js or wasm'),
+  };
+
   var declared = <String, String>{};
   for (var define in repeated(arguments, 'define')) {
     var at = define.indexOf('=');
@@ -532,6 +607,15 @@ Future<void> main(List<String> arguments) async {
         }
       }
     }
+    for (var unit in result.units) {
+      for (var declaration
+          in unit.unit.declarations.whereType<MixinDeclaration>()) {
+        var mixin = declaration.declaredFragment?.element;
+        if (declaration.onClause != null && mixin != null) {
+          writtenOnClause.add(mixin);
+        }
+      }
+    }
     var element = result.element;
     reported.add(element);
     if (entry == 'analysis') continue;
@@ -542,6 +626,14 @@ Future<void> main(List<String> arguments) async {
       ];
       for (var library in reached.nonNulls) {
         var uri = library.uri;
+        if (uri.scheme == 'dart' && provided != null) {
+          if (!provided.contains(uri.path)) {
+            fail(
+              '${p.relative(path, from: project)} reaches dart:${uri.path}, '
+              'which the $platform platform does not provide',
+            );
+          }
+        }
         var file = library.firstFragment.source.fullName;
         if (uri.scheme != 'dart' && p.isWithin(project, file))
           pending.add(p.normalize(file));

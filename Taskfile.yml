@@ -169,7 +169,8 @@ tasks:
       Needs the Dart SDK; `dart pub get` fetches package:analyzer into
       scripts/semantic-oracle. PROJECT, CONTEXT, ENTRY and OUT are required; ENTRY is the
       context's `entry` parameter, `analysis` or a project-relative path. DEFINES and
-      LIBRARY_FLAGS, space-separated lists, are its `defines` and its complete `library-flags`. OUT lies
+      LIBRARY_FLAGS, space-separated lists, are its `defines` and its complete `library-flags`,
+      and PLATFORM its `platform`, `vm` by default. OUT lies
       outside the project tree. A library with an error exits nonzero and writes no report.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
@@ -180,6 +181,7 @@ tasks:
         dart run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-dart.dart")}}
         --project {{shellQuote .PROJECT}} --context {{shellQuote .CONTEXT}}
         --entry {{shellQuote .ENTRY}} --out {{shellQuote .OUT}}
+        --platform {{shellQuote (.PLATFORM | default "vm")}}
         {{range $define := splitList " " (.DEFINES | default "")}}{{if $define}}--define {{shellQuote $define}} {{end}}{{end}}
         {{range $flag := splitList " " (.LIBRARY_FLAGS | default "")}}{{if $flag}}--library-flag {{shellQuote $flag}} {{end}}{{end}}
 
