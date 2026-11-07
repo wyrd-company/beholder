@@ -2007,11 +2007,17 @@ fn a_report_must_run_under_the_contexts_release() {
     for release in ["1.98.0", "1.9", "1.990"] {
         let audited = audited_with(Some(release));
         let found = compiler_findings(&audited);
-        assert!(found.iter().any(|f| f.contains("ran under release")), "{release}: {found:#?}");
+        assert!(
+            found.iter().any(|f| f.contains("ran under release")),
+            "{release}: {found:#?}"
+        );
         assert_eq!(audited.agreed, 0, "{release}");
     }
     let found = compiler_findings(&audited_with(None));
-    assert!(found.iter().any(|f| f.contains("states no `release`")), "{found:#?}");
+    assert!(
+        found.iter().any(|f| f.contains("states no `release`")),
+        "{found:#?}"
+    );
 }
 
 #[test]
