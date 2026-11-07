@@ -135,6 +135,10 @@ description: |
     Two parameter lists that the language lets overload each other have
     different paths, so each overload keeps its own identity.
 
+    A generic method's name in a parameter list path appends ``` ``n ``` for its
+    type parameter count, as metadata does, because `M()` and `M<T>()` can
+    overload each other: `Geometry.Shape.Map``1(``0)`.
+
     A parameter keeps a `ref `, `out `, `in ` or `ref readonly ` prefix, one
     space after the keyword, and drops `params`, `scoped` and an extension
     method's `this`, by which no overload can differ. A canonical metadata
@@ -144,7 +148,7 @@ description: |
     | --- | --- | --- |
     | Named type | Its path, with `` `n `` for its arity | `System.Int32`, `Geometry.Grid`1` |
     | Constructed generic type | The path, then its type arguments in `<>` separated by `,`. A type nested in a generic type takes every type argument, outer ones first, on the nested type, as metadata does | `System.Func`2<System.Int32,System.String>`, `Geometry.Outer`1.Inner`1<System.Int32,System.String>` |
-    | Type parameter | Its declared name | `T` |
+    | Type parameter | Its position, not its name, so that renaming a type parameter keeps the member's identity: `` `n `` for the containing types' type parameters, counted from 0 across every enclosing type, outer first, and ``` ``n ``` for the method's own | `` `0 `` for `T` of `Grid<T>`, ``` ``0 ``` for `U` of `M<U>(U)` |
     | Keyword type | Its metadata type; `dynamic` is `System.Object`, and `nint` and `nuint` are `System.IntPtr` and `System.UIntPtr` | `System.String` for `string` |
     | Nullable value type | `System.Nullable`1<...>` | `System.Nullable`1<System.Int32>` for `int?` |
     | Nullable reference type | The annotation is dropped | `System.String` for `string?` |
