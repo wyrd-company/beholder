@@ -425,16 +425,26 @@ def modules_under(paths, prefix=""):
             yield from modules_under(list(package.__path__), f"{found.name}.")
 
 
+REEXEC = "SEMANTIC_ORACLE_REPORT_PYTHON"
+
+
 def run_under(version):
-    """Continues under the context's interpreter, whichever one started this script."""
-    running = f"{sys.version_info.major}.{sys.version_info.minor}"
+    """Continues under the context's interpreter, whichever one started this script.
+    `version` is `3.N` or `3.N.P`, and is compared at the precision it is written in;
+    `python3.N` is the interpreter that can answer for either."""
+    parts = version.split(".")
+    running = ".".join(str(part) for part in sys.version_info[: len(parts)])
     if running == version:
         return
-    interpreter = shutil.which(f"python{version}")
-    if interpreter is None:
-        print(f"report-python: the context's interpreter python{version} is absent", file=sys.stderr)
+    minor = ".".join(parts[:2])
+    if os.environ.get(REEXEC) == version:
+        print(f"report-python: python{minor} is {platform.python_version()}, not the context's {version}", file=sys.stderr)
         sys.exit(2)
-    os.execv(interpreter, [interpreter, "-B", os.path.abspath(__file__), *sys.argv[1:]])
+    interpreter = shutil.which(f"python{minor}")
+    if interpreter is None:
+        print(f"report-python: the context's interpreter python{minor} is absent", file=sys.stderr)
+        sys.exit(2)
+    os.execve(interpreter, [interpreter, "-B", os.path.abspath(__file__), *sys.argv[1:]], {**os.environ, REEXEC: version})
 
 
 def main():
