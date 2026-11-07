@@ -568,6 +568,47 @@ var Used = q.Accept(p.T{})
     expect(found, "example.com/graph/p_test.Used", "type", "bool")
 
 
+def go_test_binaries(tmp):
+    """Each test binary's graph holds the variants it links, and no other package.
+    `p`'s tests give `T` a method `M`. `q`, which no test of `p` links, embeds `T`
+    beside another `M`, and declares an interface `T` would implement; `r`, which
+    `p`'s external test links, declares another."""
+    project = os.path.join(tmp, "go-binaries")
+    write(project, {
+        "go.mod": "module example.com/binaries\n\ngo 1.21\n",
+        "p/p.go": "package p\n\ntype T struct{}\n",
+        "p/p_test.go": "package p\n\nfunc (T) M() {}\n",
+        "p/x_test.go": "package p_test\n\nimport \"example.com/binaries/r\"\n\nvar _ = r.R{}\n",
+        "q/q.go": """package q
+
+import "example.com/binaries/p"
+
+type I interface{ M() }
+type O struct{}
+
+func (O) M() {}
+
+type S struct {
+	p.T
+	O
+}
+
+func F(s S) { s.M() }
+""",
+        "r/r.go": "package r\n\nimport \"example.com/binaries/p\"\n\ntype Mer interface{ M() }\ntype R struct{ p.T }\n",
+    })
+    t = "example.com/binaries/p.T"
+    found = {}
+    for mode in ("build", "test"):
+        out = os.path.join(tmp, f"go-binaries-{mode}.json")
+        _, found[mode] = run(f"go-binaries-{mode}", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", mode, "-mode", mode, "-out", out], project, out)
+    assert not any(slot.startswith("bases") for slot in found["build"][t]["slots"]), found["build"][t]
+    # In `p.test`, `T` has `M` and `r` is linked; `q` is not.
+    expect(found["test"], t, "bases[@{example.com/binaries/r.Mer}].type", "@{example.com/binaries/r.Mer}")
+    assert "bases[@{example.com/binaries/q.I}].type" not in found["test"][t]["slots"], found["test"][t]
+    expect(found["test"], t + ".M", "receiver", "@{" + t + "}")
+
+
 def python(tmp):
     project = os.path.join(tmp, "python")
     write(project, {
@@ -810,7 +851,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

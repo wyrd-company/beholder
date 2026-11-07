@@ -36,15 +36,18 @@ import (
 	"strings"
 )
 
+// listed is one package of `go list -deps [-test] -json`. A test binary's
+// variants carry the binary in their import path, as `p [p.test]`, and
+// `ImportMap` names the variant each import resolves to.
 type listed struct {
-	Dir          string
-	ImportPath   string
-	Name         string
-	GoFiles      []string
-	CgoFiles     []string
-	TestGoFiles  []string
-	XTestGoFiles []string
-	Deps         []string
+	Dir        string
+	ImportPath string
+	Name       string
+	GoFiles    []string
+	CgoFiles   []string
+	Deps       []string
+	ImportMap  map[string]string
+	Module     *struct{ Main bool }
 }
 
 type member struct {
@@ -307,97 +310,67 @@ func typeSlots(path string, object *types.TypeName) {
 	}
 }
 
-// project type-checks the project's packages from source, so that one package's
-// types are the same objects in every package that imports it.
+// project type-checks the project's packages from source, each variant once, so
+// that a package's types are one set of objects in every package that imports
+// that variant.
 type project struct {
 	fileset  *token.FileSet
 	fallback types.Importer
 	units    map[string]listed
-	plain    map[string]*types.Package
-	failed   map[string]error
-}
-
-func (p *project) Import(path string) (*types.Package, error) {
-	if unit, ok := p.units[path]; ok {
-		return p.plainPackage(unit)
-	}
-	return p.fallback.Import(path)
-}
-
-// plainPackage is a package as a build compiles it, without its tests.
-func (p *project) plainPackage(unit listed) (*types.Package, error) {
-	if checked, ok := p.plain[unit.ImportPath]; ok {
-		return checked, nil
-	}
-	if err, ok := p.failed[unit.ImportPath]; ok {
-		return nil, err
-	}
-	checked, err := p.check(unit.ImportPath, unit.Dir, p, unit.GoFiles, unit.CgoFiles)
-	if err != nil {
-		p.failed[unit.ImportPath] = err
-		return nil, err
-	}
-	p.plain[unit.ImportPath] = checked
-	return checked, nil
-}
-
-// graph is the package graph of one test binary, as `go test` builds it: the
-// tested package with its in-package test files, and every project package that
-// imports it rebuilt against that variant, so that each package's types are one
-// set of objects within the graph. Other packages are their build variants.
-type graph struct {
-	project  *project
-	tested   string
-	variant  *types.Package
-	rebuilt  map[string]*types.Package
+	checked  map[string]*types.Package
 	building map[string]bool
 }
 
-func (g *graph) Import(path string) (*types.Package, error) {
-	if path == g.tested {
-		return g.variant, nil
+// importing resolves one package's imports to the variants its binary uses.
+type importing struct {
+	project *project
+	unit    listed
+}
+
+func (i importing) Import(path string) (*types.Package, error) {
+	if variant, ok := i.unit.ImportMap[path]; ok {
+		path = variant
 	}
-	unit, ok := g.project.units[path]
-	if !ok || !dependsOn(unit, g.tested) {
-		return g.project.Import(path)
+	if _, ok := i.project.units[path]; ok {
+		return i.project.load(path)
 	}
-	if checked, ok := g.rebuilt[path]; ok {
+	return i.project.fallback.Import(path)
+}
+
+// load type-checks the package `go list` lists as `id`, with the files that
+// variant compiles: a test variant's `GoFiles` hold its `_test.go` files.
+func (p *project) load(id string) (*types.Package, error) {
+	if checked, ok := p.checked[id]; ok {
 		return checked, nil
 	}
-	if g.building[path] {
-		return nil, fmt.Errorf("import cycle through %s", path)
+	if p.building[id] {
+		return nil, fmt.Errorf("import cycle through %s", id)
 	}
-	g.building[path] = true
-	checked, err := g.project.check(unit.ImportPath, unit.Dir, g, unit.GoFiles, unit.CgoFiles)
+	p.building[id] = true
+	unit := p.units[id]
+	files := []*ast.File{}
+	for _, name := range append(append([]string{}, unit.GoFiles...), unit.CgoFiles...) {
+		file, err := parser.ParseFile(p.fileset, filepath.Join(unit.Dir, name), nil, 0)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	config := types.Config{Importer: importing{p, unit}, FakeImportC: true}
+	checked, err := config.Check(packagePath(id), p.fileset, files, nil)
 	if err != nil {
 		return nil, err
 	}
-	g.rebuilt[path] = checked
+	p.checked[id] = checked
 	return checked, nil
 }
 
-func dependsOn(unit listed, path string) bool {
-	for _, dependency := range unit.Deps {
-		if dependency == path {
-			return true
-		}
+// packagePath is a variant's import path, without its ` [p.test]` binary.
+func packagePath(id string) string {
+	if i := strings.Index(id, " ["); i >= 0 {
+		return id[:i]
 	}
-	return false
-}
-
-func (p *project) check(path, dir string, imports types.Importer, groups ...[]string) (*types.Package, error) {
-	files := []*ast.File{}
-	for _, group := range groups {
-		for _, name := range group {
-			file, err := parser.ParseFile(p.fileset, filepath.Join(dir, name), nil, 0)
-			if err != nil {
-				return nil, err
-			}
-			files = append(files, file)
-		}
-	}
-	config := types.Config{Importer: imports, FakeImportC: true}
-	return config.Check(path, p.fileset, files, nil)
+	return id
 }
 
 // state states the slots of a package's members.
@@ -558,7 +531,11 @@ func main() {
 		}
 		os.Remove(absolute)
 	}
-	arguments := []string{"list", "-json", "-e"}
+	testing := *mode == "test"
+	arguments := []string{"list", "-json", "-e", "-deps"}
+	if testing {
+		arguments = append(arguments, "-test")
+	}
 	if *tags != "" {
 		arguments = append(arguments, "-tags", *tags)
 		// The source importer reads dependencies under the same tags.
@@ -576,8 +553,8 @@ func main() {
 		fileset:  fileset,
 		fallback: importer.ForCompiler(fileset, "source", nil),
 		units:    map[string]listed{},
-		plain:    map[string]*types.Package{},
-		failed:   map[string]error{},
+		checked:  map[string]*types.Package{},
+		building: map[string]bool{},
 	}
 	order := []listed{}
 	for decoder.More() {
@@ -586,72 +563,66 @@ func main() {
 			fmt.Fprintln(os.Stderr, "go list:", err)
 			os.Exit(2)
 		}
+		// Only the main module's packages are the project's; others come from the
+		// source importer.
+		if unit.Module == nil || !unit.Module.Main {
+			continue
+		}
 		checker.units[unit.ImportPath] = unit
 		order = append(order, unit)
 	}
 	// A package that fails to type-check stops the report: nothing it would
 	// state was checked.
-	stop := func(path string, err error) {
-		fmt.Fprintln(os.Stderr, "report-go:", path+":", err)
-		os.Exit(2)
+	load := func(id string) *types.Package {
+		checked, err := checker.load(id)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "report-go:", id+":", err)
+			os.Exit(2)
+		}
+		return checked
 	}
-	testing := *mode == "test"
-	// The build graph: every package as a build compiles it.
+	// A test binary is the package `p.test` that `go list -test` adds for `p`.
+	binaries := []listed{}
 	built := []*types.Package{}
 	for _, unit := range order {
+		if strings.Contains(unit.ImportPath, " [") {
+			continue
+		}
+		if _, isBinary := checker.units[strings.TrimSuffix(unit.ImportPath, ".test")]; testing && isBinary && strings.HasSuffix(unit.ImportPath, ".test") && unit.Name == "main" {
+			binaries = append(binaries, unit)
+			continue
+		}
 		if len(unit.GoFiles)+len(unit.CgoFiles) == 0 {
 			continue
 		}
-		checked, err := checker.plainPackage(unit)
-		if err != nil {
-			stop(unit.ImportPath, err)
-		}
+		checked := load(unit.ImportPath)
 		built = append(built, checked)
-		if unit.Name != "main" && !(testing && len(unit.TestGoFiles) > 0) {
+		// A command's members are no consumer's, but its interfaces are the
+		// project's. In mode test, a package with a test variant states that.
+		_, tested := checker.units[unit.ImportPath+" ["+unit.ImportPath+".test]"]
+		if unit.Name != "main" && !tested {
 			state(checked)
 		}
 	}
+	// The build graph: every package as a build compiles it.
 	bases(built)
-	if testing {
-		// One graph per test binary. A relation in the context is one in any of them.
-		for _, unit := range order {
-			if unit.Name == "main" || len(unit.TestGoFiles)+len(unit.XTestGoFiles) == 0 {
+	// One graph per test binary, of exactly the variants it links. A relation in
+	// the context is one in any graph.
+	for _, binary := range binaries {
+		tested := strings.TrimSuffix(binary.ImportPath, ".test")
+		suffix := " [" + binary.ImportPath + "]"
+		universe := []*types.Package{}
+		for _, id := range binary.Deps {
+			if _, ok := checker.units[id]; !ok {
 				continue
 			}
-			tested := &graph{project: checker, tested: unit.ImportPath, rebuilt: map[string]*types.Package{}, building: map[string]bool{}}
-			if len(unit.TestGoFiles) > 0 {
-				tested.variant, err = checker.check(unit.ImportPath, unit.Dir, checker, unit.GoFiles, unit.CgoFiles, unit.TestGoFiles)
-				if err != nil {
-					stop(unit.ImportPath, err)
-				}
-				state(tested.variant)
-			} else if len(unit.GoFiles)+len(unit.CgoFiles) > 0 {
-				// With no in-package test file, the tested package is its build variant.
-				tested.variant = checker.plain[unit.ImportPath]
+			checked := load(id)
+			universe = append(universe, checked)
+			if checked.Name() != "main" && (id == tested+suffix || id == tested+"_test"+suffix) {
+				state(checked)
 			}
-			universe := []*types.Package{}
-			for _, other := range order {
-				if len(other.GoFiles)+len(other.CgoFiles) == 0 && other.ImportPath != unit.ImportPath {
-					continue
-				}
-				checked, err := tested.Import(other.ImportPath)
-				if err != nil {
-					stop(other.ImportPath, err)
-				}
-				if checked != nil {
-					universe = append(universe, checked)
-				}
-			}
-			if len(unit.XTestGoFiles) > 0 {
-				external, err := checker.check(unit.ImportPath+"_test", unit.Dir, tested, unit.XTestGoFiles)
-				if err != nil {
-					stop(unit.ImportPath+"_test", err)
-				}
-				state(external)
-				universe = append(universe, external)
-			}
-			bases(universe)
 		}
+		bases(universe)
 	}
 	paths := make([]string, 0, len(members))
 	for path := range members {

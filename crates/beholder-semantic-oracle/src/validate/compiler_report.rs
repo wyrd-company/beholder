@@ -37,7 +37,7 @@ use super::{list, text, Checker, Class, ContextCounts, Contexts, Unchecked};
 use crate::{
     canonical::{
         canonical_auto_trait, canonical_key_types, canonicalize, canonicalize_bounds,
-        named_id_spans, PathsAreIds,
+        closing_bracket, named_id_spans, PathsAreIds,
     },
     signature::{slots, SlotClass},
 };
@@ -151,7 +151,7 @@ fn canonical_key(language: &str, path: &str) -> String {
             .find(|open| at_segment && rest.starts_with(open));
         if let Some(open) = keyed {
             let body = &rest[open.len()..];
-            let end = closing_bracket(body).unwrap_or(body.len());
+            let end = closing_bracket(language, body).unwrap_or(body.len());
             out.push_str(open);
             out.push_str(&canonical_key_types(language, &body[..end], &PathsAreIds));
             out.push(']');
@@ -164,28 +164,6 @@ fn canonical_key(language: &str, path: &str) -> String {
         rest = &rest[c.len_utf8()..];
     }
     out
-}
-
-/// The byte index of the `]` that closes a key, past nested brackets and string
-/// literals.
-fn closing_bracket(body: &str) -> Option<usize> {
-    let mut depth = 0usize;
-    let mut quote: Option<char> = None;
-    let mut escaped = false;
-    for (i, c) in body.char_indices() {
-        match (quote, c) {
-            (Some(_), _) if escaped => escaped = false,
-            (Some(_), '\\') => escaped = true,
-            (Some(open), _) if c == open => quote = None,
-            (Some(_), _) => {}
-            (None, '"' | '`') => quote = Some(c),
-            (None, '[') => depth += 1,
-            (None, ']') if depth == 0 => return Some(i),
-            (None, ']') => depth -= 1,
-            _ => {}
-        }
-    }
-    None
 }
 
 /// Whether a report's release is the context's: equal, or the context's value
@@ -577,5 +555,26 @@ impl<'a> Checker<'a> {
         for message in problems {
             self.error(RULE, "/public-api/signatures".into(), message);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::canonical_key;
+
+    /// A key holding a single-quoted literal ends at its own bracket, and is the
+    /// double-quoted key.
+    #[test]
+    fn a_key_with_a_single_quoted_literal_is_one_key() {
+        for language in ["typescript", "python"] {
+            let single = canonical_key(language, "bases[@{B}<'a]b'>].type");
+            assert_eq!(single, canonical_key(language, "bases[@{B}<\"a]b\">].type"));
+            assert!(single.ends_with("].type"), "{single}");
+            assert_eq!(single.matches(']').count(), 2, "{single}");
+        }
+        assert_eq!(
+            canonical_key("rust", "bases[@{T}<'a>].where"),
+            "bases[@{T}<'a>].where"
+        );
     }
 }

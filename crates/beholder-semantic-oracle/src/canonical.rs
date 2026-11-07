@@ -354,6 +354,31 @@ fn blank_single_quoted(text: &str) -> String {
     out
 }
 
+/// The byte index of the `]` that closes a slot key, past nested brackets and the
+/// language's literals: a single-quoted string in TypeScript and Python, and a
+/// `char` in Rust, whose `'a` is a lifetime.
+pub fn closing_bracket(language: &str, body: &str) -> Option<usize> {
+    let source = if matches!(language, "typescript" | "python") {
+        blank_single_quoted(body)
+    } else {
+        body.to_owned()
+    };
+    let mut lexer = Lexeme::lexer(&source);
+    let mut depth = 0usize;
+    while let Some(lexeme) = lexer.next() {
+        if lexeme != Ok(Lexeme::Other) {
+            continue;
+        }
+        match lexer.slice() {
+            "[" => depth += 1,
+            "]" if depth == 0 => return Some(lexer.span().start),
+            "]" => depth -= 1,
+            _ => {}
+        }
+    }
+    None
+}
+
 /// The canonical spelling of each comma-separated type of a slot key, such as a
 /// `bases` key's type and self type, with its names as written.
 pub fn canonical_key_types(language: &str, key: &str, names: &dyn NameResolver) -> String {
@@ -1732,6 +1757,24 @@ mod tests {
                 canonicalize("rust", "@{X}<T>", &PathsAreIds).text
             )
         );
+    }
+
+    #[test]
+    fn a_key_ends_at_its_own_bracket() {
+        let key = "@{B}<'a]b'>].type";
+        assert_eq!(closing_bracket("typescript", key), Some(11));
+        assert_eq!(closing_bracket("python", "@{B}['a]b']].type"), Some(11));
+        assert_eq!(
+            closing_bracket("typescript", "@{B}<\"a]b\">].type"),
+            Some(11)
+        );
+        assert_eq!(closing_bracket("go", "@{p.I}[int]].type"), Some(11));
+        // A lifetime opens no literal, and a `char` is one.
+        assert_eq!(
+            closing_bracket("rust", "@{T}<'a, [u8; 2]>].where"),
+            Some(17)
+        );
+        assert_eq!(closing_bracket("rust", "@{T}<']'>].where"), Some(9));
     }
 
     #[test]
