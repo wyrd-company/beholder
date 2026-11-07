@@ -728,9 +728,11 @@ export function dflt(first: number = 1, second: string): string { return second;
     expect(found, path + "Shape.label", "modifiers[optional]", "optional")
 
 
-def dart_command(project, out, context, entry, *flags):
+def dart_command(project, out, context, entry, platform, *flags):
+    """`platform` is required; None leaves `--platform` out."""
+    platform_flags = [] if platform is None else ["--platform", platform]
     return ["dart", "run", os.path.join(SCRIPTS, "report-dart.dart"), "--project", project,
-            "--context", context, "--entry", entry, "--out", out, *flags]
+            "--context", context, "--entry", entry, "--out", out, *platform_flags, *flags]
 
 
 def dart(tmp):
@@ -746,6 +748,13 @@ const String greeting = 'hi';
 const double ratio = 1.5;
 final List<String>? names = null;
 enum Color { red, green }
+enum Level {
+  low(1), high(2);
+  const Level(this.n);
+  const Level.named() : n = 0;
+  factory Level.of(int n) => n > 1 ? high : low;
+  final int n;
+}
 const Color favorite = Color.green;
 abstract base class Shape<T extends num> {
   Shape.named(this.size);
@@ -789,7 +798,7 @@ mixin Plain {}
     })
     before = listing(project)
     out = os.path.join(tmp, "dart.json")
-    report, found = run("dart", dart_command(project, out, "analysis", "analysis"), project, out)
+    report, found = run("dart", dart_command(project, out, "analysis", "analysis", "vm"), project, out)
     tree_unchanged(project, before)
     assert report["release"].startswith("3."), report["release"]
     path = "package:sample/sample.dart::"
@@ -802,6 +811,14 @@ mixin Plain {}
     expect(found, path + "names", "type", "@{dart:core::List}<String>?")
     expect(found, path + "names", "modifiers[final]", "final")
     expect(found, path + "Color.values", "type", "@{dart:core::List}<@{package:sample/sample.dart::Color}>")
+    # An enum value's index is its position in `values`.
+    expect(found, path + "Color.red", "index", "0")
+    expect(found, path + "Color.green", "index", "1")
+    expect(found, path + "Level.high", "index", "1")
+    # A consumer can neither call nor tear off an enum's generative constructor;
+    # it can a factory constructor.
+    assert path + "Level.new" not in found and path + "Level.named" not in found, sorted(found)
+    expect(found, path + "Level.of", "parameters[0].type", "int")
     expect(found, path + "Shape", "modifiers[abstract]", "abstract")
     expect(found, path + "Shape", "modifiers[base]", "base")
     expect(found, path + "Shape", "type-parameters[0].bounds", "num")
@@ -854,14 +871,14 @@ mixin Plain {}
     assert "bin/main.dart::main" not in found
     # A context's entry reaches the libraries its directives select.
     out = os.path.join(tmp, "dart-vm.json")
-    _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "--library-flag", "dart.library.io"), project, out)
+    _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm", "--library-flag", "dart.library.io"), project, out)
     assert "bin/main.dart::main" in found and "package:sample/platform_io.dart::selected" in found, sorted(found)
     assert "package:sample/platform_stub.dart::selected" not in found
     assert "package:sample/src/hidden.dart::Hidden" not in found
     # A js context resolves against the analyzer's SDK when the platform provides
     # every `dart:` library the context reaches.
     out = os.path.join(tmp, "dart-js.json")
-    _, found = run("dart", dart_command(project, out, "js", "bin/main.dart", "--platform", "js"), project, out)
+    _, found = run("dart", dart_command(project, out, "js", "bin/main.dart", "js"), project, out)
     assert "package:sample/platform_stub.dart::selected" in found, sorted(found)
     tree_unchanged(project, before)
 
@@ -875,7 +892,7 @@ def dart_build_failure(tmp):
     out = os.path.join(tmp, "dart-broken.json")
     with open(out, "w") as stale:
         stale.write("{}")
-    failure(dart_command(project, out, "analysis", "analysis"), project, out, ["report-dart", "broken.dart"])
+    failure(dart_command(project, out, "analysis", "analysis", "vm"), project, out, ["report-dart", "broken.dart"])
     # `dart compile js` rejects a library the js platform does not provide.
     mirrors = os.path.join(tmp, "dart-mirrors")
     write(mirrors, {
@@ -884,11 +901,75 @@ def dart_build_failure(tmp):
         "bin/main.dart": "import 'package:mirrors/reflect.dart';\n\nvoid main() => print(name(1));\n",
     })
     out = os.path.join(tmp, "dart-mirrors-js.json")
-    failure(dart_command(mirrors, out, "js", "bin/main.dart", "--platform", "js"), mirrors, out, ["dart:mirrors", "js"])
+    failure(dart_command(mirrors, out, "js", "bin/main.dart", "js"), mirrors, out, ["dart:mirrors", "js"])
     out = os.path.join(tmp, "dart-mirrors-vm.json")
-    run("dart", dart_command(mirrors, out, "vm", "bin/main.dart", "--platform", "vm"), mirrors, out)
-    failure(dart_command(project, os.path.join(project, "out.json"), "analysis", "analysis"), project,
+    run("dart", dart_command(mirrors, out, "vm", "bin/main.dart", "vm"), mirrors, out)
+    # A platform is never assumed: a js context left without one would pass as vm.
+    out = os.path.join(tmp, "dart-mirrors-none.json")
+    failure(dart_command(mirrors, out, "js", "bin/main.dart", None), mirrors, out, ["missing --platform"])
+    failure(dart_command(project, os.path.join(project, "out.json"), "analysis", "analysis", "vm"), project,
             os.path.join(project, "out.json"), ["inside the project tree"])
+
+
+def dart_dependency_platform(tmp):
+    """The platform check reads the packages a project depends on; members are
+    reported for project libraries only."""
+    dep = os.path.join(tmp, "dart-dep")
+    write(dep, {
+        "pubspec.yaml": "name: dep\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/dep.dart": "import 'dart:mirrors';\n\nString name(Object o) => reflect(o).toString();\n",
+    })
+    project = os.path.join(tmp, "dart-uses-dep")
+    write(project, {
+        "pubspec.yaml": "name: user\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n"
+                        f"dependencies:\n  dep:\n    path: {dep}\n",
+        "bin/main.dart": "import 'package:dep/dep.dart';\n\nvoid main() => print(name(1));\n",
+    })
+    subprocess.run(["dart", "pub", "get", "--offline"], cwd=project, check=True, capture_output=True)
+    out = os.path.join(tmp, "dart-dep-js.json")
+    failure(dart_command(project, out, "js", "bin/main.dart", "js"), project, out,
+            ["package:dep/dep.dart", "dart:mirrors", "js"])
+    out = os.path.join(tmp, "dart-dep-wasm.json")
+    failure(dart_command(project, out, "wasm", "bin/main.dart", "wasm"), project, out, ["dart:mirrors", "wasm"])
+    out = os.path.join(tmp, "dart-dep-vm.json")
+    _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out)
+    assert "bin/main.dart::main" in found, sorted(found)
+    assert not any(path.startswith("package:dep/") for path in found), sorted(found)
+
+
+def dart_dataset_agreement(tmp):
+    """A report checks its arguments against the dataset's context parameters."""
+    project = os.path.join(tmp, "dart-dataset")
+    write(project, {
+        "pubspec.yaml": "name: agreed\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "bin/main.dart": "void main() {}\n",
+        "semantic-oracle.yml": """contexts:
+  - id: js
+    parameters:
+      platform: js
+      entry: bin/main.dart
+      defines: [MODE=web]
+      library-flags: [dart.library.core, dart.library.html]
+      options: []
+      release: '3.13'
+    command: dart compile js bin/main.dart
+""",
+    })
+    agreed = ["--define", "MODE=web", "--library-flag", "dart.library.html", "--library-flag", "dart.library.core"]
+    out = os.path.join(tmp, "dart-dataset.json")
+    run("dart", dart_command(project, out, "js", "bin/main.dart", "js", *agreed), project, out)
+    # The project's dataset is read by default.
+    failure(dart_command(project, out, "js", "bin/main.dart", "vm", *agreed), project, out,
+            ["platform", '"js"', '"vm"'])
+    failure(dart_command(project, out, "js", "bin/main.dart", "js", *agreed[2:]), project, out, ["defines"])
+    failure(dart_command(project, out, "js", "bin/main.dart", "js", *agreed[:4]), project, out, ["library-flags"])
+    failure(dart_command(project, out, "js", "bin/other.dart", "js", *agreed), project, out, ["entry"])
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out, ["no context `vm`"])
+    # `--dataset` names another dataset.
+    elsewhere = os.path.join(tmp, "dart-dataset-elsewhere.yml")
+    with open(elsewhere, "w") as dataset:
+        dataset.write("contexts:\n  - id: vm\n    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: []}\n")
+    run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm", "--dataset", elsewhere), project, out)
 
 
 def main():
@@ -896,7 +977,8 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
+                     dart_dependency_platform, dart_dataset_agreement):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

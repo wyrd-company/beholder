@@ -13,3 +13,4 @@ environment:
 dependencies:
   analyzer: 14.7.0
   path: ^1.9.0
+  yaml: ^3.1.4

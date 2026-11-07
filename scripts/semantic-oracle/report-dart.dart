@@ -8,8 +8,8 @@
 /// analyzer's resolved element model.
 ///
 ///     dart run report-dart.dart --project DIR --context ID --entry ENTRY --out FILE
-///         [--platform vm|js|wasm] [--define NAME=VALUE]...
-///         [--library-flag dart.library.NAME]...
+///         --platform vm|js|wasm [--define NAME=VALUE]...
+///         [--library-flag dart.library.NAME]... [--dataset FILE]
 ///
 /// ENTRY is a context's `entry` parameter: `analysis` reports every library under
 /// `lib/`, and a project-relative path reports the libraries that entry reaches
@@ -20,10 +20,18 @@
 /// is an error: this script exits 2 and writes no report.
 ///
 /// The analyzer resolves against its own SDK on every platform, because the SDK
-/// libraries a platform shares have the same public API. For `--platform js` or
-/// `wasm`, each `dart:` library the reached libraries import or export must be one
+/// libraries a platform shares have the same public API. `--platform` has no
+/// default, so that a js or wasm context cannot be checked as vm by omission. For
+/// `--platform js` or `wasm`, each `dart:` library that any library of the context
+/// imports or exports, in the project or in a package it depends on, must be one
 /// the platform's target in the SDK's lib/libraries.json provides; the first that
-/// is not exits 2 with no report, as the compiler rejects it.
+/// is not exits 2 with no report, as the compiler rejects it. Members are reported
+/// for project libraries only.
+///
+/// `--dataset` names the dataset whose context `--context` is, and defaults to the
+/// project's `semantic-oracle.yml` where it exists. The context's `platform`,
+/// `entry`, `defines` and `library-flags` must equal the arguments, or the script
+/// exits 2 with no report.
 library;
 
 import 'dart:convert';
@@ -42,6 +50,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:path/path.dart' as p;
+import 'package:yaml/yaml.dart';
 
 const covers = [
   'type-parameters[].name',
@@ -58,6 +67,7 @@ const covers = [
   'type',
   'bounds',
   'value',
+  'index',
   'get.type',
   'set.type',
   'set.modifiers[]',
@@ -302,6 +312,10 @@ void property(String path, PropertyInducingElement element) {
     if (element.isEnumConstant && enumElement.typeParameters.isNotEmpty) {
       found.slots['type'] = typeText(element.type);
     }
+    // The value's position in `values`, which its `index` getter returns.
+    if (element.isEnumConstant && enumElement is EnumElement) {
+      found.slots['index'] = '${enumElement.constants.indexOf(element)}';
+    }
     return;
   }
   var found = member(path);
@@ -384,6 +398,9 @@ void instanceMembers(String path, InstanceElement element) {
   }
   if (element is InterfaceElement) {
     for (var constructor in element.constructors) {
+      // A consumer can neither call nor tear off an enum's generative
+      // constructor, so it is no member; a factory constructor is.
+      if (element is EnumElement && !constructor.isFactory) continue;
       var name = constructor.name;
       executable(
         '$path.${name == null || name == 'new' ? 'new' : name}',
@@ -445,6 +462,15 @@ void library(LibraryElement library) {
   }
 }
 
+/// The libraries a library's imports and exports select in the context.
+List<LibraryElement> reachedLibraries(LibraryElement library) => [
+  for (var fragment in library.fragments)
+    ...[
+      for (var import in fragment.libraryImports) import.importedLibrary,
+      for (var export in fragment.libraryExports) export.exportedLibrary,
+    ].nonNulls,
+];
+
 /// The `dart:` libraries a target of the SDK's lib/libraries.json provides,
 /// with the targets it includes.
 Set<String> platformLibraries(String target) {
@@ -476,6 +502,36 @@ List<String> repeated(List<String> arguments, String name) => [
   for (var i = 0; i < arguments.length - 1; i++)
     if (arguments[i] == '--$name') arguments[i + 1],
 ];
+
+/// The parameters of `context` in the dataset must equal the arguments.
+void agreeWithDataset(
+  String file,
+  String context,
+  Map<String, Object> arguments,
+) {
+  var dataset = loadYaml(File(file).readAsStringSync());
+  var contexts = dataset is YamlMap ? dataset['contexts'] : null;
+  if (contexts is! YamlList) fail('$file has no contexts');
+  var record = contexts.cast<Object?>().firstWhere(
+    (record) => record is YamlMap && record['id'] == context,
+    orElse: () => fail('$file declares no context `$context`'),
+  );
+  var parameters = (record as YamlMap)['parameters'];
+  if (parameters is! YamlMap) fail('context `$context` has no parameters');
+  String text(Object? value) => value is YamlList
+      ? jsonEncode([...value.map((item) => '$item')]..sort())
+      : jsonEncode('$value');
+  for (var MapEntry(:key, :value) in arguments.entries) {
+    var stated = text(parameters[key]);
+    var given = text(value is List ? YamlList.wrap(value) : value);
+    if (stated != given) {
+      fail(
+        'context `$context` in $file has $key $stated, '
+        'but the arguments give $given',
+      );
+    }
+  }
+}
 
 /// A package configuration for a project without dependencies, outside the tree.
 String? packageConfig() {
@@ -540,7 +596,7 @@ Future<void> main(List<String> arguments) async {
   // The analyzer resolves against its own SDK, whose shared libraries have the
   // same public API on every platform. A js or wasm context's libraries must
   // also be ones that platform provides, or the command would not compile.
-  var platform = argument(arguments, 'platform') ?? 'vm';
+  var platform = argument(arguments, 'platform') ?? fail('missing --platform');
   var provided = switch (platform) {
     'vm' => null,
     'js' => platformLibraries('dart2js'),
@@ -556,6 +612,19 @@ Future<void> main(List<String> arguments) async {
   }
   for (var flag in repeated(arguments, 'library-flag')) {
     declared[flag] = 'true';
+  }
+  var dataset =
+      argument(arguments, 'dataset') ??
+      (File(p.join(project, 'semantic-oracle.yml')).existsSync()
+          ? p.join(project, 'semantic-oracle.yml')
+          : null);
+  if (dataset != null) {
+    agreeWithDataset(dataset, context, {
+      'platform': platform,
+      'entry': entry,
+      'defines': repeated(arguments, 'define'),
+      'library-flags': repeated(arguments, 'library-flag'),
+    });
   }
 
   var collection = AnalysisContextCollectionImpl(
@@ -619,24 +688,34 @@ Future<void> main(List<String> arguments) async {
     var element = result.element;
     reported.add(element);
     if (entry == 'analysis') continue;
-    for (var fragment in element.fragments) {
-      var reached = [
-        for (var import in fragment.libraryImports) import.importedLibrary,
-        for (var export in fragment.libraryExports) export.exportedLibrary,
-      ];
-      for (var library in reached.nonNulls) {
-        var uri = library.uri;
-        if (uri.scheme == 'dart' && provided != null) {
+    for (var library in reachedLibraries(element)) {
+      var file = library.firstFragment.source.fullName;
+      if (library.uri.scheme != 'dart' && p.isWithin(project, file)) {
+        pending.add(p.normalize(file));
+      }
+    }
+  }
+  // The platform check reads the complete graph the context compiles, the
+  // packages the project depends on included; only project libraries are
+  // reported.
+  if (provided != null) {
+    var visited = <LibraryElement>{};
+    var walk = [...reported];
+    while (walk.isNotEmpty) {
+      var library = walk.removeLast();
+      if (!visited.add(library)) continue;
+      for (var reached in reachedLibraries(library)) {
+        var uri = reached.uri;
+        if (uri.scheme == 'dart') {
           if (!provided.contains(uri.path)) {
             fail(
-              '${p.relative(path, from: project)} reaches dart:${uri.path}, '
+              '${libraryUri(library)} reaches dart:${uri.path}, '
               'which the $platform platform does not provide',
             );
           }
+        } else {
+          walk.add(reached);
         }
-        var file = library.firstFragment.source.fullName;
-        if (uri.scheme != 'dart' && p.isWithin(project, file))
-          pending.add(p.normalize(file));
       }
     }
   }
