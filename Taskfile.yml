@@ -122,6 +122,9 @@ tasks:
       Needs Go. PROJECT, CONTEXT and OUT are required. OUT is an absolute path
       outside the project tree. TAGS, GOOS and GOARCH select the context, and
       MODE=test reads its `_test.go` files as `go test` compiles them.
+      PATTERNS lists the context's package patterns, `./...` by default; run
+      from the context's module-root, and from a `go.work` root name the
+      patterns its command names. A run that matches no package exits nonzero.
     dir: '{{.PROJECT}}'
     requires:
       vars: [PROJECT, CONTEXT, OUT]
@@ -131,6 +134,7 @@ tasks:
         -context {{shellQuote .CONTEXT}} -out {{shellQuote .OUT}}
         {{if .TAGS}}-tags {{shellQuote .TAGS}}{{end}}
         {{if .MODE}}-mode {{shellQuote .MODE}}{{end}}
+        {{if .PATTERNS}}-patterns {{shellQuote .PATTERNS}}{{end}}
 
   semantic-oracle:report:python:
     desc: Write a Python compiler report from inspect.signature

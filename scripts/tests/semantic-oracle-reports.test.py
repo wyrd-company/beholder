@@ -609,6 +609,88 @@ func F(s S) { s.M() }
     expect(found["test"], t + ".M", "receiver", "@{" + t + "}")
 
 
+def go_replaced_module(tmp):
+    """A dependency module that imports the project sees the project's types: `b`,
+    replaced by a local directory, takes a `p.T`, and the project passes one."""
+    project = os.path.join(tmp, "go-replaced")
+    write(project, {
+        "go.mod": "module example.com/a\n\ngo 1.21\n\nrequire example.com/b v0.0.0\n\nreplace example.com/b => ../go-replaced-b\n",
+        "p/p.go": "package p\n\ntype T struct{}\n",
+        "use.go": """package a
+
+import (
+	"example.com/a/p"
+	"example.com/b"
+)
+
+var Used = b.Accept(p.T{})
+""",
+    })
+    write(os.path.join(tmp, "go-replaced-b"), {
+        "go.mod": "module example.com/b\n\ngo 1.21\n",
+        "b.go": "package b\n\nimport \"example.com/a/p\"\n\nfunc Accept(p.T) bool { return true }\n",
+    })
+    for mode in ("build", "test"):
+        out = os.path.join(tmp, f"go-replaced-{mode}.json")
+        _, found = run(f"go-replaced-{mode}", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", mode, "-mode", mode, "-out", out], project, out)
+        expect(found, "example.com/a.Used", "type", "bool")
+        # A dependency's members are no project member.
+        assert "example.com/b.Accept" not in found, found["example.com/b.Accept"]
+
+
+def go_workspace(tmp):
+    """From a `go.work` root, `./...` matches no module: the report exits nonzero
+    and writes nothing, and the context's patterns report every module."""
+    root = os.path.join(tmp, "go-workspace")
+    write(root, {
+        "go.work": "go 1.21\n\nuse (\n\t./a\n\t./b\n)\n",
+        "a/go.mod": "module example.com/a\n\ngo 1.21\n",
+        "a/p/p.go": "package p\n\ntype T struct{}\n",
+        "b/go.mod": "module example.com/b\n\ngo 1.21\n",
+        "b/b.go": "package b\n\nimport \"example.com/a/p\"\n\nfunc Accept(p.T) bool { return true }\n",
+    })
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "build", "-out"]
+    out = os.path.join(tmp, "go-workspace.json")
+    failure(command + [out], root, out, ["match no package"])
+    _, found = run("go-workspace", command + [out, "-patterns", "./a/... ./b/..."], root, out)
+    expect(found, "example.com/b.Accept", "parameters[0].type", "@{example.com/a/p.T}")
+    assert "example.com/a/p.T" in found, sorted(found)
+
+
+def go_cgo(tmp):
+    """A cgo type that go/types cannot resolve leaves its slot unstated."""
+    project = os.path.join(tmp, "go-cgo")
+    write(project, {
+        "go.mod": "module example.com/cgo\n\ngo 1.21\n",
+        "c.go": """package c
+
+// typedef int number;
+import "C"
+
+type Box struct{ V C.number }
+
+func Get() C.number { return 0 }
+func Plain() int { return 0 }
+const Message = "invalid type"
+""",
+    })
+    out = os.path.join(tmp, "go-cgo.json")
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "build", "-out", out]
+    started = time.monotonic()
+    done = subprocess.run(command, cwd=project, capture_output=True, text=True, env={**os.environ, "CGO_ENABLED": "1"})
+    TIMES["go-cgo"] = round(time.monotonic() - started, 2)
+    assert done.returncode == 0, done.stderr
+    report, found = members(out)
+    path = "example.com/cgo."
+    text = json.dumps(report)
+    assert "invalid type" not in text.replace('"\\"invalid type\\""', ""), text
+    assert "returns" in found[path + "Get"]["unstated"], found[path + "Get"]
+    assert "type" in found[path + "Box.V"]["unstated"], found[path + "Box.V"]
+    assert "underlying" in found[path + "Box"]["unstated"], found[path + "Box"]
+    expect(found, path + "Plain", "returns", "int")
+    expect(found, path + "Message", "value", '"invalid type"')
+
+
 def python(tmp):
     project = os.path.join(tmp, "python")
     write(project, {
@@ -851,7 +933,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_workspace, go_cgo, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

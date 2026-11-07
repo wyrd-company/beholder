@@ -47,8 +47,14 @@ type listed struct {
 	CgoFiles   []string
 	Deps       []string
 	ImportMap  map[string]string
+	Standard   bool
+	Error      *struct{ Err string }
 	Module     *struct{ Main bool }
 }
+
+// unresolved marks a type text go/types could not resolve, such as a cgo type
+// under FakeImportC. No canonical text holds a NUL, and a string value is quoted.
+const unresolved = "\x00invalid"
 
 type member struct {
 	Path     string            `json:"path"`
@@ -64,14 +70,29 @@ func add(path, slot, value string) {
 		found = &member{Path: path, Slots: map[string]string{}, Unstated: []string{}}
 		members[path] = found
 	}
-	if slot != "" {
-		found.Slots[slot] = value
+	if slot == "" {
+		return
 	}
+	// A slot whose type go/types could not resolve is unstated, never stated as
+	// `invalid type`.
+	if strings.Contains(value, unresolved) {
+		for _, unstated := range found.Unstated {
+			if unstated == slot {
+				return
+			}
+		}
+		found.Unstated = append(found.Unstated, slot)
+		return
+	}
+	found.Slots[slot] = value
 }
 
 func typeText(t types.Type) string {
 	switch t := t.(type) {
 	case *types.Basic:
+		if t.Kind() == types.Invalid {
+			return unresolved
+		}
 		return t.Name()
 	case *types.Alias:
 		object := t.Obj()
@@ -331,6 +352,10 @@ func (i importing) Import(path string) (*types.Package, error) {
 	if variant, ok := i.unit.ImportMap[path]; ok {
 		path = variant
 	}
+	// Every package outside the standard library, the project's and its
+	// dependencies', loads through one cache, so a type has one identity however it
+	// is reached. The standard library imports nothing outside itself, so the
+	// source importer's own cache keeps its identities.
 	if _, ok := i.project.units[path]; ok {
 		return i.project.load(path)
 	}
@@ -518,6 +543,7 @@ func main() {
 	out := flag.String("out", "", "the report file")
 	tags := flag.String("tags", "", "build tags")
 	mode := flag.String("mode", "build", "the context's mode: build or test")
+	patterns := flag.String("patterns", "./...", "the context's package patterns, separated by spaces")
 	flag.Parse()
 	if *mode != "build" && *mode != "test" {
 		fmt.Fprintln(os.Stderr, "report-go: -mode is build or test, not", *mode)
@@ -541,7 +567,7 @@ func main() {
 		// The source importer reads dependencies under the same tags.
 		build.Default.BuildTags = strings.Split(*tags, ",")
 	}
-	arguments = append(arguments, "./...")
+	arguments = append(arguments, strings.Fields(*patterns)...)
 	listing, err := exec.Command("go", arguments...).Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "go list:", err)
@@ -557,19 +583,40 @@ func main() {
 		building: map[string]bool{},
 	}
 	order := []listed{}
+	inProject := map[string]bool{}
+	problems := []string{}
 	for decoder.More() {
 		var unit listed
 		if err := decoder.Decode(&unit); err != nil {
 			fmt.Fprintln(os.Stderr, "go list:", err)
 			os.Exit(2)
 		}
-		// Only the main module's packages are the project's; others come from the
-		// source importer.
-		if unit.Module == nil || !unit.Module.Main {
+		if unit.Error != nil {
+			problems = append(problems, unit.ImportPath+": "+unit.Error.Err)
+		}
+		if unit.Standard {
 			continue
 		}
 		checker.units[unit.ImportPath] = unit
-		order = append(order, unit)
+		// Only the main modules' packages are the project's, and reported.
+		if unit.Module != nil && unit.Module.Main {
+			inProject[unit.ImportPath] = true
+			order = append(order, unit)
+		}
+	}
+	// A report with no package states nothing, and must not pass for one that
+	// checked the project. From a `go.work` root, `./...` matches no module: pass
+	// the context's patterns.
+	found := false
+	for _, unit := range order {
+		found = found || len(unit.GoFiles)+len(unit.CgoFiles) > 0
+	}
+	if !found {
+		fmt.Fprintln(os.Stderr, "report-go: the patterns", *patterns, "match no package of a main module; run from the context's module-root with its patterns")
+		for _, problem := range problems {
+			fmt.Fprintln(os.Stderr, "go list:", problem)
+		}
+		os.Exit(2)
 	}
 	// A package that fails to type-check stops the report: nothing it would
 	// state was checked.
@@ -613,7 +660,7 @@ func main() {
 		suffix := " [" + binary.ImportPath + "]"
 		universe := []*types.Package{}
 		for _, id := range binary.Deps {
-			if _, ok := checker.units[id]; !ok {
+			if !inProject[id] {
 				continue
 			}
 			checked := load(id)
