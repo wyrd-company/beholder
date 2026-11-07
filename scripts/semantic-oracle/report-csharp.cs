@@ -121,6 +121,33 @@ static class Report
 
     /// By unit and path: one path can name a member in each of two units.
     static readonly SortedDictionary<string, Member> Members = new(StringComparer.Ordinal);
+
+    /// The documents of the assembly being read, by the SHA-256 of their paths.
+    static readonly Dictionary<string, string> FileDocuments = new(StringComparer.Ordinal);
+
+    static readonly System.Text.RegularExpressions.Regex FileLocalName = new(@"^<[^>]*>F([0-9A-F]{64})__");
+
+    /// Whether a type is file-local, from its mangled metadata name, which metadata
+    /// symbols keep where `IsFileLocal` is false; and its document, when the build's
+    /// sources name it.
+    static bool IsFileLocal(INamedTypeSymbol type, out string? document)
+    {
+        document = null;
+        var match = FileLocalName.Match(type.MetadataName);
+        if (!match.Success && !type.IsFileLocal)
+        {
+            return false;
+        }
+        if (match.Success)
+        {
+            FileDocuments.TryGetValue(match.Groups[1].Value, out document);
+        }
+        else if (type.Locations.FirstOrDefault(l => l.IsInSource) is { } location)
+        {
+            document = Relative(location.SourceTree!.FilePath);
+        }
+        return true;
+    }
     static string root = "";
 
     public static int Run(string[] args, string sdkPath, string release)
@@ -204,6 +231,13 @@ static class Report
                 {
                     return Fail(error!);
                 }
+                // A file-local type's metadata name carries the SHA-256 of its document's
+                // path, as the compiler received it; the build's sources map it back.
+                FileDocuments.Clear();
+                foreach (var source in built.Sources)
+                {
+                    FileDocuments[Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(source)))] = Relative(source);
+                }
                 var unit = new Unit(assembly.Identity.Name, assembly.Identity.Version.ToString(), Relative(built.Project));
                 ReadNamespace(assembly.GlobalNamespace, unit);
             }
@@ -267,7 +301,7 @@ static class Report
     /// One `Csc` run of the build: the project instance that ran it, that instance's
     /// evaluated framework and configuration, and the task's inputs.
     sealed record Built(string Project, string TargetFramework, string TargetFrameworks, string Configuration,
-        string OutputAssembly, IReadOnlyList<string> References);
+        string OutputAssembly, IReadOnlyList<string> References, IReadOnlyList<string> Sources);
 
     /// For each project the build compiled, the compilation the context means: the
     /// instance at the framework that NuGet nearest-framework selection picks for the
@@ -496,7 +530,8 @@ static class Report
                     evaluated.GetValueOrDefault("TargetFrameworks") ?? "",
                     evaluated.GetValueOrDefault("Configuration") ?? "",
                     Path.GetFullPath(output[0], directory),
-                    inputs.GetValueOrDefault("References")?.Select(r => Path.GetFullPath(r, directory)).ToList() ?? []));
+                    inputs.GetValueOrDefault("References")?.Select(r => Path.GetFullPath(r, directory)).ToList() ?? [],
+                    inputs.GetValueOrDefault("Sources")?.Select(r => Path.GetFullPath(r, directory)).ToList() ?? []));
             }
             return found;
         }
@@ -540,9 +575,9 @@ static class Report
         var prefix = type.ContainingType is { } outer ? TypePath(outer) : NamespacePath(type.ContainingNamespace);
         var name = type.Name + (type.Arity > 0 ? "`" + type.Arity : "");
         var path = prefix.Length == 0 ? name : prefix + "." + name;
-        if (type.IsFileLocal && type.Locations.FirstOrDefault(l => l.IsInSource) is { } location)
+        if (IsFileLocal(type, out var document) && document is not null)
         {
-            path += "@" + Path.GetRelativePath(root, location.SourceTree!.FilePath).Replace('\\', '/');
+            path += "@" + document;
         }
         return path;
     }
@@ -570,10 +605,16 @@ static class Report
             IMethodSymbol { MethodKind: MethodKind.StaticConstructor } => ".cctor",
             IMethodSymbol { MethodKind: MethodKind.Destructor } => "Finalize",
             IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } m => m.MetadataName,
-            IPropertySymbol { IsIndexer: true } => "this[]",
+            IPropertySymbol property when IsIndexer(property) => "this[]",
             _ => member.Name,
         };
     }
+
+    /// Whether a property is an indexer. Metadata names an explicit interface
+    /// implementation of an indexer after its interface, so it is one through the member
+    /// it implements.
+    static bool IsIndexer(IPropertySymbol property) =>
+        property.IsIndexer || property.ExplicitInterfaceImplementations.Any(i => i.IsIndexer);
 
     /// The parameter list of an overloaded member: canonical type paths, with
     /// `ref`, `out` and `in` prefixes kept and `params` omitted.
@@ -806,9 +847,10 @@ static class Report
                 };
                 foreach (var method in methods)
                 {
+                    // A generic block's implementation can be a constructed method.
                     if (method?.AssociatedExtensionImplementation is { } implementation)
                     {
-                        found.Add(implementation);
+                        found.Add(implementation.OriginalDefinition);
                     }
                 }
             }
@@ -827,7 +869,9 @@ static class Report
         // Metadata holds types the compiler emits: unspeakable `<...>` types, which
         // include file-local types under their mangled names, and the attribute types it
         // embeds. None is an entity a consumer can name.
-        if (type.Name.StartsWith('<') || type.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Microsoft.CodeAnalysis.EmbeddedAttribute"))
+        // A file-local type whose document the build's sources do not name has no path.
+        if ((type.ContainingType is null && IsFileLocal(type, out var document) && document is null)
+            || type.Name.StartsWith('<') || type.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Microsoft.CodeAnalysis.EmbeddedAttribute"))
         {
             return;
         }
@@ -851,8 +895,22 @@ static class Report
 
     static void ReadMembers(INamedTypeSymbol type, string path, Unit unit)
     {
+        // Lowering artifacts and accessor methods are left out before overloads are counted.
         var artifacts = ExtensionImplementations(type);
-        var included = type.GetMembers().Where(m => Included(type, m) && !artifacts.Contains(m)).ToList();
+        foreach (var owner in type.GetMembers())
+        {
+            var accessors = owner switch
+            {
+                IPropertySymbol p => new[] { p.GetMethod, p.SetMethod },
+                IEventSymbol e => new[] { e.AddMethod, e.RemoveMethod, e.RaiseMethod },
+                _ => [],
+            };
+            foreach (var accessor in accessors.OfType<IMethodSymbol>())
+            {
+                artifacts.Add(accessor.OriginalDefinition);
+            }
+        }
+        var included = type.GetMembers().Where(m => Included(type, m) && !artifacts.Contains(m.OriginalDefinition)).ToList();
         var names = included.GroupBy(MemberName).ToDictionary(g => g.Key, g => g.Count());
         foreach (var child in included)
         {
@@ -1004,7 +1062,7 @@ static class Report
                 }
                 break;
             case IPropertySymbol property:
-                if (property.IsIndexer)
+                if (IsIndexer(property))
                 {
                     Parameters(member, "", property.Parameters, false);
                 }

@@ -1112,12 +1112,58 @@ public static unsafe class Overloads
     ):
         assert path in found, (path, sorted(p for p in found if p.startswith("N.")))
 
+def csharp_metadata_shapes(tmp):
+    """Generic extension blocks, explicit indexers and file-local types, read from metadata."""
+    sources = {
+        "Sample/A.cs": """namespace N;
+public static class Ext
+{
+    extension<T>(System.Collections.Generic.List<T> x)
+    {
+        public T First() => x[0];
+        public int Count2 => x.Count;
+    }
+    public static int First(int value) => value;
+}
+public interface I<T> { T this[int x] { get; } }
+public sealed class C : I<string> { string I<string>.this[int x] => ""; }
+file class Local { public void M(int a) { } }
+""",
+        "Sample/Nested/B.cs": "namespace N;\nfile class Local { public void M(string b) { } }\n",
+    }
+    project = os.path.join(tmp, "csharp-metadata-shapes")
+    write(project, {"Sample/Sample.csproj": csproj("Sample"), **sources})
+    out = os.path.join(tmp, "csharp-metadata-shapes.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    # A generic block's implementation methods are no members and no overloads.
+    expect(found, "N.Ext.extension(System.Collections.Generic.List`1<`0>).First", "returns", "T")
+    expect(found, "N.Ext.extension(System.Collections.Generic.List`1<`0>).Count2", "get.type", "int")
+    expect(found, "N.Ext.First", "parameters[0].type", "int")
+    assert not any(p.startswith("N.Ext.") and "extension(" not in p and p != "N.Ext.First" for p in found), sorted(found)
+    # An explicit interface indexer keeps its parameters, and its accessor is no member.
+    indexer = "N.C.N.I`1<System.String>.this[]"
+    expect(found, indexer, "parameters[0].name", "x")
+    expect(found, indexer, "parameters[0].type", "int")
+    expect(found, indexer, "get.type", "string")
+    assert not any("get_Item" in p for p in found), sorted(found)
+    # Each file-local type takes its document, so two of one name stay apart.
+    expect(found, "N.Local@Sample/A.cs.M", "parameters[0].type", "int")
+    expect(found, "N.Local@Sample/Nested/B.cs.M", "parameters[0].type", "string")
+    assert "N.Local.M" not in found, sorted(found)
+    # Under a path map the identifiers may not name a source; a type whose document
+    # cannot be named is left out, and never merged with another.
+    project = os.path.join(tmp, "csharp-metadata-pathmap")
+    write(project, {"Sample/Sample.csproj": csproj("Sample", extra="<PropertyGroup><PathMap>$(MSBuildProjectDirectory)=/src</PathMap></PropertyGroup>"), **sources})
+    out = os.path.join(tmp, "csharp-metadata-pathmap.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    assert all("@" in p for p in found if p.startswith("N.Local")), sorted(found)
+
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build, csharp_generators, csharp_build_targets, csharp_traversal, csharp_paths):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build, csharp_generators, csharp_build_targets, csharp_traversal, csharp_paths, csharp_metadata_shapes):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
