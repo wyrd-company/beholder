@@ -131,7 +131,7 @@ A compiler report is a JSON file that a script produces outside the project tree
 | Task | Comes from | Needs |
 | --- | --- | --- |
 | `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>] [NO_DEFAULT_FEATURES=1] [ALL_FEATURES=1] [CFG=<a b>]` | rustdoc JSON, and a generated probe crate for `auto-traits`. One `cargo check` reports every failing claim; a line that fails for another reason is set aside and the check repeats, at most five times. | A Rust toolchain. It works on a copy of the project, with the toolchain the project selects, and sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
-| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
+| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>] [MODE=test]` | `go/types`, and `types.Implements` for `bases`. `MODE=test`, for a context with `mode: test`, adds each package's `_test.go` files and its external `_test` package, as `go test` compiles them. | Go. `GOOS` and `GOARCH` select a context's platform. |
 | `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file> PYTHON=<version>` | `inspect.signature`, for a `runtime` context | `python<version>`, the context's `python` parameter. An absent interpreter exits nonzero, and the report's `tool` states what it ran under. It imports the project's modules, which runs their module-level code. |
 | `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
 
@@ -150,7 +150,9 @@ script refuses a path inside it. `REPORTS` splits on spaces, so use repeated `--
 for a path with a space.
 
 A report's `covers` lists the slot shapes it can state, and `members` holds what it
-states for each entity path, with each `@{...}` holding a canonical path:
+states for each entity path, with each `@{...}` holding a canonical path. A slot key
+that names an entity writes it the same way: the dataset's `bases[@{pantry.Opener}].type`
+is `bases[@{example.com/pantry.Opener}].type` in a report.
 
 ```json
 {
@@ -190,7 +192,8 @@ These stay `unchecked`:
 
 - every slot of a C# or Dart dataset, until those toolchains have a report;
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
-- each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
+- each shape a report does not list in `covers`, such as `where`, `impl` and `bases[].type` in Rust, and `bases` and `alternatives` in Python;
+- the `bases` of a Go type that is generic, or that could implement a generic interface, and of a TypeScript class whose base the emit names through a generated variable, such as a mixin's;
 - Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;
 - every slot of a Rust `#[doc(hidden)]` item, because rustdoc JSON omits it. It stays a member, and a compile check outside the tree can confirm its facts;
 - a Rust path dependency outside the workspace, in a context whose report does not document it. A report's key holds the crate's version, so another version's slot never answers for it. Report the dependency's own context from its manifest's directory, and a workspace member's context from the workspace root, because the script copies the directory it is given;

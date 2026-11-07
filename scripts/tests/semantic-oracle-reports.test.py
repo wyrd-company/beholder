@@ -455,11 +455,30 @@ func Greet(names ...string) string { return "" }
 func Two(x, y int) (int, error) { return 0, nil }
 type Pair[T any] struct{ Left, Right T }
 type Num interface{ ~string | ~int }
+type Named interface {
+	Shape
+	Name() string
+}
+type opener interface{ Open() string }
+type Shelf struct{}
+func (Shelf) Open() string { return "" }
+""",
+        "sample_test.go": """package sample
+
+func Helper() int { return 1 }
+type Probe struct{}
+func (Probe) Area() float64 { return 0 }
+""",
+        "external_test.go": """package sample_test
+
+import "example.com/sample"
+
+var External = sample.Helper()
 """,
     })
     before = listing(project)
     out = os.path.join(tmp, "go.json")
-    _, found = run("go", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "default", "-out", out], project, out)
+    report, found = run("go", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "default", "-out", out], project, out)
     tree_unchanged(project, before)
     path = "example.com/sample."
     expect(found, path + "A", "type", "untyped int")
@@ -494,6 +513,30 @@ type Num interface{ ~string | ~int }
     expect(found, path + "Meters", "type", "float64")
     expect(found, path + "Pair", "type-parameters[0].bounds", "any")
     expect(found, path + "Num", "underlying", "interface { ~string | ~int }")
+    # `bases`, keyed by the base's path: an embedded interface, an implemented one
+    # through `*T`, and an unexported one.
+    def bases(name):
+        return sorted(slot for slot in found[path + name]["slots"] if slot.startswith("bases"))
+    expect(found, path + "Named", "bases[@{example.com/sample.Shape}].type", "@{example.com/sample.Shape}")
+    expect(found, path + "Circle", "bases[@{example.com/sample.Shape}].type", "@{example.com/sample.Shape}")
+    expect(found, path + "Shelf", "bases[@{example.com/sample.opener}].type", "@{example.com/sample.opener}")
+    assert bases("Circle") == ["bases[@{example.com/sample.Shape}].type"], bases("Circle")
+    assert bases("Base") == [] and bases("Shape") == [] and bases("Num") == [], found[path + "Base"]
+    # go/types cannot decide this for an uninstantiated generic type.
+    assert "bases" in found[path + "Pair"]["unstated"], found[path + "Pair"]
+    # A build reads no test file.
+    assert path + "Helper" not in found and "example.com/sample_test.External" not in found
+    assert "bases[].type" in report["covers"], report["covers"]
+
+    # Mode `test` reads the in-package `_test.go` files and the external `_test`
+    # package, which sees the test files' names.
+    out = os.path.join(tmp, "go-test.json")
+    _, found = run("go-test", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "test", "-mode", "test", "-out", out], project, out)
+    tree_unchanged(project, before)
+    expect(found, path + "Helper", "returns", "int")
+    expect(found, path + "Probe", "bases[@{example.com/sample.Shape}].type", "@{example.com/sample.Shape}")
+    expect(found, "example.com/sample_test.External", "type", "int")
+    expect(found, path + "Circle", "bases[@{example.com/sample.Shape}].type", "@{example.com/sample.Shape}")
 
 
 def python(tmp):
@@ -694,6 +737,12 @@ export const made = new Circle(1);
 export type Id = string | number;
 export enum Kind { Round = 3 }
 export function dflt(first: number = 1, second: string): string { return second; }
+export interface Sized extends Shape2 { size: number; }
+export class Box<T> { constructor(readonly item: T) {} }
+export class Crate extends Box<number> implements Sized, Shape2 { size = 1; }
+function mix<B extends new (...a: any[]) => object>(b: B) { return class extends b { mixed = true; }; }
+export class Plain {}
+export class Mixed extends mix(Plain) {}
 """,
     })
     before = listing(project)
@@ -714,6 +763,17 @@ export function dflt(first: number = 1, second: string): string { return second;
     assert "parameters[0].mode" not in found[path + "dflt"]["slots"]
     expect(found, path + "Shape", "call-signatures[0].returns", "string")
     expect(found, path + "Shape.label", "modifiers[optional]", "optional")
+    # `bases`, keyed by the base's text with its names as paths.
+    shape2 = f"@{{{path}Shape2}}"
+    expect(found, path + "Circle", f"bases[{shape2}].type", shape2)
+    expect(found, path + "Sized", f"bases[{shape2}].type", shape2)
+    box = f"@{{{path}Box}}<number>"
+    expect(found, path + "Crate", f"bases[{box}].type", box)
+    expect(found, path + "Crate", f"bases[@{{{path}Sized}}].type", f"@{{{path}Sized}}")
+    expect(found, path + "Crate", f"bases[{shape2}].type", shape2)
+    # A mixin's base is a variable the emit generates, which no base can name.
+    assert "bases" in found[path + "Mixed"]["unstated"], found[path + "Mixed"]
+    assert not any(slot.startswith("bases") for slot in found[path + "Mixed"]["slots"]), found[path + "Mixed"]
 
 
 def main():
