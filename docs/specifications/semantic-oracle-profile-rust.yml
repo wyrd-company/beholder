@@ -33,9 +33,8 @@ description: |
     <https://doc.rust-lang.org/cargo/>
   - The rustc book: `--cfg`, `--test`, `--edition`, `--crate-type`.
     <https://doc.rust-lang.org/rustc/>
-  - Toolchain: stable `rustc` and Cargo that support each unit's `edition`
-    and the project's `rust-version`. `authoring.tools` records the release
-    that checked a dataset.
+  - Toolchain: the stable `rustc` and Cargo release that each context's
+    `release` names. `authoring.tools` records the exact release used.
 
   ## Contexts
 
@@ -51,6 +50,7 @@ description: |
   | `cfg` | The sorted list of additional `--cfg` options from `RUSTFLAGS` or `RUSTDOCFLAGS`. |
   | `features` | The feature flags the command passes: `--features`, `--all-features`, `--no-default-features`. |
   | `profile` | The Cargo profile name. |
+  | `release` | The release parameter: the `rustc` release as `1.N`, which decides the standard library, and so which inherent or trait method a call resolves to. A `rust-toolchain.toml` channel that names a release selects it. |
 
   Each compilation that a command in the project's `build` and `test` tasks
   performs has a mode. A command defines one context per mode in which it

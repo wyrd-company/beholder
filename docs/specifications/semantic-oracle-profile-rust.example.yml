@@ -86,6 +86,7 @@ contexts:
       cfg: []
       features: []
       profile: dev
+      release: '1.99'
     command: cargo build --offline --workspace
   - id: build-extras
     parameters:
@@ -97,6 +98,7 @@ contexts:
       cfg: []
       features: [--features=extras]
       profile: dev
+      release: '1.99'
     command: cargo build --offline -p geometry --features extras
 
 distributions:

@@ -308,6 +308,7 @@ fn audit_reads_compiler_reports_and_lists_unchecked_slots() {
             "language": "rust",
             "context": "default",
             "tool": {"name": "rustdoc", "version": "test"},
+            "release": "1.99.1",
             "covers": ["returns"],
             "members": [{"path": "tally::make", "slots": {"returns": returns}, "unstated": []}],
         });

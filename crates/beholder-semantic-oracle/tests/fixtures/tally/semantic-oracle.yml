@@ -28,6 +28,7 @@ contexts:
       cfg: []
       features: []
       profile: dev
+      release: '1.99'
     command: cargo build --offline
 distributions:
   - {id: tally, kind: crate, name: tally, version: 0.1.0}

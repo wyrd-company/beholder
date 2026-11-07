@@ -473,6 +473,7 @@ def main():
                 "language": "python",
                 "context": arguments.context,
                 "tool": {"name": "inspect.signature", "version": platform.python_version(), "interpreter": sys.executable},
+                "release": platform.python_version(),
                 "covers": COVERS,
                 "members": sorted(report.members.values(), key=lambda member: member["path"]),
                 "failed": failed,

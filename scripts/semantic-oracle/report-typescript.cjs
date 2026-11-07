@@ -350,6 +350,7 @@ const report = {
   language: "typescript",
   context,
   tool: { name: "tsc --declaration", version: ts.version },
+  release: ts.version,
   covers: [
     "parameters[].name", "parameters[].type", "parameters[].mode", "returns", "type",
     "get.type", "set.type", "value", "modifiers[]", "type-parameters[].name", "type-parameters[].kind",

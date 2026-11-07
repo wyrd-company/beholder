@@ -158,6 +158,7 @@ states for each entity path, with each `@{...}` holding a canonical path:
   "language": "rust",
   "context": "default",
   "tool": {"name": "rustdoc-json", "version": "rustc 1.99.1"},
+  "release": "1.99.1",
   "covers": ["returns", "auto-traits[]"],
   "members": [
     {"path": "tally::make", "slots": {"returns": "@{tally::Counter}"}, "unstated": []}
@@ -170,6 +171,14 @@ states for each entity path, with each `@{...}` holding a canonical path:
 | Agreed | A report for that context states the same value, after canonical spelling. This is per slot and context. |
 | `profile:signature-compiler` error | A report that covers the slot states another value or none, or states a slot the record lacks. Settle it against the language's rule, and never by copying the compiler's value. |
 | `unchecked` | No report states the slot in that context. It has not passed there. |
+
+A report answers for a context only when its `release` is the context's release
+parameter (`release` in Go, Rust, Dart and C#, `python` in Python, `compiler` in
+TypeScript) or extends it with more dotted components: a `go1.27.3` report answers
+for `release: go1.27`, and a `1.98.0` report does not answer for `release: '1.99'`.
+Otherwise the audit reports an error and the slots stay `unchecked`. To move a
+dataset to a new toolchain release, change its contexts' release parameter, run
+the reports under that release, and settle every disagreement the audit finds.
 
 A slot that holds in `runtime` and `typing` can be agreed for `runtime` and unchecked
 for `typing`: its line lists both, and `contexts` in the summary counts it once under

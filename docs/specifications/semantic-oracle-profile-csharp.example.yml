@@ -89,6 +89,7 @@ contexts:
       configuration: Debug
       target-framework: net10.0
       properties: []
+      release: 10.0.403
     command: dotnet build Geometry.slnx
   - id: release
     parameters:
@@ -96,6 +97,7 @@ contexts:
       configuration: Release
       target-framework: net10.0
       properties: [Configuration=Release]
+      release: 10.0.403
     command: dotnet build Geometry.slnx -c Release
 
 distributions:

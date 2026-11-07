@@ -36,9 +36,9 @@ description: |
     <https://nodejs.org/api/packages.html>
   - ECMAScript Language Specification: Modules.
     <https://tc39.es/ecma262/>
-  - Toolchain: the `typescript` package the project installs, which each
-    context records as `compiler`, and Node.js 22.6 or later.
-    `authoring.tools` records the versions that checked a dataset.
+  - Toolchain: the `typescript` package release that each context's
+    `compiler` names, which is the release parameter, and Node.js 22.6 or
+    later. `authoring.tools` records the exact versions used.
 
   ## Contexts
 

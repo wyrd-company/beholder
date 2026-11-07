@@ -37,10 +37,9 @@ description: |
     <https://learn.microsoft.com/nuget/concepts/dependency-resolution>
   - Roslyn source generators. <https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview>
   - `System.Runtime.CompilerServices.TypeForwardedToAttribute`.
-  - Toolchain: a .NET SDK, with its MSBuild and Roslyn, that supports each
-    unit's target framework and `language-version`. A project's `global.json`
-    selects an SDK where its meaning depends on one. `authoring.tools`
-    records the SDK that checked a dataset.
+  - Toolchain: the .NET SDK, with its MSBuild and Roslyn, that each
+    context's `release` names. `authoring.tools` records the exact versions
+    used.
 
   ## Contexts
 
@@ -52,6 +51,7 @@ description: |
   | `configuration` | The MSBuild `Configuration`. |
   | `target-framework` | The consumer framework that selects each project's inner build. |
   | `properties` | The sorted global MSBuild properties the command sets. |
+  | `release` | The release parameter: the .NET SDK version, such as `10.0.403`, which decides the Roslyn compiler and the version that a compiler-relative `LangVersion` resolves to. A `global.json` that selects an SDK selects it. |
 
   Each `dotnet build` or `dotnet test` command in the project's `build` and
   `test` tasks defines one context per distinct target framework that any
@@ -69,10 +69,11 @@ description: |
   the project file, and, per context, `language-version`,
   `define-constants` and `target-framework`. The unit key is the assembly
   name, `assembly-version` and `project`. `language-version` is the
-  project's `LangVersion` when it names a version, and otherwise the default
-  C# version for the unit's target framework. A project whose `LangVersion`
-  is `latest`, `latestMajor` or `preview` selects its SDK in `global.json`,
-  and `language-version` is the version that SDK's compiler resolves. Two projects that produce one assembly name,
+  project's `LangVersion` when it names a version number. When the project
+  sets no `LangVersion`, it is the default C# version for the unit's target
+  framework. When `LangVersion` is `default`, `latest`, `latestMajor` or
+  `preview`, it is the version that the compiler of the context's `release`
+  resolves; `preview` is written `preview`. Two projects that produce one assembly name,
   with equal or different versions, are two units. An adapter that knows
   only the assembly name and version supplies a partial unit key.
 

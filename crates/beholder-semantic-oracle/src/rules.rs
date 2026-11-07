@@ -105,6 +105,9 @@ pub struct ProfileRules {
     pub inferred_on_source: &'static [&'static str],
     /// `language-kind` values of a `parameter` entity that a parameter list holds.
     pub listed_parameters: &'static [&'static str],
+    /// The context parameter that names the toolchain release a context's
+    /// meaning depends on. A compiler report's `release` must match it.
+    pub release_parameter: &'static str,
 }
 
 use Names::*;
@@ -201,6 +204,7 @@ const RUST: ProfileRules = ProfileRules {
     ],
     inferred_on_source: &[],
     listed_parameters: &["param"],
+    release_parameter: "release",
 };
 
 const CSHARP: ProfileRules = ProfileRules {
@@ -305,6 +309,7 @@ const CSHARP: ProfileRules = ProfileRules {
     ],
     inferred_on_source: &[],
     listed_parameters: &["param"],
+    release_parameter: "release",
 };
 
 const DART: ProfileRules = ProfileRules {
@@ -397,6 +402,7 @@ const DART: ProfileRules = ProfileRules {
         "const",
     ],
     listed_parameters: &["param"],
+    release_parameter: "release",
 };
 
 const GO: ProfileRules = ProfileRules {
@@ -464,6 +470,7 @@ const GO: ProfileRules = ProfileRules {
     ],
     inferred_on_source: &["var"],
     listed_parameters: &["param"],
+    release_parameter: "release",
 };
 
 const PYTHON: ProfileRules = ProfileRules {
@@ -547,6 +554,7 @@ const PYTHON: ProfileRules = ProfileRules {
     ],
     inferred_on_source: &[],
     listed_parameters: &["param"],
+    release_parameter: "python",
 };
 
 const TYPESCRIPT: ProfileRules = ProfileRules {
@@ -660,6 +668,7 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
         "const",
     ],
     listed_parameters: &["param"],
+    release_parameter: "compiler",
 };
 
 /// The rules of every profile of model version 1.

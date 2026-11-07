@@ -36,6 +36,8 @@ def members(out):
     with open(out) as source:
         report = json.load(source)
     assert report["format"] == "semantic-oracle-compiler-report/1"
+    # The audit matches it against the context's release parameter.
+    assert report["release"] and report["release"][0] in "0123456789g", report.get("release")
     # Rust's namespaces let one path name several kinds, keyed `<path>@<kind>` there.
     keyed = {}
     for member in report["members"]:

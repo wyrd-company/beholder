@@ -56,7 +56,7 @@ $defs:
 
   context-parameters:
     type: object
-    required: [mode, selection, manifest, packages, target, cfg, features, profile]
+    required: [mode, selection, manifest, packages, target, cfg, features, profile, release]
     additionalProperties: false
     properties:
       mode: {enum: &mode [build, test, doc, doctest]}
@@ -70,6 +70,7 @@ $defs:
       cfg: {$ref: '#/$defs/text-list'}
       features: {$ref: '#/$defs/text-list'}
       profile: {$ref: '#/$defs/text'}
+      release: {$ref: '#/$defs/text'}
 
   unit:
     $ref: 'https://wyrd.foo/beholder/schemas/semantic-oracle/1#/$defs/unit'

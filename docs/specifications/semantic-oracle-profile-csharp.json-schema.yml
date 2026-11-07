@@ -48,13 +48,14 @@ $defs:
 
   context-parameters:
     type: object
-    required: [entry, configuration, target-framework, properties]
+    required: [entry, configuration, target-framework, properties, release]
     additionalProperties: false
     properties:
       entry: {$ref: '#/$defs/canonical-path'}
       configuration: {$ref: '#/$defs/text'}
       target-framework: {$ref: '#/$defs/text'}
       properties: {$ref: '#/$defs/text-list'}
+      release: {$ref: '#/$defs/text'}
 
   unit:
     $ref: 'https://wyrd.foo/beholder/schemas/semantic-oracle/1#/$defs/unit'

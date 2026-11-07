@@ -32,9 +32,9 @@ description: |
   - Package layout conventions, `pubspec` and pub workspaces.
     <https://dart.dev/tools/pub/package-layout>
   - `package:meta` annotations. <https://pub.dev/documentation/meta/latest/>
-  - Toolchain: a stable Dart SDK that satisfies each package's SDK
-    constraint and each unit's `language-version`. `authoring.tools` records
-    the SDK that checked a dataset.
+  - Toolchain: the stable Dart SDK release that each context's `release`
+    names, which satisfies each package's SDK constraint. `authoring.tools`
+    records the exact release used.
 
   ## Contexts
 
@@ -47,6 +47,7 @@ description: |
   | `defines` | The sorted `-D` environment declarations. |
   | `library-flags` | The sorted `dart.library.*` configuration values that are true on the platform. |
   | `options` | The sorted command options that change semantics, such as `--enable-asserts`. |
+  | `release` | The release parameter: the Dart SDK release as `3.N`, which decides the SDK libraries' members, and so which instance or extension member a reference resolves to, at any language version. |
 
   Each `dart run`, `dart compile` or `dart test` command in the project's
   `build` and `test` tasks defines a context, unless another command defines

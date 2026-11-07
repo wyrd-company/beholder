@@ -90,6 +90,7 @@ contexts:
       module-root: .
       go-version: '1.26'
       patterns: [./...]
+      release: 'go1.27'
     command: CGO_ENABLED=0 go build ./...
   - id: darwin
     parameters:
@@ -103,6 +104,7 @@ contexts:
       module-root: .
       go-version: '1.26'
       patterns: [./...]
+      release: 'go1.27'
     command: GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build ./...
   - id: linux-test
     parameters:
@@ -116,6 +118,7 @@ contexts:
       module-root: .
       go-version: '1.26'
       patterns: [./...]
+      release: 'go1.27'
     command: CGO_ENABLED=0 go test ./...
 
 distributions:

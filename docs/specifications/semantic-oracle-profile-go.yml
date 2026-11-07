@@ -32,9 +32,8 @@ description: |
     and `cgo` documentation. <https://pkg.go.dev/cmd/go>
   - Go Modules Reference, including workspaces and vendoring.
     <https://go.dev/ref/mod>
-  - Toolchain: a Go `gc` release, in module mode, that supports each
-    context's `go-version` and any `toolchain` directive. `authoring.tools`
-    records the release that checked a dataset.
+  - Toolchain: the Go `gc` release, in module mode, that each context's
+    `release` names. `authoring.tools` records the exact release used.
 
   ## Contexts
 
@@ -52,6 +51,7 @@ description: |
   | `module-root` | The project-relative directory of the main module or `go.work` the command uses; `.` for the project root. |
   | `go-version` | The language version the module's `go` directive selects. |
   | `patterns` | The package patterns the command names. |
+  | `release` | The release parameter: the Go toolchain release as `go1.N`, which decides the release tags `go1.1` to `go1.N` that build constraints test and the standard library. A `toolchain` directive in `go.mod` that names a later release selects it. |
 
   Each `go build`, `go vet`, `go test` or `go run` command in the project's
   `build` and `test` tasks defines a context, unless another command defines
