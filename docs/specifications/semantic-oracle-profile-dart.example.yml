@@ -528,12 +528,30 @@ entities:
     declared-visibility: {value: public, explicit: true}
     effective-visibility: {unit: all, project: all, external: all}
 
+  - id: shapes.Kind.square
+    kind: enum-member
+    language-kind: enum-value
+    name: square
+    path: 'package:geometry/src/shapes.dart::Kind.square'
+    unit: shapes-lib
+    parent: shapes.Kind
+    origin: source
+    definitions:
+      - at: {path: lib/src/shapes.dart, start: [23, 20], end: [23, 26], text: square}
+    declared-visibility: {value: public, explicit: true}
+    effective-visibility: {unit: all, project: all, external: all}
+
 externals:
   - id: ext.dart.core.double
     kind: type
     language-kind: class
     distribution: sdk
     path: 'dart:core::double'
+  - id: ext.dart.core.List
+    kind: type
+    language-kind: class
+    distribution: sdk
+    path: 'dart:core::List'
   - id: ext.meta.protected
     kind: constant
     language-kind: const
@@ -548,6 +566,10 @@ references:
   - at: {path: lib/geometry.dart, start: [1, 31], end: [1, 37], text: Circle}
     from: geometry-library
     target: shapes.Circle
+    role: export
+  - at: {path: lib/geometry.dart, start: [1, 50], end: [1, 54], text: Kind}
+    from: geometry-library
+    target: shapes.Kind
     role: export
   - at: {path: lib/src/shapes.dart, start: [13, 22], end: [13, 27], text: Shape}
     from: shapes.Circle
@@ -676,6 +698,11 @@ relations:
     to: shapes.DoubleOps
     name: DoubleOps
     at: {path: lib/geometry.dart, start: [1, 39], end: [1, 48], text: DoubleOps}
+  - kind: exports
+    from: geometry-library
+    to: shapes.Kind
+    name: Kind
+    at: {path: lib/geometry.dart, start: [1, 50], end: [1, 54], text: Kind}
 
 public-api:
   members:
@@ -688,6 +715,10 @@ public-api:
     - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
     - {distribution: geometry, entity: shapes.DoubleOps, paths: ['package:geometry/geometry.dart::DoubleOps'], access: all}
     - {distribution: geometry, entity: shapes.DoubleOps.doubled, paths: ['package:geometry/geometry.dart::DoubleOps.doubled'], access: all}
+    - {distribution: geometry, entity: shapes.Kind, paths: ['package:geometry/geometry.dart::Kind'], access: all}
+    - {distribution: geometry, entity: shapes.Kind.round, paths: ['package:geometry/geometry.dart::Kind.round'], access: all}
+    - {distribution: geometry, entity: shapes.Kind.square, paths: ['package:geometry/geometry.dart::Kind.square'], access: all}
+    - {distribution: geometry, entity: shapes.Kind.values, paths: ['package:geometry/geometry.dart::Kind.values'], access: all}
   signatures:
     - entity: shapes.Circle
       bases:
@@ -712,6 +743,12 @@ public-api:
       receiver: double
     - entity: shapes.DoubleOps.doubled
       returns: double
+    - entity: shapes.Kind.round
+      index: 0
+    - entity: shapes.Kind.square
+      index: 1
+    - entity: shapes.Kind.values
+      type: {inferred: "@{ext.dart.core.List}<@{shapes.Kind}>"}
 
 extensions:
   dart:visibility-annotation:

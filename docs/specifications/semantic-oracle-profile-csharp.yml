@@ -75,12 +75,19 @@ description: |
   `preview`, it is the version that the compiler of the context's `release`
   resolves; `preview` is written `preview`. `define-constants` is the list of
   conditional compilation symbols the compiler receives, in the order MSBuild
-  passes them: the project's `DefineConstants` after the SDK adds its implicit
-  framework symbols, such as `NET`, `NET10_0` and `NET10_0_OR_GREATER`. Two projects that produce one assembly name,
+  passes them to Csc as `/define:`: the project's `DefineConstants` after the
+  SDK adds its configuration symbol and its implicit framework symbols. For a
+  `net10.0` Debug build with SDK 10.0.403 that is `TRACE`, `DEBUG`, `NET`,
+  `NET10_0`, `NETCOREAPP`, `NET5_0_OR_GREATER` to `NET10_0_OR_GREATER`, and
+  `NETCOREAPP1_0_OR_GREATER` to `NETCOREAPP3_1_OR_GREATER`; a Release build
+  has `RELEASE` in place of `DEBUG`. An author reads the list from the build,
+  with `dotnet build -v:detailed` or a binary log, not from the project file.
+  Two projects that produce one assembly name,
   with equal or different versions, are two units. An adapter that knows
   only the assembly name and version supplies a partial unit key.
 
-  Each unit has a root entity, the assembly, which the unit names in `root`:
+  Each unit has a root entity, the assembly, which the unit names in `root`,
+  and `root` is required:
   `kind: module`, `language-kind: assembly`, `name` the assembly name and
   `path` the assembly name in brackets, `[Geometry]`, so that it never reads
   as a namespace path. It has no definition site and no `anchor`, because
@@ -88,7 +95,9 @@ description: |
   site outside every namespace and type declaration: top-level `using`,
   `global using` and `extern alias` directives, and `[assembly:]` and
   `[module:]` attributes. It is no entity's `parent`, because namespaces are
-  project-merged across units, and it is not a public API member. Its
+  project-merged across units, and it is not a public API member. Rule
+  `csharp:unit-root` checks that a root has `language-kind: assembly` and the
+  unit's name, and that no entity names it as `parent`. Its
   declared visibility is `public` with `explicit: false`; its effective
   visibility is `all` at every boundary, except `external: none` for a unit
   with no distribution.
@@ -121,14 +130,31 @@ description: |
   - Overloaded methods, constructors, indexers and operators append the
     parameter list: each parameter's canonical metadata type path, separated
     by `,` with no space, such as `Geometry.Shape.Scale(System.Double,System.Int32)`
-    and `Geometry.Grid`1.this[](System.String,System.Int32)`. A parameter
-    keeps a `ref `, `out `, `in ` or `ref readonly ` prefix and drops
-    `params`. A metadata type path is the type's path with its type arguments
-    in `<>` separated by `,`, such as `System.Func`2<System.Int32,System.String>`,
-    `[]` for an array, `*` for a pointer and the name for a type parameter;
-    nullable annotations are dropped, and `int?` is
-    `System.Nullable`1<System.Int32>`. A member is overloaded when another
-    entity of its type has the same member name.
+    and `Geometry.Grid`1.this[](System.String,System.Int32)`. A member is
+    overloaded when another entity of its type has the same member name.
+    Two parameter lists that the language lets overload each other have
+    different paths, so each overload keeps its own identity.
+
+    A parameter keeps a `ref `, `out `, `in ` or `ref readonly ` prefix, one
+    space after the keyword, and drops `params`, `scoped` and an extension
+    method's `this`, by which no overload can differ. A canonical metadata
+    type path is built by these rules, applied to each component:
+
+    | Parameter type | Written | Example |
+    | --- | --- | --- |
+    | Named type | Its path, with `` `n `` for its arity | `System.Int32`, `Geometry.Grid`1` |
+    | Constructed generic type | The path, then its type arguments in `<>` separated by `,`. A type nested in a generic type takes every type argument, outer ones first, on the nested type, as metadata does | `System.Func`2<System.Int32,System.String>`, `Geometry.Outer`1.Inner`1<System.Int32,System.String>` |
+    | Type parameter | Its declared name | `T` |
+    | Keyword type | Its metadata type; `dynamic` is `System.Object`, and `nint` and `nuint` are `System.IntPtr` and `System.UIntPtr` | `System.String` for `string` |
+    | Nullable value type | `System.Nullable`1<...>` | `System.Nullable`1<System.Int32>` for `int?` |
+    | Nullable reference type | The annotation is dropped | `System.String` for `string?` |
+    | Tuple | `System.ValueTuple`n<...>` with the element types in order; element names are dropped, and an eighth or later element nests in `TRest` as metadata does | `System.ValueTuple`2<System.Int32,System.String>` for `(int x, string y)` |
+    | Array | The element type, then one rank specifier: `[]` for rank 1, `[,]` for rank 2, `[,,]` for rank 3, one `,` per added dimension. A jagged array keeps its specifiers in source order | `System.Int32[]`, `System.Int32[,]`, `System.Int32[,,]`, `System.Int32[][,]` for `int[][,]` |
+    | Pointer | The pointed-to type, then `*` | `System.Int32*`, `System.Void*`, `System.Byte**` |
+    | Function pointer | `delegate*`, one space, the calling convention, then `<>` holding each parameter type and last the return type, separated by `,`. Each keeps its `ref `, `in `, `out ` or `ref readonly ` prefix. The calling convention is always written: `managed` for `delegate*<...>` and `delegate* managed<...>`; `unmanaged` with no list; otherwise `unmanaged[...]` with the convention names as source writes them, without a `CallConv` prefix, sorted and separated by `,` | `delegate* managed<System.Int32,System.Void>`, `delegate* unmanaged[Cdecl,SuppressGCTransition]<ref System.Int32,System.Int32>` |
+
+    `M(int[])`, `M(int[,])` and `M(int[][])` are therefore
+    `M(System.Int32[])`, `M(System.Int32[,])` and `M(System.Int32[][])`.
   - Explicit interface implementations use `<Interface path>.<member>` as
     the member name, where the interface part is the implemented interface's
     metadata type path with its type arguments, so that `I<int>.M` and
@@ -166,12 +192,21 @@ description: |
   its declaring sites. Property and event accessors are part of their
   property entity.
 
-  Definition sites: a named declaration's site is its identifier; an
-  indexer's is `this`; a constructor's, static constructor's and finalizer's
-  is the type name it repeats; an operator's is its operator token, such as
-  `+`, `==`, `true` or the `+` of `operator checked +`; a conversion's is its
-  `implicit` or `explicit` keyword; a primary constructor's is the type name,
-  which it shares with the type. A primary constructor's parameters are
+  Definition sites: a named declaration's site is its identifier; a
+  constructor's, static constructor's and finalizer's is the type name it
+  repeats, without the finalizer's `~`; a primary constructor's is the type
+  name, which it shares with the type. C# has these token sites, as the model
+  defines them. Each spans exactly the one token as written:
+
+  | Token site | Kind | Span |
+  | --- | --- | --- |
+  | Indexer declaration | definition | The `this` keyword |
+  | Operator declaration | definition | The operator token after `operator`, and after `checked` when present: `+`, `==`, `>>>`, `++`, `!`, or the `true` or `false` keyword. A multi-character operator is one token, so `>>` spans both characters |
+  | Conversion declaration | definition | The `implicit` or `explicit` keyword |
+  | User-defined operator use | reference | The operator token in the expression: `+` in `a + b`, `-` in `-a`, `++` in `a++`, and for a compound assignment that binds to a binary operator the whole `+=` token |
+  | Indexer access | reference | The `[` token alone, not the closing bracket or the arguments |
+  | Constructor initializer | reference | The `this` or `base` keyword |
+  | Predefined type keyword | reference | The keyword, such as `int`, `string` or `void` | A primary constructor's parameters are
   `parameter` entities at their identifiers. A delegate's declared
   parameters are no entities; its synthetic members' parameters are.
 
@@ -243,6 +278,10 @@ description: |
   | `event` | `add`, `remove`, `modifiers` |
   | `enum-member` | `value` |
 
+  An enum member has no `index`, unlike a Dart enum value: its `value` is what a consumer
+  stores and compares, and C# exposes no declaration order; `Enum.GetValues` orders by
+  value.
+
   An event's `add` and `remove` are accessors: each holds the delegate type in `type`,
   as `add: {type: "@{ext.System.EventHandler}?"}`.
 
@@ -261,8 +300,9 @@ description: |
   type without `ref`.
 
   Modifiers: `abstract`, `sealed`, `static`, `virtual`, `override`, `readonly`,
-  `required` and, for a field, `volatile`, which the field's metadata signature carries,
-  so that adding or removing it is a break. `async` is not a modifier, because the return
+  `required` and, for a `field` only, `volatile`, which the field's metadata signature
+  carries, so that adding or removing it is a break. `volatile` on any other member is a
+  `model:signature-slots` error. `async` is not a modifier, because the return
   type states its effect on a caller.
 
   Implied modifiers are not recorded. A modifier is written where the language leaves

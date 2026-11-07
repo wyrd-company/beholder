@@ -934,12 +934,13 @@ fn every_example_states_signatures_for_its_members() {
         "enum-member",
     ];
     // Plain declarations of these members state nothing beyond their names.
-    const NOTHING_TO_STATE: [&str; 8] = [
+    const NOTHING_TO_STATE: [&str; 9] = [
         "atlas.portable.run",
         "stub.atlas.shapes.Shape",
         "Geometry.IShape",
         "Geometry.Generated.Metrics",
         "Geometry.Header",
+        "shapes.Kind",
         "Geometry.Shape..ctor",
         "Geometry.Visitor",
         "ext.Legacy.Point",
@@ -1836,5 +1837,220 @@ fn a_property_with_parameter_entities_has_no_list_to_compare() {
     assert!(
         found.iter().any(|m| m.contains("the parameter list is")),
         "{found:#?}"
+    );
+}
+
+/// The findings of one rule, as `at message`.
+fn findings_of(dataset: &Value, rule: &str) -> Vec<String> {
+    beholder_semantic_oracle::validate(dataset, None)
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == rule)
+        .map(|f| format!("{} {}", f.at, f.message))
+        .collect()
+}
+
+fn set(dataset: &mut Value, pointer: &str, value: Value) {
+    *dataset
+        .pointer_mut(pointer)
+        .unwrap_or_else(|| panic!("no member {pointer}")) = value;
+}
+
+/// The index of the entity with `id`.
+fn entity_index(dataset: &Value, id: &str) -> usize {
+    dataset["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|entity| entity["id"] == id)
+        .unwrap_or_else(|| panic!("no entity {id}"))
+}
+
+/// The index of the signature record of `id`.
+fn signature_index(dataset: &Value, id: &str) -> usize {
+    dataset["public-api"]["signatures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|record| record["entity"] == id)
+        .unwrap_or_else(|| panic!("no signature {id}"))
+}
+
+#[test]
+fn a_csharp_unit_root_is_its_assembly() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    assert_eq!(
+        findings_of(&dataset, "csharp:unit-root"),
+        Vec::<String>::new()
+    );
+    // A namespace of the unit, with the unit's name, is not its assembly.
+    set(&mut dataset, "/units/0/root", json!("Geometry"));
+    let findings = findings_of(&dataset, "csharp:unit-root");
+    assert_eq!(findings.len(), 1, "{findings:#?}");
+    assert!(findings[0].starts_with("/units/0/root "), "{findings:#?}");
+    assert!(findings[0].contains("`assembly`"), "{findings:#?}");
+}
+
+#[test]
+fn a_csharp_unit_root_has_the_unit_name() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    let root = entity_index(&dataset, "Geometry.assembly");
+    set(
+        &mut dataset,
+        &format!("/entities/{root}/name"),
+        json!("Atlas"),
+    );
+    let findings = findings_of(&dataset, "csharp:unit-root");
+    assert_eq!(findings.len(), 1, "{findings:#?}");
+    assert!(findings[0].starts_with("/units/0/root "), "{findings:#?}");
+    assert!(findings[0].contains("not the unit's name"), "{findings:#?}");
+}
+
+#[test]
+fn a_csharp_unit_root_is_no_parent() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    let child = entity_index(&dataset, "Geometry.IShape");
+    set(
+        &mut dataset,
+        &format!("/entities/{child}/parent"),
+        json!("Geometry.assembly"),
+    );
+    assert_eq!(
+        findings_of(&dataset, "csharp:unit-root"),
+        vec![format!(
+            "/entities/{child}/parent `Geometry.assembly` is a unit root (`assembly`), \
+             which is no entity's parent"
+        )]
+    );
+}
+
+#[test]
+fn volatile_is_a_csharp_field_modifier_only() {
+    let mut dataset = load("semantic-oracle-profile-csharp.example.yml");
+    let at = |d: &Value, id: &str| format!("/public-api/signatures/{}", signature_index(d, id));
+    let volatile = |d: &Value| -> Vec<String> {
+        findings_of(d, "model:signature-slots")
+            .into_iter()
+            .filter(|f| f.contains("`volatile`"))
+            .collect()
+    };
+    // The example's static volatile field is valid.
+    assert_eq!(volatile(&dataset), Vec::<String>::new());
+    let method = at(&dataset, "Geometry.Shape.Scale");
+    let class = at(&dataset, "Geometry.Shape");
+    set(
+        &mut dataset,
+        &format!("{method}/modifiers"),
+        json!(["virtual", "volatile"]),
+    );
+    set(
+        &mut dataset,
+        &format!("{class}/modifiers"),
+        json!(["abstract", "volatile"]),
+    );
+    let findings = volatile(&dataset);
+    assert_eq!(findings.len(), 2, "{findings:#?}");
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.starts_with(&format!("{method}/modifiers/1 "))
+                && f.contains("not of a `method`")),
+        "{findings:#?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.starts_with(&format!("{class}/modifiers/1 "))
+                && f.contains("not of a `class`")),
+        "{findings:#?}"
+    );
+}
+
+#[test]
+fn a_dart_enum_generative_constructor_is_no_member_and_a_factory_is() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    for (id, language_kind, name) in [
+        ("shapes.Kind.new", "constructor", None),
+        ("shapes.Kind.named", "constructor", Some("named")),
+        ("shapes.Kind.pick", "factory", Some("pick")),
+    ] {
+        let path = format!(
+            "package:geometry/src/shapes.dart::Kind.{}",
+            name.unwrap_or("new")
+        );
+        let mut record = entity(
+            id,
+            "callable",
+            language_kind,
+            &path,
+            "shapes.Kind",
+            "shapes-lib",
+        );
+        match name {
+            Some(name) => record["name"] = json!(name),
+            None => {
+                record.as_object_mut().unwrap().remove("name");
+            }
+        }
+        record["declared-visibility"] = json!({"value": "public", "explicit": true});
+        push(&mut dataset, "/entities", record);
+    }
+    let findings = recomputed(&dataset);
+    assert!(
+        findings
+            .iter()
+            .all(|f| !f.contains("shapes.Kind.new") && !f.contains("shapes.Kind.named")),
+        "{findings:#?}"
+    );
+    assert!(
+        findings.iter().any(|f| f.contains("`shapes.Kind.pick`")),
+        "{findings:#?}"
+    );
+}
+
+#[test]
+fn a_dart_enum_value_index_is_its_source_position() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    assert_eq!(
+        findings_of(&dataset, "model:signature-index"),
+        Vec::<String>::new()
+    );
+    let round = signature_index(&dataset, "shapes.Kind.round");
+    let square = signature_index(&dataset, "shapes.Kind.square");
+    // Reordering the values swaps their indexes; a dataset that keeps the old
+    // ones is wrong.
+    set(
+        &mut dataset,
+        &format!("/public-api/signatures/{round}/index"),
+        json!(1),
+    );
+    set(
+        &mut dataset,
+        &format!("/public-api/signatures/{square}/index"),
+        json!(0),
+    );
+    let findings = findings_of(&dataset, "model:signature-index");
+    assert_eq!(findings.len(), 2, "{findings:#?}");
+    assert!(
+        findings[0].starts_with(&format!("/public-api/signatures/{round}/index "))
+            && findings[0].contains("its position is 0"),
+        "{findings:#?}"
+    );
+}
+
+#[test]
+fn a_dart_enum_value_always_has_an_index() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    let round = signature_index(&dataset, "shapes.Kind.round");
+    dataset["public-api"]["signatures"]
+        .as_array_mut()
+        .unwrap()
+        .remove(round);
+    let findings = findings_of(&dataset, "model:signature-slots");
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.contains("`shapes.Kind.round` is a `enum-value`, which has index")),
+        "{findings:#?}"
     );
 }

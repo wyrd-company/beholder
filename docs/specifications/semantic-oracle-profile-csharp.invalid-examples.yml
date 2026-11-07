@@ -228,3 +228,16 @@ cases:
     fails-at: /contexts/0/parameters
     keyword: required
     member: release
+  - name: unit-without-root
+    reason: Every C# unit has a root, its assembly.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /units/0/root}]
+    fails-at: /units/0
+    keyword: required
+    member: root
+  - name: index-slot
+    reason: '`index` is a Dart enum-value slot; a C# enum member has `value`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/index, value: 0}]
+    fails-at: /public-api/signatures/0/index
+    keyword: falseSchema

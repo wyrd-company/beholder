@@ -20,8 +20,8 @@ authoring:
     Facts derived from the C# language specification, the .NET SDK
     documentation and probes compiled outside the project tree.
   tools:
-    - {name: .NET SDK, version: 10.0.110}
-    - {name: MSBuild, version: 18.0.11}
+    - {name: .NET SDK, version: 10.0.403}
+    - {name: MSBuild, version: 18.9.15}
 
 documents:
   - path: Geometry.slnx
@@ -116,8 +116,10 @@ units:
     project: src/Geometry/Geometry.csproj
     language-version: '14.0'
     define-constants:
-      - {contexts: [debug], value: [DEBUG, TRACE]}
-      - {contexts: [release], value: [TRACE]}
+      - contexts: [debug]
+        value: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
+      - contexts: [release]
+        value: [TRACE, RELEASE, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
   - id: atlas-app
     kind: assembly
@@ -127,8 +129,10 @@ units:
     project: src/Atlas/Atlas.csproj
     language-version: '14.0'
     define-constants:
-      - {contexts: [debug], value: [DEBUG, TRACE]}
-      - {contexts: [release], value: [TRACE]}
+      - contexts: [debug]
+        value: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
+      - contexts: [release]
+        value: [TRACE, RELEASE, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
   - id: geometry-tests
     kind: assembly
@@ -137,7 +141,7 @@ units:
     assembly-version: 1.0.0.0
     project: tests/Geometry.Tests/Geometry.Tests.csproj
     language-version: '14.0'
-    define-constants: [DEBUG, TRACE]
+    define-constants: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
     contexts: [debug]
 

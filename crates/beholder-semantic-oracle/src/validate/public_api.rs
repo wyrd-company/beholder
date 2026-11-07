@@ -640,7 +640,13 @@ impl<'c, 'a> Walk<'c, 'a> {
         if !matches!(text(entity, "kind"), Some("type" | "extension")) {
             return;
         }
+        let is_enum = text(entity, "language-kind") == Some("enum");
         for child in self.children(id) {
+            // A consumer can neither call nor tear off an enum's generative
+            // constructor; its factory constructors it can.
+            if is_enum && text(child, "language-kind") == Some("constructor") {
+                continue;
+            }
             if matches!(text(child, "kind"), Some("parameter" | "type-parameter")) {
                 continue;
             }

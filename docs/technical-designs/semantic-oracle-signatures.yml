@@ -238,7 +238,7 @@ proposed-design:
     | `property` | `get`, `set`, `init` (C#), `add` and `remove` (a C# event), `delete` (Python), `parameters` for an indexer, `return-mode` (C#), `modifiers` |
     | `variable` | `type`, `modifiers` |
     | `constant` | `type`, `value`, `modifiers` (Rust `provided`) |
-    | `enum-member` | `value`; `type` for a value of a generic Dart enum |
+    | `enum-member` | `value`; `type` for a value of a generic Dart enum; `index` (Dart), its 0-based position, which `values` and `.index` expose |
     | `extension` | For a named Dart extension, `type-parameters` and `receiver`, its `on` type. No signature otherwise. |
     | `module`, `namespace`, `macro` | No signature. Membership states them. |
     | An external entity a re-export names | No signature, by the model's rule on the internal structure of external entities. |

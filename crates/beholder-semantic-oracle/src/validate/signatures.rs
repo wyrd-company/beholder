@@ -26,6 +26,7 @@ const PARAMETERS: &str = "model:signature-parameters";
 const REFERENCES: &str = "model:signature-references";
 const INFERENCE: &str = "model:signature-inference";
 const BASES: &str = "model:signature-bases";
+const INDEX: &str = "model:signature-index";
 
 /// Names a canonical form removes from a type text, whose tokens keep their
 /// `references` facts.
@@ -84,7 +85,7 @@ impl<'a> Checker<'a> {
             .unwrap_or(&[])
     }
 
-    fn language_kinds(&self, entity: &'a Value) -> Vec<&'a str> {
+    pub(super) fn language_kinds(&self, entity: &'a Value) -> Vec<&'a str> {
         match entity.get("language-kind") {
             Some(Value::String(kind)) => vec![kind.as_str()],
             Some(Value::Array(entries)) => entries
@@ -138,11 +139,55 @@ impl<'a> Checker<'a> {
             self.check_canonical(record);
             self.check_signature_references(record);
             self.check_inference(record);
+            self.check_index(record);
         }
         self.check_signature_parameters(&records, &members);
         self.check_signature_bases(&records, &members);
         if self.rules.language == "rust" {
             self.check_reachable_unnameable(&records, &members);
+        }
+    }
+
+    // ------------------------------------------------------ signature-index
+
+    /// An `index` is the member's position among its parent's enum members,
+    /// in the order of their first definition sites.
+    fn check_index(&mut self, record: &Record<'a>) {
+        let Some(index) = record.record.get("index").and_then(Value::as_u64) else {
+            return;
+        };
+        let parent = text(record.entity, "parent");
+        let mut siblings: Vec<(SiteKey<'a>, &'a str)> = self
+            .list("entities")
+            .iter()
+            .filter(|entity| text(entity, "kind") == Some("enum-member"))
+            .filter(|entity| parent.is_some() && text(entity, "parent") == parent)
+            .filter_map(|entity| {
+                let id = text(entity, "id")?;
+                let first = definition_sites(entity).into_iter().next()?;
+                let present = self
+                    .entity_contexts(id)
+                    .iter()
+                    .any(|context| record.contexts.contains(context));
+                present.then_some((first, id))
+            })
+            .collect();
+        siblings.sort_unstable();
+        let position = siblings.iter().position(|(_, id)| *id == record.id);
+        if position != usize::try_from(index).ok() {
+            let expected = position.map_or_else(
+                || "it has no definition site among them".to_owned(),
+                |p| format!("its position is {p}"),
+            );
+            self.error(
+                INDEX,
+                format!("{}/index", record.at),
+                format!(
+                    "`{}` has `index` {index}, but {expected} among the enum members of `{}`",
+                    record.id,
+                    parent.unwrap_or_default()
+                ),
+            );
         }
     }
 
@@ -250,6 +295,27 @@ impl<'a> Checker<'a> {
                         self.rules.language
                     );
                     self.error(SLOTS, format!("{at}/{slot}"), message);
+                }
+            }
+            for (k, modifier) in list(body, "modifiers").iter().enumerate() {
+                let Some(modifier) = modifier.as_str() else {
+                    continue;
+                };
+                let Some((_, allowed)) = self
+                    .rules
+                    .kind_modifiers
+                    .iter()
+                    .find(|(name, _)| *name == modifier)
+                else {
+                    continue;
+                };
+                if !kinds.iter().all(|kind| allowed.contains(kind)) {
+                    let message = format!(
+                        "`{modifier}` is a modifier of a `{}` only, not of a `{}`",
+                        allowed.join("`/`"),
+                        kinds.join("`/`")
+                    );
+                    self.error(SLOTS, format!("{at}/modifiers/{k}"), message);
                 }
             }
             for row in &rows {
