@@ -539,6 +539,35 @@ var External = sample.Helper()
     expect(found, path + "Circle", "bases[@{example.com/sample.Shape}].type", "@{example.com/sample.Shape}")
 
 
+def go_test_graph(tmp):
+    """A test binary rebuilds each package that imports the tested one against its
+    test variant, so that one named type stays one type: `q` imports `p`, and `p`'s
+    tests and external test package use both."""
+    project = os.path.join(tmp, "go-graph")
+    write(project, {
+        "go.mod": "module example.com/graph\n\ngo 1.21\n",
+        "p/p.go": "package p\n\ntype X struct{}\ntype T struct{}\n\nfunc (T) M(X) {}\n",
+        "p/p_test.go": "package p\n\nfunc helper() int { return 1 }\n",
+        "p/x_test.go": """package p_test
+
+import (
+	"example.com/graph/p"
+	"example.com/graph/q"
+)
+
+var Used = q.Accept(p.T{})
+""",
+        "q/q.go": "package q\n\nimport \"example.com/graph/p\"\n\ntype I interface{ M(p.X) }\n\nfunc Accept(I) bool { return true }\n",
+    })
+    base = "bases[@{example.com/graph/q.I}].type"
+    for mode in ("build", "test"):
+        out = os.path.join(tmp, f"go-graph-{mode}.json")
+        report, found = run(f"go-graph-{mode}", ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", mode, "-mode", mode, "-out", out], project, out)
+        assert report["mode"] == mode, report["mode"]
+        expect(found, "example.com/graph/p.T", base, "@{example.com/graph/q.I}")
+    expect(found, "example.com/graph/p_test.Used", "type", "bool")
+
+
 def python(tmp):
     project = os.path.join(tmp, "python")
     write(project, {
@@ -781,7 +810,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -44,6 +44,7 @@ type listed struct {
 	CgoFiles     []string
 	TestGoFiles  []string
 	XTestGoFiles []string
+	Deps         []string
 }
 
 type member struct {
@@ -340,18 +341,48 @@ func (p *project) plainPackage(unit listed) (*types.Package, error) {
 	return checked, nil
 }
 
-// replacing imports one package in its test variant, and the rest as a build does.
-type replacing struct {
-	project *project
-	path    string
-	tested  *types.Package
+// graph is the package graph of one test binary, as `go test` builds it: the
+// tested package with its in-package test files, and every project package that
+// imports it rebuilt against that variant, so that each package's types are one
+// set of objects within the graph. Other packages are their build variants.
+type graph struct {
+	project  *project
+	tested   string
+	variant  *types.Package
+	rebuilt  map[string]*types.Package
+	building map[string]bool
 }
 
-func (r replacing) Import(path string) (*types.Package, error) {
-	if path == r.path && r.tested != nil {
-		return r.tested, nil
+func (g *graph) Import(path string) (*types.Package, error) {
+	if path == g.tested {
+		return g.variant, nil
 	}
-	return r.project.Import(path)
+	unit, ok := g.project.units[path]
+	if !ok || !dependsOn(unit, g.tested) {
+		return g.project.Import(path)
+	}
+	if checked, ok := g.rebuilt[path]; ok {
+		return checked, nil
+	}
+	if g.building[path] {
+		return nil, fmt.Errorf("import cycle through %s", path)
+	}
+	g.building[path] = true
+	checked, err := g.project.check(unit.ImportPath, unit.Dir, g, unit.GoFiles, unit.CgoFiles)
+	if err != nil {
+		return nil, err
+	}
+	g.rebuilt[path] = checked
+	return checked, nil
+}
+
+func dependsOn(unit listed, path string) bool {
+	for _, dependency := range unit.Deps {
+		if dependency == path {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *project) check(path, dir string, imports types.Importer, groups ...[]string) (*types.Package, error) {
@@ -411,7 +442,7 @@ func definedTypes(checked *types.Package) []*types.Named {
 // implements. go/types cannot decide this for an uninstantiated generic type, so a
 // type that is generic, or that could implement a generic interface, has its
 // `bases` unstated.
-func bases(reported []*types.Package, universe []*types.Package) {
+func bases(universe []*types.Package) {
 	interfaces := []*types.Named{}
 	for _, checked := range universe {
 		for _, named := range definedTypes(checked) {
@@ -420,7 +451,11 @@ func bases(reported []*types.Package, universe []*types.Package) {
 			}
 		}
 	}
-	for _, checked := range reported {
+	for _, checked := range universe {
+		// A command's members are no consumer's, but its interfaces are the project's.
+		if checked.Name() == "main" {
+			continue
+		}
 		for _, named := range definedTypes(checked) {
 			path := checked.Path() + "." + named.Obj().Name()
 			if shape, ok := named.Underlying().(*types.Interface); ok {
@@ -436,8 +471,7 @@ func bases(reported []*types.Package, universe []*types.Package) {
 					if !types.IsInterface(embedded) {
 						continue
 					}
-					text := typeText(embedded)
-					add(path, "bases["+text+"].type", text)
+					base(path, typeText(embedded))
 				}
 				continue
 			}
@@ -456,12 +490,24 @@ func bases(reported []*types.Package, universe []*types.Package) {
 				}
 				shape := candidate.Underlying().(*types.Interface)
 				if types.Implements(named, shape) || types.Implements(pointer, shape) {
-					text := typeText(candidate)
-					add(path, "bases["+text+"].type", text)
+					base(path, typeText(candidate))
 				}
 			}
 		}
 	}
+}
+
+// base states one `bases` entry, unless another graph left the member's `bases`
+// unstated.
+func base(path, text string) {
+	if found := members[path]; found != nil {
+		for _, slot := range found.Unstated {
+			if slot == "bases" {
+				return
+			}
+		}
+	}
+	add(path, "bases["+text+"].type", text)
 }
 
 // couldImplement reports whether `*T` has a method of each name a generic
@@ -549,42 +595,64 @@ func main() {
 		fmt.Fprintln(os.Stderr, "report-go:", path+":", err)
 		os.Exit(2)
 	}
-	reported := []*types.Package{}
-	universe := []*types.Package{}
+	testing := *mode == "test"
+	// The build graph: every package as a build compiles it.
+	built := []*types.Package{}
 	for _, unit := range order {
-		testing := *mode == "test"
-		var checked *types.Package
-		if len(unit.GoFiles)+len(unit.CgoFiles) > 0 {
-			if checked, err = checker.plainPackage(unit); err != nil {
-				stop(unit.ImportPath, err)
-			}
+		if len(unit.GoFiles)+len(unit.CgoFiles) == 0 {
+			continue
 		}
-		if testing && len(unit.TestGoFiles) > 0 {
-			if checked, err = checker.check(unit.ImportPath, unit.Dir, checker, unit.GoFiles, unit.CgoFiles, unit.TestGoFiles); err != nil {
-				stop(unit.ImportPath, err)
-			}
+		checked, err := checker.plainPackage(unit)
+		if err != nil {
+			stop(unit.ImportPath, err)
 		}
-		if checked != nil {
-			universe = append(universe, checked)
-			// A command's members are no consumer's, but its interfaces are the project's.
-			if unit.Name != "main" {
-				reported = append(reported, checked)
-			}
-		}
-		if testing && len(unit.XTestGoFiles) > 0 {
-			imports := replacing{project: checker, path: unit.ImportPath, tested: checked}
-			external, err := checker.check(unit.ImportPath+"_test", unit.Dir, imports, unit.XTestGoFiles)
-			if err != nil {
-				stop(unit.ImportPath+"_test", err)
-			}
-			universe = append(universe, external)
-			reported = append(reported, external)
+		built = append(built, checked)
+		if unit.Name != "main" && !(testing && len(unit.TestGoFiles) > 0) {
+			state(checked)
 		}
 	}
-	for _, checked := range reported {
-		state(checked)
+	bases(built)
+	if testing {
+		// One graph per test binary. A relation in the context is one in any of them.
+		for _, unit := range order {
+			if unit.Name == "main" || len(unit.TestGoFiles)+len(unit.XTestGoFiles) == 0 {
+				continue
+			}
+			tested := &graph{project: checker, tested: unit.ImportPath, rebuilt: map[string]*types.Package{}, building: map[string]bool{}}
+			if len(unit.TestGoFiles) > 0 {
+				tested.variant, err = checker.check(unit.ImportPath, unit.Dir, checker, unit.GoFiles, unit.CgoFiles, unit.TestGoFiles)
+				if err != nil {
+					stop(unit.ImportPath, err)
+				}
+				state(tested.variant)
+			} else if len(unit.GoFiles)+len(unit.CgoFiles) > 0 {
+				// With no in-package test file, the tested package is its build variant.
+				tested.variant = checker.plain[unit.ImportPath]
+			}
+			universe := []*types.Package{}
+			for _, other := range order {
+				if len(other.GoFiles)+len(other.CgoFiles) == 0 && other.ImportPath != unit.ImportPath {
+					continue
+				}
+				checked, err := tested.Import(other.ImportPath)
+				if err != nil {
+					stop(other.ImportPath, err)
+				}
+				if checked != nil {
+					universe = append(universe, checked)
+				}
+			}
+			if len(unit.XTestGoFiles) > 0 {
+				external, err := checker.check(unit.ImportPath+"_test", unit.Dir, tested, unit.XTestGoFiles)
+				if err != nil {
+					stop(unit.ImportPath+"_test", err)
+				}
+				state(external)
+				universe = append(universe, external)
+			}
+			bases(universe)
+		}
 	}
-	bases(reported, universe)
 	paths := make([]string, 0, len(members))
 	for path := range members {
 		paths = append(paths, path)
@@ -600,6 +668,7 @@ func main() {
 		"context":  *context,
 		"tool":     map[string]string{"name": "go/types", "version": runtime.Version()},
 		"release":  runtime.Version(),
+		"mode":     *mode,
 		"covers": []string{
 			"parameters[].name", "parameters[].type", "returns", "receiver", "underlying",
 			"type", "tag", "value", "type-parameters[].name", "type-parameters[].kind",
