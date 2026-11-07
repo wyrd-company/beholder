@@ -33,7 +33,16 @@ worst first:
                      installed version is used instead
   ok                 the installed toolchain satisfies every declaration
 
-Exits 1 when any project is unsupported or missing a toolchain.
+Each context of a project's semantic-oracle.yml names the toolchain release its
+meaning depends on: `release` (C#, Dart, Go, Rust), `python` or `compiler`
+(TypeScript). A line `<language>/<project>#<context>` reports it:
+
+  release-mismatch   no installed release equals the parameter or extends it
+                     with dotted components, or the context has no parameter
+  ok                 the release the project runs under matches it
+
+Exits 1 when any project is unsupported or missing a toolchain, or any context
+is release-mismatch.
 
   toolchains.py [--fixtures DIR]
 """
@@ -49,6 +58,10 @@ import tomllib
 
 STATES = ("missing-toolchain", "unsupported", "pin-not-honoured", "ok")
 FAILING = {"missing-toolchain", "unsupported"}
+# The context parameter that names the toolchain release a dataset's meaning
+# depends on. A report's release must equal it or extend it with dotted components.
+RELEASE_PARAMETER = {"csharp": "release", "dart": "release", "go": "release",
+                     "python": "python", "rust": "release", "typescript": "compiler"}
 LANGUAGES = ("csharp", "dart", "go", "python", "rust", "typescript")
 SKIPPED = {".git", ".dart_tool", "bin", "build", "node_modules", "obj", "target", "vendor"}
 NODE_MINIMUM = (22, 6, 0)
@@ -59,6 +72,9 @@ class Result:
     def __init__(self):
         self.state = "ok"
         self.notes = []
+        # The releases a context's release parameter can match: what the
+        # installed toolchain runs for this project.
+        self.releases = []
 
     def add(self, state, note):
         if STATES.index(state) < STATES.index(self.state):
@@ -262,6 +278,7 @@ def check_csharp(project, tools, result):
     for framework in sorted(frameworks):
         if framework_major(framework) > selected[0]:
             result.add("unsupported", f"{framework} needs SDK {framework_major(framework)}, have {shown(selected)}")
+    result.releases = [shown(selected)]
     supported = sorted(framework for framework in frameworks if framework_major(framework) <= selected[0])
     if supported:
         result.add("ok", f"SDK {shown(selected)} targets {', '.join(supported)}")
@@ -329,6 +346,7 @@ def check_dart(project, tools, result):
     if installed is None:
         result.add("missing-toolchain", "no Dart SDK (dart --version)")
         return
+    result.releases = [installed]
     passed = 0
     for path in manifests(project, "pubspec.yaml"):
         constraint = pubspec_sdk(read(path))
@@ -366,6 +384,7 @@ def check_go(project, tools, result):
         result.add("missing-toolchain", "no Go (go version)")
         return
     have = go_version(shown(padded(installed)))
+    result.releases = [f"go{shown(installed)}"]
     passed = 0
     for path in manifests(project, "go.mod"):
         where = relative(path, project)
@@ -389,6 +408,7 @@ def check_rust(project, tools, result):
         result.add("missing-toolchain", "no rustc (rustc --version)")
         return
     installed, channel, sysroot = rustc
+    result.releases = [shown(installed)]
     channel = channel.split("-")[0] or "stable"
     toolchain = os.path.join(project, "rust-toolchain.toml")
     if os.path.exists(toolchain):
@@ -457,6 +477,7 @@ def check_python(project, tools, result):
     if not interpreters:
         result.add("missing-toolchain", "no python3.N interpreter on PATH")
         return
+    result.releases = [shown(version) for version in interpreters.values()]
     declared = {}
     for path in manifests(project, "pyproject.toml"):
         specifier = tomllib.loads(read(path)).get("project", {}).get("requires-python")
@@ -493,6 +514,7 @@ def check_typescript(project, tools, result):
     installed = os.path.join(project, "node_modules", "typescript", "package.json")
     if os.path.exists(installed):
         version = json.loads(read(installed))["version"]
+        result.releases = [version]
         note = f"typescript {version} installed"
         if pin and pin != version and re.fullmatch(r"\d+\.\d+\.\d+", pin):
             note += f" (package.json pins {pin})"
@@ -501,6 +523,54 @@ def check_typescript(project, tools, result):
         result.add("missing-toolchain", f"typescript {pin} is declared and not installed in node_modules (npm ci)")
     else:
         result.add("missing-toolchain", "no typescript declared or installed")
+
+
+def contexts(text):
+    """(id, parameters) for each entry of a dataset's top-level `contexts`.
+
+    Reads the block style the datasets use, without a YAML parser, and keeps
+    only scalar parameters."""
+    found = []
+    inside = False
+    for line in text.splitlines():
+        if re.match(r"contexts:\s*(#.*)?$", line):
+            inside = True
+            continue
+        if not inside or not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if not line[0].isspace() and not line.startswith("-"):
+            break
+        entry = re.match(r"\s*-\s+id:\s*(['\"]?)([^'\"#]+?)\1\s*(?:#.*)?$", line)
+        if entry:
+            found.append((entry.group(2), {}))
+            continue
+        parameter = re.match(r"\s+([\w-]+):\s*(['\"]?)([^'\"{\[#]*?)\2\s*(?:#.*)?$", line)
+        if found and parameter and parameter.group(3):
+            found[-1][1].setdefault(parameter.group(1), parameter.group(3))
+    return found
+
+
+def extends(release, wanted):
+    return release == wanted or release.startswith(wanted + ".")
+
+
+def check_releases(language, project, result):
+    """One (state, context, note) for each context of the project's datasets."""
+    key = RELEASE_PARAMETER[language]
+    lines = []
+    for path in manifests(project, "semantic-oracle.yml"):
+        prefix = os.path.dirname(relative(path, project))
+        for context, parameters in contexts(read(path)):
+            name = f"{prefix}/{context}" if prefix else context
+            wanted = parameters.get(key)
+            installed = ", ".join(result.releases) or "none installed"
+            if wanted is None:
+                lines.append(("release-mismatch", name, f"declares no `{key}` parameter; installed {installed}"))
+            elif any(extends(release, wanted) for release in result.releases):
+                lines.append(("ok", name, f"{key} {wanted}; installed {installed}"))
+            else:
+                lines.append(("release-mismatch", name, f"{key} {wanted}; installed {installed}"))
+    return lines
 
 
 CHECKS = {
@@ -530,6 +600,7 @@ def main():
         return 2
     tools = Toolchains()
     counts = {}
+    context_counts = {}
     for language, name, project in found:
         result = Result()
         try:
@@ -538,14 +609,29 @@ def main():
             result.add("unsupported", f"cannot read a declaration: {error}")
         counts.setdefault(language, dict.fromkeys(STATES, 0))[result.state] += 1
         print(f"{result.state:<17} {language}/{name}: {result.line()}")
+        try:
+            releases = check_releases(language, project, result)
+        except (ValueError, OSError) as error:
+            releases = [("release-mismatch", "semantic-oracle.yml", f"cannot read its contexts: {error}")]
+        for state, context, note in releases:
+            tally = context_counts.setdefault(language, {"release-mismatch": 0, "ok": 0})
+            tally[state] += 1
+            print(f"{state:<17} {language}/{name}#{context}: {note}")
     shutil.rmtree(tools.neutral, ignore_errors=True)
     print()
     failing = 0
     for language, tally in counts.items():
         failing += sum(tally[state] for state in FAILING)
-        print(f"{language:<10} " + " ".join(f"{state} {tally[state]}" for state in STATES if tally[state]))
-    print(f"{len(found)} projects, {failing} cannot be checked with the installed toolchains")
-    return 1 if failing else 0
+        line = " ".join(f"{state} {tally[state]}" for state in STATES if tally[state])
+        if language in context_counts:
+            line += "; contexts " + " ".join(f"{state} {count}" for state, count in context_counts[language].items()
+                                             if count)
+        print(f"{language:<10} {line}")
+    mismatched = sum(tally["release-mismatch"] for tally in context_counts.values())
+    print(f"{len(found)} projects, {failing} cannot be checked with the installed toolchains; "
+          f"{sum(sum(tally.values()) for tally in context_counts.values())} dataset contexts, "
+          f"{mismatched} release-mismatch")
+    return 1 if failing or mismatched else 0
 
 
 if __name__ == "__main__":

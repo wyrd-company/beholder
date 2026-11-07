@@ -90,7 +90,16 @@ CORPUS = {
     "rust/projects/msrv/Cargo.toml": '[package]\nname = "a"\nedition = "2021"\nrust-version = "1.90"\n',
     "rust/projects/target/rust-toolchain.toml": '[toolchain]\ntargets = ["wasm32-unknown-unknown"]\n',
     "rust/projects/target/Cargo.toml": '[package]\nname = "a"\nedition = "2021"\n',
+    "go/projects/toolchain/semantic-oracle.yml": "profile: go/1\ncontexts:\n  - id: default\n    parameters:\n"
+                                                 "      release: go1.23\n      tags: []\n  - id: old\n"
+                                                 "    parameters:\n      release: \"go1.22\"\n"
+                                                 "public-api:\n  members: []\n",
+    "rust/projects/stable/semantic-oracle.yml": "contexts:\n- id: build\n  parameters:\n    mode: build\n"
+                                                "    cfg: []\n- id: pinned\n  parameters:\n    release: '1.82'\n",
     # Python
+    "python/projects/fits/semantic-oracle.yml": "contexts:\n  - id: runtime # the import root\n    parameters:\n"
+                                                "      python: '3.13'\n  - id: patch\n    parameters:\n"
+                                                "      python: 3.11.8\n",
     "python/projects/fits/pyproject.toml": '[project]\nname = "a"\nrequires-python = ">=3.12"\n',
     "python/projects/fits/sub/pyproject.toml": '[project]\nname = "b"\nrequires-python = "~=3.11.0"\n',
     "python/projects/too-new/pyproject.toml": '[project]\nname = "a"\nrequires-python = ">=3.14, <4"\n',
@@ -98,6 +107,8 @@ CORPUS = {
     # TypeScript
     "typescript/projects/installed/package.json": '{"devDependencies": {"typescript": "5.9.3"}}',
     "typescript/projects/installed/node_modules/typescript/package.json": '{"version": "5.9.3"}',
+    "typescript/projects/installed/semantic-oracle.yml": "contexts:\n  - id: default\n    parameters:\n"
+                                                         "      compiler: \"5.9\"\n      options: {\"strict\": true}\n",
     "typescript/projects/not-installed/package.json": '{"devDependencies": {"typescript": "5.4.5"}}',
 }
 
@@ -121,6 +132,13 @@ EXPECTED = {
     "rust/target": ("pin-not-honoured", "target wasm32-unknown-unknown has no standard library"),
     "typescript/installed": ("ok", "typescript 5.9.3 installed"),
     "typescript/not-installed": ("missing-toolchain", "typescript 5.4.5 is declared and not installed"),
+    "go/toolchain#default": ("ok", "release go1.23; installed go1.23.1"),
+    "go/toolchain#old": ("release-mismatch", "release go1.22; installed go1.23.1"),
+    "rust/stable#build": ("release-mismatch", "declares no `release` parameter; installed 1.82.0"),
+    "rust/stable#pinned": ("ok", "release 1.82; installed 1.82.0"),
+    "python/fits#runtime": ("ok", "python 3.13; installed 3.11.9, 3.13.1"),
+    "python/fits#patch": ("release-mismatch", "python 3.11.8; installed 3.11.9, 3.13.1"),
+    "typescript/installed#default": ("ok", "compiler 5.9; installed 5.9.3"),
 }
 
 
@@ -130,7 +148,7 @@ def report(corpus, path):
     states = {}
     for line in done.stdout.splitlines():
         match = re.match(r"(\S+)\s+(\S+?): (.*)", line)
-        if match and match.group(1) in toolchains.STATES:
+        if match and match.group(1) in toolchains.STATES + ("release-mismatch",):
             states[match.group(2)] = (match.group(1), match.group(3))
     return done, states
 
@@ -147,8 +165,9 @@ def test_corpus(scratch):
     for project, (state, note) in EXPECTED.items():
         assert states[project][0] == state, f"{project}: {states[project]}, not {state}"
         assert note in states[project][1], f"{project}: {states[project][1]!r} lacks {note!r}"
-    assert "rust       unsupported 2 pin-not-honoured 2 ok 1" in done.stdout, done.stdout
-    assert "19 projects, 9 cannot be checked" in done.stdout, done.stdout
+    assert "rust       unsupported 2 pin-not-honoured 2 ok 1; contexts release-mismatch 1 ok 1" in done.stdout
+    assert "19 projects, 9 cannot be checked with the installed toolchains; 7 dataset contexts, "\
+        "3 release-mismatch" in done.stdout, done.stdout
 
 
 def test_missing(scratch):
@@ -163,11 +182,14 @@ def test_missing(scratch):
 
 def test_passing(scratch):
     corpus = os.path.join(scratch, "fixtures")
-    write(corpus, {key: value for key, value in CORPUS.items() if "/pinned/" in key or "/caret/" in key})
+    passing = {key: value for key, value in CORPUS.items() if "/pinned/" in key or "/caret/" in key}
+    passing["rust/projects/pinned/semantic-oracle.yml"] = "contexts:\n  - id: a\n    parameters:\n      release: 1.82.0\n"
+    write(corpus, passing)
     tools(os.path.join(scratch, "bin"), scratch)
     done, states = report(corpus, os.path.join(scratch, "bin"))
     assert done.returncode == 0, done.stdout
     assert states["rust/pinned"][0] == "pin-not-honoured"
+    assert states["rust/pinned#a"][0] == "ok", states
 
 
 def test_empty(scratch):
@@ -200,6 +222,11 @@ def test_versions(_):
     assert pep((3, 11, 2), "==3.11.*") and not pep((3, 12, 0), "==3.11.*")
     assert pep((3, 11, 2), "~=3.11") and pep((3, 13, 0), "~=3.11") and not pep((3, 12, 0), "~=3.11.1")
     assert pep((3, 13, 0), "!=3.12.*")
+    assert toolchains.extends("go1.27.3", "go1.27") and toolchains.extends("10.0.403", "10.0.403")
+    assert not toolchains.extends("1.990", "1.99") and not toolchains.extends("1.9", "1.99")
+    assert toolchains.contexts("contexts:\n- id: a\n  parameters:\n    release: '3.13'\n    options: []\n"
+                               "- id: \"b\"\n  parameters: {}\nrelease: 9\n") == [
+        ("a", {"release": "3.13"}), ("b", {})]
 
 
 def main():

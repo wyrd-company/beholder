@@ -183,6 +183,10 @@ tasks:
       missing-toolchain, and exits nonzero on unsupported or missing-toolchain.
       pin-not-honoured marks an exact rust-toolchain.toml pin that no rustup can
       select, so the installed rustc is used.
+      For each context of a project's semantic-oracle.yml it prints ok or
+      release-mismatch: the context's `release` (`python`, `compiler`) must equal
+      the installed release or be extended by it with dotted components. A
+      mismatch also exits nonzero.
     dir: '{{.USER_WORKING_DIR}}'
     vars:
       FIXTURES: '{{.FIXTURES | default (joinPath .ROOT_DIR "fixtures")}}'
