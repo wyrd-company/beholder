@@ -10,6 +10,7 @@ ran. C# and Dart have no script until their toolchains exist."""
 import importlib.util
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -637,6 +638,16 @@ def python_interpreter(project, tmp):
     assert report["tool"]["interpreter"], report["tool"]
     absent = os.path.join(tmp, "python-absent.json")
     failure(script + ["--out", absent, "--python", "3.99"], tmp, absent, ["python3.99 is absent"])
+    # A context that names the micro version runs under it, and under no other.
+    exact = platform.python_version()
+    out = os.path.join(tmp, "python-exact.json")
+    report, _ = run("python", script + ["--out", out, "--python", exact], tmp, out)
+    assert report["release"] == exact, report["release"]
+    other_micro = f"{RUNNING}.{sys.version_info.micro + 1}"
+    wrong = os.path.join(tmp, "python-wrong-micro.json")
+    failure(script + ["--out", wrong, "--python", other_micro], tmp, wrong, [f"not the context's {other_micro}"])
+    absent_micro = os.path.join(tmp, "python-absent-micro.json")
+    failure(script + ["--out", absent_micro, "--python", "3.99.1"], tmp, absent_micro, ["python3.99 is absent"])
     # Another interpreter on PATH answers for its version, whichever started the script.
     other = next((v for v in ("3.14", "3.15", "3.13", "3.12") if v != RUNNING and shutil.which(f"python{v}")), None)
     if other is None:
