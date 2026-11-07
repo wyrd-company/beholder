@@ -173,17 +173,18 @@ tasks:
       - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
 
   semantic-oracle:report:csharp:
-    desc: Write a C# compiler report from Roslyn, through MSBuildWorkspace
+    desc: Write a C# compiler report from the .NET SDK's own Roslyn
     summary: |
       Needs a .NET SDK with file-based apps (10 or later); the first run restores the
-      Roslyn packages. PROJECT, ENTRY, CONTEXT and OUT are required: ENTRY is the
-      context's `entry`, relative to PROJECT, and OUT lies outside the project tree.
-      CONFIGURATION (default Debug), PROPERTIES, a space-separated list of NAME=VALUE,
-      and TARGET_FRAMEWORK select the context. It works on a copy of PROJECT, and a
-      project that fails to load or compile exits nonzero and writes no report.
+      Roslyn reference package to build the script. PROJECT, ENTRY, CONTEXT,
+      TARGET_FRAMEWORK and OUT are required, the context's `entry` and
+      `target-framework`; CONFIGURATION (default Debug) and PROPERTIES, a
+      space-separated list of NAME=VALUE, are the rest of its parameters. OUT lies
+      outside the project tree. It builds the context on a copy of PROJECT, and a build
+      or compilation that fails exits nonzero and writes no report.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
-      vars: [PROJECT, ENTRY, CONTEXT, OUT]
+      vars: [PROJECT, ENTRY, CONTEXT, TARGET_FRAMEWORK, OUT]
     vars:
       CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
     cmds:
@@ -191,8 +192,7 @@ tasks:
         dotnet run --file {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-csharp.cs")}} --
         --project {{shellQuote .PROJECT}} --entry {{shellQuote .ENTRY}}
         --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
-        --configuration {{shellQuote .CONFIGURATION}}
-        {{if .TARGET_FRAMEWORK}}--target-framework {{shellQuote .TARGET_FRAMEWORK}}{{end}}
+        --configuration {{shellQuote .CONFIGURATION}} --target-framework {{shellQuote .TARGET_FRAMEWORK}}
         {{range $p := splitList " " (.PROPERTIES | default "")}}{{if $p}}--property {{shellQuote $p}} {{end}}{{end}}
 
   test:oracle-reports:

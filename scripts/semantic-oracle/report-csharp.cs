@@ -9,21 +9,28 @@
 // A .NET file-based app:
 //
 //   dotnet run --file report-csharp.cs -- --project DIR --entry FILE --context ID --out FILE
-//       [--configuration NAME] [--property NAME=VALUE]... [--target-framework TFM]
+//       --target-framework TFM [--configuration NAME] [--property NAME=VALUE]...
 //
-// `--entry` is the context's `entry`, the solution or project its command builds,
-// relative to DIR. The script copies DIR, without `bin` and `obj`, to a temporary
-// directory, restores the entry there with MSBuild's API, opens it with
-// MSBuildWorkspace, and reads each project's compilation. It writes nothing into the
-// project tree. MSBuild and its SDK resolvers come from the newest installed .NET SDK
-// (or the one `global.json` selects), whose version is the report's `release`.
-// A project that fails to load or compile produces no report.
+// The arguments are the context's parameters: `--entry` is its `entry`, the solution or
+// project its command builds, relative to DIR. The script copies DIR, without `bin` and
+// `obj`, to a temporary directory and writes nothing into the project tree. There, with
+// MSBuild's API from the .NET SDK that `dotnet` resolves for DIR:
+//
+// 1. it restores and builds the entry as the context's command does, and a build that
+//    fails writes no report;
+// 2. it selects each built project's framework by NuGet nearest-framework selection for
+//    the context's `target-framework`, and leaves out a project with no compatible one;
+// 3. it reads each selected project's compiler arguments from its `CoreCompile` target,
+//    run with compiler execution skipped;
+// 4. it compiles those arguments with that SDK's own Roslyn, from `<sdk>/Roslyn/bincore`,
+//    and reads every signature slot of the project's symbols.
+//
+// The report's `release` is the SDK's version, and `tool` names the Roslyn build that
+// compiled. A compilation with an error writes no report.
 #:package Microsoft.Build.Locator@1.11.2
-#:package Microsoft.CodeAnalysis.Workspaces.MSBuild@5.9.0
-#:package Microsoft.CodeAnalysis.CSharp.Workspaces@5.9.0
+#:package Microsoft.CodeAnalysis.CSharp@5.9.0
 #:property PublishAot=false
 #:property JsonSerializerIsReflectionEnabledByDefault=true
-#:property DisableMSBuildAssemblyCopyCheck=true
 #:property Nullable=enable
 
 using System.Collections.Immutable;
@@ -35,9 +42,56 @@ using System.Text.Json.Nodes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-return Report.Run(args);
+return Bootstrap.Start(args);
+
+/// Runs the report in a load context whose Roslyn is the SDK's own, so that the SDK
+/// compiler checks, never the compiler package this app is built against. Nothing here
+/// names a Roslyn type, so the default context never loads one.
+static class Bootstrap
+{
+    public static int Start(string[] args)
+    {
+        var at = Array.IndexOf(args, "--project");
+        var directory = at >= 0 && at + 1 < args.Length ? Path.GetFullPath(args[at + 1]) : Directory.GetCurrentDirectory();
+        // The .NET SDK that `dotnet` resolves from the project directory, as `global.json` selects.
+        var sdk = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions
+        {
+            DiscoveryTypes = DiscoveryType.DotNetSdk,
+            WorkingDirectory = directory,
+        }).FirstOrDefault();
+        if (sdk is null)
+        {
+            Console.Error.WriteLine("report-csharp: no .NET SDK found");
+            return 2;
+        }
+        var bincore = Path.Combine(sdk.MSBuildPath, "Roslyn", "bincore");
+        var self = typeof(Bootstrap).Assembly.Location;
+        var context = new RoslynLoadContext(bincore, self);
+        var report = context.LoadFromAssemblyPath(self).GetType("Report", true)!;
+        return (int)report.GetMethod("Run")!.Invoke(null, [args, sdk.MSBuildPath, sdk.Version.ToString()])!;
+    }
+
+    /// Resolves `Microsoft.CodeAnalysis*` from the SDK's Roslyn directory, and this app's
+    /// own assembly into the same context.
+    sealed class RoslynLoadContext(string bincore, string self) : AssemblyLoadContext("sdk-roslyn")
+    {
+        protected override Assembly? Load(AssemblyName name)
+        {
+            var roslyn = Path.Combine(bincore, name.Name + ".dll");
+            if (name.Name!.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal) && File.Exists(roslyn))
+            {
+                return LoadFromAssemblyPath(roslyn);
+            }
+            if (name.Name == Path.GetFileNameWithoutExtension(self))
+            {
+                return LoadFromAssemblyPath(self);
+            }
+            return null;
+        }
+    }
+}
 
 static class Report
 {
@@ -51,16 +105,21 @@ static class Report
         "init.type", "init.access", "init.modifiers[]", "add.type", "remove.type",
     ];
 
-    sealed record Member(string Path, string Unit)
+    /// A unit's key attributes, as the dataset's unit record states them, so that the
+    /// audit tells two units' members with one path apart.
+    sealed record Unit(string Name, string AssemblyVersion, string Project);
+
+    sealed record Member(string Path, Unit Unit)
     {
         public SortedDictionary<string, string> Slots { get; } = new(StringComparer.Ordinal);
         public List<string> Unstated { get; } = [];
     }
 
+    /// By unit and path: one path can name a member in each of two units.
     static readonly SortedDictionary<string, Member> Members = new(StringComparer.Ordinal);
     static string root = "";
 
-    public static int Run(string[] args)
+    public static int Run(string[] args, string sdkPath, string release)
     {
         string? project = null, entry = null, context = null, outFile = null, framework = null;
         var configuration = "Debug";
@@ -84,9 +143,9 @@ static class Report
                 default: return Fail($"unknown argument {args[i]}");
             }
         }
-        if (project is null || entry is null || context is null || outFile is null)
+        if (project is null || entry is null || context is null || outFile is null || framework is null)
         {
-            return Fail("--project, --entry, --context and --out are required");
+            return Fail("--project, --entry, --context, --target-framework and --out are required");
         }
         var projectRoot = Path.GetFullPath(project);
         outFile = Path.GetFullPath(outFile);
@@ -97,41 +156,63 @@ static class Report
         File.Delete(outFile);
         properties["Configuration"] = configuration;
 
+        // The compiler that checks is the SDK's: refuse to report under another.
+        var compiler = typeof(CSharpCompilation).Assembly;
+        var bincore = Path.Combine(sdkPath, "Roslyn", "bincore");
+        if (!string.Equals(Path.GetDirectoryName(compiler.Location), bincore.TrimEnd(Path.DirectorySeparatorChar), StringComparison.Ordinal))
+        {
+            return Fail($"Roslyn loaded from {compiler.Location}, not the SDK's {bincore}");
+        }
+        var roslyn = compiler.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
+
         var copy = Directory.CreateTempSubdirectory("semantic-oracle-csharp-").FullName;
         try
         {
             CopyTree(projectRoot, copy);
             root = copy;
             var entryPath = Path.Combine(copy, entry);
-            var sdk = SelectSdk(projectRoot);
-            if (!Restore(sdk, entryPath, properties))
+            var msbuild = new MSBuild(sdkPath);
+            if (!msbuild.Build(entryPath, properties, ["Restore"], restore: true).Success)
             {
                 return Fail($"restoring {entry} failed");
             }
-            var release = sdk.Version.ToString();
-            using var workspace = MSBuildWorkspace.Create(properties!);
-            var solution = entry.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
-                ? workspace.OpenProjectAsync(entryPath).GetAwaiter().GetResult().Solution
-                : workspace.OpenSolutionAsync(entryPath).GetAwaiter().GetResult();
-            var failures = workspace.Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).ToList();
-            if (failures.Count > 0)
+            // The context's own build: what fails here is not a context that builds.
+            if (!msbuild.Build(entryPath, properties, ["Build"]).Success)
             {
-                return Fail(string.Join("\n", failures.Select(d => d.Message)));
+                return Fail($"building {entry} failed");
             }
-            foreach (var selected in Select(solution, framework))
+            var selected = msbuild.SelectProjects(entryPath, properties, framework);
+            if (selected.Count == 0)
             {
-                var compilation = selected.GetCompilationAsync().GetAwaiter().GetResult()!;
-                var errors = compilation.GetDiagnostics()
-                    .Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-                if (errors.Count > 0)
+                return Fail($"no project of {entry} has a framework compatible with {framework}");
+            }
+            foreach (var (path, targetFramework) in selected)
+            {
+                var compile = new Dictionary<string, string?>(properties)
+                {
+                    ["TargetFramework"] = targetFramework,
+                    ["ProvideCommandLineArgs"] = "true",
+                    ["SkipCompilerExecution"] = "true",
+                    ["BuildProjectReferences"] = "false",
+                    // An output that never exists keeps CoreCompile from being skipped as up to date.
+                    ["NonExistentFile"] = "__NonExistentSubDir__/__NonExistentFile__",
+                };
+                // `Compile` resolves the references; `CoreCompile` returns the arguments.
+                var result = msbuild.Build(path, compile, ["Compile", "CoreCompile"]);
+                if (!result.Success)
+                {
+                    return Fail($"reading the compiler arguments of {Relative(path)} failed");
+                }
+                var compilation = Compile(path, result.Items("CoreCompile"), out var errors);
+                if (compilation is null)
                 {
                     // Nothing a failed compilation states was checked.
-                    return Fail(string.Join("\n", errors.Take(20).Select(d => d.ToString().Replace(copy + "/", ""))));
+                    return Fail(string.Join("\n", errors.Take(20)));
                 }
-                ReadNamespace(compilation.Assembly.GlobalNamespace, compilation.AssemblyName ?? selected.Name);
+                var unit = new Unit(compilation.AssemblyName ?? Path.GetFileNameWithoutExtension(path),
+                    compilation.Assembly.Identity.Version.ToString(), Relative(path));
+                ReadNamespace(compilation.Assembly.GlobalNamespace, unit);
             }
-            var roslyn = typeof(CSharpCompilation).Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
             var report = new JsonObject
             {
                 ["format"] = "semantic-oracle-compiler-report/1",
@@ -143,7 +224,12 @@ static class Report
                 ["members"] = new JsonArray(Members.Values.Select(m => (JsonNode)new JsonObject
                 {
                     ["path"] = m.Path,
-                    ["unit"] = new JsonObject { ["name"] = m.Unit },
+                    ["unit"] = new JsonObject
+                    {
+                        ["name"] = m.Unit.Name,
+                        ["assembly-version"] = m.Unit.AssemblyVersion,
+                        ["project"] = m.Unit.Project,
+                    },
                     ["slots"] = new JsonObject(m.Slots.Select(s => KeyValuePair.Create(s.Key, (JsonNode?)s.Value))),
                     ["unstated"] = new JsonArray(m.Unstated.Select(u => (JsonNode)u!).ToArray()),
                 }).ToArray()),
@@ -160,9 +246,11 @@ static class Report
 
     static int Fail(string message)
     {
-        Console.Error.WriteLine("report-csharp: " + message);
+        Console.Error.WriteLine("report-csharp: " + message.Replace(root + "/", ""));
         return 2;
     }
+
+    static string Relative(string path) => Path.GetRelativePath(root, path).Replace('\\', '/');
 
     static void CopyTree(string from, string to)
     {
@@ -182,49 +270,200 @@ static class Report
         }
     }
 
-    // The .NET SDK that `dotnet` resolves from the project directory, as `global.json` selects.
-    static VisualStudioInstance SelectSdk(string projectRoot) =>
-        MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions
-        {
-            DiscoveryTypes = DiscoveryType.DotNetSdk,
-            WorkingDirectory = projectRoot,
-        }).First();
-
-    /// Loads MSBuild from the SDK into its own load context, so that the MSBuild
-    /// assemblies the workspace package brings never answer for the SDK's, and runs
-    /// the `Restore` target. MSBuild is called by reflection because no MSBuild
-    /// assembly is compiled into this app.
-    static bool Restore(VisualStudioInstance sdk, string entryPath, Dictionary<string, string?> properties)
+    /// A compilation from a project's `csc` arguments, with the source generators those
+    /// arguments name, or null with the errors.
+    static CSharpCompilation? Compile(string projectPath, IReadOnlyList<string> arguments, out List<string> errors)
     {
-        Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", Path.Combine(sdk.MSBuildPath, "MSBuild.dll"));
-        Environment.SetEnvironmentVariable("MSBuildExtensionsPath", sdk.MSBuildPath);
-        Environment.SetEnvironmentVariable("MSBuildSDKsPath", Path.Combine(sdk.MSBuildPath, "Sdks"));
-        // The workload resolver does not load outside the SDK's own host. Workload
-        // projects (Android, iOS, MAUI) are out of reach of this report.
-        Environment.SetEnvironmentVariable("MSBuildEnableWorkloadResolver", "false");
-        var context = new SdkLoadContext(sdk.MSBuildPath);
-        var build = context.LoadFromAssemblyName(new AssemblyName("Microsoft.Build"));
-        var framework = context.LoadFromAssemblyName(new AssemblyName("Microsoft.Build.Framework"));
-        var global = new Dictionary<string, string?>(properties)
+        var directory = Path.GetDirectoryName(projectPath)!;
+        var parsed = CSharpCommandLineParser.Default.Parse(arguments, directory, sdkDirectory: null);
+        errors = parsed.Errors.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()).ToList();
+        if (errors.Count > 0)
         {
-            ["MSBuildRestoreSessionId"] = Guid.NewGuid().ToString(),
-        };
-        var collection = Activator.CreateInstance(build.GetType("Microsoft.Build.Evaluation.ProjectCollection", true)!, [global])!;
-        var verbosity = Enum.Parse(framework.GetType("Microsoft.Build.Framework.LoggerVerbosity", true)!, "Quiet");
-        var logger = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.ConsoleLogger", true)!, [verbosity])!;
-        logger.GetType().GetProperty("Parameters")!.SetValue(logger, "ErrorsOnly");
-        var parameters = Activator.CreateInstance(build.GetType("Microsoft.Build.Execution.BuildParameters", true)!, [collection])!;
-        var loggers = Array.CreateInstance(framework.GetType("Microsoft.Build.Framework.ILogger", true)!, 1);
-        loggers.SetValue(logger, 0);
-        parameters.GetType().GetProperty("Loggers")!.SetValue(parameters, loggers);
-        var request = Activator.CreateInstance(
-            build.GetType("Microsoft.Build.Execution.BuildRequestData", true)!,
-            [entryPath, global, null, new[] { "Restore" }, null])!;
-        var manager = build.GetType("Microsoft.Build.Execution.BuildManager", true)!
-            .GetProperty("DefaultBuildManager")!.GetValue(null)!;
-        var result = manager.GetType().GetMethod("Build", [parameters.GetType(), request.GetType()])!
-            .Invoke(manager, [parameters, request])!;
-        return result.GetType().GetProperty("OverallResult")!.GetValue(result)!.ToString() == "Success";
+            return null;
+        }
+        var trees = parsed.SourceFiles.Select(file =>
+            CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(File.ReadAllText(file.Path), System.Text.Encoding.UTF8),
+                parsed.ParseOptions, file.Path)).ToList();
+        var references = parsed.MetadataReferences.Select(r =>
+            (MetadataReference)MetadataReference.CreateFromFile(Path.GetFullPath(r.Reference, directory), r.Properties)).ToList();
+        var options = parsed.CompilationOptions
+            .WithStrongNameProvider(new DesktopStrongNameProvider(parsed.KeyFileSearchPaths));
+        Compilation compilation = CSharpCompilation.Create(parsed.CompilationName, trees, references, options);
+        var loader = new AnalyzerLoader();
+        var generators = parsed.AnalyzerReferences
+            .Select(r => new AnalyzerFileReference(Path.GetFullPath(r.FilePath, directory), loader))
+            .SelectMany(r => r.GetGenerators(LanguageNames.CSharp))
+            .ToList();
+        if (generators.Count > 0)
+        {
+            CSharpGeneratorDriver.Create(generators, parseOptions: parsed.ParseOptions)
+                .RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var generated);
+            errors.AddRange(generated.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()));
+        }
+        errors.AddRange(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()));
+        return errors.Count == 0 ? (CSharpCompilation)compilation : null;
+    }
+
+    /// Loads a generator into this context, where its Roslyn is the SDK's.
+    sealed class AnalyzerLoader : IAnalyzerAssemblyLoader
+    {
+        public void AddDependencyLocation(string fullPath) { }
+
+        public Assembly LoadFromPath(string fullPath) =>
+            (AssemblyLoadContext.GetLoadContext(typeof(AnalyzerLoader).Assembly) ?? AssemblyLoadContext.Default).LoadFromAssemblyPath(fullPath);
+    }
+
+    /// MSBuild from the SDK, in its own load context and called by reflection, so that no
+    /// MSBuild assembly of this app answers for the SDK's.
+    sealed class MSBuild
+    {
+        readonly Assembly build;
+        readonly Assembly framework;
+        readonly Assembly nuget;
+
+        public MSBuild(string sdkPath)
+        {
+            Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", Path.Combine(sdkPath, "MSBuild.dll"));
+            Environment.SetEnvironmentVariable("MSBuildExtensionsPath", sdkPath);
+            Environment.SetEnvironmentVariable("MSBuildSDKsPath", Path.Combine(sdkPath, "Sdks"));
+            // The workload resolver does not load outside the SDK's own host. Workload
+            // projects (Android, iOS, MAUI) are out of reach of this report.
+            Environment.SetEnvironmentVariable("MSBuildEnableWorkloadResolver", "false");
+            var context = new SdkLoadContext(sdkPath);
+            build = context.LoadFromAssemblyName(new AssemblyName("Microsoft.Build"));
+            framework = context.LoadFromAssemblyName(new AssemblyName("Microsoft.Build.Framework"));
+            nuget = context.LoadFromAssemblyName(new AssemblyName("NuGet.Frameworks"));
+        }
+
+        static void WriteError(string message) => Console.Error.Write(message.Replace(root + "/", ""));
+
+        static void SetColor(ConsoleColor color) { }
+
+        static void ResetColor() { }
+
+        public sealed record Result(bool Success, object Raw)
+        {
+            /// The items a target returns, as their item specs.
+            public IReadOnlyList<string> Items(string target)
+            {
+                var byTarget = (System.Collections.IDictionary)Raw.GetType().GetProperty("ResultsByTarget")!.GetValue(Raw)!;
+                var items = (System.Collections.IEnumerable)byTarget[target]!.GetType().GetProperty("Items")!.GetValue(byTarget[target])!;
+                return items.Cast<object>().Select(i => (string)i.GetType().GetProperty("ItemSpec")!.GetValue(i)!).ToList();
+            }
+        }
+
+        public Result Build(string path, Dictionary<string, string?> properties, string[] targets, bool restore = false)
+        {
+            var global = new Dictionary<string, string?>(properties);
+            if (restore)
+            {
+                global["MSBuildRestoreSessionId"] = Guid.NewGuid().ToString();
+            }
+            var collection = Activator.CreateInstance(build.GetType("Microsoft.Build.Evaluation.ProjectCollection", true)!, [global])!;
+            var verbosity = Enum.Parse(framework.GetType("Microsoft.Build.Framework.LoggerVerbosity", true)!, "Quiet");
+            // The build's errors go to standard error, where a failed report says why.
+            var write = Delegate.CreateDelegate(build.GetType("Microsoft.Build.Logging.WriteHandler", true)!,
+                typeof(MSBuild).GetMethod(nameof(WriteError), BindingFlags.NonPublic | BindingFlags.Static)!);
+            var setColor = Delegate.CreateDelegate(build.GetType("Microsoft.Build.Logging.ColorSetter", true)!,
+                typeof(MSBuild).GetMethod(nameof(SetColor), BindingFlags.NonPublic | BindingFlags.Static)!);
+            var resetColor = Delegate.CreateDelegate(build.GetType("Microsoft.Build.Logging.ColorResetter", true)!,
+                typeof(MSBuild).GetMethod(nameof(ResetColor), BindingFlags.NonPublic | BindingFlags.Static)!);
+            var logger = Activator.CreateInstance(build.GetType("Microsoft.Build.Logging.ConsoleLogger", true)!,
+                [verbosity, write, setColor, resetColor])!;
+            logger.GetType().GetProperty("Parameters")!.SetValue(logger, "ErrorsOnly");
+            var parameters = Activator.CreateInstance(build.GetType("Microsoft.Build.Execution.BuildParameters", true)!, [collection])!;
+            var loggers = Array.CreateInstance(framework.GetType("Microsoft.Build.Framework.ILogger", true)!, 1);
+            loggers.SetValue(logger, 0);
+            parameters.GetType().GetProperty("Loggers")!.SetValue(parameters, loggers);
+            var request = Activator.CreateInstance(
+                build.GetType("Microsoft.Build.Execution.BuildRequestData", true)!,
+                [path, global, null, targets, null])!;
+            var manager = build.GetType("Microsoft.Build.Execution.BuildManager", true)!
+                .GetProperty("DefaultBuildManager")!.GetValue(null)!;
+            var result = manager.GetType().GetMethod("Build", [parameters.GetType(), request.GetType()])!
+                .Invoke(manager, [parameters, request])!;
+            collection.GetType().GetMethod("UnloadAllProjects")!.Invoke(collection, null);
+            return new Result(result.GetType().GetProperty("OverallResult")!.GetValue(result)!.ToString() == "Success", result);
+        }
+
+        /// The projects the entry builds, each at the framework that NuGet nearest-framework
+        /// selection picks for the context's `target-framework`. A project with no
+        /// compatible framework is not built, and its references are not followed.
+        public List<(string Path, string TargetFramework)> SelectProjects(string entryPath, Dictionary<string, string?> properties, string target)
+        {
+            var collection = Activator.CreateInstance(build.GetType("Microsoft.Build.Evaluation.ProjectCollection", true)!,
+                [new Dictionary<string, string?>(properties)])!;
+            var load = collection.GetType().GetMethod("LoadProject", [typeof(string), typeof(IDictionary<string, string>), typeof(string)])!;
+            var frameworkType = nuget.GetType("NuGet.Frameworks.NuGetFramework", true)!;
+            var parse = frameworkType.GetMethod("Parse", [typeof(string)])!;
+            var reducer = Activator.CreateInstance(nuget.GetType("NuGet.Frameworks.FrameworkReducer", true)!)!;
+            var nearest = reducer.GetType().GetMethod("GetNearest",
+                [frameworkType, typeof(IEnumerable<>).MakeGenericType(frameworkType)])!;
+            var wanted = parse.Invoke(null, [target])!;
+
+            object Evaluate(string path, Dictionary<string, string?> global) =>
+                load.Invoke(collection, [path, global.Where(p => p.Value is not null).ToDictionary(p => p.Key, p => p.Value!), null])!;
+            string Property(object project, string name) =>
+                (string)project.GetType().GetMethod("GetPropertyValue")!.Invoke(project, [name])!;
+
+            var queue = new Queue<string>(EntryProjects(entryPath));
+            var seen = new HashSet<string>();
+            var selected = new List<(string, string)>();
+            while (queue.Count > 0)
+            {
+                var path = Path.GetFullPath(queue.Dequeue());
+                if (!seen.Add(path))
+                {
+                    continue;
+                }
+                var outer = Evaluate(path, properties);
+                var declared = Property(outer, "TargetFrameworks");
+                if (declared.Length == 0)
+                {
+                    declared = Property(outer, "TargetFramework");
+                }
+                var candidates = declared.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToList();
+                var parsed = Array.CreateInstance(frameworkType, candidates.Count);
+                for (var i = 0; i < candidates.Count; i++)
+                {
+                    parsed.SetValue(parse.Invoke(null, [candidates[i]]), i);
+                }
+                var chosen = nearest.Invoke(reducer, [wanted, parsed]);
+                if (chosen is null)
+                {
+                    continue;
+                }
+                var index = Array.IndexOf(parsed, chosen);
+                var targetFramework = candidates[index];
+                selected.Add((path, targetFramework));
+                var inner = Evaluate(path, new Dictionary<string, string?>(properties) { ["TargetFramework"] = targetFramework });
+                var items = (System.Collections.IEnumerable)inner.GetType().GetMethod("GetItems")!.Invoke(inner, ["ProjectReference"])!;
+                foreach (var item in items)
+                {
+                    var include = (string)item.GetType().GetProperty("EvaluatedInclude")!.GetValue(item)!;
+                    queue.Enqueue(Path.Combine(Path.GetDirectoryName(path)!, include.Replace('\\', '/')));
+                }
+            }
+            return selected;
+        }
+
+        IEnumerable<string> EntryProjects(string entryPath)
+        {
+            if (entryPath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) || entryPath.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase))
+            {
+                var solution = build.GetType("Microsoft.Build.Construction.SolutionFile", true)!.GetMethod("Parse", [typeof(string)])!.Invoke(null, [entryPath])!;
+                var projects = (System.Collections.IEnumerable)solution.GetType().GetProperty("ProjectsInOrder")!.GetValue(solution)!;
+                foreach (var project in projects)
+                {
+                    if (project.GetType().GetProperty("ProjectType")!.GetValue(project)!.ToString() == "KnownToBeMSBuildFormat")
+                    {
+                        yield return (string)project.GetType().GetProperty("AbsolutePath")!.GetValue(project)!;
+                    }
+                }
+                yield break;
+            }
+            yield return entryPath;
+        }
     }
 
     sealed class SdkLoadContext(string directory) : AssemblyLoadContext("sdk-msbuild")
@@ -233,24 +472,6 @@ static class Report
         {
             var path = Path.Combine(directory, name.Name + ".dll");
             return File.Exists(path) ? LoadFromAssemblyPath(path) : null;
-        }
-    }
-
-    /// One project per project file. A multi-targeting project loads once per
-    /// framework; the context's `target-framework` picks the inner build.
-    static IEnumerable<Project> Select(Solution solution, string? framework)
-    {
-        foreach (var group in solution.Projects.Where(p => p.Language == LanguageNames.CSharp).GroupBy(p => p.FilePath))
-        {
-            var projects = group.ToList();
-            if (projects.Count == 1)
-            {
-                yield return projects[0];
-                continue;
-            }
-            var match = projects.FirstOrDefault(p => framework is not null && p.Name.EndsWith($"({framework})", StringComparison.Ordinal))
-                ?? throw new InvalidOperationException($"{group.Key} targets several frameworks; pass --target-framework");
-            yield return match;
         }
     }
 
@@ -430,17 +651,18 @@ static class Report
 
     // ------------------------------------------------------------------- slots
 
-    static Member Add(string path, string unit)
+    static Member Add(string path, Unit unit)
     {
-        if (!Members.TryGetValue(path, out var member))
+        var key = unit.Project + "\n" + unit.Name + "\n" + path;
+        if (!Members.TryGetValue(key, out var member))
         {
             member = new Member(path, unit);
-            Members[path] = member;
+            Members[key] = member;
         }
         return member;
     }
 
-    static void ReadNamespace(INamespaceSymbol ns, string unit)
+    static void ReadNamespace(INamespaceSymbol ns, Unit unit)
     {
         foreach (var type in ns.GetTypeMembers())
         {
@@ -452,8 +674,45 @@ static class Report
         }
     }
 
-    static void ReadType(INamedTypeSymbol type, string unit)
+    /// An extension block's path: `<static class>.extension(<receiver type>)`.
+    static string ExtensionPath(INamedTypeSymbol block) =>
+        TypePath(block.ContainingType) + ".extension(" + MetadataTypePath(block.ExtensionParameter!.Type) + ")";
+
+    /// The methods the compiler emits in a static class to implement its extension
+    /// blocks' members. They are artifacts of the lowering, not entities.
+    static HashSet<ISymbol> ExtensionImplementations(INamedTypeSymbol type)
     {
+        var found = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+        foreach (var block in type.GetTypeMembers().Where(t => t.IsExtension))
+        {
+            foreach (var member in block.GetMembers())
+            {
+                var methods = member switch
+                {
+                    IMethodSymbol m => [m],
+                    IPropertySymbol p => new[] { p.GetMethod, p.SetMethod },
+                    _ => [],
+                };
+                foreach (var method in methods)
+                {
+                    if (method?.AssociatedExtensionImplementation is { } implementation)
+                    {
+                        found.Add(implementation);
+                    }
+                }
+            }
+        }
+        return found;
+    }
+
+    static void ReadType(INamedTypeSymbol type, Unit unit)
+    {
+        if (type.IsExtension)
+        {
+            // An extension block is no member; its members are, under its path.
+            ReadMembers(type, ExtensionPath(type), unit);
+            return;
+        }
         if (type.IsImplicitlyDeclared && type.Name.StartsWith('<'))
         {
             return;
@@ -469,7 +728,17 @@ static class Report
         {
             member.Slots[$"modifiers[{modifier}]"] = modifier;
         }
-        var included = type.GetMembers().Where(m => Included(type, m)).ToList();
+        ReadMembers(type, path, unit);
+        foreach (var nested in type.GetTypeMembers())
+        {
+            ReadType(nested, unit);
+        }
+    }
+
+    static void ReadMembers(INamedTypeSymbol type, string path, Unit unit)
+    {
+        var artifacts = ExtensionImplementations(type);
+        var included = type.GetMembers().Where(m => Included(type, m) && !artifacts.Contains(m)).ToList();
         var names = included.GroupBy(MemberName).ToDictionary(g => g.Key, g => g.Count());
         foreach (var child in included)
         {
@@ -484,10 +753,6 @@ static class Report
                 };
             }
             ReadMember(child, Add(path + "." + name, unit));
-        }
-        foreach (var nested in type.GetTypeMembers())
-        {
-            ReadType(nested, unit);
         }
     }
 
@@ -574,7 +839,9 @@ static class Report
         }
         var readOnly = member switch
         {
-            IFieldSymbol field => field.IsReadOnly,
+            // An instance field of a readonly struct is readonly by the struct; a static
+            // field's readonly is its own choice.
+            IFieldSymbol field => field.IsReadOnly && !(field.ContainingType.IsReadOnly && !field.IsStatic),
             IMethodSymbol method => method.IsReadOnly && !method.ContainingType.IsReadOnly,
             _ => false,
         };
@@ -752,7 +1019,11 @@ static class Report
         {
             parts.Add("notnull");
         }
-        parts.AddRange(parameter.ConstraintTypes.Select(TypeText));
+        // A class type constraint is primary and comes first; the interface and type
+        // parameter constraints after it are sorted.
+        var types = parameter.ConstraintTypes;
+        parts.AddRange(types.Where(t => t.TypeKind == TypeKind.Class).Select(TypeText));
+        parts.AddRange(types.Where(t => t.TypeKind != TypeKind.Class).Select(TypeText).Order(StringComparer.Ordinal));
         if (parameter.HasConstructorConstraint)
         {
             parts.Add("new()");

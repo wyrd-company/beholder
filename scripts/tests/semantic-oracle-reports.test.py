@@ -739,10 +739,84 @@ CSPROJ = """<Project Sdk="Microsoft.NET.Sdk">
 """
 
 
-def csharp_command(project, out, entry="Sample/Sample.csproj"):
+def csharp_command(project, out, entry="Sample/Sample.csproj", framework="net10.0"):
     return ["dotnet", "run", "--file", os.path.join(SCRIPTS, "report-csharp.cs"), "--",
             "--project", project, "--entry", entry, "--context", "release", "--out", out,
-            "--configuration", "Release"]
+            "--configuration", "Release", "--target-framework", framework]
+
+
+def csproj(name, framework="<TargetFramework>net10.0</TargetFramework>", extra=""):
+    return f"""<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    {framework}
+    <AssemblyName>{name}</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+  </PropertyGroup>
+  {extra}
+</Project>
+"""
+
+
+def sdk_roslyn_version(release):
+    """The informational version of the Roslyn that the SDK of `release` ships."""
+    base = subprocess.run(["dotnet", "--list-sdks"], capture_output=True, text=True, check=True).stdout
+    line = next(l for l in base.splitlines() if l.startswith(release + " "))
+    directory = os.path.join(line.split("[", 1)[1].rstrip("]"), release, "Roslyn", "bincore")
+    with open(os.path.join(directory, "Microsoft.CodeAnalysis.dll"), "rb") as dll:
+        data = dll.read()
+    import re
+    found = re.search(rb"(\d+\.\d+\.\d+-[0-9.]+)\+[0-9a-f]{40}", data) or re.search(rb"(\d+\.\d+\.\d+)\+[0-9a-f]{40}", data)
+    return found.group(1).decode()
+
+
+def csharp_units(tmp):
+    """Two assemblies that declare one path keep their members apart."""
+    project = os.path.join(tmp, "csharp-units")
+    write(project, {
+        "A/A.csproj": csproj("A"),
+        "A/C.cs": "namespace N;\npublic class C { public int P { get; set; } }\n",
+        "B/B.csproj": csproj("B", extra='<ItemGroup><ProjectReference Include="../A/A.csproj" Aliases="a" /></ItemGroup>'),
+        "B/C.cs": "namespace N;\npublic class C { public string P { get; set; } = \"\"; }\n",
+    })
+    out = os.path.join(tmp, "csharp-units.json")
+    report, _ = run("csharp", csharp_command(project, out, entry="B/B.csproj"), tmp, out)
+    stated = {(m["unit"]["name"], m["unit"]["project"], m["slots"].get("get.type")) for m in report["members"] if m["path"] == "N.C.P"}
+    assert stated == {("A", "A/A.csproj", "int"), ("B", "B/B.csproj", "string")}, stated
+    for member in report["members"]:
+        assert member["unit"]["assembly-version"] == "1.0.0.0", member
+    # The compiler that checked is the SDK's own, which `release` names.
+    assert report["tool"]["version"].startswith(sdk_roslyn_version(report["release"]) + " "), report["tool"]
+
+
+def csharp_frameworks(tmp):
+    """Each project builds at its nearest compatible framework; an incompatible one is not built."""
+    project = os.path.join(tmp, "csharp-frameworks")
+    write(project, {
+        "Multi/Multi.csproj": csproj("Multi", "<TargetFrameworks>net8.0;net10.0</TargetFrameworks>"),
+        "Multi/M.cs": "namespace N;\npublic static class M\n{\n#if NET10_0\n    public static int Ten => 10;\n#else\n    public static int Eight => 8;\n#endif\n}\n",
+        "Only10/Only10.csproj": csproj("Only10"),
+        "Only10/T.cs": "namespace N;\npublic static class T { }\n",
+    })
+    out = os.path.join(tmp, "csharp-frameworks.json")
+    report, found = run("csharp", csharp_command(project, out, entry="Multi/Multi.csproj", framework="net9.0"), tmp, out)
+    assert "N.M.Eight" in found and "N.M.Ten" not in found, sorted(found)
+    report, found = run("csharp", csharp_command(project, out, entry="Multi/Multi.csproj", framework="net10.0"), tmp, out)
+    assert "N.M.Ten" in found and "N.M.Eight" not in found, sorted(found)
+    # A net10.0 project has no framework compatible with net9.0, so the context builds nothing.
+    failure(csharp_command(project, out, entry="Only10/Only10.csproj", framework="net9.0"), tmp, out,
+            ["report-csharp", "compatible with net9.0"])
+
+
+def csharp_failing_build(tmp):
+    """A build that fails before the compiler runs writes no report."""
+    project = os.path.join(tmp, "csharp-failing-build")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample", extra='<Target Name="Fail" BeforeTargets="BeforeBuild"><Error Text="Intentional build failure" /></Target>'),
+        "Sample/S.cs": "namespace N;\npublic static class S { }\n",
+    })
+    out = os.path.join(tmp, "csharp-failing-build.json")
+    failure(csharp_command(project, out), tmp, out, ["report-csharp", "building Sample/Sample.csproj failed"])
 
 
 def csharp(tmp):
@@ -799,6 +873,28 @@ public readonly struct Vector : IAdditive<Vector>
     static Vector IAdditive<Vector>.operator +(Vector left, Vector right) => left;
 }
 
+public readonly struct Frozen
+{
+    public readonly int Instance;
+    public static readonly int Shared = 1;
+}
+
+public interface IA { }
+public interface IB { }
+
+public static class Sorted
+{
+    public static void Pick<T>(T value) where T : class, IB, IA, new() { }
+}
+
+public static class Receivers
+{
+    extension(string text)
+    {
+        public int Length2() => text.Length * 2;
+    }
+}
+
 public static class Extensions
 {
     public static int Twice(this int value) => value * 2;
@@ -812,7 +908,7 @@ public static class Extensions
     assert report["release"].count(".") >= 2, report["release"]
     assert report["tool"]["name"] == "Roslyn", report["tool"]
     path = "Sample.Shapes."
-    assert found[path + "Shape"]["unit"] == {"name": "Sample.Lib"}, found[path + "Shape"]
+    assert found[path + "Shape"]["unit"] == {"name": "Sample.Lib", "assembly-version": "1.0.0.0", "project": "Sample/Sample.csproj"}, found[path + "Shape"]
     expect(found, path + "Factory`1", "type-parameters[0].variance", "out")
     expect(found, path + "Factory`1.Invoke", "returns", "T")
     expect(found, path + "Factory`1.BeginInvoke", "parameters[1].type", "@{System.AsyncCallback}~")
@@ -856,6 +952,15 @@ public static class Extensions
     expect(found, path + "Fields.Count", "modifiers[volatile]", "volatile")
     # An explicit implementation names its interface with the type arguments.
     expect(found, path + "Vector.Sample.Shapes.IAdditive`1<Sample.Shapes.Vector>.op_Addition", "returns", "@{Sample.Shapes.Vector}")
+    # An instance field of a readonly struct is readonly by the struct; a static one by its own choice.
+    assert "modifiers[readonly]" not in found[path + "Frozen.Instance"]["slots"], found[path + "Frozen.Instance"]
+    expect(found, path + "Frozen.Shared", "modifiers[readonly]", "readonly")
+    # The interface constraints between the primary constraint and `new()` are sorted.
+    expect(found, path + "Sorted.Pick", "type-parameters[0].bounds", "class, @{Sample.Shapes.IA}, @{Sample.Shapes.IB}, new()")
+    # An extension block's members sit under its path, and its lowering adds no member.
+    expect(found, path + "Receivers.extension(System.String).Length2", "returns", "int")
+    assert path + "Receivers.Length2" not in found, sorted(p for p in found if "Receivers" in p)
+    assert not any(p.startswith(path + "Receivers.") and "extension(" not in p for p in found), sorted(found)
     # A record's compiler-declared equality operators.
     expect(found, path + "Point.op_Equality", "parameters[0].type", "@{Sample.Shapes.Point}?")
     expect(found, path + "Point.op_Inequality", "modifiers[static]", "static")
@@ -875,7 +980,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
