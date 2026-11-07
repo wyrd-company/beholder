@@ -616,6 +616,11 @@ impl<'c, 'a> Walk<'c, 'a> {
             if self.declared(child) != Some("public") {
                 continue;
             }
+            // A deferred prefix's synthetic `loadLibrary` is a library child,
+            // but a consumer cannot name an import prefix.
+            if text(child, "origin") == Some("synthetic") {
+                continue;
+            }
             if let (Some(id), Some(name)) = (text(child, "id"), text(child, "name")) {
                 self.dart_member(id, format!("{uri}::{name}"));
             }
@@ -639,7 +644,16 @@ impl<'c, 'a> Walk<'c, 'a> {
             if matches!(text(child, "kind"), Some("parameter" | "type-parameter")) {
                 continue;
             }
-            let (Some(child_id), Some(name)) = (text(child, "id"), text(child, "name")) else {
+            let Some(child_id) = text(child, "id") else {
+                continue;
+            };
+            // The unnamed constructor has no name; consumers call it as `C()`
+            // and tear it off as `C.new`, its path segment.
+            let unnamed_constructor = matches!(
+                text(child, "language-kind"),
+                Some("constructor" | "factory")
+            ) && text(child, "path").is_some_and(|p| p.ends_with(".new"));
+            let Some(name) = text(child, "name").or(unnamed_constructor.then_some("new")) else {
                 continue;
             };
             if !name.starts_with('_') {

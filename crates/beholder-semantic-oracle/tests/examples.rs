@@ -734,6 +734,38 @@ fn a_dart_library_without_public_names_is_a_member() {
 }
 
 #[test]
+fn a_dart_unnamed_constructor_is_a_member_as_new() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    let members = dataset["public-api"]["members"].as_array_mut().unwrap();
+    members.retain(|m| m["entity"] != "shapes.Circle.new");
+    let findings = recomputed(&dataset).join("\n");
+    assert!(
+        findings.contains(
+            "makes `shapes.Circle.new` a member of `geometry` with paths [`package:geometry/geometry.dart::Circle.new`]"
+        ),
+        "{findings}"
+    );
+}
+
+#[test]
+fn a_dart_deferred_prefix_load_library_is_not_a_member() {
+    let mut dataset = load("semantic-oracle-profile-dart.example.yml");
+    let mut load_library = entity(
+        "geometry.loadLibrary",
+        "callable",
+        "function",
+        "package:geometry/geometry.dart::loadLibrary",
+        "geometry-library",
+        "geometry-lib",
+    );
+    load_library["origin"] = json!("synthetic");
+    load_library["declared-visibility"] = json!({"value": "public", "explicit": false});
+    push(&mut dataset, "/entities", load_library);
+    let findings = recomputed(&dataset).join("\n");
+    assert!(!findings.contains("geometry.loadLibrary"), "{findings}");
+}
+
+#[test]
 fn a_typescript_entry_module_without_exports_is_a_member() {
     let mut dataset = load("semantic-oracle-profile-typescript.example.yml");
     let mut root = entity(

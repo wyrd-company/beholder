@@ -684,6 +684,7 @@ public-api:
     - {distribution: geometry, entity: shapes.Circle.area, paths: ['package:geometry/geometry.dart::Circle.area'], access: all}
     - {distribution: geometry, entity: 'shapes.Circle.plus', paths: ['package:geometry/geometry.dart::Circle.+'], access: all}
     - {distribution: geometry, entity: 'shapes.Circle.unit', paths: ['package:geometry/geometry.dart::Circle.unit'], access: all}
+    - {distribution: geometry, entity: shapes.Circle.new, paths: ['package:geometry/geometry.dart::Circle.new'], access: all}
     - {distribution: geometry, entity: 'geometry-library', paths: ['package:geometry/geometry.dart'], access: all}
     - {distribution: geometry, entity: shapes.DoubleOps, paths: ['package:geometry/geometry.dart::DoubleOps'], access: all}
     - {distribution: geometry, entity: shapes.DoubleOps.doubled, paths: ['package:geometry/geometry.dart::DoubleOps.doubled'], access: all}
@@ -704,6 +705,9 @@ public-api:
     - entity: shapes.Circle.unit
       parameters:
         - {name: scale, type: double, mode: named, default: "1.0"}
+    - entity: shapes.Circle.new
+      parameters:
+        - {name: radius, type: {inferred: double}}
     - entity: shapes.DoubleOps
       receiver: double
     - entity: shapes.DoubleOps.doubled

@@ -119,7 +119,9 @@ description: |
 
   A field declaration defines the field entity; its implicit getter and
   setter are not separate entities. A library prefix creates a binding, not
-  an entity.
+  an entity. A wildcard parameter, `_` in a library whose language version
+  is 3.7 or later, binds no name and declares no entity; its signature entry
+  has a `type` and no `name`.
 
   ## Declared visibility
 
@@ -149,7 +151,12 @@ description: |
   `export` directives add after `show` and `hide` combinators and
   configuration selection in the context. Members of exported classes,
   mixins, enums, extensions and extension types whose names are public are
-  members of the public API. An entity is a member once per public library
+  members of the public API. The unnamed constructor is one of them, with
+  the consumer path segment `new`, because consumers call it as `C()` and
+  tear it off as `C.new`; a class's synthetic default constructor is
+  therefore a member too. The synthetic `loadLibrary` of a deferred import
+  prefix is not a member, because a consumer cannot name another library's
+  import prefix; it keeps the importing library as its `parent`. An entity is a member once per public library
   that exports it; each such library contributes one consumer path.
 
   ### Signatures
