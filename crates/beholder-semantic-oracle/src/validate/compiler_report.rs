@@ -33,7 +33,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
-use super::{list, text, Checker, Class, ContextCounts, Contexts, Unchecked};
+use super::{list, text, value_in, Checker, Class, ContextCounts, Contexts, Unchecked};
 use crate::{
     canonical::{
         canonical_auto_trait, canonical_key_types, canonicalize, canonicalize_bounds,
@@ -86,25 +86,35 @@ struct Reported<'r> {
 
 impl<'r> Reported<'r> {
     /// A report's member for an entity's path and kind.
-    fn member(&self, path: &str, kind: &str, unit: Option<&Value>) -> Option<&'r Value> {
+    fn member(
+        &self,
+        path: &str,
+        kind: &str,
+        unit: Option<&Value>,
+        context: &str,
+    ) -> Option<&'r Value> {
         let found = self.members.get(path)?;
         found
             .iter()
             .find(|member| {
-                text(member, "kind").is_none_or(|theirs| theirs == kind) && same_unit(member, unit)
+                text(member, "kind").is_none_or(|theirs| theirs == kind)
+                    && same_unit(member, unit, context)
             })
             .copied()
     }
 }
 
-/// Whether a report's member can be in this unit: each attribute it states agrees.
+/// Whether a report's member can be in this unit: each attribute it states agrees
+/// with the unit's value in the report's context, since a unit attribute can vary
+/// by context.
 /// Two units can hold one path, such as two versions of one crate.
-fn same_unit(member: &Value, unit: Option<&Value>) -> bool {
+fn same_unit(member: &Value, unit: Option<&Value>, context: &str) -> bool {
     let Some(stated) = member.get("unit").and_then(Value::as_object) else {
         return true;
     };
     stated.iter().all(|(key, value)| {
         unit.and_then(|unit| unit.get(key))
+            .and_then(|theirs| value_in(theirs, context))
             .is_none_or(|theirs| theirs == value)
     })
 }
@@ -379,7 +389,7 @@ impl<'a> Checker<'a> {
         let Some(report) = by_context.get(context) else {
             return Outcome::Unchecked(format!("no compiler report for context `{context}`"));
         };
-        let Some(member) = report.member(path, kind, unit) else {
+        let Some(member) = report.member(path, kind, unit, context) else {
             return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
         };
         let shape = shape_of(self.rules.language, &slot.path);
@@ -470,7 +480,7 @@ impl<'a> Checker<'a> {
             let Some(report) = by_context.get(context) else {
                 continue;
             };
-            let Some(member) = report.member(path, kind, unit) else {
+            let Some(member) = report.member(path, kind, unit, context) else {
                 continue;
             };
             let Some(stated) = member.get("slots").and_then(Value::as_object) else {
@@ -530,7 +540,7 @@ impl<'a> Checker<'a> {
             let unit = self.unit_of_entity(entity);
             for (context, report) in by_context {
                 let stated = report
-                    .member(path, kind, unit)
+                    .member(path, kind, unit, context)
                     .and_then(|member| member.get("slots"))
                     .and_then(Value::as_object);
                 if let Some(first) = stated.and_then(|slots| slots.keys().next()) {

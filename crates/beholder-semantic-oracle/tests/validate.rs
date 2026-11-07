@@ -2127,6 +2127,25 @@ fn a_report_of_another_unit_says_nothing_about_this_one() {
     );
 }
 
+#[test]
+fn a_unit_attribute_that_varies_by_context_matches_its_value_in_the_report_context() {
+    let mut dataset = dataset();
+    let version = dataset["units"][0]["package-version"].clone();
+    // The same version, written as a per-context variant for the report's context.
+    dataset["units"][0]["package-version"] =
+        json!([{"value": version.clone(), "contexts": ["default"]}]);
+    let mut reported = report(json!({"returns": "@{tally::Counter}"}), json!(["returns"]));
+    reported["members"][0]["unit"] = json!({"package-version": version});
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported.clone()]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 1);
+    // Another version still names another unit.
+    reported["members"][0]["unit"] = json!({"package-version": "9.9.9"});
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(audited.agreed, 0);
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+}
+
 /// A dataset whose `tally.Counter` has a `bases` entry, a slot keyed by an id.
 fn keyed() -> (Value, Value) {
     let mut dataset = dataset();
