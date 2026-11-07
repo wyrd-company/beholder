@@ -19,7 +19,8 @@
 //!
 //! `path` is the entity's canonical path and `kind`, where a language needs one, its
 //! common kind, and `unit` any attributes that tell two units with one path apart. A report's `@{...}` holds a canonical
-//! path, and a slot key is the model's slot path. `covers` lists the slot shapes,
+//! path, and a slot key is the model's slot path, with each key that names an
+//! entity also written as `@{path}`: `bases[@{tally::Tally}].type`. `covers` lists the slot shapes,
 //! with each bracket's content removed, that the report can state; `unstated`
 //! lists a shape prefix or an exact slot path it could not state for one member,
 //! such as `auto-traits` or `auto-traits[Unpin]`. A slot outside `covers` or in
@@ -331,20 +332,22 @@ impl<'a> Checker<'a> {
             return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
         };
         let shape = shape_of(&slot.path);
+        // A report keys a slot by paths, as it writes every name.
+        let key = to_paths(self, &slot.path);
         let unstated = list(member, "unstated")
             .iter()
             .filter_map(Value::as_str)
-            .any(|unstated| shape.starts_with(unstated) || slot.path == unstated);
+            .any(|unstated| shape.starts_with(unstated) || key == unstated);
         if unstated || !report.covers.contains(shape.as_str()) {
             return Outcome::Unchecked(format!("{} cannot state this slot", report.tool));
         }
         let reported = member
             .get("slots")
-            .and_then(|slots| slots.get(&slot.path))
+            .and_then(|slots| slots.get(&key))
             .and_then(Value::as_str);
         let Some(reported) = reported else {
             return Outcome::Disagrees(format!(
-                "`{}` is `{}`; {} states no such slot in `{context}`",
+                "`{}` is `{}`; {} states no such slot `{key}` in `{context}`",
                 slot.path, slot.text, report.tool
             ));
         };
@@ -398,7 +401,10 @@ impl<'a> Checker<'a> {
         at: &str,
         by_context: &BTreeMap<&str, Reported<'_>>,
     ) {
-        let written: BTreeSet<String> = slots(record).into_iter().map(|slot| slot.path).collect();
+        let written: BTreeSet<String> = slots(record)
+            .into_iter()
+            .map(|slot| to_paths(self, &slot.path))
+            .collect();
         let alternatives = record.get("alternatives").is_some();
         for context in contexts {
             let Some(report) = by_context.get(context) else {

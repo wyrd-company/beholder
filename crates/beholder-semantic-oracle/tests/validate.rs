@@ -1983,11 +1983,17 @@ fn a_report_must_run_under_the_contexts_release() {
     for release in ["1.98.0", "1.9", "1.990"] {
         let audited = audited_with(Some(release));
         let found = compiler_findings(&audited);
-        assert!(found.iter().any(|f| f.contains("ran under release")), "{release}: {found:#?}");
+        assert!(
+            found.iter().any(|f| f.contains("ran under release")),
+            "{release}: {found:#?}"
+        );
         assert_eq!(audited.agreed, 0, "{release}");
     }
     let found = compiler_findings(&audited_with(None));
-    assert!(found.iter().any(|f| f.contains("states no `release`")), "{found:#?}");
+    assert!(
+        found.iter().any(|f| f.contains("states no `release`")),
+        "{found:#?}"
+    );
 }
 
 #[test]
@@ -2119,4 +2125,73 @@ fn a_report_of_another_unit_says_nothing_about_this_one() {
         found.iter().any(|m| m.contains("states `u32`")),
         "{found:#?}"
     );
+}
+
+/// A dataset whose `tally.Counter` has a `bases` entry, a slot keyed by an id.
+fn keyed() -> (Value, Value) {
+    let mut dataset = dataset();
+    dataset["public-api"]["signatures"][1]["bases"] = json!([{"type": "@{tally.Counter}"}]);
+    let mut reported = report(
+        json!({"returns": "@{tally::Counter}"}),
+        json!(["returns", "bases[].type"]),
+    );
+    push(
+        &mut reported,
+        "/members",
+        json!({"path": "tally::Counter", "slots": {}, "unstated": []}),
+    );
+    (dataset, reported)
+}
+
+/// A report writes the key's names as paths, as it writes values, so that a keyed
+/// slot can be checked.
+#[test]
+fn a_keyed_slot_is_read_by_the_paths_in_its_key() {
+    let (dataset, mut reported) = keyed();
+    reported["members"][1]["slots"] = json!({"bases[@{tally::Counter}].type": "@{tally::Counter}"});
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 2);
+    assert!(!audited
+        .unchecked
+        .iter()
+        .any(|u| u.slot.starts_with("bases")));
+}
+
+#[test]
+fn a_keyed_slot_the_report_states_another_value_for_disagrees() {
+    let (dataset, mut reported) = keyed();
+    reported["members"][1]["slots"] = json!({"bases[@{tally::Counter}].type": "u32"});
+    let found = compiler_findings(&audit_with_reports(&dataset, Some(&files()), &[reported]));
+    assert_eq!(found.len(), 1, "{found:#?}");
+    assert!(found[0].contains("states `u32`"), "{found:#?}");
+}
+
+#[test]
+fn a_keyed_slot_the_report_keys_by_id_is_not_the_records() {
+    let (dataset, mut reported) = keyed();
+    reported["members"][1]["slots"] = json!({"bases[@{tally.Counter}].type": "@{tally::Counter}"});
+    let found = compiler_findings(&audit_with_reports(&dataset, Some(&files()), &[reported]));
+    assert!(
+        found
+            .iter()
+            .any(|m| m.contains("states no such slot `bases[@{tally::Counter}].type`")),
+        "{found:#?}"
+    );
+    assert!(
+        found.iter().any(|m| m.contains("the record lacks it")),
+        "{found:#?}"
+    );
+}
+
+#[test]
+fn a_keyed_slot_a_report_marks_unstated_by_its_paths_stays_unchecked() {
+    let (dataset, mut reported) = keyed();
+    reported["members"][1]["unstated"] = json!(["bases[@{tally::Counter}].type"]);
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert!(audited
+        .unchecked
+        .iter()
+        .any(|u| u.slot == "bases[@{tally.Counter}].type"));
 }
