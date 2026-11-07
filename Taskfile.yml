@@ -120,7 +120,8 @@ tasks:
     desc: Write a Go compiler report from go/types
     summary: |
       Needs Go. PROJECT, CONTEXT and OUT are required. OUT is an absolute path
-      outside the project tree. TAGS, GOOS and GOARCH select the context.
+      outside the project tree. TAGS, GOOS and GOARCH select the context, and
+      MODE=test reads its `_test.go` files as `go test` compiles them.
     dir: '{{.PROJECT}}'
     requires:
       vars: [PROJECT, CONTEXT, OUT]
@@ -129,6 +130,7 @@ tasks:
         go run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}
         -context {{shellQuote .CONTEXT}} -out {{shellQuote .OUT}}
         {{if .TAGS}}-tags {{shellQuote .TAGS}}{{end}}
+        {{if .MODE}}-mode {{shellQuote .MODE}}{{end}}
 
   semantic-oracle:report:python:
     desc: Write a Python compiler report from inspect.signature

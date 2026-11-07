@@ -8,10 +8,12 @@
 //
 // Run it from the project root, so that the go command finds the module:
 //
-//	go run report-go.go -context ID -out FILE [-tags a,b]
+//	go run report-go.go -context ID -out FILE [-tags a,b] [-mode build|test]
 //
 // It parses and type-checks each package outside any build output, and writes
-// nothing into the project tree. GOOS and GOARCH select a context's platform.
+// nothing into the project tree. GOOS and GOARCH select a context's platform. In
+// mode `test` it checks each package with its in-package `_test.go` files, and the
+// external `_test` package, as `go test` compiles them.
 package main
 
 import (
@@ -19,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/constant"
 	"go/importer"
 	"go/parser"
@@ -34,11 +37,13 @@ import (
 )
 
 type listed struct {
-	Dir        string
-	ImportPath string
-	Name       string
-	GoFiles    []string
-	CgoFiles   []string
+	Dir          string
+	ImportPath   string
+	Name         string
+	GoFiles      []string
+	CgoFiles     []string
+	TestGoFiles  []string
+	XTestGoFiles []string
 }
 
 type member struct {
@@ -301,24 +306,75 @@ func typeSlots(path string, object *types.TypeName) {
 	}
 }
 
-func check(fileset *token.FileSet, imports types.Importer, unit listed) error {
-	files := make([]*ast.File, 0, len(unit.GoFiles)+len(unit.CgoFiles))
-	for _, name := range append(append([]string{}, unit.GoFiles...), unit.CgoFiles...) {
-		file, err := parser.ParseFile(fileset, filepath.Join(unit.Dir, name), nil, 0)
-		if err != nil {
-			return err
+// project type-checks the project's packages from source, so that one package's
+// types are the same objects in every package that imports it.
+type project struct {
+	fileset  *token.FileSet
+	fallback types.Importer
+	units    map[string]listed
+	plain    map[string]*types.Package
+	failed   map[string]error
+}
+
+func (p *project) Import(path string) (*types.Package, error) {
+	if unit, ok := p.units[path]; ok {
+		return p.plainPackage(unit)
+	}
+	return p.fallback.Import(path)
+}
+
+// plainPackage is a package as a build compiles it, without its tests.
+func (p *project) plainPackage(unit listed) (*types.Package, error) {
+	if checked, ok := p.plain[unit.ImportPath]; ok {
+		return checked, nil
+	}
+	if err, ok := p.failed[unit.ImportPath]; ok {
+		return nil, err
+	}
+	checked, err := p.check(unit.ImportPath, unit.Dir, p, unit.GoFiles, unit.CgoFiles)
+	if err != nil {
+		p.failed[unit.ImportPath] = err
+		return nil, err
+	}
+	p.plain[unit.ImportPath] = checked
+	return checked, nil
+}
+
+// replacing imports one package in its test variant, and the rest as a build does.
+type replacing struct {
+	project *project
+	path    string
+	tested  *types.Package
+}
+
+func (r replacing) Import(path string) (*types.Package, error) {
+	if path == r.path && r.tested != nil {
+		return r.tested, nil
+	}
+	return r.project.Import(path)
+}
+
+func (p *project) check(path, dir string, imports types.Importer, groups ...[]string) (*types.Package, error) {
+	files := []*ast.File{}
+	for _, group := range groups {
+		for _, name := range group {
+			file, err := parser.ParseFile(p.fileset, filepath.Join(dir, name), nil, 0)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, file)
 		}
-		files = append(files, file)
 	}
 	config := types.Config{Importer: imports, FakeImportC: true}
-	checked, err := config.Check(unit.ImportPath, fileset, files, nil)
-	if err != nil {
-		return err
-	}
+	return config.Check(path, p.fileset, files, nil)
+}
+
+// state states the slots of a package's members.
+func state(checked *types.Package) {
 	scope := checked.Scope()
 	for _, name := range scope.Names() {
 		object := scope.Lookup(name)
-		path := unit.ImportPath + "." + name
+		path := checked.Path() + "." + name
 		switch object := object.(type) {
 		case *types.Const:
 			add(path, "type", typeText(object.Type()))
@@ -331,14 +387,123 @@ func check(fileset *token.FileSet, imports types.Importer, unit listed) error {
 			typeSlots(path, object)
 		}
 	}
-	return nil
+}
+
+// definedTypes lists a package's package-level defined types, the only types the
+// profile records.
+func definedTypes(checked *types.Package) []*types.Named {
+	found := []*types.Named{}
+	scope := checked.Scope()
+	for _, name := range scope.Names() {
+		object, ok := scope.Lookup(name).(*types.TypeName)
+		if !ok || object.IsAlias() {
+			continue
+		}
+		if named, ok := object.Type().(*types.Named); ok {
+			found = append(found, named)
+		}
+	}
+	return found
+}
+
+// bases states each reported type's `bases`: the interfaces an interface embeds,
+// and every project interface whose method set a non-interface type `T` or `*T`
+// implements. go/types cannot decide this for an uninstantiated generic type, so a
+// type that is generic, or that could implement a generic interface, has its
+// `bases` unstated.
+func bases(reported []*types.Package, universe []*types.Package) {
+	interfaces := []*types.Named{}
+	for _, checked := range universe {
+		for _, named := range definedTypes(checked) {
+			if types.IsInterface(named) {
+				interfaces = append(interfaces, named)
+			}
+		}
+	}
+	for _, checked := range reported {
+		for _, named := range definedTypes(checked) {
+			path := checked.Path() + "." + named.Obj().Name()
+			if shape, ok := named.Underlying().(*types.Interface); ok {
+				for i := 0; i < shape.NumEmbeddeds(); i++ {
+					// An embedded name that denotes an interface; a union, a type
+					// term and an interface literal name no base.
+					embedded := shape.EmbeddedType(i)
+					switch embedded.(type) {
+					case *types.Named, *types.Alias:
+					default:
+						continue
+					}
+					if !types.IsInterface(embedded) {
+						continue
+					}
+					text := typeText(embedded)
+					add(path, "bases["+text+"].type", text)
+				}
+				continue
+			}
+			if named.TypeParams().Len() > 0 {
+				unstate(path, "bases")
+				continue
+			}
+			pointer := types.NewPointer(named)
+			for _, candidate := range interfaces {
+				if candidate.TypeParams().Len() > 0 {
+					if couldImplement(named, candidate) {
+						unstate(path, "bases")
+						break
+					}
+					continue
+				}
+				shape := candidate.Underlying().(*types.Interface)
+				if types.Implements(named, shape) || types.Implements(pointer, shape) {
+					text := typeText(candidate)
+					add(path, "bases["+text+"].type", text)
+				}
+			}
+		}
+	}
+}
+
+// couldImplement reports whether `*T` has a method of each name a generic
+// interface's method set holds.
+func couldImplement(named *types.Named, generic *types.Named) bool {
+	methods := types.NewMethodSet(types.NewPointer(named))
+	shape := generic.Underlying().(*types.Interface)
+	for i := 0; i < shape.NumMethods(); i++ {
+		method := shape.Method(i)
+		if methods.Lookup(method.Pkg(), method.Name()) == nil {
+			return false
+		}
+	}
+	return true
+}
+
+func unstate(path, prefix string) {
+	add(path, "", "")
+	found := members[path]
+	for _, slot := range found.Unstated {
+		if slot == prefix {
+			return
+		}
+	}
+	found.Unstated = append(found.Unstated, prefix)
+	for slot := range found.Slots {
+		if strings.HasPrefix(slot, prefix) {
+			delete(found.Slots, slot)
+		}
+	}
 }
 
 func main() {
 	context := flag.String("context", "", "the dataset's context id")
 	out := flag.String("out", "", "the report file")
 	tags := flag.String("tags", "", "build tags")
+	mode := flag.String("mode", "build", "the context's mode: build or test")
 	flag.Parse()
+	if *mode != "build" && *mode != "test" {
+		fmt.Fprintln(os.Stderr, "report-go: -mode is build or test, not", *mode)
+		os.Exit(2)
+	}
 	if absolute, err := filepath.Abs(*out); err == nil {
 		root, _ := os.Getwd()
 		if strings.HasPrefix(absolute, root+string(filepath.Separator)) {
@@ -350,6 +515,8 @@ func main() {
 	arguments := []string{"list", "-json", "-e"}
 	if *tags != "" {
 		arguments = append(arguments, "-tags", *tags)
+		// The source importer reads dependencies under the same tags.
+		build.Default.BuildTags = strings.Split(*tags, ",")
 	}
 	arguments = append(arguments, "./...")
 	listing, err := exec.Command("go", arguments...).Output()
@@ -359,23 +526,65 @@ func main() {
 	}
 	decoder := json.NewDecoder(strings.NewReader(string(listing)))
 	fileset := token.NewFileSet()
-	imports := importer.ForCompiler(fileset, "source", nil)
+	checker := &project{
+		fileset:  fileset,
+		fallback: importer.ForCompiler(fileset, "source", nil),
+		units:    map[string]listed{},
+		plain:    map[string]*types.Package{},
+		failed:   map[string]error{},
+	}
+	order := []listed{}
 	for decoder.More() {
 		var unit listed
 		if err := decoder.Decode(&unit); err != nil {
 			fmt.Fprintln(os.Stderr, "go list:", err)
 			os.Exit(2)
 		}
-		if unit.Name == "main" || len(unit.GoFiles)+len(unit.CgoFiles) == 0 {
-			continue
+		checker.units[unit.ImportPath] = unit
+		order = append(order, unit)
+	}
+	// A package that fails to type-check stops the report: nothing it would
+	// state was checked.
+	stop := func(path string, err error) {
+		fmt.Fprintln(os.Stderr, "report-go:", path+":", err)
+		os.Exit(2)
+	}
+	reported := []*types.Package{}
+	universe := []*types.Package{}
+	for _, unit := range order {
+		testing := *mode == "test"
+		var checked *types.Package
+		if len(unit.GoFiles)+len(unit.CgoFiles) > 0 {
+			if checked, err = checker.plainPackage(unit); err != nil {
+				stop(unit.ImportPath, err)
+			}
 		}
-		// A package that fails to type-check stops the report: nothing it would
-		// state was checked.
-		if err := check(fileset, imports, unit); err != nil {
-			fmt.Fprintln(os.Stderr, "report-go:", unit.ImportPath+":", err)
-			os.Exit(2)
+		if testing && len(unit.TestGoFiles) > 0 {
+			if checked, err = checker.check(unit.ImportPath, unit.Dir, checker, unit.GoFiles, unit.CgoFiles, unit.TestGoFiles); err != nil {
+				stop(unit.ImportPath, err)
+			}
+		}
+		if checked != nil {
+			universe = append(universe, checked)
+			// A command's members are no consumer's, but its interfaces are the project's.
+			if unit.Name != "main" {
+				reported = append(reported, checked)
+			}
+		}
+		if testing && len(unit.XTestGoFiles) > 0 {
+			imports := replacing{project: checker, path: unit.ImportPath, tested: checked}
+			external, err := checker.check(unit.ImportPath+"_test", unit.Dir, imports, unit.XTestGoFiles)
+			if err != nil {
+				stop(unit.ImportPath+"_test", err)
+			}
+			universe = append(universe, external)
+			reported = append(reported, external)
 		}
 	}
+	for _, checked := range reported {
+		state(checked)
+	}
+	bases(reported, universe)
 	paths := make([]string, 0, len(members))
 	for path := range members {
 		paths = append(paths, path)
@@ -394,7 +603,7 @@ func main() {
 		"covers": []string{
 			"parameters[].name", "parameters[].type", "returns", "receiver", "underlying",
 			"type", "tag", "value", "type-parameters[].name", "type-parameters[].kind",
-			"type-parameters[].bounds",
+			"type-parameters[].bounds", "bases[].type",
 		},
 		"members": ordered,
 	}
