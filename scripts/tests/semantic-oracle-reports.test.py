@@ -819,6 +819,9 @@ String platformName() => selected();
     expect(found, path + "extension#1", "receiver", "int")
     expect(found, path + "extension#1.twice", "get.type", "int")
     expect(found, path + "Meters", "underlying", "double")
+    # The unnamed constructor's consumer path segment is `new`.
+    expect(found, path + "Meters.new", "parameters[0].type", "double")
+    expect(found, path + "Meters.new", "parameters[0].name", "value")
     expect(found, path + "pair", "returns", "(int, {String name})")
     # A wildcard parameter binds no name.
     assert "parameters[0].name" not in found[path + "ignore"]["slots"]
