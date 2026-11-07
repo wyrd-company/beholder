@@ -152,7 +152,8 @@ for a path with a space.
 A report's `covers` lists the slot shapes it can state, and `members` holds what it
 states for each entity path, with each `@{...}` holding a canonical path. A slot key
 that names an entity writes it the same way: the dataset's `bases[@{pantry.Opener}].type`
-is `bases[@{example.com/pantry.Opener}].type` in a report.
+is `bases[@{example.com/pantry.Opener}].type` in a report. A `bases` or
+`implementations` key compares as its types do, after canonical spelling.
 
 ```json
 {
@@ -178,7 +179,10 @@ A report answers for a context only when its `release` is the context's release
 parameter (`release` in Go, Rust, Dart and C#, `python` in Python, `compiler` in
 TypeScript) or extends it with more dotted components: a `go1.27.3` report answers
 for `release: go1.27`, and a `1.98.0` report does not answer for `release: '1.99'`.
-Otherwise the audit reports an error and the slots stay `unchecked`. To move a
+Otherwise the audit reports an error and the slots stay `unchecked`. A report that
+states its `mode` answers only for a context whose `mode` parameter is the same: the
+Go report states the `MODE` it ran in, so a build report for a `mode: test` context
+is an error, and its slots stay `unchecked`. To move a
 dataset to a new toolchain release, change its contexts' release parameter, run
 the reports under that release, and settle every disagreement the audit finds.
 

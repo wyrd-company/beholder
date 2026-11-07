@@ -2195,3 +2195,107 @@ fn a_keyed_slot_a_report_marks_unstated_by_its_paths_stays_unchecked() {
         .iter()
         .any(|u| u.slot == "bases[@{tally.Counter}].type"));
 }
+
+/// A key's types compare in canonical spelling, as a value's do.
+#[test]
+fn a_keyed_slot_compares_its_key_in_canonical_spelling() {
+    let (dataset, mut reported) = keyed();
+    reported["members"][1]["slots"] =
+        json!({"bases[( @{tally::Counter} )].type": "@{tally::Counter}"});
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported.clone()]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 2);
+    // An `unstated` entry is read the same way.
+    reported["members"][1]["slots"] = json!({});
+    reported["members"][1]["unstated"] = json!(["bases[( @{tally::Counter} )].type"]);
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert!(audited
+        .unchecked
+        .iter()
+        .any(|u| u.slot.starts_with("bases")));
+}
+
+/// A dataset with an entity whose path is another entity's id.
+fn shadowed() -> Value {
+    let mut dataset = dataset();
+    let mut shadow = dataset["entities"][1].clone();
+    shadow["id"] = json!("tally.Shadow");
+    shadow["path"] = json!("tally.Counter");
+    push(&mut dataset, "/entities", shadow);
+    dataset
+}
+
+/// Each name is replaced once, where the text names it: a path that spells another
+/// id is not read again, in a key or in a value.
+#[test]
+fn names_become_paths_in_one_pass() {
+    let mut dataset = shadowed();
+    dataset["public-api"]["signatures"][0]["returns"] = json!("@{tally.Shadow}<@{tally.Counter}>");
+    dataset["public-api"]["signatures"][1]["bases"] =
+        json!([{"type": "@{tally.Shadow}<@{tally.Counter}>"}]);
+    let stated = "@{tally.Counter}<@{tally::Counter}>";
+    let mut reported = report(
+        json!({"returns": stated}),
+        json!(["returns", "bases[].type"]),
+    );
+    push(
+        &mut reported,
+        "/members",
+        json!({"path": "tally::Counter", "slots": {format!("bases[{stated}].type"): stated}, "unstated": []}),
+    );
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 2);
+}
+
+/// A name inside a string literal is text, and stays as written.
+#[test]
+fn a_name_inside_a_string_literal_stays() {
+    let mut dataset = dataset();
+    dataset["public-api"]["signatures"][0]["value"] = json!("\"@{tally.Counter}\"");
+    let reported = report(
+        json!({"returns": "@{tally::Counter}", "value": "\"@{tally.Counter}\""}),
+        json!(["returns", "value"]),
+    );
+    let audited = audit_with_reports(&dataset, Some(&files()), &[reported]);
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 2);
+}
+
+/// A report that states its mode counts only for a context of that mode.
+#[test]
+fn a_report_must_run_in_the_contexts_mode() {
+    let agrees = json!({"returns": "@{tally::Counter}"});
+    let audited_with = |declared: Option<&str>, reported_mode: Option<&str>| {
+        let mut dataset = dataset();
+        if let Some(declared) = declared {
+            dataset["contexts"][0]["parameters"]["mode"] = json!(declared);
+        }
+        let mut reported = report(agrees.clone(), json!(["returns"]));
+        if let Some(mode) = reported_mode {
+            reported["mode"] = json!(mode);
+        }
+        audit_with_reports(&dataset, Some(&files()), &[reported])
+    };
+    for (declared, stated) in [
+        (Some("test"), Some("test")),
+        (Some("test"), None),
+        (None, Some("build")),
+    ] {
+        let audited = audited_with(declared, stated);
+        assert!(
+            compiler_findings(&audited).is_empty(),
+            "{declared:?} {stated:?}"
+        );
+        assert_eq!(audited.agreed, 1, "{declared:?} {stated:?}");
+    }
+    let audited = audited_with(Some("test"), Some("build"));
+    let found = compiler_findings(&audited);
+    assert!(
+        found.iter().any(|f| f.contains("ran in mode `build`")),
+        "{found:#?}"
+    );
+    assert_eq!(audited.agreed, 0);
+    assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
+}

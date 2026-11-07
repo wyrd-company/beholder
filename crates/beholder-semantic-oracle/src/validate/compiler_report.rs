@@ -35,7 +35,10 @@ use serde_json::Value;
 
 use super::{list, text, Checker, Class, ContextCounts, Contexts, Unchecked};
 use crate::{
-    canonical::{canonical_auto_trait, canonicalize, canonicalize_bounds, PathsAreIds},
+    canonical::{
+        canonical_auto_trait, canonical_key_types, canonicalize, canonicalize_bounds,
+        named_id_spans, PathsAreIds,
+    },
     signature::{slots, SlotClass},
 };
 
@@ -115,19 +118,74 @@ fn same_unit(member: &Value, unit: Option<&Value>) -> bool {
     })
 }
 
-/// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names.
+/// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names. Each
+/// name the lexer reads outside a string literal is replaced once, in place, so
+/// that no replacement is read again.
 fn to_paths(checker: &Checker<'_>, text_value: &str) -> String {
-    let mut out = text_value.to_owned();
-    for id in crate::canonical::named_ids(checker.rules.language, text_value) {
+    let mut out = String::with_capacity(text_value.len());
+    let mut last = 0;
+    for (span, id) in named_id_spans(checker.rules.language, text_value) {
         if let Some(path) = checker
             .ids
             .get(id.as_str())
             .and_then(|(_, r)| text(r, "path"))
         {
-            out = out.replace(&format!("@{{{id}}}"), &format!("@{{{path}}}"));
+            out.push_str(&text_value[last..span.start]);
+            out.push_str(&format!("@{{{path}}}"));
+            last = span.end;
         }
     }
+    out.push_str(&text_value[last..]);
     out
+}
+
+/// A slot path with each `bases` and `implementations` key in canonical spelling,
+/// so that a key compares as its types do. The rest of the path stays as written.
+fn canonical_key(language: &str, path: &str) -> String {
+    let mut out = String::with_capacity(path.len());
+    let mut rest = path;
+    let mut at_segment = true;
+    while let Some(c) = rest.chars().next() {
+        let keyed = ["bases[", "implementations["]
+            .into_iter()
+            .find(|open| at_segment && rest.starts_with(open));
+        if let Some(open) = keyed {
+            let body = &rest[open.len()..];
+            let end = closing_bracket(body).unwrap_or(body.len());
+            out.push_str(open);
+            out.push_str(&canonical_key_types(language, &body[..end], &PathsAreIds));
+            out.push(']');
+            rest = body.get(end + 1..).unwrap_or("");
+            at_segment = false;
+            continue;
+        }
+        out.push(c);
+        at_segment = c == '.';
+        rest = &rest[c.len_utf8()..];
+    }
+    out
+}
+
+/// The byte index of the `]` that closes a key, past nested brackets and string
+/// literals.
+fn closing_bracket(body: &str) -> Option<usize> {
+    let mut depth = 0usize;
+    let mut quote: Option<char> = None;
+    let mut escaped = false;
+    for (i, c) in body.char_indices() {
+        match (quote, c) {
+            (Some(_), _) if escaped => escaped = false,
+            (Some(_), '\\') => escaped = true,
+            (Some(open), _) if c == open => quote = None,
+            (Some(_), _) => {}
+            (None, '"' | '`') => quote = Some(c),
+            (None, '[') => depth += 1,
+            (None, ']') if depth == 0 => return Some(i),
+            (None, ']') => depth -= 1,
+            _ => {}
+        }
+    }
+    None
 }
 
 /// Whether a report's release is the context's: equal, or the context's value
@@ -166,6 +224,26 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// A report that states its `mode` counts only for a context of that mode, such
+    /// as a Go build report for a context with `mode: test`.
+    fn mode_matches(&self, report: &Value, context: &str) -> Result<(), String> {
+        let Some(reported) = text(report, "mode") else {
+            return Ok(());
+        };
+        let declared = list(self.dataset, "contexts")
+            .iter()
+            .find(|record| text(record, "id") == Some(context))
+            .and_then(|record| record.get("parameters"))
+            .and_then(|parameters| text(parameters, "mode"));
+        match declared {
+            Some(declared) if declared != reported => Err(format!(
+                "the report ran in mode `{reported}`, but context `{context}` has \
+                 `mode` `{declared}`; its slots are unchecked"
+            )),
+            _ => Ok(()),
+        }
+    }
+
     fn reports_by_context<'r>(&mut self, reports: &'r [Value]) -> BTreeMap<&'r str, Reported<'r>> {
         let mut by_context = BTreeMap::new();
         for (i, report) in reports.iter().enumerate() {
@@ -193,6 +271,10 @@ impl<'a> Checker<'a> {
             };
             if let Err(message) = self.release_matches(report, context) {
                 self.error(RULE, format!("{at}/release"), message);
+                continue;
+            }
+            if let Err(message) = self.mode_matches(report, context) {
+                self.error(RULE, format!("{at}/mode"), message);
                 continue;
             }
             for failed in list(report, "failed").iter().filter_map(Value::as_str) {
@@ -332,19 +414,28 @@ impl<'a> Checker<'a> {
             return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
         };
         let shape = shape_of(&slot.path);
-        // A report keys a slot by paths, as it writes every name.
-        let key = to_paths(self, &slot.path);
+        // A report keys a slot by paths, as it writes every name, and a key's types
+        // compare in canonical spelling.
+        let language = self.rules.language;
+        let key = canonical_key(language, &to_paths(self, &slot.path));
         let unstated = list(member, "unstated")
             .iter()
             .filter_map(Value::as_str)
-            .any(|unstated| shape.starts_with(unstated) || key == unstated);
+            .any(|unstated| {
+                shape.starts_with(unstated) || key == canonical_key(language, unstated)
+            });
         if unstated || !report.covers.contains(shape.as_str()) {
             return Outcome::Unchecked(format!("{} cannot state this slot", report.tool));
         }
         let reported = member
             .get("slots")
-            .and_then(|slots| slots.get(&key))
-            .and_then(Value::as_str);
+            .and_then(Value::as_object)
+            .and_then(|slots| {
+                slots
+                    .iter()
+                    .find(|(stated, _)| canonical_key(language, stated) == key)
+            })
+            .and_then(|(_, value)| value.as_str());
         let Some(reported) = reported else {
             return Outcome::Disagrees(format!(
                 "`{}` is `{}`; {} states no such slot `{key}` in `{context}`",
@@ -403,7 +494,7 @@ impl<'a> Checker<'a> {
     ) {
         let written: BTreeSet<String> = slots(record)
             .into_iter()
-            .map(|slot| to_paths(self, &slot.path))
+            .map(|slot| canonical_key(self.rules.language, &to_paths(self, &slot.path)))
             .collect();
         let alternatives = record.get("alternatives").is_some();
         for context in contexts {
@@ -421,9 +512,13 @@ impl<'a> Checker<'a> {
                 .filter_map(Value::as_str)
                 .collect();
             for (slot, value) in stated {
+                let key = canonical_key(self.rules.language, slot);
                 if alternatives
-                    || written.contains(slot)
-                    || unstated.iter().any(|prefix| slot.starts_with(prefix))
+                    || written.contains(&key)
+                    || unstated.iter().any(|prefix| {
+                        slot.starts_with(prefix)
+                            || key == canonical_key(self.rules.language, prefix)
+                    })
                 {
                     continue;
                 }
