@@ -37,8 +37,10 @@ description: |
     <https://learn.microsoft.com/nuget/concepts/dependency-resolution>
   - Roslyn source generators. <https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview>
   - `System.Runtime.CompilerServices.TypeForwardedToAttribute`.
-  - Corpus toolchain: .NET SDK 10.0.110, MSBuild 18.0.11, the SDK's Roslyn
-    compiler and its default C# language version.
+  - Toolchain: a .NET SDK, with its MSBuild and Roslyn, that supports each
+    unit's target framework and `language-version`. A project's `global.json`
+    selects an SDK where its meaning depends on one. `authoring.tools`
+    records the SDK that checked a dataset.
 
   ## Contexts
 
@@ -66,7 +68,11 @@ description: |
   `assembly-version`, the assembly version, `project`, the canonical path of
   the project file, and, per context, `language-version`,
   `define-constants` and `target-framework`. The unit key is the assembly
-  name, `assembly-version` and `project`. Two projects that produce one assembly name,
+  name, `assembly-version` and `project`. `language-version` is the
+  project's `LangVersion` when it names a version, and otherwise the default
+  C# version for the unit's target framework. A project whose `LangVersion`
+  is `latest`, `latestMajor` or `preview` selects its SDK in `global.json`,
+  and `language-version` is the version that SDK's compiler resolves. Two projects that produce one assembly name,
   with equal or different versions, are two units. An adapter that knows
   only the assembly name and version supplies a partial unit key.
 

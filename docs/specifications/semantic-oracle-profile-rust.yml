@@ -33,7 +33,9 @@ description: |
     <https://doc.rust-lang.org/cargo/>
   - The rustc book: `--cfg`, `--test`, `--edition`, `--crate-type`.
     <https://doc.rust-lang.org/rustc/>
-  - Corpus toolchain: `rustc` and Cargo 1.97.1, stable channel.
+  - Toolchain: stable `rustc` and Cargo that support each unit's `edition`
+    and the project's `rust-version`. `authoring.tools` records the release
+    that checked a dataset.
 
   ## Contexts
 
@@ -66,7 +68,7 @@ description: |
   its unit is a unit of the command's context with the unit attribute
   `mode` set to the mode it compiles in, normally `build`. The code inside
   doc comments, which doctests compile, is out-of-profile. When a command
-  omits `--target`, `target` is the host triple of the corpus toolchain,
+  omits `--target`, `target` is the corpus host triple,
   `x86_64-unknown-linux-gnu`.
 
   ## Units and distributions

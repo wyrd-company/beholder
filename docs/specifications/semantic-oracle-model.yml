@@ -928,7 +928,10 @@ description: |
   Each profile is a specification that defines, for its language:
 
   1. its primary sources: language specification, compiler and build tool
-     documentation, and the toolchain versions the corpus uses;
+     documentation, and the toolchain that checks a dataset. A version
+     that changes meaning is a context parameter or a unit attribute that
+     the project's build declarations determine, never the installed
+     toolchain's version; `authoring.tools` records the release used;
   2. context parameters and the rule that derives contexts from project
      build declarations;
   3. unit kinds, distribution kinds and how configuration defines them;

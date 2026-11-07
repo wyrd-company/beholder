@@ -35,7 +35,8 @@ description: |
     library interface rules; Stub files; type annotation semantics.
     <https://typing.python.org/en/latest/spec/>
   - Python Packaging User Guide: `pyproject.toml` `[project]` metadata.
-  - Corpus toolchain: CPython 3.14.6, 64-bit x86-64 Linux.
+  - Toolchain: CPython, 64-bit x86-64 Linux, at each context's `python`
+    version. `authoring.tools` records the release that checked a dataset.
 
   ## Contexts
 

@@ -32,7 +32,9 @@ description: |
     and `cgo` documentation. <https://pkg.go.dev/cmd/go>
   - Go Modules Reference, including workspaces and vendoring.
     <https://go.dev/ref/mod>
-  - Corpus toolchain: Go `gc` `go1.26.5` in module mode.
+  - Toolchain: a Go `gc` release, in module mode, that supports each
+    context's `go-version` and any `toolchain` directive. `authoring.tools`
+    records the release that checked a dataset.
 
   ## Contexts
 

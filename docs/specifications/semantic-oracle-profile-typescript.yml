@@ -36,8 +36,9 @@ description: |
     <https://nodejs.org/api/packages.html>
   - ECMAScript Language Specification: Modules.
     <https://tc39.es/ecma262/>
-  - Corpus toolchain: `typescript` 5.9.3; `typescript` 5.4.5 in projects
-    that declare the version boundary; Node.js 22.6 or later.
+  - Toolchain: the `typescript` package the project installs, which each
+    context records as `compiler`, and Node.js 22.6 or later.
+    `authoring.tools` records the versions that checked a dataset.
 
   ## Contexts
 

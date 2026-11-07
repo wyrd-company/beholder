@@ -32,7 +32,9 @@ description: |
   - Package layout conventions, `pubspec` and pub workspaces.
     <https://dart.dev/tools/pub/package-layout>
   - `package:meta` annotations. <https://pub.dev/documentation/meta/latest/>
-  - Corpus toolchain: Dart SDK 3.12.2 stable on `linux_x64`.
+  - Toolchain: a stable Dart SDK that satisfies each package's SDK
+    constraint and each unit's `language-version`. `authoring.tools` records
+    the SDK that checked a dataset.
 
   ## Contexts
 
