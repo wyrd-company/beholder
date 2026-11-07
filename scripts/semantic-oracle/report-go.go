@@ -49,6 +49,7 @@ type listed struct {
 	ImportMap  map[string]string
 	Standard   bool
 	Error      *struct{ Err string }
+	DepsErrors []struct{ Err string }
 	Module     *struct{ Main bool }
 }
 
@@ -381,7 +382,10 @@ func (p *project) load(id string) (*types.Package, error) {
 		}
 		files = append(files, file)
 	}
-	config := types.Config{Importer: importing{p, unit}, FakeImportC: true}
+	// A dependency module's function bodies state nothing the report reads: only
+	// its package-level declarations' types reach a project slot.
+	external := unit.Module == nil || !unit.Module.Main
+	config := types.Config{Importer: importing{p, unit}, FakeImportC: true, IgnoreFuncBodies: external}
 	checked, err := config.Check(packagePath(id), p.fileset, files, nil)
 	if err != nil {
 		return nil, err
@@ -407,7 +411,12 @@ func state(checked *types.Package) {
 		switch object := object.(type) {
 		case *types.Const:
 			add(path, "type", typeText(object.Type()))
-			add(path, "value", constantValue(object.Val()))
+			// A cgo constant under FakeImportC has an unknown value: unstated.
+			if object.Val().Kind() == constant.Unknown {
+				add(path, "value", unresolved)
+			} else {
+				add(path, "value", constantValue(object.Val()))
+			}
 		case *types.Var:
 			add(path, "type", typeText(object.Type()))
 		case *types.Func:
@@ -594,6 +603,9 @@ func main() {
 		if unit.Error != nil {
 			problems = append(problems, unit.ImportPath+": "+unit.Error.Err)
 		}
+		for _, dependency := range unit.DepsErrors {
+			problems = append(problems, unit.ImportPath+": "+dependency.Err)
+		}
 		if unit.Standard {
 			continue
 		}
@@ -616,6 +628,15 @@ func main() {
 		for _, problem := range problems {
 			fmt.Fprintln(os.Stderr, "go list:", problem)
 		}
+		os.Exit(2)
+	}
+	// A pattern or package the go command cannot load fails the build, so a
+	// report of the rest would certify a context that does not build.
+	if len(problems) > 0 {
+		for _, problem := range problems {
+			fmt.Fprintln(os.Stderr, "go list:", problem)
+		}
+		fmt.Fprintln(os.Stderr, "report-go: the go command cannot load every package of the context")
 		os.Exit(2)
 	}
 	// A package that fails to type-check stops the report: nothing it would

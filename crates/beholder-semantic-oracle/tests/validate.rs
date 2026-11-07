@@ -2299,3 +2299,29 @@ fn a_report_must_run_in_the_contexts_mode() {
     assert_eq!(audited.agreed, 0);
     assert!(audited.unchecked.iter().any(|u| u.slot == "returns"));
 }
+
+/// A key whose literal holds a `]` has the shape `bases[].type`, so a report that
+/// covers it is compared, and a wrong value disagrees.
+#[test]
+fn a_key_with_a_bracket_in_a_literal_is_checked() {
+    let (mut dataset, reported) = keyed();
+    dataset["public-api"]["signatures"][1]["bases"] =
+        json!([{"type": "@{tally.Counter}<\"a]b\">"}]);
+    let key = "bases[@{tally::Counter}<\"a]b\">].type";
+    let audited_with = |value: &str| {
+        let mut reported = reported.clone();
+        reported["members"][1]["slots"] = json!({key: value});
+        audit_with_reports(&dataset, Some(&files()), &[reported])
+    };
+    let audited = audited_with("@{tally::Counter}<\"a]b\">");
+    assert_eq!(compiler_findings(&audited), Vec::<String>::new());
+    assert_eq!(audited.agreed, 2);
+    let audited = audited_with("u32");
+    let found = compiler_findings(&audited);
+    assert_eq!(found.len(), 1, "{found:#?}");
+    assert!(found[0].contains("states `u32`"), "{found:#?}");
+    assert!(!audited
+        .unchecked
+        .iter()
+        .any(|u| u.slot.starts_with("bases")));
+}

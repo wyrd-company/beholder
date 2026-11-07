@@ -665,7 +665,11 @@ def go_cgo(tmp):
         "c.go": """package c
 
 // typedef int number;
+// #define FOO 42
 import "C"
+
+const N = C.FOO
+const Size = C.sizeof_int
 
 type Box struct{ V C.number }
 
@@ -689,6 +693,26 @@ const Message = "invalid type"
     assert "underlying" in found[path + "Box"]["unstated"], found[path + "Box"]
     expect(found, path + "Plain", "returns", "int")
     expect(found, path + "Message", "value", '"invalid type"')
+    # A cgo constant's value is unknown to go/types, and stated as no value.
+    for name in ("N", "Size"):
+        assert "value" in found[path + name]["unstated"], found[path + name]
+        assert "value" not in found[path + name]["slots"], found[path + name]
+
+
+def go_listing_errors(tmp):
+    """A pattern or package the go command cannot load fails the report, even
+    beside a package that loads."""
+    project = os.path.join(tmp, "go-listing")
+    write(project, {
+        "go.mod": "module example.com/listing\n\ngo 1.21\n",
+        "ok.go": "package listing\n\nconst A = 1\n",
+        "broken/b.go": "package broken\n\nimport \"example.com/listing/absent\"\n\nvar _ = absent.X\n",
+    })
+    out = os.path.join(tmp, "go-listing.json")
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "build", "-out", out]
+    failure(command + ["-patterns", "./ ./missing"], project, out, ["cannot load every package", "missing"])
+    failure(command + ["-patterns", "./..."], project, out, ["cannot load every package", "absent"])
+    run("go-listing", command + ["-patterns", "."], project, out)
 
 
 def python(tmp):
@@ -933,7 +957,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_workspace, go_cgo, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

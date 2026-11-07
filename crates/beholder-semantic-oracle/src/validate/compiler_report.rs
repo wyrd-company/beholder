@@ -45,28 +45,19 @@ use crate::{
 const RULE: &str = "profile:signature-compiler";
 const FORMAT: &str = "semantic-oracle-compiler-report/1";
 
-/// A slot path with each bracket's content removed.
-fn shape_of(path: &str) -> String {
+/// A slot path with each bracket's content removed. A key ends at its own `]`,
+/// past the language's literals, as [`canonical_key`] reads it.
+fn shape_of(language: &str, path: &str) -> String {
     let mut out = String::with_capacity(path.len());
-    let mut depth = 0usize;
-    for c in path.chars() {
-        match c {
-            '[' => {
-                if depth == 0 {
-                    out.push('[');
-                }
-                depth += 1;
-            }
-            ']' => {
-                depth = depth.saturating_sub(1);
-                if depth == 0 {
-                    out.push(']');
-                }
-            }
-            _ if depth == 0 => out.push(c),
-            _ => {}
-        }
+    let mut rest = path;
+    while let Some(open) = rest.find('[') {
+        out.push_str(&rest[..=open]);
+        let body = &rest[open + 1..];
+        let end = closing_bracket(language, body).unwrap_or(body.len());
+        out.push(']');
+        rest = body.get(end + 1..).unwrap_or("");
     }
+    out.push_str(rest);
     out
 }
 
@@ -391,7 +382,7 @@ impl<'a> Checker<'a> {
         let Some(member) = report.member(path, kind, unit) else {
             return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
         };
-        let shape = shape_of(&slot.path);
+        let shape = shape_of(self.rules.language, &slot.path);
         // A report keys a slot by paths, as it writes every name, and a key's types
         // compare in canonical spelling.
         let language = self.rules.language;
@@ -560,7 +551,25 @@ impl<'a> Checker<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::canonical_key;
+    use super::{canonical_key, shape_of};
+
+    #[test]
+    fn a_shape_skips_brackets_inside_literals() {
+        assert_eq!(
+            shape_of("rust", "bases[@{B}<\"a]b\">].type"),
+            "bases[].type"
+        );
+        assert_eq!(
+            shape_of("typescript", "bases[@{B}<'a]b'>].type"),
+            "bases[].type"
+        );
+        assert_eq!(shape_of("go", "bases[@{p.I}[int]].type"), "bases[].type");
+        assert_eq!(
+            shape_of("rust", "bases[@{T}<'a>].bindings[make].auto-traits[Send]"),
+            "bases[].bindings[].auto-traits[]"
+        );
+        assert_eq!(shape_of("rust", "parameters[0].type"), "parameters[].type");
+    }
 
     /// A key holding a single-quoted literal ends at its own bracket, and is the
     /// double-quoted key.
