@@ -618,7 +618,18 @@ Future<void> main(List<String> arguments) async {
       (File(p.join(project, 'semantic-oracle.yml')).existsSync()
           ? p.join(project, 'semantic-oracle.yml')
           : null);
-  if (dataset != null) {
+  if (dataset == null) {
+    if (!arguments.contains('--standalone')) {
+      fail(
+        'no dataset to check context `$context` against: pass --dataset, or '
+        '--standalone to report without that check',
+      );
+    }
+    stderr.writeln(
+      'report-dart: warning: --standalone, so context `$context` and its '
+      'parameters are not checked against any dataset',
+    );
+  } else {
     agreeWithDataset(dataset, context, {
       'platform': platform,
       'entry': entry,

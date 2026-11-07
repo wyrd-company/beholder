@@ -731,8 +731,12 @@ export function dflt(first: number = 1, second: string): string { return second;
 def dart_command(project, out, context, entry, platform, *flags):
     """`platform` is required; None leaves `--platform` out."""
     platform_flags = [] if platform is None else ["--platform", platform]
+    # A project with no dataset is reported standalone, unless a flag names one.
+    has_dataset = os.path.exists(os.path.join(project, "semantic-oracle.yml")) or "--dataset" in flags
+    standalone = [] if has_dataset or "--no-standalone" in flags else ["--standalone"]
+    flags = [f for f in flags if f != "--no-standalone"]
     return ["dart", "run", os.path.join(SCRIPTS, "report-dart.dart"), "--project", project,
-            "--context", context, "--entry", entry, "--out", out, *platform_flags, *flags]
+            "--context", context, "--entry", entry, "--out", out, *platform_flags, *standalone, *flags]
 
 
 def dart(tmp):
@@ -970,6 +974,16 @@ def dart_dataset_agreement(tmp):
     with open(elsewhere, "w") as dataset:
         dataset.write("contexts:\n  - id: vm\n    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: []}\n")
     run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm", "--dataset", elsewhere), project, out)
+    # With no dataset at all, the report refuses unless it is told to run standalone.
+    bare = os.path.join(tmp, "dart-no-dataset")
+    write(bare, {"pubspec.yaml": "name: bare\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n", "bin/main.dart": "void main() {}\n"})
+    lone = os.path.join(tmp, "dart-no-dataset.json")
+    failure(dart_command(bare, lone, "nonexistent-web-context", "bin/main.dart", "vm", "--no-standalone"), bare, lone,
+            ["no dataset", "--standalone"])
+    done = subprocess.run(dart_command(bare, lone, "nonexistent-web-context", "bin/main.dart", "vm"),
+                          cwd=bare, capture_output=True, text=True)
+    assert done.returncode == 0 and os.path.exists(lone), done.stderr
+    assert "warning: --standalone" in done.stderr, done.stderr
 
 
 def main():

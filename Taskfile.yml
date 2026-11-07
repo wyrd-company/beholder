@@ -172,8 +172,10 @@ tasks:
       its `platform`, with no default, so that a js or wasm context is never checked as vm.
       DEFINES and LIBRARY_FLAGS, space-separated lists, are its `defines` and its complete
       `library-flags`. DATASET, by default PROJECT's semantic-oracle.yml where it exists, is
-      the dataset whose context these must equal. OUT lies outside the project tree. A
-      library with an error, or a parameter that disagrees, exits nonzero and writes no report.
+      the dataset whose context these must equal; with no dataset the report exits nonzero,
+      unless STANDALONE=1 reports without that check, with a warning. OUT lies outside the
+      project tree. A library with an error, or a parameter that disagrees, exits nonzero
+      and writes no report.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
       vars: [PROJECT, CONTEXT, ENTRY, PLATFORM, OUT]
@@ -185,6 +187,7 @@ tasks:
         --entry {{shellQuote .ENTRY}} --out {{shellQuote .OUT}}
         --platform {{shellQuote .PLATFORM}}
         {{if .DATASET}}--dataset {{shellQuote .DATASET}}{{end}}
+        {{if .STANDALONE}}--standalone{{end}}
         {{range $define := splitList " " (.DEFINES | default "")}}{{if $define}}--define {{shellQuote $define}} {{end}}{{end}}
         {{range $flag := splitList " " (.LIBRARY_FLAGS | default "")}}{{if $flag}}--library-flag {{shellQuote $flag}} {{end}}{{end}}
 
