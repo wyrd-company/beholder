@@ -13,12 +13,13 @@ and compares them with the installed toolchains:
   csharp      global.json sdk.version and rollForward, and every TargetFramework(s),
               against `dotnet --list-sdks`
   dart        each pubspec's environment.sdk against `dart --version`
-  go          each go.mod's go and toolchain directives against `go version`
+  go          each go.mod's go and toolchain directives against `go version`, and
+              the toolchain the effective GOTOOLCHAIN selects for it
   rust        rust-toolchain.toml's channel and targets, and each Cargo.toml's
-              rust-version and edition, against `rustc --version`
+              rust-version and edition, against `rustc -vV`
   python      each requires-python against the python3.N interpreters on PATH
-  typescript  the typescript installed in the project's node_modules, or its
-              package.json pin, and Node.js 22.6 or later
+  typescript  the typescript installed in the project's node_modules against its
+              package.json version or range, and Node.js 22.6 or later
 
 Manifests under vendor/, node_modules/, obj/, bin/, target/ and other build or
 dependency directories belong to dependencies, and are not read.
@@ -26,11 +27,13 @@ dependency directories belong to dependencies, and are not read.
 One line per project: its state, its name and what decided the state. States,
 worst first:
 
-  missing-toolchain  a toolchain the project needs is not installed
+  missing-toolchain  a toolchain the project needs is not installed, or a Rust
+                     target it lists has no standard library
   unsupported        the installed toolchain does not satisfy a declaration
-  pin-not-honoured   an exact pin cannot select its version, because nothing
-                     installed switches toolchains (rustc without rustup); the
-                     installed version is used instead
+  pin-not-honoured   an exact pin cannot select its version, and the installed
+                     one is used instead: a rust-toolchain.toml channel that
+                     rustup does not select (or there is no rustup), or a
+                     typescript version node_modules does not hold
   ok                 the installed toolchain satisfies every declaration
 
 Each context of a project's semantic-oracle.yml names the toolchain release its
@@ -47,6 +50,7 @@ is release-mismatch.
   toolchains.py [--fixtures DIR]
 """
 import argparse
+import datetime
 import json
 import os
 import re
@@ -99,6 +103,15 @@ def numbers(text):
     return tuple(int(part) for part in match.group(1).split("."))
 
 
+def typed(value, kind, what):
+    """value, or ValueError when a manifest gives it another shape."""
+    names = {str: "a string", dict: "a table", list: "a list"}
+    if not isinstance(value, kind) or (kind is list and not all(isinstance(item, str) for item in value)):
+        raise ValueError(f"{what} is not {names[kind]}" + (" of strings" if kind is list else "")
+                         + f": {value!r}")
+    return value
+
+
 def padded(version, length=3):
     return tuple(version) + (0,) * (length - len(version))
 
@@ -148,25 +161,40 @@ class Toolchains:
         return self.probe("dart", find)
 
     def go(self):
+        """The go on PATH's own version, and the effective GOTOOLCHAIN.
+
+        GOTOOLCHAIN=local only identifies the binary on PATH. Which toolchain
+        a module selects follows the effective GOTOOLCHAIN: the environment,
+        then the go env file, then the default `auto`."""
         def find():
-            env = dict(os.environ, GOTOOLCHAIN="local")
-            out = run(["go", "version"], cwd=self.neutral, env=env)
-            match = out and re.search(r"go version go(\d+(?:\.\d+)*)", out)
-            return numbers(match.group(1)) if match else None
+            out = run(["go", "version"], cwd=self.neutral, env=dict(os.environ, GOTOOLCHAIN="local"))
+            match = out and re.search(r"go version (go\S+)", out)
+            if not match:
+                return None
+            setting = os.environ.get("GOTOOLCHAIN") or (
+                run(["go", "env", "GOTOOLCHAIN"], cwd=self.neutral) or "").strip()
+            return match.group(1), setting or "auto"
         return self.probe("go", find)
 
     def rustup(self):
         return self.probe("rustup", lambda: shutil.which("rustup") is not None)
 
     def rustc(self, cwd):
-        """rustc's version and sysroot. With rustup, as selected in cwd."""
+        """rustc as selected in cwd: version, channel, commit date, sysroot, and
+        rustup's active toolchain name, or None without rustup."""
         def find():
-            out = run(["rustc", "--version"], cwd=cwd)
-            match = out and re.search(r"rustc (\d+\.\d+\.\d+)(-\S+)?", out)
+            out = run(["rustc", "-vV"], cwd=cwd)
+            match = out and re.search(r"^release: (\d+\.\d+\.\d+)(?:-(\w+))?", out, re.M)
             if not match:
                 return None
+            date = re.search(r"^commit-date: (\d{4}-\d{2}-\d{2})", out, re.M)
             sysroot = (run(["rustc", "--print", "sysroot"], cwd=cwd) or "").strip()
-            return numbers(match.group(1)), (match.group(2) or "").lstrip("-"), sysroot
+            active = None
+            if self.rustup():
+                active = (run(["rustup", "show", "active-toolchain"], cwd=cwd) or "").split(maxsplit=1)
+                active = active[0] if active else None
+            return {"version": numbers(match.group(1)), "channel": match.group(2) or "stable",
+                    "date": date.group(1) if date else None, "sysroot": sysroot, "active": active}
         return self.probe(("rustc", cwd if self.rustup() else None), find)
 
     def pythons(self):
@@ -222,24 +250,36 @@ def sdk_band(version):
     return major, minor, patch // 100
 
 
+# How far each policy may roll: the leading components of (major, minor,
+# feature band) that a selected SDK shares with the requested one.
+ROLL_SCOPE = {"patch": 3, "feature": 2, "minor": 1, "major": 0,
+              "latestPatch": 3, "latestFeature": 2, "latestMinor": 1, "latestMajor": 0}
+
+
 def roll_forward(requested, policy, installed):
-    """The SDK global.json selects, or None. Follows the .NET SDK's rules."""
+    """The SDK global.json selects, or None. Follows the .NET SDK's rules.
+
+    `patch`, the default, takes the requested version, or else the latest patch
+    in its feature band. `feature`, `minor` and `major` take the latest patch in
+    the requested band, or else in the nearest higher feature band, minor or
+    major they allow. The `latest*` policies take the highest SDK they allow."""
     requested = padded(requested)
-    policy = policy or "latestPatch"
+    policy = policy or "patch"
     if policy == "disable":
-        candidates = [sdk for sdk in installed if padded(sdk) == requested]
-    elif policy in ("patch", "latestPatch"):
-        candidates = [sdk for sdk in installed
-                      if sdk_band(sdk) == sdk_band(requested) and padded(sdk) >= requested]
-    elif policy in ("feature", "latestFeature"):
-        candidates = [sdk for sdk in installed if padded(sdk)[:2] == requested[:2] and padded(sdk) >= requested]
-    elif policy in ("minor", "latestMinor"):
-        candidates = [sdk for sdk in installed if padded(sdk)[0] == requested[0] and padded(sdk) >= requested]
-    elif policy in ("major", "latestMajor"):
-        candidates = [sdk for sdk in installed if padded(sdk) >= requested]
-    else:
+        return requested if requested in map(padded, installed) else None
+    if policy not in ROLL_SCOPE:
         raise ValueError(f"unknown rollForward {policy!r}")
-    return max(candidates) if candidates else None
+    scope = ROLL_SCOPE[policy]
+    allowed = [padded(sdk) for sdk in installed
+               if padded(sdk) >= requested and sdk_band(sdk)[:scope] == sdk_band(requested)[:scope]]
+    if not allowed:
+        return None
+    if policy.startswith("latest"):
+        return max(allowed)
+    if policy == "patch" and requested in allowed:
+        return requested
+    nearest = min(sdk_band(sdk) for sdk in allowed)
+    return max(sdk for sdk in allowed if sdk_band(sdk) == nearest)
 
 
 def framework_major(framework):
@@ -255,15 +295,18 @@ def check_csharp(project, tools, result):
         return
     selected = max(sdks)
     for path in manifests(project, "global.json"):
-        sdk = json.loads(read(path)).get("sdk", {})
+        where = relative(path, project)
+        sdk = typed(typed(json.loads(read(path)), dict, where).get("sdk", {}), dict, f"{where} sdk")
         if "version" not in sdk:
             continue
+        version = typed(sdk["version"], str, f"{where} sdk.version")
         policy = sdk.get("rollForward")
-        chosen = roll_forward(numbers(sdk["version"]), policy, sdks)
-        where = relative(path, project)
+        if policy is not None:
+            typed(policy, str, f"{where} sdk.rollForward")
+        chosen = roll_forward(numbers(version), policy, sdks)
         if chosen is None:
-            result.add("unsupported", f"{where} selects SDK {sdk['version']} "
-                       f"(rollForward {policy or 'latestPatch'}); installed {', '.join(map(shown, sdks))}")
+            result.add("unsupported", f"{where} selects SDK {version} "
+                       f"(rollForward {policy or 'patch'}); installed {', '.join(map(shown, sdks))}")
         else:
             result.add("ok", f"{where} selects SDK {shown(chosen)}")
             if os.path.dirname(path) == project:
@@ -301,12 +344,21 @@ def dart_version(text):
 
 def dart_constraint(text):
     """A list of (operator, version) bounds, with the Dart 3 reading of `<3.0.0`."""
-    text = text.strip().strip("'\"")
+    text = text.strip().strip("'\"").strip()
     if text == "any":
         return []
+    if not text:
+        raise ValueError("empty SDK constraint")
     bounds = []
-    for token in re.findall(r"(\^|>=|<=|>|<)?\s*([0-9][0-9A-Za-z.+-]*)", text):
-        operator, version = token
+    token = re.compile(r"\s*(\^|>=|<=|>|<)?\s*([0-9][0-9A-Za-z.+-]*)\s*")
+    position = 0
+    while position < len(text):
+        match = token.match(text, position)
+        if not match:
+            raise ValueError(f"cannot parse SDK constraint {text!r} at {text[position:]!r}")
+        position = match.end()
+        operator, version = match.groups()
+        dart_version(version)
         if operator == "^":
             major, minor, patch = (int(part) for part in re.match(r"(\d+)\.(\d+)\.(\d+)", version).groups())
             upper = f"{major + 1}.0.0" if major > 0 else f"0.{minor + 1}.0"
@@ -351,9 +403,14 @@ def check_dart(project, tools, result):
     for path in manifests(project, "pubspec.yaml"):
         constraint = pubspec_sdk(read(path))
         where = relative(path, project)
+        try:
+            bounds = None if constraint is None else dart_constraint(constraint)
+        except ValueError as error:
+            result.add("unsupported", f"{where}: {error}")
+            continue
         if constraint is None:
             result.add("unsupported", f"{where} declares no environment.sdk")
-        elif not satisfies(installed, dart_constraint(constraint), dart_version):
+        elif not satisfies(installed, bounds, dart_version):
             result.add("unsupported", f"{where} sdk {constraint!r} excludes Dart {installed}")
         else:
             passed += 1
@@ -378,60 +435,136 @@ def go_version(text):
     return (int(major), int(minor), -1, 2, 0)
 
 
+def go_setting(setting):
+    """(base, mode) of a GOTOOLCHAIN value: auto is local+auto, path local+path."""
+    setting = {"auto": "local+auto", "path": "local+path"}.get(setting, setting)
+    base, _, mode = setting.partition("+")
+    if base != "local":
+        go_version(base)
+    if mode not in ("", "auto", "path"):
+        raise ValueError(f"unknown GOTOOLCHAIN {setting!r}")
+    return base, mode
+
+
+def go_select(local, setting, go, toolchain):
+    """(release, note, state) of the toolchain a module selects.
+
+    The go directive is a minimum. A toolchain directive, or a go directive newer
+    than the base toolchain, selects a newer release only when GOTOOLCHAIN
+    allows switching (+auto, the default, or +path)."""
+    base, mode = go_setting(setting)
+    selected = local if base == "local" else base
+    if toolchain == "default":
+        toolchain = None
+    if mode:
+        if toolchain and go_version(toolchain) > go_version(selected):
+            selected = toolchain
+        if go and go_version(go) > go_version(selected):
+            selected = "go" + go
+        return selected, None, "ok"
+    if go and go_version(go) > go_version(selected):
+        return selected, f"go {go} is newer than {selected}, and GOTOOLCHAIN={setting} does not switch", \
+            "unsupported"
+    if toolchain and go_version(toolchain) > go_version(selected):
+        return selected, f"toolchain {toolchain} is a suggestion GOTOOLCHAIN={setting} does not follow", "ok"
+    return selected, None, "ok"
+
+
 def check_go(project, tools, result):
-    installed = tools.go()
-    if installed is None:
+    probed = tools.go()
+    if probed is None:
         result.add("missing-toolchain", "no Go (go version)")
         return
-    have = go_version(shown(padded(installed)))
-    result.releases = [f"go{shown(installed)}"]
+    local, setting = probed
+    releases = []
     passed = 0
     for path in manifests(project, "go.mod"):
         where = relative(path, project)
         text = read(path)
+        directives = {}
         for directive in ("go", "toolchain"):
             match = re.search(rf"^{directive}\s+(\S+)", text, re.M)
-            if match and go_version(match.group(1)) > have:
-                result.add("unsupported", f"{where} {directive} {match.group(1)} is newer than go{shown(installed)}")
-                break
-        else:
-            passed += 1
+            directives[directive] = match.group(1) if match else None
+        selected, note, state = go_select(local, setting, directives["go"], directives["toolchain"])
+        if state != "ok":
+            result.add(state, f"{where} {note}")
+            continue
+        if note:
+            result.add("ok", f"{where} {note}")
+        if selected != local:
+            _, mode = go_setting(setting)
+            if mode == "path" and shutil.which(selected) is None:
+                result.add("missing-toolchain", f"{where} selects {selected}, not on PATH (GOTOOLCHAIN={setting})")
+                continue
+            result.add("ok", f"{where} selects {selected} (GOTOOLCHAIN={setting}"
+                       f"{', downloaded on first use' if mode != 'path' else ''})")
+        if selected not in releases:
+            releases.append(selected)
+        passed += 1
+    result.releases = releases or [local]
     if passed:
-        result.add("ok", f"go{shown(installed)} satisfies {passed} go.mod(s)")
+        result.add("ok", f"{passed} go.mod(s) supported (local {local}, GOTOOLCHAIN={setting})")
 
 
 # Rust ---------------------------------------------------------------------
 
+def rust_pin_matches(pin, rustc):
+    """Whether the selected rustc is the toolchain a channel pin names.
+
+    With rustup, its active toolchain's name. Without, the version and channel,
+    and a dated channel's date against the commit date: a nightly is built from
+    the previous day's last commit, so either day matches."""
+    if rustc["active"]:
+        return rustc["active"] == pin or rustc["active"].startswith(pin + "-")
+    named = re.fullmatch(r"(stable|beta|nightly)(?:-(\d{4})-(\d{2})-(\d{2}))?", pin)
+    if named:
+        if named.group(1) != rustc["channel"]:
+            return False
+        if not named.group(2):
+            return True
+        if not rustc["date"]:
+            return False
+        day = datetime.date(*(int(part) for part in named.group(2, 3, 4)))
+        return rustc["date"] in (day.isoformat(), (day - datetime.timedelta(days=1)).isoformat())
+    if re.fullmatch(r"\d+\.\d+(?:\.\d+)?", pin):
+        length = len(pin.split("."))
+        return rustc["channel"] == "stable" and numbers(pin) == rustc["version"][:length]
+    return False
+
+
 def check_rust(project, tools, result):
     rustc = tools.rustc(project)
     if rustc is None:
-        result.add("missing-toolchain", "no rustc (rustc --version)")
+        result.add("missing-toolchain", "no rustc (rustc -vV)")
         return
-    installed, channel, sysroot = rustc
+    installed = rustc["version"]
     result.releases = [shown(installed)]
-    channel = channel.split("-")[0] or "stable"
+    identity = rustc["active"] or f"rustc {shown(installed)} {rustc['channel']}" + (
+        f" ({rustc['date']})" if rustc["date"] else "")
     toolchain = os.path.join(project, "rust-toolchain.toml")
     if os.path.exists(toolchain):
-        table = tomllib.loads(read(toolchain)).get("toolchain", {})
+        table = typed(tomllib.loads(read(toolchain)).get("toolchain", {}), dict, "rust-toolchain.toml [toolchain]")
         pin = table.get("channel")
-        if pin:
-            matches = (pin == channel if not re.match(r"\d", pin)
-                       else padded(numbers(pin))[:len(pin.split("."))] == installed[:len(pin.split("."))]
-                       and channel == "stable")
-            if not matches:
+        if pin is not None:
+            typed(pin, str, "rust-toolchain.toml channel")
+            if not rust_pin_matches(pin, rustc):
                 how = "rustup is not installed" if not tools.rustup() else "rustup did not select it"
-                result.add("pin-not-honoured",
-                           f"rust-toolchain.toml channel {pin}, {how}; rustc {shown(installed)} {channel} is used")
-        for target in table.get("targets", []):
-            if sysroot and not os.path.isdir(os.path.join(sysroot, "lib", "rustlib", target)):
-                result.add("pin-not-honoured", f"rust-toolchain.toml target {target} has no standard library installed")
+                result.add("pin-not-honoured", f"rust-toolchain.toml channel {pin}, {how}; {identity} is used")
+        for target in typed(table.get("targets", []), list, "rust-toolchain.toml targets"):
+            if rustc["sysroot"] and not os.path.isdir(os.path.join(rustc["sysroot"], "lib", "rustlib", target)):
+                result.add("missing-toolchain", f"rust-toolchain.toml target {target} has no standard library installed")
     passed = 0
     for path in manifests(project, "Cargo.toml"):
         where = relative(path, project)
         manifest = tomllib.loads(read(path))
         failed = False
-        for table in (manifest.get("package", {}), manifest.get("workspace", {}).get("package", {})):
+        workspace = typed(manifest.get("workspace", {}), dict, f"{where} [workspace]")
+        for name, table in (("package", manifest.get("package", {})), ("workspace.package", workspace.get("package", {}))):
+            typed(table, dict, f"{where} [{name}]")
             minimum = table.get("rust-version")
+            # A dict is `rust-version.workspace = true`, read at the workspace root.
+            if not isinstance(minimum, (str, dict, type(None))):
+                typed(minimum, str, f"{where} {name}.rust-version")
             if isinstance(minimum, str) and padded(numbers(minimum)) > installed:
                 result.add("unsupported", f"{where} rust-version {minimum} is newer than rustc {shown(installed)}")
                 failed = True
@@ -446,16 +579,42 @@ def check_rust(project, tools, result):
 
 # Python -------------------------------------------------------------------
 
+PEP440 = re.compile(r"(\d+(?:\.\d+)*)(?:[-_.]?(a|alpha|b|beta|c|rc|pre|preview)[-_.]?(\d*))?"
+                    r"(?:[-_.]?(post|rev|r)[-_.]?(\d*))?(?:[-_.]?(dev)[-_.]?(\d*))?", re.I)
+PRE_PHASE = {"a": 0, "alpha": 0, "b": 1, "beta": 1, "c": 2, "rc": 2, "pre": 2, "preview": 2}
+
+
+def pep440_key(text, size):
+    """A comparable PEP 440 version: dev < a < b < rc < final < post."""
+    match = PEP440.fullmatch(text)
+    if not match:
+        raise ValueError(f"unsupported requires-python version {text!r}")
+    release, pre, pre_number, post, post_number, dev, dev_number = match.groups()
+    if pre:
+        phase = (PRE_PHASE[pre.lower()], int(pre_number or 0))
+    elif dev and not post:
+        phase = (-1, 0)
+    else:
+        phase = (3, 0)
+    return (padded(numbers(release), size), phase, int(post_number or 0) if post else -1,
+            int(dev_number or 0) if dev else float("inf"))
+
+
 def pep440_satisfies(version, specifier):
-    """A requires-python specifier on a release version, without pre-releases."""
+    """A requires-python specifier on an installed final release.
+
+    Clauses may name pre-, post- and dev-releases. Epochs and local versions
+    are not supported."""
     for clause in filter(None, (part.strip() for part in specifier.split(","))):
-        match = re.fullmatch(r"(~=|===|==|!=|>=|<=|>|<)\s*([0-9][0-9.]*)(\.\*)?", clause)
+        match = re.fullmatch(r"(~=|===|==|!=|>=|<=|>|<)\s*v?([0-9][0-9A-Za-z._-]*?)(\.\*)?", clause)
         if not match:
             raise ValueError(f"unsupported requires-python clause {clause!r}")
         operator, text, wildcard = match.groups()
+        if wildcard and not re.fullmatch(r"\d+(?:\.\d+)*", text):
+            raise ValueError(f"unsupported requires-python clause {clause!r}")
         want = numbers(text)
         size = max(len(want), len(version))
-        have, full = padded(version, size), padded(want, size)
+        have, full = pep440_key(shown(version), size), pep440_key(text, size)
         if operator in ("==", "!=", "===") and wildcard:
             equal = tuple(version[:len(want)]) == want
             ok = equal if operator == "==" else not equal
@@ -464,6 +623,8 @@ def pep440_satisfies(version, specifier):
         elif operator == "!=":
             ok = have != full
         elif operator == "~=":
+            if len(want) < 2:
+                raise ValueError(f"~= needs two release components: {clause!r}")
             ok = have >= full and tuple(version[:len(want) - 1]) == want[:-1]
         else:
             ok = {">=": have >= full, "<=": have <= full, ">": have > full, "<": have < full}[operator]
@@ -480,8 +641,11 @@ def check_python(project, tools, result):
     result.releases = [shown(version) for version in interpreters.values()]
     declared = {}
     for path in manifests(project, "pyproject.toml"):
-        specifier = tomllib.loads(read(path)).get("project", {}).get("requires-python")
+        where = relative(path, project)
+        table = typed(tomllib.loads(read(path)).get("project", {}), dict, f"{where} [project]")
+        specifier = table.get("requires-python")
         if specifier is not None:
+            typed(specifier, str, f"{where} requires-python")
             declared.setdefault(specifier, []).append(relative(path, project))
     for specifier, paths in declared.items():
         where = paths[0] if len(paths) == 1 else f"{len(paths)} pyproject.toml"
@@ -497,6 +661,55 @@ def check_python(project, tools, result):
 
 # TypeScript ---------------------------------------------------------------
 
+def npm_comparators(text):
+    """(operator, version) bounds for one space-separated npm comparator set."""
+    text = re.sub(r"(>=|<=|>|<|=|\^|~)\s+", r"\1", text.strip())
+    hyphen = re.fullmatch(r"(\S+)\s+-\s+(\S+)", text)
+    if hyphen:
+        return npm_comparators(">=" + hyphen.group(1)) + npm_comparators("<=" + hyphen.group(2))
+    bounds = []
+    for item in text.split():
+        match = re.fullmatch(r"(>=|<=|>|<|=|\^|~)?v?(?:(\d+|[xX*])(?:\.(\d+|[xX*]))?(?:\.(\d+|[xX*]))?"
+                             r"(-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)", item)
+        if not match:
+            raise ValueError(f"cannot compare with the npm range {item!r}")
+        operator, *parts, pre = match.groups()
+        parts = [None if part is None or part in "xX*" else int(part) for part in parts]
+        given = len(parts) if None not in parts else parts.index(None)
+        if given == 0:
+            continue
+        major, minor, patch = (part or 0 for part in parts)
+        low = f"{major}.{minor}.{patch}{pre or ''}"
+        if given == 1:
+            upper = f"{major + 1}.0.0-0"
+        elif given == 2:
+            upper = f"{major}.{minor + 1}.0-0"
+        else:
+            upper = None
+        if operator == "^":
+            upper = (f"{major + 1}.0.0-0" if major or given == 1 else
+                     f"0.{minor + 1}.0-0" if minor or given == 2 else f"0.0.{patch + 1}-0")
+            bounds += [(">=", low), ("<", upper)]
+        elif operator == "~":
+            bounds += [(">=", low), ("<", f"{major}.{minor + 1}.0-0" if given > 1 else f"{major + 1}.0.0-0")]
+        elif operator in (None, "="):
+            bounds += [(">=", low), ("<", upper)] if upper else [("==", low)]
+        elif operator == ">=":
+            bounds.append((">=", low))
+        elif operator == "<":
+            bounds.append(("<", f"{low}-0" if given < 3 and not pre else low))
+        elif operator == ">":
+            bounds.append((">=", upper) if upper else (">", low))
+        elif operator == "<=":
+            bounds.append(("<", upper) if upper else ("<=", low))
+    return bounds
+
+
+def npm_satisfies(version, declared):
+    """Whether an installed version satisfies an npm version or range."""
+    return any(satisfies(version, npm_comparators(part), dart_version) for part in declared.split("||"))
+
+
 def check_typescript(project, tools, result):
     node = tools.node()
     if node is None:
@@ -508,17 +721,35 @@ def check_typescript(project, tools, result):
     pin = None
     package = os.path.join(project, "package.json")
     if os.path.exists(package):
-        manifest = json.loads(read(package))
+        manifest = typed(json.loads(read(package)), dict, "package.json")
         for field in ("devDependencies", "dependencies"):
-            pin = pin or manifest.get(field, {}).get("typescript")
+            declared = typed(manifest.get(field, {}), dict, f"package.json {field}").get("typescript")
+            if declared is not None and pin is None:
+                pin = typed(declared, str, f"package.json {field}.typescript")
     installed = os.path.join(project, "node_modules", "typescript", "package.json")
     if os.path.exists(installed):
-        version = json.loads(read(installed))["version"]
+        found = typed(json.loads(read(installed)), dict, "node_modules/typescript/package.json")
+        if "version" not in found:
+            raise ValueError("node_modules/typescript/package.json has no version")
+        version = typed(found["version"], str, "node_modules/typescript/package.json version")
+        dart_version(version)
         result.releases = [version]
-        note = f"typescript {version} installed"
-        if pin and pin != version and re.fullmatch(r"\d+\.\d+\.\d+", pin):
-            note += f" (package.json pins {pin})"
-        result.add("ok", note)
+        if pin is None:
+            result.add("ok", f"typescript {version} installed, none declared")
+            return
+        try:
+            fits = npm_satisfies(version, pin)
+        except ValueError as error:
+            result.add("ok", f"typescript {version} installed; package.json declares {pin!r}: {error}")
+            return
+        exact = re.fullmatch(r"=?v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", pin.strip())
+        if fits:
+            result.add("ok", f"typescript {version} installed, satisfies package.json {pin!r}")
+        elif exact:
+            result.add("pin-not-honoured", f"package.json pins typescript {pin}, node_modules has {version}, "
+                       "which is used (npm ci)")
+        else:
+            result.add("unsupported", f"typescript {version} in node_modules is outside package.json {pin!r} (npm ci)")
     elif pin:
         result.add("missing-toolchain", f"typescript {pin} is declared and not installed in node_modules (npm ci)")
     else:
@@ -605,7 +836,7 @@ def main():
         result = Result()
         try:
             CHECKS[language](project, tools, result)
-        except (ValueError, OSError, tomllib.TOMLDecodeError, json.JSONDecodeError) as error:
+        except (ValueError, OSError, UnicodeDecodeError, tomllib.TOMLDecodeError, json.JSONDecodeError) as error:
             result.add("unsupported", f"cannot read a declaration: {error}")
         counts.setdefault(language, dict.fromkeys(STATES, 0))[result.state] += 1
         print(f"{result.state:<17} {language}/{name}: {result.line()}")

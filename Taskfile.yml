@@ -181,12 +181,16 @@ tasks:
       requires-python, and the installed typescript with Node.js 22.6 or later. It
       prints one line per project, ok, unsupported, pin-not-honoured or
       missing-toolchain, and exits nonzero on unsupported or missing-toolchain.
-      pin-not-honoured marks an exact rust-toolchain.toml pin that no rustup can
-      select, so the installed rustc is used.
+      pin-not-honoured marks an exact pin the installed toolchain does not hold,
+      which is then used instead: a rust-toolchain.toml channel that rustup does
+      not select (or no rustup), or a typescript version node_modules does not
+      hold. A Rust target without its standard library is missing-toolchain. Go
+      follows the effective GOTOOLCHAIN: go.mod's go line is a minimum, and its
+      toolchain line selects a release only when GOTOOLCHAIN allows switching.
       For each context of a project's semantic-oracle.yml it prints ok or
       release-mismatch: the context's `release` (`python`, `compiler`) must equal
-      the installed release or be extended by it with dotted components. A
-      mismatch also exits nonzero.
+      the release the project runs under or be extended by it with dotted
+      components. A mismatch also exits nonzero.
     dir: '{{.USER_WORKING_DIR}}'
     vars:
       FIXTURES: '{{.FIXTURES | default (joinPath .ROOT_DIR "fixtures")}}'
