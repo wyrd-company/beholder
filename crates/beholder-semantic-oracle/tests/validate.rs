@@ -1904,6 +1904,7 @@ fn report(slots: Value, covers: Value) -> Value {
         "language": "rust",
         "context": "default",
         "tool": {"name": "rustdoc", "version": "test"},
+        "release": "1.99.1",
         "covers": covers,
         "members": [{"path": "tally::make", "slots": slots, "unstated": []}],
     })
@@ -1957,6 +1958,42 @@ fn a_disagreement_names_the_rule() {
     assert_eq!(found.len(), 1, "{found:#?}");
     assert!(found[0].contains("states `u32`"), "{found:#?}");
     assert_eq!(audited.agreed, 0);
+}
+
+#[test]
+fn a_report_must_run_under_the_contexts_release() {
+    let agrees = json!({"returns": "@{tally::Counter}"});
+    let audited_with = |release: Option<&str>| {
+        let mut reported = report(agrees.clone(), json!(["returns"]));
+        match release {
+            Some(release) => reported["release"] = json!(release),
+            None => {
+                reported.as_object_mut().unwrap().remove("release");
+            }
+        }
+        audit_with_reports(&dataset(), Some(&files()), &[reported])
+    };
+    // The context declares `release: '1.99'`; a later patch release is the same.
+    for release in ["1.99", "1.99.1"] {
+        let audited = audited_with(Some(release));
+        assert!(compiler_findings(&audited).is_empty(), "{release}");
+        assert_eq!(audited.agreed, 1, "{release}");
+    }
+    // Another minor release, and a prefix that is not a dotted component.
+    for release in ["1.98.0", "1.9", "1.990"] {
+        let audited = audited_with(Some(release));
+        let found = compiler_findings(&audited);
+        assert!(
+            found.iter().any(|f| f.contains("ran under release")),
+            "{release}: {found:#?}"
+        );
+        assert_eq!(audited.agreed, 0, "{release}");
+    }
+    let found = compiler_findings(&audited_with(None));
+    assert!(
+        found.iter().any(|f| f.contains("states no `release`")),
+        "{found:#?}"
+    );
 }
 
 #[test]

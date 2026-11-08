@@ -194,3 +194,10 @@ cases:
     patch: [{op: add, path: /public-api/signatures/1/auto-traits, value: [Send]}]
     fails-at: /public-api/signatures/1/auto-traits
     keyword: falseSchema
+  - name: missing-release
+    reason: A context names the .NET SDK version its meaning depends on, so a report can be matched to it.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /contexts/0/parameters/release}]
+    fails-at: /contexts/0/parameters
+    keyword: required
+    member: release

@@ -1021,6 +1021,8 @@ def main():
             "language": "rust",
             "context": arguments.context,
             "tool": {"name": "rustdoc-json", "version": f"{version}, format {format_version}"},
+            # `rustc 1.99.1 (hash date)` -> `1.99.1`, matched against the context's `release`.
+            "release": version.split()[1] if len(version.split()) > 1 else version,
             "covers": COVERS,
             "members": sorted(members.values(), key=lambda member: (member["path"], member["kind"])),
         }

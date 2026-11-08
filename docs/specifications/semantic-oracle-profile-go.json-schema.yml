@@ -49,7 +49,7 @@ $defs:
 
   context-parameters:
     type: object
-    required: [mode, goos, goarch, arch-level, cgo, tags, compiler, module-root, go-version, patterns]
+    required: [mode, goos, goarch, arch-level, cgo, tags, compiler, module-root, go-version, patterns, release]
     additionalProperties: false
     properties:
       mode: {enum: [build, test]}
@@ -61,6 +61,7 @@ $defs:
       compiler: {enum: [gc, gccgo]}
       module-root: {$ref: '#/$defs/text'}
       go-version: {$ref: '#/$defs/text'}
+      release: {$ref: '#/$defs/text'}
       patterns: {$ref: '#/$defs/text-list', minItems: 1}
 
   unit:

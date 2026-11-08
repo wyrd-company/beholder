@@ -928,9 +928,14 @@ description: |
   Each profile is a specification that defines, for its language:
 
   1. its primary sources: language specification, compiler and build tool
-     documentation, and the toolchain versions the corpus uses;
+     documentation, and the toolchain that checks a dataset;
   2. context parameters and the rule that derives contexts from project
-     build declarations;
+     build declarations. Every version that changes meaning is a context
+     parameter or a unit attribute, never an unstated property of whatever
+     toolchain is installed. That includes the toolchain release itself,
+     which decides standard library and SDK members, release-gated build
+     constraints and compiler-relative language versions: the profile names
+     one context parameter, its release parameter, that holds it;
   3. unit kinds, distribution kinds and how configuration defines them;
   4. document membership rules and the disposition of every file class;
   5. the canonical path grammar for entities and for consumer paths;
@@ -997,6 +1002,16 @@ description: |
 
   A project that fails to build produces no report, and a failed script is an error
   of the audit run. A report states only what its compiler checked.
+
+  A report states `release`, the toolchain release it ran under, in the form of
+  the profile's release parameter. It answers for a context only when its
+  `release` equals the context's release parameter, or extends it with further
+  dot-separated components, as `go1.27.3` extends `go1.27`. Otherwise, or when
+  it states none, the audit reports an error and the report's slots stay
+  `unchecked` for that context. A context states its release at the precision
+  its meaning needs, so a later patch release can check it and a later minor
+  release cannot. Moving a dataset to another release is an edit of its
+  contexts, followed by a new audit.
 
   A compiler that an evaluated indexer wraps can share an error with it. Only the
   compiler-supplied slots carry that exposure, and the report's `slot-class`

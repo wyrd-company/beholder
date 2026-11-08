@@ -289,3 +289,10 @@ cases:
     patch: [{op: replace, path: /public-api/signatures/7/bases/0/bindings/0, value: {name: describe, type: u8, returns: u8}}]
     fails-at: /public-api/signatures/7/bases/0/bindings/0
     keyword: oneOf
+  - name: missing-release
+    reason: A context names the `rustc` release its meaning depends on, so a report can be matched to it.
+    base: semantic-oracle-profile-rust.example.yml
+    patch: [{op: remove, path: /contexts/0/parameters/release}]
+    fails-at: /contexts/0/parameters
+    keyword: required
+    member: release

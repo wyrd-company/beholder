@@ -47,7 +47,7 @@ $defs:
 
   context-parameters:
     type: object
-    required: [platform, entry, defines, library-flags, options]
+    required: [platform, entry, defines, library-flags, options, release]
     additionalProperties: false
     properties:
       platform: {enum: [vm, js, wasm]}
@@ -58,6 +58,7 @@ $defs:
       defines: {$ref: '#/$defs/text-list'}
       library-flags: {$ref: '#/$defs/text-list'}
       options: {$ref: '#/$defs/text-list'}
+      release: {$ref: '#/$defs/text'}
 
   unit:
     $ref: 'https://wyrd.foo/beholder/schemas/semantic-oracle/1#/$defs/unit'

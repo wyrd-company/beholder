@@ -129,7 +129,42 @@ fn to_paths(checker: &Checker<'_>, text_value: &str) -> String {
     out
 }
 
+/// Whether a report's release is the context's: equal, or the context's value
+/// followed by more dotted components, as `go1.27` holds `go1.27.3`.
+fn release_holds(declared: &str, reported: &str) -> bool {
+    reported == declared
+        || reported
+            .strip_prefix(declared)
+            .is_some_and(|rest| rest.starts_with('.'))
+}
+
 impl<'a> Checker<'a> {
+    /// A report counts for a context only when it ran under the release the
+    /// context's meaning depends on.
+    fn release_matches(&self, report: &Value, context: &str) -> Result<(), String> {
+        let parameter = self.rules.release_parameter;
+        let declared = list(self.dataset, "contexts")
+            .iter()
+            .find(|record| text(record, "id") == Some(context))
+            .and_then(|record| record.get("parameters"))
+            .and_then(|parameters| text(parameters, parameter));
+        let Some(declared) = declared else {
+            return Err(format!(
+                "context `{context}` has no `{parameter}`, so no report can be checked against it"
+            ));
+        };
+        match text(report, "release") {
+            None => Err(format!(
+                "the report states no `release`; context `{context}` needs `{parameter}` `{declared}`"
+            )),
+            Some(reported) if release_holds(declared, reported) => Ok(()),
+            Some(reported) => Err(format!(
+                "the report ran under release `{reported}`, but context `{context}` has \
+                 `{parameter}` `{declared}`; its slots are unchecked"
+            )),
+        }
+    }
+
     fn reports_by_context<'r>(&mut self, reports: &'r [Value]) -> BTreeMap<&'r str, Reported<'r>> {
         let mut by_context = BTreeMap::new();
         for (i, report) in reports.iter().enumerate() {
@@ -155,6 +190,10 @@ impl<'a> Checker<'a> {
                 self.error(RULE, at, message);
                 continue;
             };
+            if let Err(message) = self.release_matches(report, context) {
+                self.error(RULE, format!("{at}/release"), message);
+                continue;
+            }
             for failed in list(report, "failed").iter().filter_map(Value::as_str) {
                 self.warning(
                     RULE,

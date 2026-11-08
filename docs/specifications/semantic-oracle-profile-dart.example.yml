@@ -80,6 +80,7 @@ contexts:
       defines: []
       library-flags: [dart.library.io]
       options: []
+      release: '3.13'
     command: dart run bin/atlas.dart
   - id: js
     parameters:
@@ -88,6 +89,7 @@ contexts:
       defines: []
       library-flags: [dart.library.js_interop]
       options: []
+      release: '3.13'
     command: dart compile js bin/atlas.dart
 
 distributions:

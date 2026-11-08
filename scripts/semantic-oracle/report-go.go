@@ -390,6 +390,7 @@ func main() {
 		"language": "go",
 		"context":  *context,
 		"tool":     map[string]string{"name": "go/types", "version": runtime.Version()},
+		"release":  runtime.Version(),
 		"covers": []string{
 			"parameters[].name", "parameters[].type", "returns", "receiver", "underlying",
 			"type", "tag", "value", "type-parameters[].name", "type-parameters[].kind",

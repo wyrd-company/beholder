@@ -35,7 +35,8 @@ description: |
     library interface rules; Stub files; type annotation semantics.
     <https://typing.python.org/en/latest/spec/>
   - Python Packaging User Guide: `pyproject.toml` `[project]` metadata.
-  - Corpus toolchain: CPython 3.14.6, 64-bit x86-64 Linux.
+  - Toolchain: CPython, 64-bit x86-64 Linux, at the release each context's
+    `python` names. `authoring.tools` records the exact release used.
 
   ## Contexts
 
@@ -44,7 +45,7 @@ description: |
   | Parameter | Value |
   | --- | --- |
   | `mode` | `runtime` or `typing`. |
-  | `python` | The interpreter version, such as `3.14`. |
+  | `python` | The release parameter: the interpreter version as `3.N`, such as `3.14`, or as `3.N.P` when a `sys.version_info` comparison in the project's documents tests the micro version. |
   | `platform` | `sys.platform`. |
   | `search-path` | The ordered list of project-relative import roots. |
   | `options` | The sorted interpreter options that change semantics, such as `-O`. |
