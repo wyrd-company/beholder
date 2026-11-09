@@ -661,10 +661,12 @@ func moduleFlag() []string {
 	if mode == "" && root != "" {
 		info, err := os.Stat(filepath.Join(root, "vendor"))
 		vendored = err == nil && info.IsDir()
-		// A workspace vendors by default only from go 1.22; before that its
-		// vendor directory is ignored and the module cache is read.
-		if work != "" && (parsed.Go == "" || version.Compare("go"+parsed.Go, "go1.22") < 0) {
-			vendored = false
+		// As the go command decides it: a workspace vendors by default when its
+		// `go` line is at least 1.14 and its `vendor/modules.txt` was written for a
+		// workspace. Otherwise the module cache is read, and the copy is needed.
+		if work != "" && vendored {
+			vendored = parsed.Go != "" && version.Compare("go"+parsed.Go, "go1.14") >= 0 &&
+				vendoredForWorkspace(filepath.Join(root, "vendor"))
 		}
 	}
 	if work != "" && !vendored {
@@ -675,6 +677,26 @@ func moduleFlag() []string {
 		return nil
 	}
 	return []string{"-mod=readonly"}
+}
+
+// vendoredForWorkspace is whether `vendor/modules.txt` was written for a
+// workspace: its first line is an annotation line naming `workspace`.
+func vendoredForWorkspace(vendor string) bool {
+	text, err := os.ReadFile(filepath.Join(vendor, "modules.txt"))
+	if err != nil {
+		return false
+	}
+	line, _, _ := strings.Cut(string(text), "\n")
+	annotations, ok := strings.CutPrefix(line, "## ")
+	if !ok {
+		return false
+	}
+	for _, entry := range strings.Split(annotations, ";") {
+		if strings.TrimSpace(entry) == "workspace" {
+			return true
+		}
+	}
+	return false
 }
 
 // readWork reads a `go.work` through `go work edit -json`.

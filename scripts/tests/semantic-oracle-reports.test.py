@@ -845,16 +845,26 @@ def go_workspace_sums(tmp):
         for mode in ("build", "test"):
             report(name, mode, root, env)
             assert snapshot(root) == before, f"{name} {mode}: the report wrote into the workspace: {sorted(set(snapshot(root)) ^ set(before))}"
-    # Before go 1.22 a workspace ignores its vendor directory and reads the module
-    # cache, so the copy is still used.
-    ignored = os.path.join(tmp, "go-sums-ignored-vendor")
-    shutil.copytree(root, ignored)
-    os.remove(os.path.join(ignored, "go.work.sum"))
-    os.makedirs(os.path.join(ignored, "vendor"))
-    before = snapshot(ignored)
-    for mode in ("build", "test"):
-        report("ignored-vendor", mode, ignored, env)
-        assert snapshot(ignored) == before, f"ignored-vendor {mode}: the report wrote into the workspace: {sorted(set(snapshot(ignored)) ^ set(before))}"
+    # A workspace whose vendor directory has no `modules.txt` written for a
+    # workspace ignores it and reads the module cache, so the copy is still used.
+    for case, version, modules in (("empty-121", "1.21", None), ("empty-122", "1.22", None), ("empty-122rc1", "1.22rc1", None),
+                                   ("module-modules-txt", "1.22", "# example.com/x v1.0.0\n## explicit\nexample.com/x\n")):
+        ignored = os.path.join(tmp, f"go-sums-ignored-{case}")
+        shutil.copytree(root, ignored)
+        os.remove(os.path.join(ignored, "go.work.sum"))
+        with open(os.path.join(ignored, "go.work"), "w") as handle:
+            handle.write(f"go {version}\n\nuse ./project\n\nreplace example.com/y => ./y\n")
+        os.makedirs(os.path.join(ignored, "vendor"))
+        if modules is not None:
+            write(ignored, {"vendor/modules.txt": modules})
+        before = snapshot(ignored)
+        for mode in ("build", "test"):
+            done = subprocess.run(command + [os.path.join(tmp, f"go-sums-ignored-{case}-{mode}.json"), "-context", mode, "-mode", mode],
+                                  cwd=ignored, env=env, capture_output=True, text=True)
+            assert snapshot(ignored) == before, f"ignored {case} {mode}: the report wrote into the workspace: {sorted(set(snapshot(ignored)) ^ set(before))}"
+            assert os.listdir(temporary) == [], f"ignored {case} {mode}: the workspace copy remains"
+            if modules is None:
+                assert done.returncode == 0, f"ignored {case} {mode}: " + done.stderr
     vendored = os.path.join(tmp, "go-sums-vendored")
     shutil.copytree(root, vendored)
     with open(os.path.join(vendored, "go.work"), "w") as handle:
