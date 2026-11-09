@@ -941,6 +941,65 @@ def dart_dependency_platform(tmp):
     assert not any(path.startswith("package:dep/") for path in found), sorted(found)
 
 
+def dart_dependency_errors(tmp):
+    """A compile error in a package the context reaches fails the report, through an
+    export, a part, or the conditional import the context selects; a warning in one
+    does not."""
+    dep = os.path.join(tmp, "dart-broken-dep")
+    write(dep, {
+        "pubspec.yaml": "name: dep\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/dep.dart": "export 'src/inner.dart';\nexport 'src/select.dart';\n",
+        "lib/src/inner.dart": "part 'inner_part.dart';\n",
+        "lib/src/inner_part.dart": "part of 'inner.dart';\n\nint broken() => 'not an int';\n",
+        "lib/src/select.dart": "export 'stub.dart' if (dart.library.io) 'io.dart';\n",
+        "lib/src/stub.dart": "int selected() => 1;\n",
+        "lib/src/io.dart": "int selected() => 'not an int';\n",
+    })
+    project = os.path.join(tmp, "dart-uses-broken-dep")
+    write(project, {
+        "pubspec.yaml": "name: user\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n"
+                        f"dependencies:\n  dep:\n    path: {dep}\n",
+        "bin/main.dart": "import 'package:dep/dep.dart';\n\nvoid main() => print(broken());\n",
+        "bin/select.dart": "import 'package:dep/src/select.dart';\n\nvoid main() => print(selected());\n",
+        "semantic-oracle.yml": """contexts:
+  - id: vm
+    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: []}
+  - id: select-vm
+    parameters: {platform: vm, entry: bin/select.dart, defines: [], library-flags: [dart.library.io]}
+  - id: select-js
+    parameters: {platform: js, entry: bin/select.dart, defines: [], library-flags: []}
+""",
+    })
+    subprocess.run(["dart", "pub", "get", "--offline"], cwd=project, check=True, capture_output=True)
+    out = os.path.join(tmp, "dart-broken-dep.json")
+    # `dart compile kernel bin/main.dart` rejects the part's error.
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out,
+            ["package:dep/src/inner_part.dart:3:17", "String"])
+    # The vm context selects the broken branch; the js context the stub.
+    failure(dart_command(project, out, "select-vm", "bin/select.dart", "vm", "--library-flag", "dart.library.io"),
+            project, out, ["package:dep/src/io.dart"])
+    _, found = run("dart", dart_command(project, out, "select-js", "bin/select.dart", "js"), project, out)
+    assert "bin/select.dart::main" in found, sorted(found)
+    # Warnings and hints in a dependency compile, and the report is written.
+    warned = os.path.join(tmp, "dart-warned-dep")
+    write(warned, {
+        "pubspec.yaml": "name: warned\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/warned.dart": "import 'dart:async';\n\nint value() {\n  int? x = 1;\n  return x!;\n}\n",
+    })
+    project = os.path.join(tmp, "dart-uses-warned-dep")
+    write(project, {
+        "pubspec.yaml": "name: user\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n"
+                        f"dependencies:\n  warned:\n    path: {warned}\n",
+        "bin/main.dart": "import 'package:warned/warned.dart';\n\nvoid main() => print(value());\n",
+        "semantic-oracle.yml": "contexts:\n  - id: vm\n    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: []}\n",
+    })
+    subprocess.run(["dart", "pub", "get", "--offline"], cwd=project, check=True, capture_output=True)
+    out = os.path.join(tmp, "dart-warned-dep.json")
+    _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out)
+    assert "bin/main.dart::main" in found, sorted(found)
+    assert not any(path.startswith("package:warned/") for path in found), sorted(found)
+
+
 def dart_dataset_agreement(tmp):
     """A report checks its arguments against the dataset's context parameters."""
     project = os.path.join(tmp, "dart-dataset")
@@ -992,7 +1051,7 @@ def main():
         rust_check_reading()
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
-                     dart_dependency_platform, dart_dataset_agreement):
+                     dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

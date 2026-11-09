@@ -16,8 +16,10 @@
 /// through imports and exports, with configurable directives selected by the
 /// context's defines and library flags. The project tree gets no output: where the
 /// project has no `.dart_tool/package_config.json`, the script writes one for a
-/// project without dependencies to a temporary directory. A library with an error
-/// is an error: this script exits 2 and writes no report.
+/// project without dependencies to a temporary directory. A compile error in any
+/// library the context compiles, in the project or in a package it reaches, is an
+/// error: this script exits 2 and writes no report. Warnings, hints and lints are
+/// not, as the compiler accepts them.
 ///
 /// The analyzer resolves against its own SDK on every platform, because the SDK
 /// libraries a platform shares have the same public API. `--platform` has no
@@ -45,6 +47,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart' show DiagnosticType;
 // The public collection takes no declared variables, which select a configurable
 // directive's URI, and no package configuration file.
 // ignore: implementation_imports
@@ -471,6 +474,16 @@ List<LibraryElement> reachedLibraries(LibraryElement library) => [
     ].nonNulls,
 ];
 
+/// Whether the compiler front end rejects the code a diagnostic reports: a
+/// compile-time or syntactic error. Warnings, hints and lints never fail the
+/// report, whatever severity an analysis options file gives them.
+bool rejected(Diagnostic diagnostic) =>
+    switch (diagnostic.diagnosticCode.type) {
+      DiagnosticType.COMPILE_TIME_ERROR ||
+      DiagnosticType.SYNTACTIC_ERROR => true,
+      _ => false,
+    };
+
 /// The `dart:` libraries a target of the SDK's lib/libraries.json provides,
 /// with the targets it includes.
 Set<String> platformLibraries(String target) {
@@ -645,8 +658,8 @@ Future<void> main(List<String> arguments) async {
   );
   var session = collection.contextFor(project).currentSession;
 
-  // The libraries the context compiles: every library under lib/ for analysis,
-  // and otherwise the entry's closure over imports and exports.
+  // The roots the context compiles: every library under lib/ for analysis, and
+  // otherwise the entry.
   var pending = <String>[];
   if (entry == 'analysis') {
     var lib = Directory(p.join(project, 'lib'));
@@ -666,7 +679,15 @@ Future<void> main(List<String> arguments) async {
     if (!File(path).existsSync()) fail('the entry $entry does not exist');
     pending.add(path);
   }
+  var roots = pending.toSet();
 
+  // One walk reads the complete graph the context compiles: the roots and every
+  // library they reach through imports and exports, the packages the project
+  // depends on included, with configurable directives selected by the declared
+  // variables. A library's parts are among its units. Each library is checked for
+  // compile errors and, on js and wasm, for the `dart:` libraries it reaches.
+  // Members are reported for project libraries only: the roots for analysis, and
+  // every project library the entry reaches otherwise.
   var seen = <String>{};
   var reported = <LibraryElement>[];
   var errors = <String>[];
@@ -678,15 +699,37 @@ Future<void> main(List<String> arguments) async {
     if (result is! ResolvedLibraryResult) fail('cannot resolve $path: $result');
     for (var unit in result.units) {
       for (var diagnostic in unit.diagnostics) {
-        if (diagnostic.severity == Severity.error) {
+        if (rejected(diagnostic)) {
           var location = unit.lineInfo.getLocation(diagnostic.offset);
+          var file = unit.uri.scheme == 'file'
+              ? p.relative(unit.path, from: project)
+              : '${unit.uri}';
           errors.add(
-            '${p.relative(unit.path, from: project)}:${location.lineNumber}:'
-            '${location.columnNumber}: ${diagnostic.message}',
+            '$file:${location.lineNumber}:${location.columnNumber}: '
+            '${diagnostic.message}',
           );
         }
       }
     }
+    var element = result.element;
+    for (var reached in reachedLibraries(element)) {
+      var uri = reached.uri;
+      if (uri.scheme == 'dart') {
+        if (provided != null && !provided.contains(uri.path)) {
+          fail(
+            '${libraryUri(element)} reaches dart:${uri.path}, '
+            'which the $platform platform does not provide',
+          );
+        }
+      } else {
+        pending.add(p.normalize(reached.firstFragment.source.fullName));
+      }
+    }
+    var reports = entry == 'analysis'
+        ? roots.contains(path)
+        : p.isWithin(project, path);
+    if (!reports) continue;
+    reported.add(element);
     for (var unit in result.units) {
       for (var declaration
           in unit.unit.declarations.whereType<MixinDeclaration>()) {
@@ -696,42 +739,9 @@ Future<void> main(List<String> arguments) async {
         }
       }
     }
-    var element = result.element;
-    reported.add(element);
-    if (entry == 'analysis') continue;
-    for (var library in reachedLibraries(element)) {
-      var file = library.firstFragment.source.fullName;
-      if (library.uri.scheme != 'dart' && p.isWithin(project, file)) {
-        pending.add(p.normalize(file));
-      }
-    }
   }
-  // The platform check reads the complete graph the context compiles, the
-  // packages the project depends on included; only project libraries are
-  // reported.
-  if (provided != null) {
-    var visited = <LibraryElement>{};
-    var walk = [...reported];
-    while (walk.isNotEmpty) {
-      var library = walk.removeLast();
-      if (!visited.add(library)) continue;
-      for (var reached in reachedLibraries(library)) {
-        var uri = reached.uri;
-        if (uri.scheme == 'dart') {
-          if (!provided.contains(uri.path)) {
-            fail(
-              '${libraryUri(library)} reaches dart:${uri.path}, '
-              'which the $platform platform does not provide',
-            );
-          }
-        } else {
-          walk.add(reached);
-        }
-      }
-    }
-  }
-  // A library that fails to analyze stops the report: nothing it would state was
-  // checked.
+  // A library that fails to compile stops the report: nothing it would state was
+  // checked, and the compiler would state nothing.
   if (errors.isNotEmpty)
     fail('the analyzer reports errors:\n${errors.join('\n')}');
   for (var element in reported) {
