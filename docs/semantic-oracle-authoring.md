@@ -176,8 +176,10 @@ states for each entity path, with each `@{...}` holding a canonical path:
 
 A report answers for a context only when its `release` is the context's release
 parameter (`release` in Go, Rust, Dart and C#, `python` in Python, `compiler` in
-TypeScript) or extends it with more dotted components: a `go1.27.3` report answers
-for `release: go1.27`, and a `1.98.0` report does not answer for `release: '1.99'`.
+TypeScript) or extends it with more dotted numeric components: a `go1.27.3` report
+answers for `release: go1.27`, and a `1.98.0` report does not answer for
+`release: '1.99'`. A prerelease such as `3.14.0rc1` answers only for a context
+that names it.
 Otherwise the audit reports an error and the slots stay `unchecked`. To move a
 dataset to a new toolchain release, change its contexts' release parameter, run
 the reports under that release, and settle every disagreement the audit finds.
