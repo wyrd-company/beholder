@@ -34,8 +34,10 @@ call `task` in.
 | `task semantic-oracle:audit PROJECT=<dir> [REPORTS="<file> <file>"]` | `semantic-oracle audit <dir> [--report <file>]...` | Validates, audits the dataset against its profile, and compares its signatures with compiler reports. |
 | `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python`, `typescript` or `csharp`. |
 | `task semantic-oracle:corpus` | | Validates and audits the fixture corpus's adopted datasets. |
+| `task semantic-oracle:toolchains [FIXTURES=<dir>]` | | Reports, per fixture project, whether the installed toolchains support the versions it declares: `ok`, `unsupported`, `pin-not-honoured` (an exact Rust channel or TypeScript version pin that the installed toolchain does not hold, so the installed one is used) or `missing-toolchain`. Each dataset context's `release` (`python`, `compiler`) is `ok` or `release-mismatch` against the release the project runs under, which for Go is the one the effective `GOTOOLCHAIN` selects. Exits nonzero on `unsupported`, `missing-toolchain` or `release-mismatch`. |
 | `task test:oracle-schema` | | Tests the schemas, the validator and the commands. |
 | `task test:oracle-reports` | | Runs each compiler report script on a small project. |
+| `task test:oracle-toolchains` | | Runs the toolchain report on a small corpus with stand-in toolchains. |
 
 `PROJECT` defaults to the current directory. `validate` and `audit` also
 accept the path of the dataset file itself.
@@ -175,8 +177,10 @@ states for each entity path, with each `@{...}` holding a canonical path:
 
 A report answers for a context only when its `release` is the context's release
 parameter (`release` in Go, Rust, Dart and C#, `python` in Python, `compiler` in
-TypeScript) or extends it with more dotted components: a `go1.27.3` report answers
-for `release: go1.27`, and a `1.98.0` report does not answer for `release: '1.99'`.
+TypeScript) or extends it with more dotted numeric components: a `go1.27.3` report
+answers for `release: go1.27`, and a `1.98.0` report does not answer for
+`release: '1.99'`. A prerelease such as `3.14.0rc1` answers only for a context
+that names it.
 Otherwise the audit reports an error and the slots stay `unchecked`. To move a
 dataset to a new toolchain release, change its contexts' release parameter, run
 the reports under that release, and settle every disagreement the audit finds.

@@ -199,6 +199,7 @@ $defs:
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      index: false
       add: false
       remove: false
       receiver: false

@@ -366,6 +366,7 @@ fn walk<'a>(record: &Value, frame: &Frame<'a>, out: &mut Vec<Slot<'a>>) {
     typed(frame, "type", record.get("type"), out);
     typed(frame, "bounds", record.get("bounds"), out);
     shape(frame, "tag", record.get("tag"), out);
+    shape(frame, "index", record.get("index"), out);
     valued(frame, "value", record.get("value"), false, out);
     for key in ["get", "set", "init", "add", "remove"] {
         accessor(record, key, frame, out);

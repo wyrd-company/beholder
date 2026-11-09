@@ -20,8 +20,8 @@ authoring:
     Facts derived from the C# language specification, the .NET SDK
     documentation and probes compiled outside the project tree.
   tools:
-    - {name: .NET SDK, version: 10.0.110}
-    - {name: MSBuild, version: 18.0.11}
+    - {name: .NET SDK, version: 10.0.403}
+    - {name: MSBuild, version: 18.9.15}
 
 documents:
   - path: Geometry.slnx
@@ -109,32 +109,39 @@ distributions:
 units:
   - id: geometry-lib
     kind: assembly
+    root: Geometry.assembly
     name: Geometry
     distribution: geometry
     assembly-version: 1.0.0.0
     project: src/Geometry/Geometry.csproj
     language-version: '14.0'
     define-constants:
-      - {contexts: [debug], value: [DEBUG, TRACE]}
-      - {contexts: [release], value: [TRACE]}
+      - contexts: [debug]
+        value: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
+      - contexts: [release]
+        value: [TRACE, RELEASE, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
   - id: atlas-app
     kind: assembly
+    root: Atlas.assembly
     name: Atlas
     assembly-version: 1.0.0.0
     project: src/Atlas/Atlas.csproj
     language-version: '14.0'
     define-constants:
-      - {contexts: [debug], value: [DEBUG, TRACE]}
-      - {contexts: [release], value: [TRACE]}
+      - contexts: [debug]
+        value: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
+      - contexts: [release]
+        value: [TRACE, RELEASE, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
   - id: geometry-tests
     kind: assembly
+    root: Geometry.Tests.assembly
     name: Geometry.Tests
     assembly-version: 1.0.0.0
     project: tests/Geometry.Tests/Geometry.Tests.csproj
     language-version: '14.0'
-    define-constants: [DEBUG, TRACE]
+    define-constants: [TRACE, DEBUG, NET, NET10_0, NETCOREAPP, NET5_0_OR_GREATER, NET6_0_OR_GREATER, NET7_0_OR_GREATER, NET8_0_OR_GREATER, NET9_0_OR_GREATER, NET10_0_OR_GREATER, NETCOREAPP1_0_OR_GREATER, NETCOREAPP1_1_OR_GREATER, NETCOREAPP2_0_OR_GREATER, NETCOREAPP2_1_OR_GREATER, NETCOREAPP2_2_OR_GREATER, NETCOREAPP3_0_OR_GREATER, NETCOREAPP3_1_OR_GREATER]
     target-framework: net10.0
     contexts: [debug]
 
@@ -204,7 +211,7 @@ entities:
     kind: callable
     language-kind: method
     name: Scale
-    path: Geometry.Shape.Scale(System.Double)
+    path: Geometry.Shape.Scale
     unit: geometry-lib
     parent: Geometry.Shape
     origin: source
@@ -219,7 +226,7 @@ entities:
     kind: parameter
     language-kind: param
     name: factor
-    path: Geometry.Shape.Scale(System.Double).factor
+    path: Geometry.Shape.Scale.factor
     unit: geometry-lib
     parent: Geometry.Shape.Scale
     origin: source
@@ -694,6 +701,101 @@ entities:
     definitions: []
     anchor: {path: src/Geometry/Shapes.cs, start: [29, 22], end: [29, 29], text: Visitor}
 
+  - id: Geometry.Circle.op_Equality
+    kind: callable
+    language-kind: operator
+    name: op_Equality
+    path: Geometry.Circle.op_Equality
+    unit: geometry-lib
+    parent: Geometry.Circle
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Circle.op_Equality.left
+    kind: parameter
+    language-kind: param
+    name: left
+    path: Geometry.Circle.op_Equality.left
+    unit: geometry-lib
+    parent: Geometry.Circle.op_Equality
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+  - id: Geometry.Circle.op_Equality.right
+    kind: parameter
+    language-kind: param
+    name: right
+    path: Geometry.Circle.op_Equality.right
+    unit: geometry-lib
+    parent: Geometry.Circle.op_Equality
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+  - id: Geometry.Circle.op_Inequality
+    kind: callable
+    language-kind: operator
+    name: op_Inequality
+    path: Geometry.Circle.op_Inequality
+    unit: geometry-lib
+    parent: Geometry.Circle
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Geometry.Circle.op_Inequality.left
+    kind: parameter
+    language-kind: param
+    name: left
+    path: Geometry.Circle.op_Inequality.left
+    unit: geometry-lib
+    parent: Geometry.Circle.op_Inequality
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+  - id: Geometry.Circle.op_Inequality.right
+    kind: parameter
+    language-kind: param
+    name: right
+    path: Geometry.Circle.op_Inequality.right
+    unit: geometry-lib
+    parent: Geometry.Circle.op_Inequality
+    origin: synthetic
+    definitions: []
+    anchor: {path: src/Geometry/Shapes.cs, start: [15, 22], end: [15, 28], text: Circle}
+  - id: Geometry.assembly
+    kind: module
+    language-kind: assembly
+    name: Geometry
+    path: '[Geometry]'
+    unit: geometry-lib
+    origin: source
+    definitions: []
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: all}
+  - id: Atlas.assembly
+    kind: module
+    language-kind: assembly
+    name: Atlas
+    path: '[Atlas]'
+    unit: atlas-app
+    origin: source
+    definitions: []
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: none}
+  - id: Geometry.Tests.assembly
+    kind: module
+    language-kind: assembly
+    name: Geometry.Tests
+    path: '[Geometry.Tests]'
+    unit: geometry-tests
+    origin: source
+    definitions: []
+    declared-visibility: {value: public, explicit: false}
+    effective-visibility: {unit: all, project: all, external: none}
+
 externals:
   - id: ext.System.Object.ToString
     kind: callable
@@ -762,7 +864,7 @@ references:
     target: ext.Legacy.Point
     role: type
   - at: {path: src/Atlas/Program.cs, start: [1, 7], end: [1, 15], text: Geometry}
-    from: Atlas.Program
+    from: Atlas.assembly
     target: Geometry
     role: import
   - at: {path: src/Atlas/Program.cs, start: [8, 22], end: [8, 28], text: Circle}
@@ -821,7 +923,7 @@ public-api:
   members:
     - {distribution: geometry, entity: Geometry.IShape, paths: [Geometry.IShape], access: all}
     - {distribution: geometry, entity: Geometry.Shape, paths: [Geometry.Shape], access: all}
-    - {distribution: geometry, entity: Geometry.Shape.Scale, paths: [Geometry.Shape.Scale(System.Double)], access: subtypes}
+    - {distribution: geometry, entity: Geometry.Shape.Scale, paths: [Geometry.Shape.Scale], access: subtypes}
     - {distribution: geometry, entity: Geometry.Shape.Count, paths: [Geometry.Shape.Count], access: subtypes}
     - {distribution: geometry, entity: Geometry.Circle, paths: [Geometry.Circle], access: all}
     - {distribution: geometry, entity: Geometry.Circle.Area, paths: [Geometry.Circle.Area], access: all}
@@ -844,6 +946,8 @@ public-api:
     - {distribution: geometry, entity: 'Geometry.Visitor..ctor', paths: ['Geometry.Visitor..ctor'], access: all}
     - {distribution: geometry, entity: 'Geometry.Visitor.BeginInvoke', paths: ['Geometry.Visitor.BeginInvoke'], access: all}
     - {distribution: geometry, entity: 'Geometry.Visitor.EndInvoke', paths: ['Geometry.Visitor.EndInvoke'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Circle.op_Equality', paths: ['Geometry.Circle.op_Equality'], access: all}
+    - {distribution: geometry, entity: 'Geometry.Circle.op_Inequality', paths: ['Geometry.Circle.op_Inequality'], access: all}
   signatures:
     - entity: Geometry.Shape
       modifiers: [abstract]
@@ -855,7 +959,7 @@ public-api:
         - {name: factor, type: double}
       returns: double
     - entity: Geometry.Shape.Count
-      modifiers: [static]
+      modifiers: [static, volatile]
       type: int
     - entity: Geometry.Circle
       bases:
@@ -903,6 +1007,18 @@ public-api:
       parameters:
         - {name: result, type: {inferred: "@{ext.System.IAsyncResult}~"}}
       returns: {inferred: void}
+    - entity: Geometry.Circle.op_Equality
+      modifiers: [static]
+      parameters:
+        - {name: left, type: {inferred: "@{Geometry.Circle}?"}}
+        - {name: right, type: {inferred: "@{Geometry.Circle}?"}}
+      returns: {inferred: bool}
+    - entity: Geometry.Circle.op_Inequality
+      modifiers: [static]
+      parameters:
+        - {name: left, type: {inferred: "@{Geometry.Circle}?"}}
+        - {name: right, type: {inferred: "@{Geometry.Circle}?"}}
+      returns: {inferred: bool}
 
 extensions:
   csharp:type-forward:
