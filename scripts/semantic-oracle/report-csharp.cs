@@ -673,7 +673,13 @@ static class Report
     }
 
     /// `delegate* <convention><parameters..., return>`.
-    static string FunctionPointerPath(IMethodSymbol signature)
+    static string FunctionPointerPath(IMethodSymbol signature) =>
+        FunctionPointer(signature, MetadataTypePath, ",");
+
+    /// A function pointer in either spelling: the calling convention always written,
+    /// then each parameter and last the return, each with its by-reference prefix,
+    /// and each type rendered by `type`.
+    static string FunctionPointer(IMethodSymbol signature, Func<ITypeSymbol, string> type, string separator)
     {
         var convention = signature.CallingConvention switch
         {
@@ -688,14 +694,14 @@ static class Report
                     .Select(t => t.Name.StartsWith("CallConv", StringComparison.Ordinal) ? t.Name["CallConv".Length..] : t.Name)
                     .Order(StringComparer.Ordinal)) + "]",
         };
-        var parts = signature.Parameters.Select(p => RefPrefix(p.RefKind) + MetadataTypePath(p.Type)).ToList();
+        var parts = signature.Parameters.Select(p => RefPrefix(p.RefKind) + type(p.Type)).ToList();
         parts.Add(signature.RefKind switch
         {
             RefKind.Ref => "ref ",
             RefKind.RefReadOnly => "ref readonly ",
             _ => "",
-        } + MetadataTypePath(signature.ReturnType));
-        return "delegate* " + convention + "<" + string.Join(",", parts) + ">";
+        } + type(signature.ReturnType));
+        return "delegate* " + convention + "<" + string.Join(separator, parts) + ">";
     }
 
     static List<ITypeSymbol> AllTypeArguments(INamedTypeSymbol type)
@@ -746,9 +752,21 @@ static class Report
         switch (type)
         {
             case IArrayTypeSymbol array:
-                return TypeText(array.ElementType) + "[" + new string(',', array.Rank - 1) + "]" + Annotation(array);
+                // Rank specifiers are in source order: `int[][,]` is an array of `int[,]`.
+                // An annotation ends a run of specifiers, as in C#: `string?[]?[,]` is a
+                // two-dimensional array of `string?[]?`, and `~` reads as `?` does.
+                var ranks = new List<int> { array.Rank };
+                var element = array.ElementType;
+                while (element is IArrayTypeSymbol inner && Annotation(inner).Length == 0)
+                {
+                    ranks.Add(inner.Rank);
+                    element = inner.ElementType;
+                }
+                return TypeText(element) + string.Concat(ranks.Select(r => "[" + new string(',', r - 1) + "]")) + Annotation(array);
             case IPointerTypeSymbol pointer:
                 return TypeText(pointer.PointedAtType) + "*";
+            case IFunctionPointerTypeSymbol pointer:
+                return FunctionPointer(pointer.Signature, TypeText, ", ");
             case ITypeParameterSymbol parameter:
                 return parameter.Name + Annotation(parameter);
             case IDynamicTypeSymbol:
@@ -788,6 +806,9 @@ static class Report
         }
         return value switch
         {
+            // `default` of a type parameter, or `T?` of one, that is not known to be a
+            // reference type denotes no single value; metadata stores it as null.
+            null when type is ITypeParameterSymbol { IsReferenceType: false } => "default",
             null when !type.IsValueType || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T => "null",
             null => null,
             string text => JsonSerializer.Serialize(text),

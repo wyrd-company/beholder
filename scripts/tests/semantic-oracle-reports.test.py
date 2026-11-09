@@ -1158,12 +1158,106 @@ file class Local { public void M(int a) { } }
     _, found = run("csharp", csharp_command(project, out), tmp, out)
     assert all("@" in p for p in found if p.startswith("N.Local")), sorted(found)
 
+def csharp_array_ranks(tmp):
+    """Array rank specifiers in source order, each level keeping its annotation."""
+    project = os.path.join(tmp, "csharp-array-ranks")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample"),
+        "Sample/A.cs": """namespace N;
+#nullable enable
+public static class Arrays
+{
+    public static int[][,] Jagged = null!;
+    public static int[,][] Grid = null!;
+    public static string?[]?[,] Split = null!;
+    public static string[,]?[]? Outer = null;
+    public static System.Collections.Generic.List<int[][,]>[]? Nested = null;
+    public static (int x, string[][,] y) Tuple;
+}
+#nullable disable
+public static class Oblivious { public static string[][,] Jagged; }
+""",
+    })
+    out = os.path.join(tmp, "csharp-array-ranks.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    expect(found, "N.Arrays.Jagged", "type", "int[][,]")
+    expect(found, "N.Arrays.Grid", "type", "int[,][]")
+    # As in C#, an annotation ends a run of specifiers: a two-dimensional array of `string?[]?`.
+    expect(found, "N.Arrays.Split", "type", "string?[]?[,]")
+    expect(found, "N.Arrays.Outer", "type", "string[,]?[]?")
+    expect(found, "N.Arrays.Nested", "type", "@{System.Collections.Generic.List`1}<int[][,]>[]?")
+    expect(found, "N.Arrays.Tuple", "type", "(int x, string[][,] y)")
+    # `~` ends a run as `?` does, so each oblivious level keeps its mark.
+    expect(found, "N.Oblivious.Jagged", "type", "string~[,]~[]~")
+
+
+def csharp_generic_defaults(tmp):
+    """`default` of a type parameter not known to be a reference type is `default`."""
+    project = os.path.join(tmp, "csharp-generic-defaults")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample"),
+        "Sample/D.cs": """namespace N;
+public class B { }
+public interface J { }
+public static class Defaults
+{
+    public static void M<T>(T value = default!) { }
+    public static void Explicit<T>(T value = default(T)!) { }
+    public static void Maybe<T>(T? value = default) { }
+    public static void Struct<T>(T value = default) where T : struct { }
+    public static void Interface<T>(T value = default!) where T : J { }
+    public static void Class<T>(T? value = default) where T : class { }
+    public static void Based<T>(T? value = default) where T : B { }
+    public static void Lifted<T>(T? value = default) where T : struct { }
+    public static void Plain(string? value = default, int number = default) { }
+}
+""",
+    })
+    out = os.path.join(tmp, "csharp-generic-defaults.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    for name in ("M", "Explicit", "Maybe", "Struct", "Interface"):
+        expect(found, "N.Defaults." + name, "parameters[0].default", "default")
+    for name in ("Class", "Based", "Lifted"):
+        expect(found, "N.Defaults." + name, "parameters[0].default", "null")
+    expect(found, "N.Defaults.Plain", "parameters[0].default", "null")
+    expect(found, "N.Defaults.Plain", "parameters[1].default", "0")
+
+
+def csharp_function_pointers(tmp):
+    """Function pointer type text renders each part canonically, convention always written."""
+    project = os.path.join(tmp, "csharp-function-pointers")
+    write(project, {
+        "Sample/Sample.csproj": csproj("Sample", extra="<PropertyGroup><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>"),
+        "Sample/F.cs": """namespace N;
+public class D { }
+public static unsafe class Pointers
+{
+    public static delegate*<D?, D> Plain;
+    public static delegate* unmanaged[Cdecl]<ref int, out D, in int, ref readonly D> Modes;
+    public static delegate* unmanaged<int*, void> Bare;
+    public static delegate* unmanaged[SuppressGCTransition, Cdecl]<int, void> Listed;
+    public static delegate*<delegate*<D[][,]>, (int x, D? y)> Inner;
+    public static void Take(delegate*<D?, D> value) { }
+}
+""",
+    })
+    out = os.path.join(tmp, "csharp-function-pointers.json")
+    _, found = run("csharp", csharp_command(project, out), tmp, out)
+    expect(found, "N.Pointers.Plain", "type", "delegate* managed<@{N.D}?, @{N.D}>")
+    expect(found, "N.Pointers.Modes", "type", "delegate* unmanaged[Cdecl]<ref int, out @{N.D}, in int, ref readonly @{N.D}>")
+    expect(found, "N.Pointers.Bare", "type", "delegate* unmanaged<int*, void>")
+    expect(found, "N.Pointers.Listed", "type", "delegate* unmanaged[Cdecl,SuppressGCTransition]<int, void>")
+    expect(found, "N.Pointers.Inner", "type", "delegate* managed<delegate* managed<@{N.D}[][,]>, (int x, @{N.D}? y)>")
+    # The signature type and the member path spell the convention alike.
+    expect(found, "N.Pointers.Take", "parameters[0].type", "delegate* managed<@{N.D}?, @{N.D}>")
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="semantic-oracle-report-test-")
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build, csharp_generators, csharp_build_targets, csharp_traversal, csharp_paths, csharp_metadata_shapes):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, csharp, csharp_build_failure, csharp_units, csharp_frameworks, csharp_failing_build, csharp_generators, csharp_build_targets, csharp_traversal, csharp_paths, csharp_metadata_shapes, csharp_array_ranks, csharp_generic_defaults, csharp_function_pointers):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
