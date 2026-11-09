@@ -639,6 +639,46 @@ var Used = b.Accept(p.T{})
         assert "example.com/b.Accept" not in found, found["example.com/b.Accept"]
 
 
+def go_dependency_build_failure(tmp):
+    """Dependencies are type-checked without function bodies, so the report runs the
+    context's real build: an error in a function body of a local `replace` module
+    fails the report, in mode build and in mode test, and writes nothing. One that
+    only a `_test.go` file links fails mode test alone."""
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go")]
+    project = os.path.join(tmp, "go-dependency-broken")
+    write(project, {
+        "go.mod": "module example.com/a\n\ngo 1.21\n\nrequire example.com/b v0.0.0\n\nreplace example.com/b => ../go-dependency-broken-b\n",
+        "a.go": "package a\n\nimport \"example.com/b\"\n\nvar Used = b.Value()\n",
+    })
+    write(os.path.join(tmp, "go-dependency-broken-b"), {
+        "go.mod": "module example.com/b\n\ngo 1.21\n",
+        "b.go": "package b\n\nfunc Value() int { return \"text\" }\n",
+    })
+    for mode in ("build", "test"):
+        out = os.path.join(tmp, f"go-dependency-broken-{mode}.json")
+        failure(command + ["-context", mode, "-mode", mode, "-out", out], project, out, ["report-go", "does not build", "b.go"])
+
+    project = os.path.join(tmp, "go-test-only-broken")
+    write(project, {
+        "go.mod": "module example.com/c\n\ngo 1.21\n\nrequire example.com/d v0.0.0\n\nreplace example.com/d => ../go-test-only-broken-d\n",
+        "c.go": "package c\n\nconst A = 1\n",
+        "c_test.go": "package c\n\nimport \"example.com/d\"\n\nvar _ = d.Value()\n",
+        # A command builds an executable, which must not land in the project.
+        "cmd/tool/main.go": "package main\n\nfunc main() {}\n",
+    })
+    write(os.path.join(tmp, "go-test-only-broken-d"), {
+        "go.mod": "module example.com/d\n\ngo 1.21\n",
+        "d.go": "package d\n\nfunc Value() int { return \"text\" }\n",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "go-test-only-broken-build.json")
+    _, found = run("go-test-only-broken-build", command + ["-context", "build", "-out", out], project, out)
+    expect(found, "example.com/c.A", "value", "1")
+    out = os.path.join(tmp, "go-test-only-broken-test.json")
+    failure(command + ["-context", "test", "-mode", "test", "-out", out], project, out, ["report-go", "does not build", "d.go"])
+    tree_unchanged(project, before)
+
+
 def go_workspace(tmp):
     """From a `go.work` root, `./...` matches no module: the report exits nonzero
     and writes nothing, and the context's patterns report every module."""
@@ -968,7 +1008,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_dependency_build_failure, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

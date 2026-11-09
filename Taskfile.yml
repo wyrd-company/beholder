@@ -124,7 +124,9 @@ tasks:
       MODE=test reads its `_test.go` files as `go test` compiles them.
       PATTERNS lists the context's package patterns, `./...` by default; run
       from the context's module-root, and from a `go.work` root name the
-      patterns its command names. A run that matches no package exits nonzero.
+      patterns its command names. A run that matches no package, or a context
+      whose `go build` (`go test -c` in mode test) fails, exits nonzero and
+      writes no report.
     dir: '{{.PROJECT}}'
     requires:
       vars: [PROJECT, CONTEXT, OUT]

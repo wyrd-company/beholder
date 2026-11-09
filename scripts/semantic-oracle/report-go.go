@@ -13,7 +13,9 @@
 // It parses and type-checks each package outside any build output, and writes
 // nothing into the project tree. GOOS and GOARCH select a context's platform. In
 // mode `test` it checks each package with its in-package `_test.go` files, and the
-// external `_test` package, as `go test` compiles them.
+// external `_test` package, as `go test` compiles them. Before it writes a report it
+// runs the context's real build, `go build`, or `go test -c` in mode `test`, and a
+// context that does not build exits nonzero with the build's output.
 package main
 
 import (
@@ -547,6 +549,42 @@ func unstate(path, prefix string) {
 	}
 }
 
+// compile runs the context's real build: `go build` in mode build, and in mode
+// test `go test -c`, which compiles and links every test binary, and the
+// packages without tests, as `go test` does, and runs none. It runs under the
+// environment `go list` ran under, with its tags and patterns, and writes its
+// executables to a temporary directory outside the project. A failed build
+// exits with its output, before any report is written.
+func compile(testing, commands bool, tags, patterns string) {
+	output, err := os.MkdirTemp("", "report-go-build-")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "report-go:", err)
+		os.Exit(2)
+	}
+	defer os.RemoveAll(output)
+	arguments := []string{"build"}
+	if testing {
+		// vet is no part of the build, and its findings no compile error.
+		arguments = []string{"test", "-c", "-vet=off"}
+	}
+	// A directory: each executable lands in it, and none in the project. `go
+	// build` refuses one for patterns with no command, and then writes nothing.
+	if testing || commands {
+		arguments = append(arguments, "-o", output+string(filepath.Separator))
+	}
+	if tags != "" {
+		arguments = append(arguments, "-tags", tags)
+	}
+	arguments = append(arguments, strings.Fields(patterns)...)
+	built, err := exec.Command("go", arguments...).CombinedOutput()
+	if err != nil {
+		os.Stderr.Write(built)
+		fmt.Fprintf(os.Stderr, "report-go: go %s failed (%v): the context does not build, and no report is written\n", strings.Join(arguments[:len(arguments)-len(strings.Fields(patterns))], " "), err)
+		os.RemoveAll(output)
+		os.Exit(2)
+	}
+}
+
 func main() {
 	context := flag.String("context", "", "the dataset's context id")
 	out := flag.String("out", "", "the report file")
@@ -692,6 +730,13 @@ func main() {
 		}
 		bases(universe)
 	}
+	// Dependencies are checked without function bodies, and go/types is not the
+	// compiler: a report must not certify a context its real build rejects.
+	commands := false
+	for _, unit := range order {
+		commands = commands || (unit.Name == "main" && !strings.Contains(unit.ImportPath, " [") && !strings.HasSuffix(unit.ImportPath, ".test"))
+	}
+	compile(testing, commands, *tags, *patterns)
 	paths := make([]string, 0, len(members))
 	for path := range members {
 		paths = append(paths, path)
