@@ -133,7 +133,7 @@ A compiler report is a JSON file that a script produces outside the project tree
 | Task | Comes from | Needs |
 | --- | --- | --- |
 | `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>] [NO_DEFAULT_FEATURES=1] [ALL_FEATURES=1] [CFG=<a b>]` | rustdoc JSON, and a generated probe crate for `auto-traits`. One `cargo check` reports every failing claim; a line that fails for another reason is set aside and the check repeats, at most five times. | A Rust toolchain. It works on a copy of the project, with the toolchain the project selects, and sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
-| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
+| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>] [MODE=test] [PATTERNS=<p q>]` | `go/types`, and `types.Implements` for `bases`. `MODE=test`, for a context with `mode: test`, adds each package's `_test.go` files and its external `_test` package, as `go test` compiles them: one graph per test binary, of the variants `go list -test -deps` lists for it. `PROJECT` is the context's `module-root`, and `PATTERNS` its `patterns`, `./...` by default; from a `go.work` root, `./...` matches no module, and a run that matches no package, or that `go list` reports an error for, exits nonzero. | Go. `GOOS` and `GOARCH` select a context's platform. |
 | `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file> PYTHON=<version>` | `inspect.signature`, for a `runtime` context | `python<version>`, the context's `python` parameter. An absent interpreter exits nonzero, and the report's `tool` states what it ran under. It imports the project's modules, which runs their module-level code. |
 | `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
 | `semantic-oracle:report:csharp PROJECT=<dir> ENTRY=<file> CONTEXT=<id> TARGET_FRAMEWORK=<tfm> OUT=<file> [CONFIGURATION=<name>] [PROPERTIES="<name>=<value> ..."]` | The assemblies the context's build emits, read from metadata by the .NET SDK's own Roslyn, from `<sdk>/Roslyn/bincore`. Through MSBuild's API it restores and builds the context's `entry` with a binary log of task inputs, reads each `Csc` run's project instance, output assembly and references, takes each project's instance at the framework NuGet nearest-framework selection picks for `target-framework`, and walks that implementation assembly's symbols. Nothing is compiled again, so generated code and each referenced project's configuration and framework are the build's own. Each member states its unit's `name`, `assembly-version` and `project`. | A .NET SDK with file-based apps: the one `dotnet` resolves from the project directory, which `global.json` can select, and which the report's `release` names. It works on a copy of the project without `bin` and `obj`. A failed build, or a project the context requires that the build did not compile at its framework, writes no report. A file-local type takes the `@<document path>` of the source whose path's SHA-256 its metadata name carries; one whose document the build's sources do not name, as under a `PathMap`, is not read, and none is a public API member. The SDK's workload resolver is off, so a workload project does not load. |
@@ -153,7 +153,10 @@ script refuses a path inside it. `REPORTS` splits on spaces, so use repeated `--
 for a path with a space.
 
 A report's `covers` lists the slot shapes it can state, and `members` holds what it
-states for each entity path, with each `@{...}` holding a canonical path:
+states for each entity path, with each `@{...}` holding a canonical path. A slot key
+that names an entity writes it the same way: the dataset's `bases[@{pantry.Opener}].type`
+is `bases[@{example.com/pantry.Opener}].type` in a report. A `bases` or
+`implementations` key compares as its types do, after canonical spelling.
 
 ```json
 {
@@ -181,7 +184,10 @@ TypeScript) or extends it with more dotted numeric components: a `go1.27.3` repo
 answers for `release: go1.27`, and a `1.98.0` report does not answer for
 `release: '1.99'`. A prerelease such as `3.14.0rc1` answers only for a context
 that names it.
-Otherwise the audit reports an error and the slots stay `unchecked`. To move a
+Otherwise the audit reports an error and the slots stay `unchecked`. A report that
+states its `mode` answers only for a context whose `mode` parameter is the same: the
+Go report states the `MODE` it ran in, so a build report for a `mode: test` context
+is an error, and its slots stay `unchecked`. To move a
 dataset to a new toolchain release, change its contexts' release parameter, run
 the reports under that release, and settle every disagreement the audit finds.
 
@@ -200,11 +206,13 @@ These stay `unchecked`:
 - a C# constant or parameter default of an enum type or of `char`, or a parameter default
   `default` of a struct type, which the report marks `unstated`;
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
-- each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
+- each shape a report does not list in `covers`, such as `where`, `impl` and `bases[].type` in Rust, and `bases` and `alternatives` in Python;
+- the `bases` of a Go type that is generic, or that could implement a generic interface, and of a TypeScript class whose base the emit names through a generated variable, such as a mixin's;
 - Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;
 - every slot of a Rust `#[doc(hidden)]` item, because rustdoc JSON omits it. It stays a member, and a compile check outside the tree can confirm its facts;
 - a Rust path dependency outside the workspace, in a context whose report does not document it. A report's key holds the crate's version, so another version's slot never answers for it. Report the dependency's own context from its manifest's directory, and a workspace member's context from the workspace root, because the script copies the directory it is given;
 - a Python module that fails to import, which the report lists under `failed` as a warning, because a project can intend it;
+- a Go slot whose type or constant value go/types cannot resolve, such as a cgo type or `C.FOO`, which the report lists under `unstated`;
 - Python's typing contexts, because `inspect.signature` states the runtime's view only;
 - a Python annotation whose source the runtime has lost: the report states an annotation's written text where the interpreter can return it, and resolves its names, and otherwise marks a slot whose value a module binds as `unstated`, because the runtime expanded an alias it cannot see. This is never an error, and never agreed.
 

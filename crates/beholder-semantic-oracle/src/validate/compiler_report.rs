@@ -19,7 +19,8 @@
 //!
 //! `path` is the entity's canonical path and `kind`, where a language needs one, its
 //! common kind, and `unit` any attributes that tell two units with one path apart. A report's `@{...}` holds a canonical
-//! path, and a slot key is the model's slot path. `covers` lists the slot shapes,
+//! path, and a slot key is the model's slot path, with each key that names an
+//! entity also written as `@{path}`: `bases[@{tally::Tally}].type`. `covers` lists the slot shapes,
 //! with each bracket's content removed, that the report can state; `unstated`
 //! lists a shape prefix or an exact slot path it could not state for one member,
 //! such as `auto-traits` or `auto-traits[Unpin]`. A slot outside `covers` or in
@@ -32,37 +33,31 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
-use super::{list, text, Checker, Class, ContextCounts, Contexts, Unchecked};
+use super::{list, text, value_in, Checker, Class, ContextCounts, Contexts, Unchecked};
 use crate::{
-    canonical::{canonical_auto_trait, canonicalize, canonicalize_bounds, PathsAreIds},
+    canonical::{
+        canonical_auto_trait, canonical_key_types, canonicalize, canonicalize_bounds,
+        closing_bracket, named_id_spans, PathsAreIds,
+    },
     signature::{slots, SlotClass},
 };
 
 const RULE: &str = "profile:signature-compiler";
 const FORMAT: &str = "semantic-oracle-compiler-report/1";
 
-/// A slot path with each bracket's content removed.
-fn shape_of(path: &str) -> String {
+/// A slot path with each bracket's content removed. A key ends at its own `]`,
+/// past the language's literals, as [`canonical_key`] reads it.
+fn shape_of(language: &str, path: &str) -> String {
     let mut out = String::with_capacity(path.len());
-    let mut depth = 0usize;
-    for c in path.chars() {
-        match c {
-            '[' => {
-                if depth == 0 {
-                    out.push('[');
-                }
-                depth += 1;
-            }
-            ']' => {
-                depth = depth.saturating_sub(1);
-                if depth == 0 {
-                    out.push(']');
-                }
-            }
-            _ if depth == 0 => out.push(c),
-            _ => {}
-        }
+    let mut rest = path;
+    while let Some(open) = rest.find('[') {
+        out.push_str(&rest[..=open]);
+        let body = &rest[open + 1..];
+        let end = closing_bracket(language, body).unwrap_or(body.len());
+        out.push(']');
+        rest = body.get(end + 1..).unwrap_or("");
     }
+    out.push_str(rest);
     out
 }
 
@@ -91,40 +86,83 @@ struct Reported<'r> {
 
 impl<'r> Reported<'r> {
     /// A report's member for an entity's path and kind.
-    fn member(&self, path: &str, kind: &str, unit: Option<&Value>) -> Option<&'r Value> {
+    fn member(
+        &self,
+        path: &str,
+        kind: &str,
+        unit: Option<&Value>,
+        context: &str,
+    ) -> Option<&'r Value> {
         let found = self.members.get(path)?;
         found
             .iter()
             .find(|member| {
-                text(member, "kind").is_none_or(|theirs| theirs == kind) && same_unit(member, unit)
+                text(member, "kind").is_none_or(|theirs| theirs == kind)
+                    && same_unit(member, unit, context)
             })
             .copied()
     }
 }
 
-/// Whether a report's member can be in this unit: each attribute it states agrees.
+/// Whether a report's member can be in this unit: each attribute it states agrees
+/// with the unit's value in the report's context, since a unit attribute can vary
+/// by context.
 /// Two units can hold one path, such as two versions of one crate.
-fn same_unit(member: &Value, unit: Option<&Value>) -> bool {
+fn same_unit(member: &Value, unit: Option<&Value>, context: &str) -> bool {
     let Some(stated) = member.get("unit").and_then(Value::as_object) else {
         return true;
     };
     stated.iter().all(|(key, value)| {
         unit.and_then(|unit| unit.get(key))
+            .and_then(|theirs| value_in(theirs, context))
             .is_none_or(|theirs| theirs == value)
     })
 }
 
-/// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names.
+/// Rewrites each `@{id}` of a fact to `@{path}`, as a report writes names. Each
+/// name the lexer reads outside a string literal is replaced once, in place, so
+/// that no replacement is read again.
 fn to_paths(checker: &Checker<'_>, text_value: &str) -> String {
-    let mut out = text_value.to_owned();
-    for id in crate::canonical::named_ids(checker.rules.language, text_value) {
+    let mut out = String::with_capacity(text_value.len());
+    let mut last = 0;
+    for (span, id) in named_id_spans(checker.rules.language, text_value) {
         if let Some(path) = checker
             .ids
             .get(id.as_str())
             .and_then(|(_, r)| text(r, "path"))
         {
-            out = out.replace(&format!("@{{{id}}}"), &format!("@{{{path}}}"));
+            out.push_str(&text_value[last..span.start]);
+            out.push_str(&format!("@{{{path}}}"));
+            last = span.end;
         }
+    }
+    out.push_str(&text_value[last..]);
+    out
+}
+
+/// A slot path with each `bases` and `implementations` key in canonical spelling,
+/// so that a key compares as its types do. The rest of the path stays as written.
+fn canonical_key(language: &str, path: &str) -> String {
+    let mut out = String::with_capacity(path.len());
+    let mut rest = path;
+    let mut at_segment = true;
+    while let Some(c) = rest.chars().next() {
+        let keyed = ["bases[", "implementations["]
+            .into_iter()
+            .find(|open| at_segment && rest.starts_with(open));
+        if let Some(open) = keyed {
+            let body = &rest[open.len()..];
+            let end = closing_bracket(language, body).unwrap_or(body.len());
+            out.push_str(open);
+            out.push_str(&canonical_key_types(language, &body[..end], &PathsAreIds));
+            out.push(']');
+            rest = body.get(end + 1..).unwrap_or("");
+            at_segment = false;
+            continue;
+        }
+        out.push(c);
+        at_segment = c == '.';
+        rest = &rest[c.len_utf8()..];
     }
     out
 }
@@ -170,6 +208,26 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// A report that states its `mode` counts only for a context of that mode, such
+    /// as a Go build report for a context with `mode: test`.
+    fn mode_matches(&self, report: &Value, context: &str) -> Result<(), String> {
+        let Some(reported) = text(report, "mode") else {
+            return Ok(());
+        };
+        let declared = list(self.dataset, "contexts")
+            .iter()
+            .find(|record| text(record, "id") == Some(context))
+            .and_then(|record| record.get("parameters"))
+            .and_then(|parameters| text(parameters, "mode"));
+        match declared {
+            Some(declared) if declared != reported => Err(format!(
+                "the report ran in mode `{reported}`, but context `{context}` has \
+                 `mode` `{declared}`; its slots are unchecked"
+            )),
+            _ => Ok(()),
+        }
+    }
+
     fn reports_by_context<'r>(&mut self, reports: &'r [Value]) -> BTreeMap<&'r str, Reported<'r>> {
         let mut by_context = BTreeMap::new();
         for (i, report) in reports.iter().enumerate() {
@@ -197,6 +255,10 @@ impl<'a> Checker<'a> {
             };
             if let Err(message) = self.release_matches(report, context) {
                 self.error(RULE, format!("{at}/release"), message);
+                continue;
+            }
+            if let Err(message) = self.mode_matches(report, context) {
+                self.error(RULE, format!("{at}/mode"), message);
                 continue;
             }
             for failed in list(report, "failed").iter().filter_map(Value::as_str) {
@@ -332,24 +394,35 @@ impl<'a> Checker<'a> {
         let Some(report) = by_context.get(context) else {
             return Outcome::Unchecked(format!("no compiler report for context `{context}`"));
         };
-        let Some(member) = report.member(path, kind, unit) else {
+        let Some(member) = report.member(path, kind, unit, context) else {
             return Outcome::Unchecked(format!("{} does not state `{path}`", report.tool));
         };
-        let shape = shape_of(&slot.path);
+        let shape = shape_of(self.rules.language, &slot.path);
+        // A report keys a slot by paths, as it writes every name, and a key's types
+        // compare in canonical spelling.
+        let language = self.rules.language;
+        let key = canonical_key(language, &to_paths(self, &slot.path));
         let unstated = list(member, "unstated")
             .iter()
             .filter_map(Value::as_str)
-            .any(|unstated| shape.starts_with(unstated) || slot.path == unstated);
+            .any(|unstated| {
+                shape.starts_with(unstated) || key == canonical_key(language, unstated)
+            });
         if unstated || !report.covers.contains(shape.as_str()) {
             return Outcome::Unchecked(format!("{} cannot state this slot", report.tool));
         }
         let reported = member
             .get("slots")
-            .and_then(|slots| slots.get(&slot.path))
-            .and_then(Value::as_str);
+            .and_then(Value::as_object)
+            .and_then(|slots| {
+                slots
+                    .iter()
+                    .find(|(stated, _)| canonical_key(language, stated) == key)
+            })
+            .and_then(|(_, value)| value.as_str());
         let Some(reported) = reported else {
             return Outcome::Disagrees(format!(
-                "`{}` is `{}`; {} states no such slot in `{context}`",
+                "`{}` is `{}`; {} states no such slot `{key}` in `{context}`",
                 slot.path, slot.text, report.tool
             ));
         };
@@ -403,13 +476,16 @@ impl<'a> Checker<'a> {
         at: &str,
         by_context: &BTreeMap<&str, Reported<'_>>,
     ) {
-        let written: BTreeSet<String> = slots(record).into_iter().map(|slot| slot.path).collect();
+        let written: BTreeSet<String> = slots(record)
+            .into_iter()
+            .map(|slot| canonical_key(self.rules.language, &to_paths(self, &slot.path)))
+            .collect();
         let alternatives = record.get("alternatives").is_some();
         for context in contexts {
             let Some(report) = by_context.get(context) else {
                 continue;
             };
-            let Some(member) = report.member(path, kind, unit) else {
+            let Some(member) = report.member(path, kind, unit, context) else {
                 continue;
             };
             let Some(stated) = member.get("slots").and_then(Value::as_object) else {
@@ -420,9 +496,13 @@ impl<'a> Checker<'a> {
                 .filter_map(Value::as_str)
                 .collect();
             for (slot, value) in stated {
+                let key = canonical_key(self.rules.language, slot);
                 if alternatives
-                    || written.contains(slot)
-                    || unstated.iter().any(|prefix| slot.starts_with(prefix))
+                    || written.contains(&key)
+                    || unstated.iter().any(|prefix| {
+                        slot.starts_with(prefix)
+                            || key == canonical_key(self.rules.language, prefix)
+                    })
                 {
                     continue;
                 }
@@ -465,7 +545,7 @@ impl<'a> Checker<'a> {
             let unit = self.unit_of_entity(entity);
             for (context, report) in by_context {
                 let stated = report
-                    .member(path, kind, unit)
+                    .member(path, kind, unit, context)
                     .and_then(|member| member.get("slots"))
                     .and_then(Value::as_object);
                 if let Some(first) = stated.and_then(|slots| slots.keys().next()) {
@@ -481,5 +561,44 @@ impl<'a> Checker<'a> {
         for message in problems {
             self.error(RULE, "/public-api/signatures".into(), message);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{canonical_key, shape_of};
+
+    #[test]
+    fn a_shape_skips_brackets_inside_literals() {
+        assert_eq!(
+            shape_of("rust", "bases[@{B}<\"a]b\">].type"),
+            "bases[].type"
+        );
+        assert_eq!(
+            shape_of("typescript", "bases[@{B}<'a]b'>].type"),
+            "bases[].type"
+        );
+        assert_eq!(shape_of("go", "bases[@{p.I}[int]].type"), "bases[].type");
+        assert_eq!(
+            shape_of("rust", "bases[@{T}<'a>].bindings[make].auto-traits[Send]"),
+            "bases[].bindings[].auto-traits[]"
+        );
+        assert_eq!(shape_of("rust", "parameters[0].type"), "parameters[].type");
+    }
+
+    /// A key holding a single-quoted literal ends at its own bracket, and is the
+    /// double-quoted key.
+    #[test]
+    fn a_key_with_a_single_quoted_literal_is_one_key() {
+        for language in ["typescript", "python"] {
+            let single = canonical_key(language, "bases[@{B}<'a]b'>].type");
+            assert_eq!(single, canonical_key(language, "bases[@{B}<\"a]b\">].type"));
+            assert!(single.ends_with("].type"), "{single}");
+            assert_eq!(single.matches(']').count(), 2, "{single}");
+        }
+        assert_eq!(
+            canonical_key("rust", "bases[@{T}<'a>].where"),
+            "bases[@{T}<'a>].where"
+        );
     }
 }

@@ -290,6 +290,122 @@ pub fn named_ids(language: &str, text: &str) -> Vec<String> {
     ids
 }
 
+/// Each `@{id}` of a text outside string literals, with its byte range in the
+/// text, so that a caller can replace each in one pass.
+pub fn named_id_spans(language: &str, text: &str) -> Vec<(std::ops::Range<usize>, String)> {
+    let source = if matches!(language, "typescript" | "python") {
+        blank_single_quoted(text)
+    } else {
+        text.to_owned()
+    };
+    let mut lexer = Lexeme::lexer(&source);
+    let mut spans = Vec::new();
+    while let Some(lexeme) = lexer.next() {
+        if lexeme == Ok(Lexeme::Name) {
+            let span = lexer.span();
+            spans.push((span.clone(), text[span.start + 2..span.end - 1].to_owned()));
+        }
+    }
+    spans
+}
+
+/// A text with the content of each single-quoted string literal blanked, byte for
+/// byte, so that the lexer reads no name inside one and its ranges stay the text's.
+fn blank_single_quoted(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut chars = text.chars();
+    let mut open: Option<char> = None;
+    let blank = |out: &mut String, c: char| out.extend(std::iter::repeat_n(' ', c.len_utf8()));
+    while let Some(c) = chars.next() {
+        match (open, c) {
+            (Some(quote), _) => {
+                out.push(c);
+                if c == '\\' {
+                    out.extend(chars.next());
+                } else if c == quote {
+                    open = None;
+                }
+            }
+            (None, '"' | '`') => {
+                open = Some(c);
+                out.push(c);
+            }
+            (None, '\'') => {
+                out.push('\'');
+                while let Some(inner) = chars.next() {
+                    match inner {
+                        '\'' => {
+                            out.push('\'');
+                            break;
+                        }
+                        '\\' => {
+                            blank(&mut out, inner);
+                            if let Some(escaped) = chars.next() {
+                                blank(&mut out, escaped);
+                            }
+                        }
+                        other => blank(&mut out, other),
+                    }
+                }
+            }
+            (None, other) => out.push(other),
+        }
+    }
+    out
+}
+
+/// The byte index of the `]` that closes a slot key, past nested brackets and the
+/// language's literals: a single-quoted string in TypeScript and Python, and a
+/// `char` in Rust, whose `'a` is a lifetime.
+pub fn closing_bracket(language: &str, body: &str) -> Option<usize> {
+    let source = if matches!(language, "typescript" | "python") {
+        blank_single_quoted(body)
+    } else {
+        body.to_owned()
+    };
+    let mut lexer = Lexeme::lexer(&source);
+    let mut depth = 0usize;
+    while let Some(lexeme) = lexer.next() {
+        if lexeme != Ok(Lexeme::Other) {
+            continue;
+        }
+        match lexer.slice() {
+            "[" => depth += 1,
+            "]" if depth == 0 => return Some(lexer.span().start),
+            "]" => depth -= 1,
+            _ => {}
+        }
+    }
+    None
+}
+
+/// The canonical spelling of each comma-separated type of a slot key, such as a
+/// `bases` key's type and self type, with its names as written.
+pub fn canonical_key_types(language: &str, key: &str, names: &dyn NameResolver) -> String {
+    let source = quoted_for(language, key);
+    let mut parts = vec![Vec::new()];
+    let mut depth = 0i32;
+    for (lexeme, slice) in tokens(&source) {
+        if lexeme == Lexeme::Other {
+            match slice.as_str() {
+                "(" | "[" | "{" | "<" => depth += 1,
+                ")" | "]" | "}" | ">" => depth -= 1,
+                "," if depth == 0 => {
+                    parts.push(Vec::new());
+                    continue;
+                }
+                _ => {}
+            }
+        }
+        parts.last_mut().expect("one part").push(slice);
+    }
+    parts
+        .iter()
+        .map(|part| canonicalize(language, &part.join(" "), names).text)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 /// A text with its string literals double-quoted, in the languages that also
 /// write them with single quotes. Rust's and C#'s `'` is a char or a lifetime.
 fn quoted_for(language: &str, text: &str) -> String {
@@ -1615,6 +1731,61 @@ mod tests {
             canonicalize("typescript", "Array<string>", &Paths).text,
             "Array<string>"
         );
+    }
+
+    #[test]
+    fn a_key_canonicalizes_each_of_its_types() {
+        let array = "@{typescript/lib/lib.es5.d.ts#Array}";
+        assert_eq!(
+            canonical_key_types(
+                "typescript",
+                &format!("@{{b}}<{array}<string>>"),
+                &PathsAreIds
+            ),
+            "@{b}<string[]>"
+        );
+        assert_eq!(
+            canonical_key_types("typescript", "@{b}<'z' | 'a'>", &PathsAreIds),
+            canonical_key_types("typescript", "@{b}<\"a\" | \"z\">", &PathsAreIds),
+        );
+        // A key's type and self type, each in its own spelling.
+        assert_eq!(
+            canonical_key_types("rust", "@{T}<( u8 )>,@{X}<T>", &PathsAreIds),
+            format!(
+                "{}, {}",
+                canonicalize("rust", "@{T}<u8>", &PathsAreIds).text,
+                canonicalize("rust", "@{X}<T>", &PathsAreIds).text
+            )
+        );
+    }
+
+    #[test]
+    fn a_key_ends_at_its_own_bracket() {
+        let key = "@{B}<'a]b'>].type";
+        assert_eq!(closing_bracket("typescript", key), Some(11));
+        assert_eq!(closing_bracket("python", "@{B}['a]b']].type"), Some(11));
+        assert_eq!(
+            closing_bracket("typescript", "@{B}<\"a]b\">].type"),
+            Some(11)
+        );
+        assert_eq!(closing_bracket("go", "@{p.I}[int]].type"), Some(11));
+        // A lifetime opens no literal, and a `char` is one.
+        assert_eq!(
+            closing_bracket("rust", "@{T}<'a, [u8; 2]>].where"),
+            Some(17)
+        );
+        assert_eq!(closing_bracket("rust", "@{T}<']'>].where"), Some(9));
+    }
+
+    #[test]
+    fn name_spans_skip_string_literals() {
+        let text = "@{a}<'@{b}', \"@{c}\", @{d}>";
+        let spans = named_id_spans("typescript", text);
+        let ids: Vec<&str> = spans.iter().map(|(_, id)| id.as_str()).collect();
+        assert_eq!(ids, ["a", "d"]);
+        for (span, id) in spans {
+            assert_eq!(&text[span], format!("@{{{id}}}"));
+        }
     }
 
     /// Spelled either way, one method's overloads keep their order.

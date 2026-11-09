@@ -281,6 +281,25 @@ function declareType(memberPath, node) {
       [`type-parameters[${i}].kind`]: "type",
     });
   });
+  // `bases`: each `extends` and `implements` type, keyed by its text. A base the
+  // emit names through a generated variable, such as a mixin's `C_base`, is no
+  // declared type, so a class with one has its `bases` unstated.
+  for (const clause of node.heritageClauses || []) {
+    for (const base of clause.types) {
+      const name = ts.isPropertyAccessExpression(base.expression) ? base.expression.name : base.expression;
+      let symbol = checker.getSymbolAtLocation(name);
+      if (symbol && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
+      const declared = ts.SymbolFlags.Class | ts.SymbolFlags.Interface | ts.SymbolFlags.TypeAlias;
+      if (!symbol || !(symbol.flags & declared)) {
+        add(memberPath, {});
+        const member = members.get(memberPath);
+        if (!member.unstated.includes("bases")) member.unstated.push("bases");
+        continue;
+      }
+      const text = typeText(base);
+      add(memberPath, { [`bases[${text}].type`]: text });
+    }
+  }
   if (ts.isClassDeclaration(node) && ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Abstract) {
     add(memberPath, { "modifiers[abstract]": "abstract" });
   }
@@ -361,6 +380,7 @@ const report = {
     "call-signatures[].parameters[].name", "call-signatures[].parameters[].type", "call-signatures[].returns",
     "construct-signatures[].parameters[].name", "construct-signatures[].parameters[].type", "construct-signatures[].returns",
     "index-signatures[].parameters[].name", "index-signatures[].parameters[].type", "index-signatures[].returns",
+    "bases[].type",
   ],
   members: [...members.values()].sort((a, b) => (a.path < b.path ? -1 : 1)),
 };
