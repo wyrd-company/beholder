@@ -845,8 +845,20 @@ def go_workspace_sums(tmp):
         for mode in ("build", "test"):
             report(name, mode, root, env)
             assert snapshot(root) == before, f"{name} {mode}: the report wrote into the workspace: {sorted(set(snapshot(root)) ^ set(before))}"
+    # Before go 1.22 a workspace ignores its vendor directory and reads the module
+    # cache, so the copy is still used.
+    ignored = os.path.join(tmp, "go-sums-ignored-vendor")
+    shutil.copytree(root, ignored)
+    os.remove(os.path.join(ignored, "go.work.sum"))
+    os.makedirs(os.path.join(ignored, "vendor"))
+    before = snapshot(ignored)
+    for mode in ("build", "test"):
+        report("ignored-vendor", mode, ignored, env)
+        assert snapshot(ignored) == before, f"ignored-vendor {mode}: the report wrote into the workspace: {sorted(set(snapshot(ignored)) ^ set(before))}"
     vendored = os.path.join(tmp, "go-sums-vendored")
     shutil.copytree(root, vendored)
+    with open(os.path.join(vendored, "go.work"), "w") as handle:
+        handle.write("go 1.22\n\nuse ./project\n\nreplace example.com/y => ./y\n")
     subprocess.run(["go", "work", "vendor"], cwd=vendored, env=env, check=True, capture_output=True)
     os.remove(os.path.join(vendored, "go.work.sum"))
     before = snapshot(vendored)

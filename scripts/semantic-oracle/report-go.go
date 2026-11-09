@@ -34,6 +34,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"go/version"
 	"math/big"
 	"os"
 	"os/exec"
@@ -652,19 +653,43 @@ func moduleFlag() []string {
 	} else if env["GOMOD"] != "" && env["GOMOD"] != os.DevNull {
 		root = filepath.Dir(env["GOMOD"])
 	}
+	var parsed workFile
+	if work != "" {
+		parsed = readWork(work)
+	}
 	vendored := mode == "vendor"
 	if mode == "" && root != "" {
 		info, err := os.Stat(filepath.Join(root, "vendor"))
 		vendored = err == nil && info.IsDir()
+		// A workspace vendors by default only from go 1.22; before that its
+		// vendor directory is ignored and the module cache is read.
+		if work != "" && (parsed.Go == "" || version.Compare("go"+parsed.Go, "go1.22") < 0) {
+			vendored = false
+		}
 	}
 	if work != "" && !vendored {
-		copyWorkspace(work)
+		copyWorkspace(work, parsed)
 	}
 	if mode != "" || root == "" || vendored {
 		// readonly, vendor, or a value the go command itself rejects.
 		return nil
 	}
 	return []string{"-mod=readonly"}
+}
+
+// readWork reads a `go.work` through `go work edit -json`.
+func readWork(work string) workFile {
+	edited, err := exec.Command("go", "work", "edit", "-json", work).Output()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
+		exit(2)
+	}
+	var parsed workFile
+	if err := json.Unmarshal(edited, &parsed); err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
+		exit(2)
+	}
+	return parsed
 }
 
 // workFile is `go work edit -json`'s form of a `go.work`.
@@ -704,17 +729,7 @@ func named(message string) string {
 // local replacements made absolute, so that each module keeps its path and
 // directory, and its `go.work.sum` beside it, and points GOWORK at the copy. A
 // checksum the go command records lands in the copy, which exit removes.
-func copyWorkspace(work string) {
-	edited, err := exec.Command("go", "work", "edit", "-json", work).Output()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
-		exit(2)
-	}
-	var parsed workFile
-	if err := json.Unmarshal(edited, &parsed); err != nil {
-		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
-		exit(2)
-	}
+func copyWorkspace(work string, parsed workFile) {
 	root := filepath.Dir(work)
 	absolute := func(path string) string {
 		if filepath.IsAbs(path) {
@@ -749,6 +764,7 @@ func copyWorkspace(work string) {
 		}
 		fmt.Fprintf(text, "replace %s => %s\n", old, replacement)
 	}
+	var err error
 	temporary, err = os.MkdirTemp("", "report-go-work-")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "report-go: cannot create the workspace copy:", err)
