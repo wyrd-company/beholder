@@ -1111,7 +1111,7 @@ def extends(release, wanted):
     """Whether release is wanted, or wanted extended with dotted numeric
     components: 3.14.2 extends 3.14, and 3.14.0rc1 and 5.9.0-beta extend nothing."""
     rest = release[len(wanted):] if release.startswith(wanted) else None
-    return release == wanted or (bool(rest) and re.fullmatch(r"(?:\.\d+)+", rest) is not None)
+    return release == wanted or (bool(rest) and re.fullmatch(r"(?:\.[0-9]+)+", rest) is not None)
 
 
 def check_releases(language, project, result):

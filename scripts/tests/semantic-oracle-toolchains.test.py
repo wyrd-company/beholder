@@ -434,6 +434,7 @@ def test_versions(_):
     assert toolchains.extends("go1.27.3", "go1.27") and toolchains.extends("10.0.403", "10.0.403")
     assert not toolchains.extends("1.990", "1.99") and not toolchains.extends("1.9", "1.99")
     assert not toolchains.extends("3.14.0rc1", "3.14") and not toolchains.extends("3.14.0rc1", "3.14.0")
+    assert not toolchains.extends("3.14.\u0661", "3.14")  # ASCII digits only, as the audit
     assert not toolchains.extends("5.9.0-beta", "5.9") and not toolchains.extends("1.84.0-nightly", "1.84")
     assert not toolchains.extends("go1.24rc1", "go1.24") and toolchains.extends("3.14.0rc1", "3.14.0rc1")
     assert toolchains.contexts("contexts:\n- id: a\n  parameters:\n    release: '3.13'\n    options: []\n"
