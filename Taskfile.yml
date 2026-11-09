@@ -131,8 +131,13 @@ tasks:
     requires:
       vars: [PROJECT, CONTEXT, OUT]
     cmds:
+      # The report is built for the host, outside every module and without the
+      # context's GOOS, GOARCH or GOFLAGS, which select only what it reports on.
       - >-
-        go run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}
+        tool="$(mktemp -d)" && trap 'rm -rf "$tool"' EXIT &&
+        (cd "$tool" && GOOS="$(go env GOHOSTOS)" GOARCH="$(go env GOHOSTARCH)" GOFLAGS= GOWORK=off
+        go build -o "$tool/report-go" {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}) &&
+        "$tool/report-go"
         -context {{shellQuote .CONTEXT}} -out {{shellQuote .OUT}}
         {{if .TAGS}}-tags {{shellQuote .TAGS}}{{end}}
         {{if .MODE}}-mode {{shellQuote .MODE}}{{end}}
