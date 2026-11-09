@@ -649,12 +649,10 @@ Future<void> main(List<String> arguments) async {
   };
 
   var declared = <String, String>{};
-  var defined = <String, String>{};
   for (var define in repeated(arguments, 'define')) {
     var at = define.indexOf('=');
     if (at <= 0) fail('--define $define is not NAME=VALUE');
     declared[define.substring(0, at)] = define.substring(at + 1);
-    defined[define.substring(0, at)] = define.substring(at + 1);
   }
   for (var flag in repeated(arguments, 'library-flag')) {
     declared[flag] = 'true';
@@ -737,9 +735,10 @@ Future<void> main(List<String> arguments) async {
             in unit.unit.directives.whereType<NamespaceDirective>()) {
           // Each tool takes the first configuration that holds, else the
           // directive's own URI. The analyzer reads the declared variables and
-          // an empty tested value as `true`. The compiler reads its platform's
-          // `dart.library.*` values, which a define does not override, the
-          // context's defines for other names, and compares as written.
+          // an empty tested value as `true`. The compiler compares as written
+          // against its platform's `dart.library.*` values, which a define does
+          // not override, and against `''` for any other name, whatever the
+          // context defines.
           int? analyzerChoice, compilerChoice;
           var configurations = directive.configurations;
           for (var i = 0; i < configurations.length; i++) {
@@ -752,7 +751,7 @@ Future<void> main(List<String> arguments) async {
             var analyzed = tested.isEmpty ? 'true' : tested;
             var compiledValue = name.startsWith('dart.library.')
                 ? (conditional.contains(name) ? 'true' : null)
-                : defined[name];
+                : '';
             if (analyzerChoice == null && declared[name] == analyzed) {
               analyzerChoice = i;
             }

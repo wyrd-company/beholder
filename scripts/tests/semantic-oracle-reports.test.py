@@ -956,6 +956,25 @@ def dart_first_match(tmp):
     assert "package:first/first.dart::First" in found, sorted(found)
 
 
+def dart_user_condition(tmp):
+    """The compiler compares a configurable directive's own variable against `''`
+    whatever the context defines, so a define that makes the analyzer select a
+    branch is refused, and an undefined one agrees."""
+    project = os.path.join(tmp, "dart-user-condition")
+    write(project, {
+        "pubspec.yaml": "name: user\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/stub.dart": "class Stub {}\n",
+        "lib/selected.dart": "class Selected {}\n",
+        "lib/pick.dart": "export 'stub.dart' if (custom.mode == 'yes') 'selected.dart';\n",
+        "bin/main.dart": "import 'package:user/pick.dart';\n\nvoid main() {}\n",
+    })
+    out = os.path.join(tmp, "dart-user-condition.json")
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm", "--define", "custom.mode=yes"), project, out,
+            ["package:user/pick.dart", "custom.mode", "dart compile kernel"])
+    _, found = run("dart-user-condition", dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out)
+    assert "package:user/stub.dart::Stub" in found and "package:user/selected.dart::Selected" not in found, sorted(found)
+
+
 def dart_dependency_platform(tmp):
     """The platform check reads the packages a project depends on; members are
     reported for project libraries only."""
@@ -1139,7 +1158,7 @@ def main():
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
                      dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors,
-                     dart_empty_condition, dart_first_match):
+                     dart_empty_condition, dart_first_match, dart_user_condition):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
