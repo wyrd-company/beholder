@@ -14,8 +14,11 @@
 // nothing into the project tree. GOOS and GOARCH select a context's platform. In
 // mode `test` it checks each package with its in-package `_test.go` files, and the
 // external `_test` package, as `go test` compiles them. Before it writes a report it
-// runs the context's real build, `go build`, or `go test -c` in mode `test`, and a
-// context that does not build exits nonzero with the build's output.
+// runs the context's real build, `go build`, or in mode `test` `go test` with a
+// no-op in place of each test binary, and a context that does not build exits
+// nonzero with the build's output. It refuses `-mod=mod`, which would rewrite
+// `go.mod`, and otherwise loads with `-mod=readonly` unless a vendor directory is
+// in use.
 package main
 
 import (
@@ -549,43 +552,107 @@ func unstate(path, prefix string) {
 	}
 }
 
-// compile runs the context's real build: `go build` in mode build, and in mode
-// test `go test -c`, which compiles and links every test binary, and the
-// packages without tests, as `go test` does, and runs none. It runs under the
-// environment `go list` ran under, with its tags and patterns, and writes its
-// executables to a temporary directory outside the project. A failed build
-// exits with its output, before any report is written.
-func compile(testing, commands bool, tags, patterns string) {
-	output, err := os.MkdirTemp("", "report-go-build-")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "report-go:", err)
-		os.Exit(2)
-	}
-	defer os.RemoveAll(output)
-	arguments := []string{"build"}
+// noop, set in the environment of the build `compile` runs, makes this program
+// exit 0 at once: it is the `-exec` of `go test`, so no test binary runs.
+const noop = "REPORT_GO_NOOP"
+
+// compile runs the context's real build: in mode build `go build -o <null>`,
+// which compiles every selected package, commands and libraries, and discards
+// what it links. In mode test `go test -exec <noop>`, which compiles and links
+// every test binary, each in the go command's own work directory, so binaries of
+// one name cannot collide, and compiles the packages without tests, as `go test`
+// does; the no-op runs in place of each binary, so no `TestMain` or `init` runs,
+// and a cross-compiled binary is never executed. It runs under the environment
+// `go list` ran under, with its module flag, tags and patterns, and writes nothing
+// into the project. A failed build exits with its output, before any report is
+// written.
+func compile(testing bool, module []string, tags, patterns string) {
+	arguments := []string{"build", "-o", os.DevNull}
+	environment := os.Environ()
 	if testing {
+		self, err := os.Executable()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "report-go: cannot name this program as go test's -exec:", err)
+			os.Exit(2)
+		}
+		// The go command splits -exec on spaces, outside quotes.
+		quoted := "'" + self + "'"
+		if strings.Contains(self, "'") {
+			quoted = `"` + self + `"`
+		}
 		// vet is no part of the build, and its findings no compile error.
-		arguments = []string{"test", "-c", "-vet=off"}
+		arguments = []string{"test", "-count=1", "-run", "^$", "-vet=off", "-exec", quoted}
+		environment = append(environment, noop+"=1")
 	}
-	// A directory: each executable lands in it, and none in the project. `go
-	// build` refuses one for patterns with no command, and then writes nothing.
-	if testing || commands {
-		arguments = append(arguments, "-o", output+string(filepath.Separator))
-	}
+	arguments = append(arguments, module...)
 	if tags != "" {
 		arguments = append(arguments, "-tags", tags)
 	}
 	arguments = append(arguments, strings.Fields(patterns)...)
-	built, err := exec.Command("go", arguments...).CombinedOutput()
+	build := exec.Command("go", arguments...)
+	build.Env = environment
+	built, err := build.CombinedOutput()
 	if err != nil {
 		os.Stderr.Write(built)
 		fmt.Fprintf(os.Stderr, "report-go: go %s failed (%v): the context does not build, and no report is written\n", strings.Join(arguments[:len(arguments)-len(strings.Fields(patterns))], " "), err)
-		os.RemoveAll(output)
 		os.Exit(2)
 	}
 }
 
+// moduleFlag returns the -mod flag every go command of the report runs with. A
+// dataset describes the code as checked in, and the report writes nothing into
+// the project: `-mod=mod`, from GOFLAGS or the go env file, would add a missing
+// requirement to `go.mod` and `go.sum`, so it exits. Otherwise, unless a vendor
+// directory is in use, it is `-mod=readonly`, so a missing requirement fails the
+// load rather than being added; `-mod=vendor`, set or implied, stays as it is.
+func moduleFlag() []string {
+	queried, err := exec.Command("go", "env", "-json", "GOFLAGS", "GOMOD", "GOWORK").Output()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go env:", err)
+		os.Exit(2)
+	}
+	env := map[string]string{}
+	if err := json.Unmarshal(queried, &env); err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go env:", err)
+		os.Exit(2)
+	}
+	// The go command takes the last of repeated flags.
+	mode := ""
+	for _, flag := range strings.Fields(env["GOFLAGS"]) {
+		for _, prefix := range []string{"-mod=", "--mod="} {
+			if strings.HasPrefix(flag, prefix) {
+				mode = strings.TrimPrefix(flag, prefix)
+			}
+		}
+	}
+	switch mode {
+	case "mod":
+		fmt.Fprintln(os.Stderr, "report-go: GOFLAGS sets -mod=mod, which would modify the project's go.mod and go.sum, so the context cannot be checked as written; unset it, or set -mod=readonly")
+		os.Exit(2)
+	case "":
+	default:
+		// readonly, vendor, or a value the go command itself rejects.
+		return nil
+	}
+	root := ""
+	if env["GOWORK"] != "" {
+		root = filepath.Dir(env["GOWORK"])
+	} else if env["GOMOD"] != "" && env["GOMOD"] != os.DevNull {
+		root = filepath.Dir(env["GOMOD"])
+	}
+	if root == "" {
+		return nil
+	}
+	if info, err := os.Stat(filepath.Join(root, "vendor")); err == nil && info.IsDir() {
+		return nil
+	}
+	return []string{"-mod=readonly"}
+}
+
 func main() {
+	if os.Getenv(noop) == "1" {
+		os.Exit(0)
+	}
 	context := flag.String("context", "", "the dataset's context id")
 	out := flag.String("out", "", "the report file")
 	tags := flag.String("tags", "", "build tags")
@@ -605,7 +672,8 @@ func main() {
 		os.Remove(absolute)
 	}
 	testing := *mode == "test"
-	arguments := []string{"list", "-json", "-e", "-deps"}
+	module := moduleFlag()
+	arguments := append([]string{"list", "-json", "-e", "-deps"}, module...)
 	if testing {
 		arguments = append(arguments, "-test")
 	}
@@ -732,11 +800,7 @@ func main() {
 	}
 	// Dependencies are checked without function bodies, and go/types is not the
 	// compiler: a report must not certify a context its real build rejects.
-	commands := false
-	for _, unit := range order {
-		commands = commands || (unit.Name == "main" && !strings.Contains(unit.ImportPath, " [") && !strings.HasSuffix(unit.ImportPath, ".test"))
-	}
-	compile(testing, commands, *tags, *patterns)
+	compile(testing, module, *tags, *patterns)
 	paths := make([]string, 0, len(members))
 	for path := range members {
 		paths = append(paths, path)

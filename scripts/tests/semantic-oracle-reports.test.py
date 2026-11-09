@@ -157,9 +157,9 @@ pub mod pub_type { pub struct Inner; }
     assert found["sample::Plain::radius"]["unstated"] == []
 
 
-def failure(command, cwd, out, words):
+def failure(command, cwd, out, words, env=None):
     """A script that cannot check its project exits 2 and writes no report."""
-    done = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
+    done = subprocess.run(command, cwd=cwd, capture_output=True, text=True, env=env)
     # `go run` reports any failure of its program as exit status 1.
     assert done.returncode != 0, f"{done.stdout} {done.stderr}"
     assert not os.path.exists(out), "a failed build wrote a report"
@@ -679,6 +679,105 @@ def go_dependency_build_failure(tmp):
     tree_unchanged(project, before)
 
 
+def host_report_go(tmp):
+    """`go run` under a context's GOOS would build the script for that platform:
+    build it once for the host, to run it under another GOOS."""
+    binary = os.path.join(tmp, "report-go-host" + (".exe" if os.name == "nt" else ""))
+    if not os.path.exists(binary):
+        subprocess.run(["go", "build", "-o", binary, os.path.join(SCRIPTS, "report-go.go")], check=True)
+    return binary
+
+
+def go_build_every_package(tmp):
+    """Mode build compiles every selected package, not only the commands: a library
+    beside a command, whose replaced dependency has an error in a function body,
+    fails the report, as `go build ./...` does, for the host and for Windows."""
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go")]
+    project = os.path.join(tmp, "go-library-broken")
+    write(project, {
+        "go.mod": "module example.com/e\n\ngo 1.21\n\nrequire example.com/f v0.0.0\n\nreplace example.com/f => ../go-library-broken-f\n",
+        "cmd/tool/main.go": "package main\n\nfunc main() {}\n",
+        "lib/lib.go": "package lib\n\nimport \"example.com/f\"\n\nvar Used = f.Value()\n",
+    })
+    write(os.path.join(tmp, "go-library-broken-f"), {
+        "go.mod": "module example.com/f\n\ngo 1.21\n",
+        "f.go": "package f\n\nfunc Value() int { return \"bad\" }\n",
+    })
+    before = listing(project)
+    out = os.path.join(tmp, "go-library-broken-host.json")
+    failure(command + ["-context", "build", "-out", out], project, out, ["report-go", "does not build", "f.go"])
+    out = os.path.join(tmp, "go-library-broken-windows.json")
+    windows = dict(os.environ, GOOS="windows")
+    failure([host_report_go(tmp), "-context", "build", "-out", out], project, out, ["report-go", "does not build", "f.go"], windows)
+    tree_unchanged(project, before)
+
+
+def go_test_binaries_same_name(tmp):
+    """Mode test builds every test binary, as `go test` does: two tested packages of
+    one name do not collide, and the report runs neither binary, nor its `init`."""
+    project = os.path.join(tmp, "go-same-name")
+    write(project, {
+        "go.mod": "module example.com/g\n\ngo 1.21\n",
+        "one/same/same.go": "package same\n\nconst One = 1\n",
+        "one/same/same_test.go": "package same\n\nimport \"testing\"\n\nfunc TestOne(t *testing.T) {}\n",
+        "two/same/same.go": "package same\n\nconst Two = 2\n",
+        "two/same/same_test.go": "package same\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc init() { os.WriteFile(\"ran\", nil, 0o644); panic(\"ran\") }\n\nfunc TestTwo(t *testing.T) {}\n",
+        "cmd/tool/main.go": "package main\n\nfunc main() {}\n",
+    })
+    before = listing(project)
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "test", "-mode", "test", "-out"]
+    out = os.path.join(tmp, "go-same-name.json")
+    _, found = run("go-same-name", command + [out], project, out)
+    expect(found, "example.com/g/one/same.One", "value", "1")
+    expect(found, "example.com/g/two/same.Two", "value", "2")
+    # Cross-compiled test binaries are linked, and never executed.
+    out = os.path.join(tmp, "go-same-name-windows.json")
+    done = subprocess.run([host_report_go(tmp), "-context", "test", "-mode", "test", "-out", out], cwd=project, capture_output=True, text=True, env=dict(os.environ, GOOS="windows"))
+    assert done.returncode == 0, done.stderr + done.stdout
+    _, found = members(out)
+    expect(found, "example.com/g/two/same.Two", "value", "2")
+    tree_unchanged(project, before)
+
+
+def go_module_flag(tmp):
+    """`-mod=mod` would add a missing requirement to `go.mod`, so the report refuses
+    it, from GOFLAGS or from the go env file, and leaves `go.mod` and `go.sum` as
+    they were. Without it, a missing requirement fails rather than being added."""
+    project = os.path.join(tmp, "go-missing-require")
+    write(project, {
+        "go.mod": "module example.com/h\n\ngo 1.21\n\nreplace example.com/i v0.0.0 => ../go-missing-require-i\n",
+        "go.sum": "",
+        "h.go": "package h\n\nimport \"example.com/i\"\n\nconst V = i.V\n",
+    })
+    write(os.path.join(tmp, "go-missing-require-i"), {
+        "go.mod": "module example.com/i\n\ngo 1.21\n",
+        "i.go": "package i\n\nconst V = 1\n",
+    })
+    def contents():
+        found = {}
+        for name in ("go.mod", "go.sum"):
+            with open(os.path.join(project, name), "rb") as source:
+                found[name] = source.read()
+        return found
+    before, files = contents(), listing(project)
+    goenv = os.path.join(tmp, "go-missing-require.env")
+    with open(goenv, "w") as config:
+        config.write("GOFLAGS=-mod=mod\n")
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-context", "build", "-out"]
+    for name, env in (
+        ("flags", dict(os.environ, GOFLAGS="-mod=mod")),
+        ("goenv", dict(os.environ, GOENV=goenv)),
+        ("tested", dict(os.environ, GOFLAGS="-mod=mod")),
+        ("default", None),
+    ):
+        out = os.path.join(tmp, f"go-missing-require-{name}.json")
+        words = ["report-go"] + (["-mod=mod"] if name != "default" else [])
+        mode = ["-mode", "test"] if name == "tested" else []
+        failure(command + [out] + mode, project, out, words, env)
+        assert contents() == before, f"{name}: the report rewrote go.mod or go.sum"
+        tree_unchanged(project, files)
+
+
 def go_workspace(tmp):
     """From a `go.work` root, `./...` matches no module: the report exits nonzero
     and writes nothing, and the context's patterns report every module."""
@@ -1008,7 +1107,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_dependency_build_failure, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_dependency_build_failure, go_build_every_package, go_test_binaries_same_name, go_module_flag, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
