@@ -771,7 +771,7 @@ abstract base class Shape<T extends num> {
   Future<Map<String, T>> group({required String key, Color color = Color.red}) async => {};
   static Shape<int>? make<U extends Object>(U seed) => null;
 }
-mixin Labelled on Object, Comparable<int> {}
+mixin Labelled on Pattern, Comparable<int> {}
 extension Doubling<E> on List<E> {
   List<E> doubled() => [...this, ...this];
 }
@@ -844,7 +844,7 @@ mixin Plain {}
     expect(found, path + "Shape.make", "type-parameters[0].bounds", "Object")
     expect(found, path + "Shape.make", "modifiers[static]", "static")
     assert "modifiers[static]" not in found[path + "pair"]["slots"]
-    expect(found, path + "Labelled", "bounds", "@{dart:core::Comparable}<int>, Object")
+    expect(found, path + "Labelled", "bounds", "@{dart:core::Comparable}<int>, @{dart:core::Pattern}")
     expect(found, path + "Doubling", "receiver", "@{dart:core::List}<E>")
     expect(found, path + "Doubling", "type-parameters[0].name", "E")
     expect(found, path + "Doubling.doubled", "returns", "@{dart:core::List}<E>")
@@ -879,6 +879,10 @@ mixin Plain {}
     assert "bin/main.dart::main" in found and "package:sample/platform_io.dart::selected" in found, sorted(found)
     assert "package:sample/platform_stub.dart::selected" not in found
     assert "package:sample/src/hidden.dart::Hidden" not in found
+    # The compiler's `dart.library.*` values are its platform's: a vm context whose
+    # library flags leave out one a directive tests would report another branch.
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out,
+            ["package:sample/sample.dart", "dart.library.io", "dart compile kernel"])
     # A js context resolves against the analyzer's SDK when the platform provides
     # every `dart:` library the context reaches.
     out = os.path.join(tmp, "dart-js.json")
@@ -963,7 +967,7 @@ def dart_dependency_errors(tmp):
         "bin/select.dart": "import 'package:dep/src/select.dart';\n\nvoid main() => print(selected());\n",
         "semantic-oracle.yml": """contexts:
   - id: vm
-    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: []}
+    parameters: {platform: vm, entry: bin/main.dart, defines: [], library-flags: [dart.library.io]}
   - id: select-vm
     parameters: {platform: vm, entry: bin/select.dart, defines: [], library-flags: [dart.library.io]}
   - id: select-js
@@ -973,7 +977,7 @@ def dart_dependency_errors(tmp):
     subprocess.run(["dart", "pub", "get", "--offline"], cwd=project, check=True, capture_output=True)
     out = os.path.join(tmp, "dart-broken-dep.json")
     # `dart compile kernel bin/main.dart` rejects the part's error.
-    failure(dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out,
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm", "--library-flag", "dart.library.io"), project, out,
             ["package:dep/src/inner_part.dart:3:17", "String"])
     # The vm context selects the broken branch; the js context the stub.
     failure(dart_command(project, out, "select-vm", "bin/select.dart", "vm", "--library-flag", "dart.library.io"),
@@ -998,6 +1002,47 @@ def dart_dependency_errors(tmp):
     _, found = run("dart", dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out)
     assert "bin/main.dart::main" in found, sorted(found)
     assert not any(path.startswith("package:warned/") for path in found), sorted(found)
+
+
+def dart_ignored_errors(tmp):
+    """An `// ignore:` comment hides a compile error from the analyzer, and not from
+    the compiler: a context with an entry fails where its compiler does, in a
+    dependency or in the project. The analysis context's tool, `dart analyze`,
+    honours the comment too, and its report is written."""
+    hidden = "// ignore: return_of_invalid_type\nint broken() => 'not an int';\n"
+    dep = os.path.join(tmp, "dart-ignored-dep")
+    write(dep, {
+        "pubspec.yaml": "name: dep\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/dep.dart": hidden,
+    })
+    project = os.path.join(tmp, "dart-uses-ignored-dep")
+    contexts = [("dep-vm", "bin/dep.dart", "vm"), ("dep-js", "bin/dep.dart", "js"),
+                ("own-vm", "bin/own.dart", "vm"), ("own-js", "bin/own.dart", "js"), ("own-wasm", "bin/own.dart", "wasm")]
+    write(project, {
+        "pubspec.yaml": "name: user\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n"
+                        f"dependencies:\n  dep:\n    path: {dep}\n",
+        "lib/own.dart": hidden,
+        "bin/dep.dart": "import 'package:dep/dep.dart';\n\nvoid main() => print(broken());\n",
+        "bin/own.dart": "import 'package:user/own.dart';\n\nvoid main() => print(broken());\n",
+        "semantic-oracle.yml": "contexts:\n"
+            "  - id: analysis\n    parameters: {platform: vm, entry: analysis, defines: [], library-flags: []}\n"
+            + "".join(f"  - id: {c}\n    parameters: {{platform: {pl}, entry: {e}, defines: [], library-flags: []}}\n"
+                      for c, e, pl in contexts),
+    })
+    subprocess.run(["dart", "pub", "get", "--offline"], cwd=project, check=True, capture_output=True)
+    before = listing(project)
+    out = os.path.join(tmp, "dart-ignored.json")
+    compilers = {"vm": "dart compile kernel", "js": "dart compile js", "wasm": "dart compile wasm"}
+    for context, entry, platform in contexts:
+        where = "dep.dart:2:17" if context.startswith("dep") else "lib/own.dart:2:17"
+        failure(dart_command(project, out, context, entry, platform), project, out,
+                [compilers[platform], where, "String"])
+    _, found = run("dart", dart_command(project, out, "analysis", "analysis", "vm"), project, out)
+    expect(found, "package:user/own.dart::broken", "returns", "int")
+    tree_unchanged(project, before)
+    # `dart analyze`, the analysis context's tool, reports no issue either.
+    done = subprocess.run(["dart", "analyze"], cwd=project, capture_output=True, text=True)
+    assert done.returncode == 0 and "No issues found" in done.stdout, done.stdout + done.stderr[-2000:]
 
 
 def dart_dataset_agreement(tmp):
@@ -1051,7 +1096,7 @@ def main():
         rust_check_reading()
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
-                     dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement):
+                     dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

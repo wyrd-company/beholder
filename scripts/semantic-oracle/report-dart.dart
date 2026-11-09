@@ -21,6 +21,19 @@
 /// error: this script exits 2 and writes no report. Warnings, hints and lints are
 /// not, as the compiler accepts them.
 ///
+/// The analyzer drops a diagnostic that an `// ignore:` comment names, and the
+/// compiler front end does not. So for a context with an entry, the script also
+/// runs the context's real compiler on it, with the context's defines and with
+/// its output in a temporary directory: `dart compile kernel` for vm, `dart
+/// compile js` for js and `dart compile wasm` for wasm. Where it fails, the script
+/// exits 2 with its output and writes no report. The compiler's `dart.library.*`
+/// values are its platform's, which no `-D` overrides, so each one a configurable
+/// directive of the context's libraries tests must agree with the context's
+/// library flags, or the script exits 2: otherwise the compiler would check
+/// libraries other than the ones reported. The `analysis` context runs no
+/// compiler: its tool is `dart analyze`, which honours ignore comments as the
+/// analyzer here does, so the report agrees with it.
+///
 /// The analyzer resolves against its own SDK on every platform, because the SDK
 /// libraries a platform shares have the same public API. `--platform` has no
 /// default, so that a js or wasm context cannot be checked as vm by omission. For
@@ -93,8 +106,12 @@ const bare = {
 /// The mixins whose declaration writes an `on` clause.
 final writtenOnClause = <Element>{};
 
-/// The directory of a package configuration written outside the project tree.
+/// The directory, outside the project tree, of a package configuration the script
+/// writes and of the compiler's output.
 Directory? temporary;
+
+Directory scratch() =>
+    temporary ??= Directory.systemTemp.createTempSync('report-dart-');
 
 Never fail(String message) {
   temporary?.deleteSync(recursive: true);
@@ -474,6 +491,11 @@ List<LibraryElement> reachedLibraries(LibraryElement library) => [
     ].nonNulls,
 ];
 
+/// A unit's `package:` URI, or a project file's project-relative path.
+String unitName(ResolvedUnitResult unit) => unit.uri.scheme == 'file'
+    ? p.relative(unit.path, from: project)
+    : '${unit.uri}';
+
 /// Whether the compiler front end rejects the code a diagnostic reports: a
 /// compile-time or syntactic error. Warnings, hints and lints never fail the
 /// report, whatever severity an analysis options file gives them.
@@ -485,21 +507,22 @@ bool rejected(Diagnostic diagnostic) =>
     };
 
 /// The `dart:` libraries a target of the SDK's lib/libraries.json provides,
-/// with the targets it includes.
-Set<String> platformLibraries(String target) {
+/// with the targets it includes, each with its entry there.
+Map<String, Map> platformLibraries(String target) {
   var sdk = p.dirname(p.dirname(Platform.resolvedExecutable));
   var file = File(p.join(sdk, 'lib', 'libraries.json'));
   if (!file.existsSync()) fail('the SDK has no ${file.path}');
   var specification = jsonDecode(file.readAsStringSync()) as Map;
-  Set<String> collect(String name) {
+  Map<String, Map> collect(String name) {
     var section = specification[name];
     if (section is! Map) fail('libraries.json has no target `$name`');
-    var found = <String>{
-      ...((section['libraries'] as Map?) ?? const {}).keys.cast<String>(),
-    };
+    var found = <String, Map>{};
     for (var include in (section['include'] as List?) ?? const []) {
       found.addAll(collect((include as Map)['target'] as String));
     }
+    found.addAll(
+      ((section['libraries'] as Map?) ?? const {}).cast<String, Map>(),
+    );
     return found;
   }
 
@@ -546,10 +569,11 @@ void agreeWithDataset(
   }
 }
 
-/// A package configuration for a project without dependencies, outside the tree.
-String? packageConfig() {
+/// The project's package configuration, or one for a project without
+/// dependencies, written outside the tree.
+String packageConfig() {
   var existing = File(p.join(project, '.dart_tool', 'package_config.json'));
-  if (existing.existsSync()) return null;
+  if (existing.existsSync()) return existing.path;
   var pubspec = File(p.join(project, 'pubspec.yaml')).readAsStringSync();
   if (RegExp(
     r'^(dev_)?dependencies:\s*\n\s+\S',
@@ -564,10 +588,7 @@ String? packageConfig() {
     multiLine: true,
   ).firstMatch(pubspec);
   if (constraint == null) fail('pubspec.yaml states no SDK constraint');
-  var directory = temporary = Directory.systemTemp.createTempSync(
-    'report-dart-',
-  );
-  var file = File(p.join(directory.path, 'package_config.json'));
+  var file = File(p.join(scratch().path, 'package_config.json'));
   file.writeAsStringSync(
     jsonEncode({
       'configVersion': 2,
@@ -610,11 +631,21 @@ Future<void> main(List<String> arguments) async {
   // same public API on every platform. A js or wasm context's libraries must
   // also be ones that platform provides, or the command would not compile.
   var platform = argument(arguments, 'platform') ?? fail('missing --platform');
-  var provided = switch (platform) {
-    'vm' => null,
-    'js' => platformLibraries('dart2js'),
-    'wasm' => platformLibraries('wasm'),
+  var (target, compile) = switch (platform) {
+    'vm' => ('vm', 'kernel'),
+    'js' => ('dart2js', 'js'),
+    'wasm' => ('wasm', 'wasm'),
     _ => fail('--platform $platform is not vm, js or wasm'),
+  };
+  var libraries = platformLibraries(target);
+  var provided = platform == 'vm' ? null : libraries.keys.toSet();
+  // The `dart.library.*` values the compiler gives a configurable directive: true
+  // for a library the target provides and lets a condition test.
+  var conditional = {
+    for (var MapEntry(:key, :value) in libraries.entries)
+      if (value['supported'] != false &&
+          value['support_conditional_import'] != false)
+        'dart.library.$key',
   };
 
   var declared = <String, String>{};
@@ -651,10 +682,11 @@ Future<void> main(List<String> arguments) async {
     });
   }
 
+  var packages = packageConfig();
   var collection = AnalysisContextCollectionImpl(
     includedPaths: [project],
     declaredVariables: declared,
-    packageConfigFile: packageConfig(),
+    packageConfigFile: packages,
   );
   var session = collection.contextFor(project).currentSession;
 
@@ -698,14 +730,31 @@ Future<void> main(List<String> arguments) async {
     if (result is NotLibraryButPartResult) continue;
     if (result is! ResolvedLibraryResult) fail('cannot resolve $path: $result');
     for (var unit in result.units) {
+      if (entry != 'analysis') {
+        for (var directive
+            in unit.unit.directives.whereType<NamespaceDirective>()) {
+          for (var configuration in directive.configurations) {
+            // The name's tokens include its periods.
+            var name = configuration.name.tokens
+                .map((token) => token.lexeme)
+                .join();
+            if (!name.startsWith('dart.library.')) continue;
+            var assumed = declared.containsKey(name);
+            if (assumed != conditional.contains(name)) {
+              fail(
+                '${unitName(unit)} tests $name, which the context\'s library flags '
+                '${assumed ? 'set' : 'leave unset'} and `dart compile $compile` '
+                'for $platform ${assumed ? 'does not set' : 'sets'}',
+              );
+            }
+          }
+        }
+      }
       for (var diagnostic in unit.diagnostics) {
         if (rejected(diagnostic)) {
           var location = unit.lineInfo.getLocation(diagnostic.offset);
-          var file = unit.uri.scheme == 'file'
-              ? p.relative(unit.path, from: project)
-              : '${unit.uri}';
           errors.add(
-            '$file:${location.lineNumber}:${location.columnNumber}: '
+            '${unitName(unit)}:${location.lineNumber}:${location.columnNumber}: '
             '${diagnostic.message}',
           );
         }
@@ -744,6 +793,41 @@ Future<void> main(List<String> arguments) async {
   // checked, and the compiler would state nothing.
   if (errors.isNotEmpty)
     fail('the analyzer reports errors:\n${errors.join('\n')}');
+  // The analyzer drops an error an `// ignore:` comment names, and the compiler
+  // does not: a context with an entry is reported only where its compiler
+  // accepts it.
+  if (entry != 'analysis') {
+    var output = p.join(scratch().path, 'out', switch (platform) {
+      'vm' => 'entry.dill',
+      'js' => 'entry.js',
+      _ => 'entry.wasm',
+    });
+    Directory(p.dirname(output)).createSync();
+    var command = [
+      'compile',
+      compile,
+      '--packages=$packages',
+      for (var define in repeated(arguments, 'define')) '--define=$define',
+      '--output=$output',
+      entry,
+    ];
+    ProcessResult done;
+    try {
+      done = await Process.run(
+        Platform.resolvedExecutable,
+        command,
+        workingDirectory: project,
+      );
+    } on ProcessException catch (error) {
+      fail('cannot run `dart ${command.join(' ')}`: ${error.message}');
+    }
+    if (done.exitCode != 0) {
+      fail(
+        '`dart ${command.join(' ')}` exits ${done.exitCode}:\n'
+        '${done.stdout}${done.stderr}',
+      );
+    }
+  }
   for (var element in reported) {
     library(element);
   }

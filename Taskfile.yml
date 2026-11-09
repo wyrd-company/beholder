@@ -175,7 +175,11 @@ tasks:
       the dataset whose context these must equal; with no dataset the report exits nonzero,
       unless STANDALONE=1 reports without that check, with a warning. OUT lies outside the
       project tree. A library with an error, or a parameter that disagrees, exits nonzero
-      and writes no report.
+      and writes no report. For an ENTRY other than `analysis`, PLATFORM's compiler, `dart
+      compile kernel`, `js` or `wasm`, compiles it with DEFINES into a temporary directory
+      first, and must accept it, as it does not honour `// ignore:` comments; every
+      `dart.library.*` a directive tests must have the same value in LIBRARY_FLAGS as in
+      that compiler. `analysis` runs none, as `dart analyze` honours them.
     dir: '{{.USER_WORKING_DIR}}'
     requires:
       vars: [PROJECT, CONTEXT, ENTRY, PLATFORM, OUT]
