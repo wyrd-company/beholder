@@ -188,6 +188,38 @@ tasks:
       - cargo build -q --locked -p beholder-semantic-oracle-cli
       - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
 
+  semantic-oracle:toolchains:
+    desc: Report whether the installed toolchains can check each fixture project
+    summary: |
+      Reads the versions each project under FIXTURES (default fixtures) declares:
+      global.json and target frameworks, pubspec SDK constraints, go.mod go and
+      toolchain directives, rust-toolchain.toml and Cargo rust-version and edition,
+      requires-python, and the installed typescript with Node.js 22.6 or later. It
+      prints one line per project, ok, unsupported, pin-not-honoured or
+      missing-toolchain, and exits nonzero on unsupported or missing-toolchain.
+      pin-not-honoured marks an exact pin the installed toolchain does not hold,
+      which is then used instead: a rust-toolchain.toml channel that rustup does
+      not select (or no rustup), or a typescript version node_modules does not
+      hold. A Rust target without its standard library is missing-toolchain. Go
+      follows the effective GOTOOLCHAIN: go.mod's go line is a minimum, and its
+      toolchain line selects a release only when GOTOOLCHAIN allows switching.
+      For each context of a project's semantic-oracle.yml it prints ok or
+      release-mismatch: the context's `release` (`python`, `compiler`) must equal
+      the release the project runs under or be extended by it with dotted
+      numeric components, so a prerelease matches only a parameter naming it. A
+      semantic-oracle.yml whose contexts cannot all be read, or that lists none,
+      is unresolved. A mismatch or an unresolved dataset also exits nonzero.
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      FIXTURES: '{{.FIXTURES | default (joinPath .ROOT_DIR "fixtures")}}'
+    cmds:
+      - python3 {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/toolchains.py")}} --fixtures {{shellQuote .FIXTURES}}
+
+  test:oracle-toolchains:
+    desc: Run the toolchain report on a small corpus with stand-in toolchains
+    cmds:
+      - python3 scripts/tests/semantic-oracle-toolchains.test.py
+
   test:oracle-reports:
     desc: Run each compiler report script on a small project
     summary: |
@@ -265,6 +297,7 @@ tasks:
       - task: test
       - task: test:action
       - task: test:release
+      - task: test:oracle-toolchains
       - task: lint
       - task: lint:action
 

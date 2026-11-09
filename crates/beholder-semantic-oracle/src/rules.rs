@@ -108,6 +108,11 @@ pub struct ProfileRules {
     /// The context parameter that names the toolchain release a context's
     /// meaning depends on. A compiler report's `release` must match it.
     pub release_parameter: &'static str,
+    /// The `language-kind` every unit's root has, where the profile fixes one.
+    /// A root of this kind is named like its unit and is no entity's `parent`.
+    pub root_language_kind: Option<&'static str>,
+    /// Modifiers the profile allows only on some `language-kind` values.
+    pub kind_modifiers: &'static [(&'static str, &'static [&'static str])],
 }
 
 use Names::*;
@@ -205,6 +210,8 @@ const RUST: ProfileRules = ProfileRules {
     inferred_on_source: &[],
     listed_parameters: &["param"],
     release_parameter: "release",
+    root_language_kind: None,
+    kind_modifiers: &[],
 };
 
 const CSHARP: ProfileRules = ProfileRules {
@@ -310,6 +317,8 @@ const CSHARP: ProfileRules = ProfileRules {
     inferred_on_source: &[],
     listed_parameters: &["param"],
     release_parameter: "release",
+    root_language_kind: Some("assembly"),
+    kind_modifiers: &[("volatile", &["field"])],
 };
 
 const DART: ProfileRules = ProfileRules {
@@ -385,7 +394,7 @@ const DART: ProfileRules = ProfileRules {
         ),
         slots(&["accessor"], &["get", "set", "modifiers"], &[]),
         slots(&["const"], &["type", "value"], &["type"]),
-        slots(&["enum-value"], &["type"], &[]),
+        slots(&["enum-value"], &["index", "type"], &["index"]),
     ],
     inferred_on_source: &[
         "function",
@@ -403,6 +412,8 @@ const DART: ProfileRules = ProfileRules {
     ],
     listed_parameters: &["param"],
     release_parameter: "release",
+    root_language_kind: None,
+    kind_modifiers: &[],
 };
 
 const GO: ProfileRules = ProfileRules {
@@ -471,6 +482,8 @@ const GO: ProfileRules = ProfileRules {
     inferred_on_source: &["var"],
     listed_parameters: &["param"],
     release_parameter: "release",
+    root_language_kind: None,
+    kind_modifiers: &[],
 };
 
 const PYTHON: ProfileRules = ProfileRules {
@@ -555,6 +568,8 @@ const PYTHON: ProfileRules = ProfileRules {
     inferred_on_source: &[],
     listed_parameters: &["param"],
     release_parameter: "python",
+    root_language_kind: None,
+    kind_modifiers: &[],
 };
 
 const TYPESCRIPT: ProfileRules = ProfileRules {
@@ -669,6 +684,8 @@ const TYPESCRIPT: ProfileRules = ProfileRules {
     ],
     listed_parameters: &["param"],
     release_parameter: "compiler",
+    root_language_kind: None,
+    kind_modifiers: &[],
 };
 
 /// The rules of every profile of model version 1.

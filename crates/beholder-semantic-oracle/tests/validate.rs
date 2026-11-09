@@ -1337,6 +1337,33 @@ fn an_assembly_name_equal_to_an_id_does_not_own_an_extension_fact() {
 }
 
 #[test]
+fn a_csharp_unit_root_is_no_public_api_member() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../docs/specifications/semantic-oracle-profile-csharp.example.yml"
+    );
+    let mut dataset = parse_yaml(&std::fs::read_to_string(path).unwrap()).unwrap();
+    // The assembly is the unit root, visible at every boundary, and still no
+    // name a consumer writes.
+    push(
+        &mut dataset,
+        "/public-api/members",
+        json!({"distribution": "geometry", "entity": "Geometry.assembly",
+               "paths": ["[Geometry]"], "access": "all"}),
+    );
+    let report = validate(&dataset, None);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.rule == "model:public-api-membership-recomputed"
+                && f.message.contains("Geometry.assembly")),
+        "{:#?}",
+        report.findings
+    );
+}
+
+#[test]
 fn a_site_is_in_a_document_of_its_fact_unit() {
     let mut dataset = dataset();
     let mut other = dataset["units"][0].clone();
@@ -1980,7 +2007,16 @@ fn a_report_must_run_under_the_contexts_release() {
         assert_eq!(audited.agreed, 1, "{release}");
     }
     // Another minor release, and a prefix that is not a dotted component.
-    for release in ["1.98.0", "1.9", "1.990"] {
+    // A prerelease or build of the release, which only a context naming it holds.
+    for release in [
+        "1.98.0",
+        "1.9",
+        "1.990",
+        "1.99.0-beta.1",
+        "1.99.0rc1",
+        "1.99.",
+        "1.99..1",
+    ] {
         let audited = audited_with(Some(release));
         let found = compiler_findings(&audited);
         assert!(

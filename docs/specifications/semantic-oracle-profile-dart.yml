@@ -45,14 +45,17 @@ description: |
   | `platform` | `vm`, `js` or `wasm`: the compilation or execution platform. |
   | `entry` | The project-relative path of the entry point the command compiles or runs, or `analysis` for whole-package analysis. |
   | `defines` | The sorted `-D` environment declarations. |
-  | `library-flags` | The sorted `dart.library.*` configuration values that are true on the platform. |
+  | `library-flags` | The sorted `dart.library.*` configuration values that are true for the command: every public library the platform's SDK provides for conditional import in that command, as the SDK's `libraries.json` lists them, so `dart.library.core` too and no `_` library. Empty for `entry: analysis`. |
   | `options` | The sorted command options that change semantics, such as `--enable-asserts`. |
   | `release` | The release parameter: the Dart SDK release as `3.N`, which decides the SDK libraries' members, and so which instance or extension member a reference resolves to, at any language version. |
 
   Each `dart run`, `dart compile` or `dart test` command in the project's
   `build` and `test` tasks defines a context, unless another command defines
   the same parameter values. `dart analyze` defines one context with
-  `entry: analysis` and `platform: vm`.
+  `entry: analysis` and `platform: vm`, the analyzer's SDK. The analyzer
+  treats no `dart.library.*` value as true, so `library-flags` is empty and
+  each configurable directive selects its default URI unless a `-D` in
+  `defines` selects another.
 
   ## Units and distributions
 
@@ -119,7 +122,9 @@ description: |
 
   A field declaration defines the field entity; its implicit getter and
   setter are not separate entities. A library prefix creates a binding, not
-  an entity.
+  an entity. A wildcard parameter, `_` in a library whose language version
+  is 3.7 or later, binds no name and declares no entity; its signature entry
+  has a `type` and no `name`.
 
   ## Declared visibility
 
@@ -149,7 +154,17 @@ description: |
   `export` directives add after `show` and `hide` combinators and
   configuration selection in the context. Members of exported classes,
   mixins, enums, extensions and extension types whose names are public are
-  members of the public API. An entity is a member once per public library
+  members of the public API. The unnamed constructor is one of them, with
+  the consumer path segment `new`, because consumers call it as `C()` and
+  tear it off as `C.new`; a class's synthetic default constructor is
+  therefore a member too. A generative constructor of an enum, named or
+  unnamed, is not a member, because a consumer can neither call nor tear it
+  off: `E()` is an error, "Enums can't be instantiated", and `E.new` is an
+  error, "Enum constructors can't be torn off". An enum's factory
+  constructor is a member, because a consumer calls it as `E.name()` and
+  tears it off. The synthetic `loadLibrary` of a deferred import
+  prefix is not a member, because a consumer cannot name another library's
+  import prefix; it keeps the importing library as its `parent`. An entity is a member once per public library
   that exports it; each such library contributes one consumer path.
 
   ### Signatures
@@ -168,7 +183,7 @@ description: |
   | `field`, `variable`, `final`, `late` | `type`, `modifiers` |
   | `accessor` | `get`, `set`, `modifiers` |
   | `const` | `type`, `value` |
-  | `enum-value` | `type`, for a value of a generic enum |
+  | `enum-value` | `index`, always; `type`, for a value of a generic enum |
 
   Parameter modes: `optional` for an optional positional parameter, `named` for an
   optional named parameter and `required-named` for a `required` one. A required
@@ -197,6 +212,12 @@ description: |
       - {name: T, kind: type, bounds: num}
     receiver: "@{ext.dart.core.List}<T>"
   ```
+
+  `index` of an enum value is its 0-based position among the enum's values in
+  source order, the value of its `index` getter and its position in `values`.
+  Reordering the values changes both, which a consumer that stores an index or
+  reads `values` observes, so a reordering changes `index` and is a break. It is
+  an integer, not a value form, because no consumer writes it as a literal.
 
   `type` of a value of a generic enum is its instantiated type, because a consumer reads
   the value's members at that type: `@{Wrapped}<int>` for `intWrapper<int>(0)`, and
@@ -254,9 +275,18 @@ description: |
 
   A URI string is a value site that spans the string contents without
   quotes; an observation spanning the quotes is accepted. In a configurable
-  import or export, each URI is a site; the directive's selected library in
-  the context is the target of the reference at the selected URI, and the
-  prefix's references target that library.
+  import or export, each URI is a site: an `import` reference, or an
+  `export` reference for an export directive, to the library that URI
+  names, whether or not the context selects that URI. The reference exists
+  in each context that builds both the directive's own library, which holds
+  the site, and the library the URI names: the intersection of their
+  contexts, because a reference cannot target an entity outside its
+  context. Across its contexts, the directive so depends on every library
+  it can select that some declared context builds; a library that no
+  declared context builds, such as a `dart:html` alternative in a project
+  with no web context, has no reference. The directive's selected library
+  is the one the prefix's references, its combinators and the export
+  namespace follow.
 
   A constructor invocation targets the constructor entity; the class name
   token in `C.named()` is a `qualifier` to the class. Equivalence rule
