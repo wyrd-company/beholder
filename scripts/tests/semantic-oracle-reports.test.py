@@ -939,6 +939,23 @@ def dart_empty_condition(tmp):
             ["package:empty/pick.dart", "dart.library.io", "dart compile kernel"])
 
 
+def dart_first_match(tmp):
+    """Each tool takes a directive's first configuration that holds, so a later one
+    the two read differently does not matter."""
+    project = os.path.join(tmp, "dart-first-match")
+    write(project, {
+        "pubspec.yaml": "name: first\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/stub.dart": "class Stub {}\n",
+        "lib/first.dart": "class First {}\n",
+        "lib/second.dart": "class Second {}\n",
+        "lib/pick.dart": "export 'stub.dart'\n    if (dart.library.io) 'first.dart'\n    if (dart.library.io == '') 'second.dart';\n",
+        "bin/main.dart": "import 'package:first/pick.dart';\n\nvoid main() {}\n",
+    })
+    out = os.path.join(tmp, "dart-first-match.json")
+    _, found = run("dart-first-match", dart_command(project, out, "vm", "bin/main.dart", "vm", "--library-flag", "dart.library.io"), project, out)
+    assert "package:first/first.dart::First" in found, sorted(found)
+
+
 def dart_dependency_platform(tmp):
     """The platform check reads the packages a project depends on; members are
     reported for project libraries only."""
@@ -1122,7 +1139,7 @@ def main():
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
                      dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors,
-                     dart_empty_condition):
+                     dart_empty_condition, dart_first_match):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

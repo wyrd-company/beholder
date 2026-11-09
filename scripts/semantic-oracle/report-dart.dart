@@ -649,10 +649,12 @@ Future<void> main(List<String> arguments) async {
   };
 
   var declared = <String, String>{};
+  var defined = <String, String>{};
   for (var define in repeated(arguments, 'define')) {
     var at = define.indexOf('=');
     if (at <= 0) fail('--define $define is not NAME=VALUE');
     declared[define.substring(0, at)] = define.substring(at + 1);
+    defined[define.substring(0, at)] = define.substring(at + 1);
   }
   for (var flag in repeated(arguments, 'library-flag')) {
     declared[flag] = 'true';
@@ -733,28 +735,40 @@ Future<void> main(List<String> arguments) async {
       if (entry != 'analysis') {
         for (var directive
             in unit.unit.directives.whereType<NamespaceDirective>()) {
-          for (var configuration in directive.configurations) {
+          // Each tool takes the first configuration that holds, else the
+          // directive's own URI. The analyzer reads the declared variables and
+          // an empty tested value as `true`. The compiler reads its platform's
+          // `dart.library.*` values, which a define does not override, the
+          // context's defines for other names, and compares as written.
+          int? analyzerChoice, compilerChoice;
+          var configurations = directive.configurations;
+          for (var i = 0; i < configurations.length; i++) {
+            var configuration = configurations[i];
             // The name's tokens include its periods.
             var name = configuration.name.tokens
                 .map((token) => token.lexeme)
                 .join();
-            if (!name.startsWith('dart.library.')) continue;
-            // The analyzer selects by the declared value; the compiler by its
-            // platform, which a define does not override: `true` or unset.
-            // The analyzer reads an empty tested value as `true`; the compiler
-            // compares it as written.
             var tested = configuration.value?.stringValue ?? 'true';
             var analyzed = tested.isEmpty ? 'true' : tested;
-            var assumed = declared[name] == analyzed;
-            var compiled = conditional.contains(name) && tested == 'true';
-            if (assumed != compiled) {
-              fail(
-                '${unitName(unit)} tests $name == $tested, which the context\'s '
-                'library flags ${assumed ? 'select' : 'do not select'} and '
-                '`dart compile $compile` for $platform '
-                '${compiled ? 'selects' : 'does not select'}',
-              );
+            var compiledValue = name.startsWith('dart.library.')
+                ? (conditional.contains(name) ? 'true' : null)
+                : defined[name];
+            if (analyzerChoice == null && declared[name] == analyzed) {
+              analyzerChoice = i;
             }
+            if (compilerChoice == null && compiledValue == tested) {
+              compilerChoice = i;
+            }
+          }
+          if (analyzerChoice != compilerChoice) {
+            String chosen(int? i) => i == null
+                ? 'its default ${directive.uri.toSource()}'
+                : '`${configurations[i].toSource()}`';
+            fail(
+              '${unitName(unit)}: the context\'s library flags and defines select '
+              '${chosen(analyzerChoice)}, but `dart compile $compile` for '
+              '$platform selects ${chosen(compilerChoice)}',
+            );
           }
         }
       }
