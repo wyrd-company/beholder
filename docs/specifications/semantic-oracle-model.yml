@@ -1025,7 +1025,9 @@ description: |
   A report states `release`, the toolchain release it ran under, in the form of
   the profile's release parameter. It answers for a context only when its
   `release` equals the context's release parameter, or extends it with further
-  dot-separated components, as `go1.27.3` extends `go1.27`. Otherwise, or when
+  dot-separated numeric components, as `go1.27.3` extends `go1.27`. A prerelease
+  or build such as `3.14.0rc1` or `5.9.0-beta` extends nothing: it answers only
+  for a context that names it. Otherwise, or when
   it states none, the audit reports an error and the report's slots stay
   `unchecked` for that context. A context states its release at the precision
   its meaning needs, so a later patch release can check it and a later minor

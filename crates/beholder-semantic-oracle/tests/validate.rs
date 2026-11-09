@@ -2007,7 +2007,16 @@ fn a_report_must_run_under_the_contexts_release() {
         assert_eq!(audited.agreed, 1, "{release}");
     }
     // Another minor release, and a prefix that is not a dotted component.
-    for release in ["1.98.0", "1.9", "1.990"] {
+    // A prerelease or build of the release, which only a context naming it holds.
+    for release in [
+        "1.98.0",
+        "1.9",
+        "1.990",
+        "1.99.0-beta.1",
+        "1.99.0rc1",
+        "1.99.",
+        "1.99..1",
+    ] {
         let audited = audited_with(Some(release));
         let found = compiler_findings(&audited);
         assert!(
