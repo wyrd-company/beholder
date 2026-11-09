@@ -1042,6 +1042,11 @@ def dart_ignored_errors(tmp):
     tree_unchanged(project, before)
     # `dart analyze`, the analysis context's tool, reports no issue either.
     done = subprocess.run(["dart", "analyze"], cwd=project, capture_output=True, text=True)
+    if done.returncode != 0 and "Too many open files" in done.stdout + done.stderr:
+        # The analysis server watches files; with the host's inotify instances
+        # used up it cannot start, which says nothing about the project.
+        print("SKIPPED dart_ignored_errors: dart analyze cannot start (inotify limit reached)", file=sys.stderr)
+        return
     assert done.returncode == 0 and "No issues found" in done.stdout, done.stdout + done.stderr[-2000:]
 
 
