@@ -741,8 +741,11 @@ Future<void> main(List<String> arguments) async {
             if (!name.startsWith('dart.library.')) continue;
             // The analyzer selects by the declared value; the compiler by its
             // platform, which a define does not override: `true` or unset.
+            // The analyzer reads an empty tested value as `true`; the compiler
+            // compares it as written.
             var tested = configuration.value?.stringValue ?? 'true';
-            var assumed = declared[name] == tested;
+            var analyzed = tested.isEmpty ? 'true' : tested;
+            var assumed = declared[name] == analyzed;
             var compiled = conditional.contains(name) && tested == 'true';
             if (assumed != compiled) {
               fail(

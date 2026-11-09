@@ -923,6 +923,22 @@ def dart_build_failure(tmp):
             os.path.join(project, "out.json"), ["inside the project tree"])
 
 
+def dart_empty_condition(tmp):
+    """The analyzer reads `== ''` as `== 'true'`, the compiler as written: the
+    report refuses a context where the two select different branches."""
+    project = os.path.join(tmp, "dart-empty-condition")
+    write(project, {
+        "pubspec.yaml": "name: empty\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+        "lib/stub.dart": "class Stub {}\n",
+        "lib/selected.dart": "class Selected {}\n",
+        "lib/pick.dart": "export 'stub.dart' if (dart.library.io == '') 'selected.dart';\n",
+        "bin/main.dart": "import 'package:empty/pick.dart';\n\nvoid main() {}\n",
+    })
+    out = os.path.join(tmp, "dart-empty-condition.json")
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm", "--library-flag", "dart.library.io"), project, out,
+            ["package:empty/pick.dart", "dart.library.io", "dart compile kernel"])
+
+
 def dart_dependency_platform(tmp):
     """The platform check reads the packages a project depends on; members are
     reported for project libraries only."""
@@ -1105,7 +1121,8 @@ def main():
         rust_check_reading()
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
-                     dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors):
+                     dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors,
+                     dart_empty_condition):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
