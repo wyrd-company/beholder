@@ -10,12 +10,14 @@ ran. C# and Dart have no script until their toolchains exist."""
 import importlib.util
 import json
 import os
+import pathlib
 import platform
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 
 sys.dont_write_bytecode = True
 
@@ -778,6 +780,83 @@ def go_module_flag(tmp):
         tree_unchanged(project, files)
 
 
+def snapshot(root):
+    found = {}
+    for path in listing(root):
+        with open(path, "rb") as source:
+            found[path] = source.read()
+    return found
+
+
+def go_proxy(tmp, name):
+    """An offline module proxy, served as files, holding `example.com/x v1.0.0`:
+    a module the go command downloads, so it has a checksum to record."""
+    proxy = os.path.join(tmp, name)
+    module, version = "example.com/x", "v1.0.0"
+    versions = os.path.join(proxy, module, "@v")
+    gomod = f"module {module}\n\ngo 1.21\n"
+    write(versions, {
+        "list": version + "\n",
+        f"{version}.info": json.dumps({"Version": version, "Time": "2020-01-01T00:00:00Z"}),
+        f"{version}.mod": gomod,
+    })
+    with zipfile.ZipFile(os.path.join(versions, f"{version}.zip"), "w") as archive:
+        archive.writestr(f"{module}@{version}/go.mod", gomod)
+        archive.writestr(f"{module}@{version}/x.go", "package x\n\nconst V = 1\n")
+    return pathlib.Path(proxy).as_uri()
+
+
+def go_workspace_sums(tmp):
+    """`-mod=readonly` does not stop the go command recording a missing checksum in
+    `go.work.sum`: in workspace mode the report runs against a copy of `go.work`
+    outside the project, and leaves the tree byte for byte as it was, with or
+    without a `go.work.sum`, and removes the copy. A vendored workspace, whose
+    `vendor/modules.txt` names its local replacements relative to `go.work`, keeps
+    its own `go.work` and records nothing."""
+    proxy = go_proxy(tmp, "go-sums-proxy")
+    temporary = os.path.join(tmp, "go-sums-tmp")
+    os.makedirs(temporary)
+    os.makedirs(os.path.join(tmp, "go-sums-gotmp"))
+    env = dict(os.environ, GOPROXY=proxy, GOSUMDB="off", GOFLAGS="-modcacherw", GOTOOLCHAIN="local",
+               GOMODCACHE=os.path.join(tmp, "go-sums-cache"), GOTMPDIR=os.path.join(tmp, "go-sums-gotmp"), TMPDIR=temporary, TMP=temporary, TEMP=temporary)
+    root = os.path.join(tmp, "go-sums")
+    write(root, {
+        "go.work": "go 1.21\n\nuse ./project\n\nreplace example.com/y => ./y\n",
+        "project/go.mod": "module example.com/p\n\ngo 1.21\n\nrequire (\n\texample.com/x v1.0.0\n\texample.com/y v0.0.0\n)\n",
+        "project/p.go": "package p\n\nimport (\n\t\"example.com/x\"\n\t\"example.com/y\"\n)\n\nconst V = x.V + y.W\n",
+        "project/p_test.go": "package p\n\nimport \"testing\"\n\nfunc TestV(t *testing.T) {}\n",
+        "y/go.mod": "module example.com/y\n\ngo 1.21\n",
+        "y/y.go": "package y\n\nconst W = 2\n",
+    })
+    command = ["go", "run", os.path.join(SCRIPTS, "report-go.go"), "-patterns", "./project/...", "-out"]
+    def report(name, mode, cwd, environment):
+        out = os.path.join(tmp, f"go-sums-{name}-{mode}.json")
+        started = time.monotonic()
+        done = subprocess.run(command + [out, "-context", mode, "-mode", mode], cwd=cwd, env=environment, capture_output=True, text=True)
+        TIMES[f"go-sums-{name}-{mode}"] = round(time.monotonic() - started, 2)
+        assert done.returncode == 0, f"{name} {mode}: " + done.stderr + done.stdout
+        _, found = members(out)
+        expect(found, "example.com/p.V", "type", "untyped int")
+        assert os.listdir(temporary) == [], f"{name} {mode}: the workspace copy remains: {os.listdir(temporary)}"
+    for name, sums in (("unrecorded", None), ("recorded", "example.com/z v1.0.0/go.mod h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n")):
+        if sums is not None:
+            write(root, {"go.work.sum": sums})
+        before = snapshot(root)
+        for mode in ("build", "test"):
+            report(name, mode, root, env)
+            assert snapshot(root) == before, f"{name} {mode}: the report wrote into the workspace: {sorted(set(snapshot(root)) ^ set(before))}"
+    vendored = os.path.join(tmp, "go-sums-vendored")
+    shutil.copytree(root, vendored)
+    subprocess.run(["go", "work", "vendor"], cwd=vendored, env=env, check=True, capture_output=True)
+    os.remove(os.path.join(vendored, "go.work.sum"))
+    before = snapshot(vendored)
+    # Vendor mode reads no module: no proxy, no module cache.
+    offline = dict(env, GOPROXY="off", GOMODCACHE=os.path.join(tmp, "go-sums-empty-cache"))
+    for mode in ("build", "test"):
+        report("vendored", mode, vendored, offline)
+        assert snapshot(vendored) == before, f"vendored {mode}: the report wrote into the workspace"
+
+
 def go_workspace(tmp):
     """From a `go.work` root, `./...` matches no module: the report exits nonzero
     and writes nothing, and the context's patterns report every module."""
@@ -1107,7 +1186,7 @@ def main():
     try:
         rust_check_reading()
         rust_toolchain_selection(tmp)
-        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_dependency_build_failure, go_build_every_package, go_test_binaries_same_name, go_module_flag, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
+        for test in (rust, rust_workspace, rust_build_failures, go, go_test_graph, go_test_binaries, go_replaced_module, go_dependency_build_failure, go_build_every_package, go_test_binaries_same_name, go_module_flag, go_workspace_sums, go_workspace, go_cgo, go_listing_errors, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

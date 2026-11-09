@@ -18,7 +18,9 @@
 // no-op in place of each test binary, and a context that does not build exits
 // nonzero with the build's output. It refuses `-mod=mod`, which would rewrite
 // `go.mod`, and otherwise loads with `-mod=readonly` unless a vendor directory is
-// in use.
+// in use. In workspace mode it runs against a copy of `go.work` outside the
+// project, so that a checksum the go command records lands in no `go.work.sum` of
+// the project.
 package main
 
 import (
@@ -35,10 +37,13 @@ import (
 	"math/big"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
+	"syscall"
 )
 
 // listed is one package of `go list -deps [-test] -json`. A test binary's
@@ -573,7 +578,7 @@ func compile(testing bool, module []string, tags, patterns string) {
 		self, err := os.Executable()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "report-go: cannot name this program as go test's -exec:", err)
-			os.Exit(2)
+			exit(2)
 		}
 		// The go command splits -exec on spaces, outside quotes.
 		quoted := "'" + self + "'"
@@ -593,9 +598,9 @@ func compile(testing bool, module []string, tags, patterns string) {
 	build.Env = environment
 	built, err := build.CombinedOutput()
 	if err != nil {
-		os.Stderr.Write(built)
+		os.Stderr.WriteString(named(string(built)))
 		fmt.Fprintf(os.Stderr, "report-go: go %s failed (%v): the context does not build, and no report is written\n", strings.Join(arguments[:len(arguments)-len(strings.Fields(patterns))], " "), err)
-		os.Exit(2)
+		exit(2)
 	}
 }
 
@@ -605,16 +610,23 @@ func compile(testing bool, module []string, tags, patterns string) {
 // requirement to `go.mod` and `go.sum`, so it exits. Otherwise, unless a vendor
 // directory is in use, it is `-mod=readonly`, so a missing requirement fails the
 // load rather than being added; `-mod=vendor`, set or implied, stays as it is.
+//
+// `-mod=readonly` does not stop a workspace's writes: the go command records a
+// checksum it lacks in `go.work.sum`, beside `go.work`. In workspace mode, unless
+// the vendor directory is in use, every later go command of the report runs
+// against a copy of `go.work` outside the project, from `copyWorkspace`. Vendor
+// mode reads no module cache and records no checksum, and its `vendor/modules.txt`
+// must lie beside `go.work`, so it keeps the project's own.
 func moduleFlag() []string {
 	queried, err := exec.Command("go", "env", "-json", "GOFLAGS", "GOMOD", "GOWORK").Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "report-go: go env:", err)
-		os.Exit(2)
+		exit(2)
 	}
 	env := map[string]string{}
 	if err := json.Unmarshal(queried, &env); err != nil {
 		fmt.Fprintln(os.Stderr, "report-go: go env:", err)
-		os.Exit(2)
+		exit(2)
 	}
 	// The go command takes the last of repeated flags.
 	mode := ""
@@ -625,28 +637,148 @@ func moduleFlag() []string {
 			}
 		}
 	}
-	switch mode {
-	case "mod":
+	if mode == "mod" {
 		fmt.Fprintln(os.Stderr, "report-go: GOFLAGS sets -mod=mod, which would modify the project's go.mod and go.sum, so the context cannot be checked as written; unset it, or set -mod=readonly")
-		os.Exit(2)
-	case "":
-	default:
-		// readonly, vendor, or a value the go command itself rejects.
-		return nil
+		exit(2)
+	}
+	// `go env GOWORK` is `off` when GOWORK disables workspace mode.
+	work := env["GOWORK"]
+	if work == "off" {
+		work = ""
 	}
 	root := ""
-	if env["GOWORK"] != "" {
-		root = filepath.Dir(env["GOWORK"])
+	if work != "" {
+		root = filepath.Dir(work)
 	} else if env["GOMOD"] != "" && env["GOMOD"] != os.DevNull {
 		root = filepath.Dir(env["GOMOD"])
 	}
-	if root == "" {
-		return nil
+	vendored := mode == "vendor"
+	if mode == "" && root != "" {
+		info, err := os.Stat(filepath.Join(root, "vendor"))
+		vendored = err == nil && info.IsDir()
 	}
-	if info, err := os.Stat(filepath.Join(root, "vendor")); err == nil && info.IsDir() {
+	if work != "" && !vendored {
+		copyWorkspace(work)
+	}
+	if mode != "" || root == "" || vendored {
+		// readonly, vendor, or a value the go command itself rejects.
 		return nil
 	}
 	return []string{"-mod=readonly"}
+}
+
+// workFile is `go work edit -json`'s form of a `go.work`.
+type workFile struct {
+	Go        string
+	Toolchain string
+	Godebug   []struct{ Key, Value string }
+	Use       []struct{ DiskPath string }
+	Replace   []struct {
+		Old struct{ Path, Version string }
+		New struct{ Path, Version string }
+	}
+}
+
+// temporary is the directory of the workspace copy, removed at exit.
+var temporary string
+
+// rewrites name the workspace copy's files, then the project's, so that a
+// message names the project's own files.
+var rewrites []string
+
+// exit removes the workspace copy, and exits.
+func exit(code int) {
+	if temporary != "" {
+		os.RemoveAll(temporary)
+	}
+	os.Exit(code)
+}
+
+// named rewrites a go command's message to name the project's files.
+func named(message string) string {
+	return strings.NewReplacer(rewrites...).Replace(message)
+}
+
+// copyWorkspace writes `go.work` into a temporary directory, with its `go`,
+// `toolchain` and `godebug` lines and its replaces, its `use` directories and
+// local replacements made absolute, so that each module keeps its path and
+// directory, and its `go.work.sum` beside it, and points GOWORK at the copy. A
+// checksum the go command records lands in the copy, which exit removes.
+func copyWorkspace(work string) {
+	edited, err := exec.Command("go", "work", "edit", "-json", work).Output()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
+		exit(2)
+	}
+	var parsed workFile
+	if err := json.Unmarshal(edited, &parsed); err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: go work edit -json", work+":", err)
+		exit(2)
+	}
+	root := filepath.Dir(work)
+	absolute := func(path string) string {
+		if filepath.IsAbs(path) {
+			return path
+		}
+		return filepath.Join(root, path)
+	}
+	text := &strings.Builder{}
+	if parsed.Go != "" {
+		fmt.Fprintf(text, "go %s\n", parsed.Go)
+	}
+	if parsed.Toolchain != "" {
+		fmt.Fprintf(text, "toolchain %s\n", parsed.Toolchain)
+	}
+	for _, setting := range parsed.Godebug {
+		fmt.Fprintf(text, "godebug %s=%s\n", setting.Key, setting.Value)
+	}
+	for _, use := range parsed.Use {
+		fmt.Fprintf(text, "use %s\n", strconv.Quote(absolute(use.DiskPath)))
+	}
+	for _, replace := range parsed.Replace {
+		old := strconv.Quote(replace.Old.Path)
+		if replace.Old.Version != "" {
+			old += " " + replace.Old.Version
+		}
+		// A replacement without a version is a directory.
+		replacement := strconv.Quote(replace.New.Path)
+		if replace.New.Version == "" {
+			replacement = strconv.Quote(absolute(replace.New.Path))
+		} else {
+			replacement += " " + replace.New.Version
+		}
+		fmt.Fprintf(text, "replace %s => %s\n", old, replacement)
+	}
+	temporary, err = os.MkdirTemp("", "report-go-work-")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: cannot create the workspace copy:", err)
+		exit(2)
+	}
+	copied := filepath.Join(temporary, "go.work")
+	if err := os.WriteFile(copied, []byte(text.String()), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, "report-go: cannot write the workspace copy:", err)
+		exit(2)
+	}
+	if sums, err := os.ReadFile(work + ".sum"); err == nil {
+		if err := os.WriteFile(copied+".sum", sums, 0o644); err != nil {
+			fmt.Fprintln(os.Stderr, "report-go: cannot write the workspace copy:", err)
+			exit(2)
+		}
+	} else if !os.IsNotExist(err) {
+		fmt.Fprintln(os.Stderr, "report-go: cannot read", work+".sum:", err)
+		exit(2)
+	}
+	// Each go command the report runs, `go test`'s included, inherits GOWORK.
+	os.Setenv("GOWORK", copied)
+	rewrites = []string{copied, work, temporary, root}
+	// A signal stops the go command it interrupts too, and the report removes
+	// the copy.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-signals
+		exit(2)
+	}()
 }
 
 func main() {
@@ -661,13 +793,13 @@ func main() {
 	flag.Parse()
 	if *mode != "build" && *mode != "test" {
 		fmt.Fprintln(os.Stderr, "report-go: -mode is build or test, not", *mode)
-		os.Exit(2)
+		exit(2)
 	}
 	if absolute, err := filepath.Abs(*out); err == nil {
 		root, _ := os.Getwd()
 		if strings.HasPrefix(absolute, root+string(filepath.Separator)) {
 			fmt.Fprintln(os.Stderr, "report-go: -out", absolute, "lies inside the project tree")
-			os.Exit(2)
+			exit(2)
 		}
 		os.Remove(absolute)
 	}
@@ -685,8 +817,11 @@ func main() {
 	arguments = append(arguments, strings.Fields(*patterns)...)
 	listing, err := exec.Command("go", arguments...).Output()
 	if err != nil {
+		if failed, ok := err.(*exec.ExitError); ok {
+			os.Stderr.WriteString(named(string(failed.Stderr)))
+		}
 		fmt.Fprintln(os.Stderr, "go list:", err)
-		os.Exit(2)
+		exit(2)
 	}
 	decoder := json.NewDecoder(strings.NewReader(string(listing)))
 	fileset := token.NewFileSet()
@@ -704,13 +839,13 @@ func main() {
 		var unit listed
 		if err := decoder.Decode(&unit); err != nil {
 			fmt.Fprintln(os.Stderr, "go list:", err)
-			os.Exit(2)
+			exit(2)
 		}
 		if unit.Error != nil {
-			problems = append(problems, unit.ImportPath+": "+unit.Error.Err)
+			problems = append(problems, unit.ImportPath+": "+named(unit.Error.Err))
 		}
 		for _, dependency := range unit.DepsErrors {
-			problems = append(problems, unit.ImportPath+": "+dependency.Err)
+			problems = append(problems, unit.ImportPath+": "+named(dependency.Err))
 		}
 		if unit.Standard {
 			continue
@@ -734,7 +869,7 @@ func main() {
 		for _, problem := range problems {
 			fmt.Fprintln(os.Stderr, "go list:", problem)
 		}
-		os.Exit(2)
+		exit(2)
 	}
 	// A pattern or package the go command cannot load fails the build, so a
 	// report of the rest would certify a context that does not build.
@@ -743,7 +878,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "go list:", problem)
 		}
 		fmt.Fprintln(os.Stderr, "report-go: the go command cannot load every package of the context")
-		os.Exit(2)
+		exit(2)
 	}
 	// A package that fails to type-check stops the report: nothing it would
 	// state was checked.
@@ -751,7 +886,7 @@ func main() {
 		checked, err := checker.load(id)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "report-go:", id+":", err)
-			os.Exit(2)
+			exit(2)
 		}
 		return checked
 	}
@@ -827,7 +962,8 @@ func main() {
 	encoded, _ := json.MarshalIndent(report, "", " ")
 	if err := os.WriteFile(*out, encoded, 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		exit(2)
 	}
 	fmt.Printf("{\"members\": %d}\n", len(ordered))
+	exit(0)
 }
