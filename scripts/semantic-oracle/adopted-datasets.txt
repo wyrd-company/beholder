@@ -1,5 +1,8 @@
 # Datasets that must hold the current `public-api` shape, relative to the fixtures
 # checkout. The commit that moves the `fixtures` pin to a migrated dataset lists it here.
+fixtures/csharp/projects/members-and-operators
+fixtures/dart/projects/libraries-and-visibility
+fixtures/go/projects/package-structure
 fixtures/python/projects/diagnostics-toolkit
 fixtures/python/projects/plugin-content-library
 fixtures/rust/projects/modules-visibility-and-resolution
