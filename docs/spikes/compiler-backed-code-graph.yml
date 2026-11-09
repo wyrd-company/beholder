@@ -1,0 +1,895 @@
+$schema: "https://refinery.systems/ontology/spike"
+title: "Compiler-backed code graph providers and model"
+relationships:
+  references:
+    - "scip-tree-sitter-spike"
+objective:
+  - >-
+    Which existing systems, research, and commercial tools have solved useful parts of
+    build capture, semantic extraction, code graph modeling, or coupling analysis?
+  - >-
+    Which provider patterns can obtain compiler-resolved symbols and relationships from
+    a configured build without binding Beholder to one language or compiler
+    architecture?
+  - >-
+    What language-neutral code graph model preserves the detail needed to answer direct
+    dependency, transitive dependency, and coupling questions at type, function, method,
+    and member boundaries?
+  - >-
+    What coverage, provenance, and uncertainty must accompany the graph so that every
+    answer states which build and which known evidence support it?
+  - >-
+    Which concepts, interfaces, schemas, tests, or implementations are suitable for
+    reuse after their licenses and transitive dependencies are examined?
+  - >-
+    Can a working provider and consumer prove the proposed boundary against a real build
+    and expose Beholder analysis without compiler-specific knowledge?
+background:
+  current-design: >-
+    Beholder is a structural index of a codebase. It discovers named code symbols,
+    measures cognitive complexity, resolves reference relationships, and derives fan-in,
+    fan-out, cohesion, and change-oriented analysis. Its built-in resolver uses
+    tree-sitter syntax, imports, qualifiers, and naming heuristics. It can also compare
+    its relationships with externally resolved indexes. The current graph records useful
+    evidence, but it lacks the type information needed to resolve many method calls and
+    other language semantics reliably.
+  problems:
+    - >-
+      A syntax-only resolver cannot reliably determine receiver types, overloads, trait
+      or interface dispatch, generated symbols, conditional compilation, or whether an
+      imported name belongs to the workspace.
+    - >-
+      A compiler-backed tool can still describe only the files and configuration it
+      analyzed. Existing semantic indexes also differ in document coverage, relationship
+      detail, validation, and treatment of generated or external code.
+    - >-
+      The possible solution space extends beyond build plugins and language servers.
+      Compiler services, build tracing, bytecode analysis, security databases, code
+      property graphs, architecture tools, research systems, and proprietary products
+      each address different parts of the problem.
+    - >-
+      Some useful references are closed source or use licenses that may constrain reuse.
+      Architectural learning, behavioral comparison, schema reuse, and code reuse
+      require different evidence and different license treatment.
+    - >-
+      A graph designed around one compiler can hide language-specific assumptions inside
+      its supposedly shared symbol identity, edge kinds, build model, or completeness
+      claims.
+scope:
+  target-languages:
+    - "Rust"
+    - "Go"
+    - "TypeScript"
+    - "Python"
+    - "Dart"
+    - "C#"
+  target-expectation: >-
+    All six languages are first-class targets for the code graph model and provider
+    architecture. The spike selects one end-to-end provider based on the strength of
+    evidence it can produce, then challenges the shared model against representative
+    semantic output from every target language. Its conclusion identifies a viable
+    acquisition path and explicit limits for each language.
+  language-context:
+    rust: >-
+      Rust analysis must account for Cargo workspaces and targets, features and
+      conditional compilation, macro expansion, traits, generics, and method dispatch.
+    go: >-
+      Go analysis must account for modules and workspaces, build constraints, package
+      variants, interfaces, method sets, embedding, and generated code.
+    typescript: >-
+      TypeScript analysis must account for tsconfig projects and references, monorepo
+      package resolution, declaration merging, overloads, structural typing, generated
+      declarations, and type-only relationships.
+    python: >-
+      Python analysis must account for interpreter environments, import and package
+      resolution, type annotations and stubs, and behavior that static type checkers
+      cannot resolve because it is determined at runtime.
+    dart: >-
+      Dart analysis must account for pub workspaces, Dart and Flutter build contexts,
+      conditional imports, libraries and parts, extensions, generics, and generated
+      code.
+    csharp: >-
+      C# analysis must account for .NET and MSBuild project graphs, target frameworks,
+      project and assembly references, source generators, partial declarations,
+      overloads, generics, interfaces, and virtual dispatch.
+ideas:
+  - >-
+    Separate the problem into build capture, semantic extraction, graph representation,
+    and analysis. Evaluate references against the part they solve instead of requiring
+    one project to solve all four.
+  - >-
+    Survey compiler and intermediate-representation tooling, build and
+    incremental-computation systems, language servers and IDE indexes, semantic index
+    formats, static and security analysis systems, architecture and coupling tools,
+    bytecode analyzers, graph query systems, academic work, and documented commercial
+    behavior.
+  - >-
+    Classify each reference as conceptual, behavioral, or implementation-level. Concepts
+    can inform the design; behavior can supply comparison cases; schemas, tests,
+    libraries, or code become implementation inputs only after license review.
+  - >-
+    Treat compiler plugins, build tasks, build interception, compilation databases,
+    build servers, semantic workspaces, compiler output readers, and standalone
+    analyzers as provider candidates behind one contract.
+  - >-
+    Model every compilation input as code. Project purpose is not part of the
+    foundational graph; the configured build determines which code appears.
+  - >-
+    Keep observed facts separate from derived analysis. Providers emit definitions,
+    relationships, locations, build identity, diagnostics, and unresolved cases.
+    Beholder derives dependency and coupling measurements from those records.
+  - >-
+    Select the first end-to-end provider after the reference review. Exercise the shared
+    model against representative semantic output from every target language before
+    accepting any compiler-specific concept as foundational.
+  - >-
+    Retain SCIP and tree-sitter only when the evidence shows that they remain useful
+    providers, fallbacks, validation sources, or syntax inputs.
+environment:
+  location: >-
+    Beholder repository; prototype and supporting research retained at commit
+    8e8f1366120f045681e878cee5f4a2013d5b6896
+  tools:
+    - "Beholder Rust workspace and command-line interface"
+    - "Git"
+    - "Task"
+    - "Compiler and build toolchains selected by the reference review"
+    - >-
+      Upstream validation and license inspection commands supplied by each candidate
+      project
+  resources:
+    - "docs/overview.md"
+    - "docs/resolver-accuracy.md"
+    - >-
+      https://github.com/wyrd-company/beholder/tree/8e8f1366120f045681e878cee5f4a2013d5b6896/crates/beholder-code-graph-spike
+    - >-
+      https://github.com/wyrd-company/beholder/tree/8e8f1366120f045681e878cee5f4a2013d5b6896/docs/spikes/compiler-backed-code-graph
+    - >-
+      Related SCIP/tree-sitter research at commit
+      c98d422fc22b3bb93936c6d69bb888ae93efac30; harness repository and setup
+      have not been recovered. The scip-tree-sitter-spike reference is not
+      available in this repository.
+    - "https://refinery.systems/ontology/spike"
+    - >-
+      Official documentation, source repositories, specifications, and published papers
+      cited in the findings.
+protocol:
+  reference-landscape: >-
+    Build a reference matrix organized by problem solved rather than product category.
+    For each candidate, record its inputs, build integration, semantic engine, graph or
+    data model, supported queries, incremental model, completeness claims, treatment of
+    ambiguity, implementation language, extension points, maintenance status, and known
+    production use. Include open, proprietary, and academic systems when their behavior
+    or design adds evidence.
+  reference-use: >-
+    Label every influence as conceptual, behavioral, or implementation-level. Record the
+    exact source for each adopted term or mechanism. Do not copy source code, schemas,
+    generated files, or tests from closed or unapproved implementations.
+  licensing: >-
+    Record the declared license, relevant file-level exceptions, transitive runtime and
+    build dependencies, generated-code terms, and distribution implications for every
+    implementation candidate. Treat the record as engineering evidence rather than a
+    legal conclusion. Escalate unclear or incompatible terms before implementation
+    reuse.
+  model: >-
+    Define a versioned provider output that identifies the configured build, compilation
+    units, source locations, semantic symbols, and typed directed relationships. Every
+    record identifies its producer and evidence. The output distinguishes resolved,
+    ambiguous, external, and unknown cases and states the provider's analyzed scope.
+    Derived measurements are not stored as compiler facts.
+  prototype: >-
+    Run one selected provider against a real configured build and translate its semantic
+    output into the candidate model. Consume that output through a Beholder-facing
+    library or command without compiler-specific types. Use the resulting graph to list
+    what a selected symbol directly relies on, what directly relies on it, and the
+    reachable dependants in each direction.
+  coupling-analysis: >-
+    Calculate distinct incoming and outgoing neighbours, transitive reach, dependency
+    cycles, connected regions, and bridge position from the emitted graph. Preserve the
+    underlying nodes and edges for every reported value so a consumer can explain the
+    result. Do not combine these measurements into a risk classification.
+  comparison: >-
+    Use controlled fixtures with known relationships and at least one real repository.
+    Compare provider output with compiler-native navigation or analysis operations where
+    available. Record disagreements as evidence about scope, configuration, identity, or
+    extraction rather than assuming either side is authoritative.
+completion-evidence:
+  - >-
+    A reference matrix covers the wider solution landscape and distinguishes conceptual
+    learning, behavioral comparison, and implementation reuse.
+  - >-
+    Every implementation candidate has a recorded license and dependency assessment
+    proportionate to how it may be used.
+  - >-
+    A candidate graph model represents one real compiler-backed build without embedding
+    that compiler's native types in the consumer interface.
+  - >-
+    The model is challenged with representative semantic output from Rust, Go,
+    TypeScript, Python, Dart, and C#, and any language-shaped assumptions are recorded.
+  - >-
+    The conclusion identifies a viable semantic acquisition path, build context,
+    coverage boundary, and known limits for each target language.
+  - >-
+    Direct and transitive dependency queries return inspectable paths for selected
+    symbols.
+  - >-
+    Coupling measurements can be reproduced from stored nodes and edges without hidden
+    provider state.
+  - >-
+    The graph records build identity, analyzed scope, provenance, ambiguity, unknowns,
+    and validation results.
+  - >-
+    The conclusion recommends a provider architecture, code graph boundary, licensing
+    posture, and disposition for Beholder's existing SCIP and tree-sitter components.
+findings:
+  provider-architecture:
+    rating: "GREEN"
+    notes: |-
+      A build-aware subprocess or native provider can emit an immutable evidence snapshot
+      behind one language-neutral contract. Build capture, semantic extraction, transport
+      adaptation, graph projection, and derived analysis remain separate responsibilities.
+
+      The provider boundary accepts a build request identifying repository state and
+      configuration, and returns a neutral evidence snapshot. Compiler models,
+      language-server handles, database entities and SCIP messages remain inside the
+      adapter. The wrapper supplies build configuration, revision, inventory, diagnostics
+      and validation absent from SCIP.
+  neutral-model:
+    rating: "YELLOW"
+    notes: >-
+      The model represented compiler-backed output from Rust, Go, TypeScript, Python,
+      Dart, and C#. Snapshot-local identity, document evidence instances, typed
+      outcomes, explicit scope, provenance, diagnostics, and validation were necessary
+      to prevent unsafe joins and false completeness. The production schema must link
+      local symbols and evidence to compilation units before repeated paths from
+      configured project variants can remain distinct.
+  scip-adapter:
+    rating: "YELLOW"
+    notes: >-
+      SCIP is a useful transport and symbol grammar. It does not carry complete build
+      identity, compilation units, analyzed-scope accounting, or native ambiguity. All
+      six pinned compiler-backed indexes failed upstream lint, and provider behavior
+      differed materially by language.
+  real-build-prototype:
+    verdict: "confirmed-working"
+    notes: |-
+      The rust-analyzer vertical slice imported a real configured Cargo build and served
+      direct, reverse, and transitive paths plus reproducible coupling analysis without
+      compiler types in the consumer.
+
+      The selected main semantic key had definitions in both crates/cli/build.rs and
+      crates/cli/src/main.rs: an upstream collision across Cargo targets. Compilation-unit
+      and target identity must remain distinct from a SCIP symbol. A direct query returned
+      51 outgoing neighbours. This fresh 638-node slice and the pinned 604-node Rust
+      matrix row are different provider outputs from the same corpus revision.
+    measurements:
+      documents: 20
+      nodes: 638
+      edges: 992
+      reference-facts: 3271
+      resolved: 1495
+      ambiguous: 22
+      unknown: 1754
+      cycles: 1
+      weak-regions: 76
+      bridge-positions: 99
+  six-language-challenge:
+    verdict: "model-held-with-provider-limits"
+    notes: |-
+      Every target index could be projected after repeated documents, unsafe external
+      paths, and absent language metadata became explicit evidence. C# resolved target
+      occurrences but emitted no enclosing ranges, so its SCIP projection had no
+      source-to-target dependency edges.
+
+      These counts describe different fixtures, configurations, generated code and
+      dependency closures. They are not comparable language quality scores. All six source
+      indexes failed upstream SCIP lint; graph integrity is a separate check.
+    measurements:
+      rust:
+        provider: "rust-analyzer"
+        documents: 20
+        external-documents: 0
+        nodes: 604
+        edges: 992
+        reference-facts: 3271
+        outcomes:
+          resolved: 1495
+          ambiguous: 22
+          external: 0
+          unknown: 1754
+        diagnostics: 0
+      go:
+        provider: "scip-go"
+        documents: 272
+        external-documents: 11
+        nodes: 47473
+        edges: 83463
+        reference-facts: 264733
+        outcomes:
+          resolved: 213671
+          ambiguous: 0
+          external: 0
+          unknown: 51062
+        diagnostics: 2
+      typescript:
+        provider: "scip-typescript"
+        documents: 4100
+        external-documents: 0
+        nodes: 132129
+        edges: 131515
+        reference-facts: 433828
+        outcomes:
+          resolved: 223921
+          ambiguous: 1208
+          external: 0
+          unknown: 208699
+        diagnostics: 85
+      python:
+        provider: "scip-python"
+        documents: 821
+        external-documents: 0
+        nodes: 65518
+        edges: 108894
+        reference-facts: 225425
+        outcomes:
+          resolved: 145547
+          ambiguous: 0
+          external: 27574
+          unknown: 52304
+        diagnostics: 0
+      dart:
+        provider: "scip-dart"
+        documents: 252
+        external-documents: 0
+        nodes: 8837
+        edges: 26196
+        reference-facts: 51901
+        outcomes:
+          resolved: 38615
+          ambiguous: 0
+          external: 13096
+          unknown: 190
+        diagnostics: 130
+      csharp:
+        provider: "scip-dotnet"
+        documents: 22
+        external-documents: 0
+        nodes: 553
+        edges: 0
+        reference-facts: 2381
+        outcomes:
+          resolved: 1165
+          ambiguous: 0
+          external: 0
+          unknown: 1216
+        diagnostics: 0
+  coupling-analysis:
+    rating: "YELLOW"
+    notes: >-
+      Direct degree, transitive reach, cycles, weak regions, and bridge positions
+      reproduce from stored nodes and evidence-backed edges. No provider state or
+      combined risk classification is required. The full report was proved on 638 nodes;
+      its all-pairs transitive-path expansion needs an on-demand or compact design
+      before large providers use it.
+  inspectable-json-storage:
+    rating: "RED"
+    notes: >-
+      Pretty JSON expanded the Rust and Go SCIP inputs by 9.5 and 8.9 times. It is
+      useful spike evidence but not a production storage design.
+  reuse-posture:
+    rating: "YELLOW"
+    notes: >-
+      SCIP schema and Rust bindings are suitable implementation inputs, and compiler
+      indexers should remain subprocesses. CodeQL engine terms, scip-go's file-level Go
+      notice, bsp4j and Eclipse CDT lineage, and scip-dart's unlocked dependencies
+      constrain broader reuse.
+  build-capsule-and-snapshot-identity:
+    rating: "GREEN"
+    notes: |-
+      The candidate contract binds one immutable build capsule to repository identity,
+      source revision and dirty state; compiler, service, provider and transport
+      versions; command argument vector; targets, features, profiles and options;
+      manifest and lockfile digests; provider-output digest; requested and observed
+      roots; and compilation units. Its identifier is SHA-256 over canonical fields.
+      Machine-local paths and capture time are excluded. Environment values enter
+      only as declared, non-secret build configuration. An input-digest mismatch is
+      rejected.
+
+      The snapshot identifier separately hashes the complete neutral projection,
+      including producer and adapter identity, nodes, facts, edges, diagnostics and
+      validation. Reports name the snapshot. Different projections of one input
+      cannot share report-cache identity unless their stored content is byte-identical.
+      Snapshot-local node identifiers prevent accidental cross-build joins;
+      equivalence across builds or providers requires a separate evidence-bearing claim.
+  knowledge-and-scope-accounting:
+    rating: "YELLOW"
+    notes: |-
+      Incomplete fields distinguish observed (emitted by provider/build system),
+      declared (supplied by wrapper), and unknown (not established). Projection never
+      upgrades evidence authority. Every node, relationship, unresolved reference,
+      diagnostic and validation result retains producer evidence. Compiler, SCIP,
+      syntax and runtime evidence can coexist under an explicit evidence policy.
+      Tree-sitter keeps syntax provenance and measured accuracy.
+
+      Document dispositions are included, excluded by a named rule, missing from a
+      requested build, generated, or external. Coverage starts from an independent
+      configured-source inventory or syntax identifier census. Every inventory item
+      gets a disposition; unaccounted items remain visible. Missing documents are
+      not empty documents, and references without targets do not establish the
+      absence of dependencies. Scope retains diagnostics, validation, counts and
+      provider limits. The prototype's imported-index accounting does not prove a
+      complete configured-build inventory.
+  symbols-references-and-integrity:
+    rating: "YELLOW"
+    notes: |-
+      Symbols retain an opaque snapshot-local identifier, provider semantic key,
+      language, neutral and native kinds, display name, workspace/external/local/unknown
+      scope, definition locations, optional enclosing symbol and provenance. Neutral
+      kinds are package, module, namespace, type, callable, member, variable, parameter,
+      macro and other. Multiple definition locations alone do not imply ambiguity.
+      Document-local keys include document identity.
+
+      Reference facts retain source location and its UTF-8/UTF-16/UTF-32/unknown column
+      encoding, optional enclosing symbol, raw target, kind and provenance. Outcomes
+      are resolved (one established target), ambiguous (bounded candidates), external
+      (established outside workspace), or unknown (typed reason). Only resolved and
+      external facts create edges. Ambiguity does not select a candidate; unknowns
+      do not invent nodes. Edge kinds are reference, import, implementation,
+      type-definition, definition-alias and provider-specific with a stable native name.
+
+      Repeated source/target/kind occurrences form one edge retaining every evidence
+      location. Each edge-eligible fact appears in exactly one matching edge, and
+      all endpoints name stored nodes. Validation rejects dangling or empty evidence,
+      empty ambiguity, outcome/scope contradictions, duplicate evidence identifiers,
+      unsupported edges, contradictory knowledge states, omitted eligible facts and
+      capsule tampering.
+
+      Repeated TypeScript paths retain distinct document evidence but same-path local
+      symbols remain merged. The projection supports a workspace union only until
+      local symbols, definitions and references are linked to compilation units.
+  language-acquisition-and-limits:
+    rating: "YELLOW"
+    notes: |-
+      - Rust
+        Viable acquisition path: `rust-analyzer scip` subprocess, with a future
+        native rust-analyzer provider only if SCIP gaps block required queries
+        Build context and explicit limit: Capture Cargo workspace, target,
+        features, conditional compilation, build scripts, and procedural macros.
+        SCIP omitted external symbols and left 53.6% of facts unknown in the
+        fixture. Package symbols collided across Cargo targets.
+
+      - Go
+        Viable acquisition path: `scip-go` subprocess over `go/packages`
+        Build context and explicit limit: Capture modules, workspaces, build tags,
+        environment, and package variants. The index included 11 compiler-cache
+        documents outside repository root; the adapter retained only opaque
+        external dispositions. Unknown outcomes were 19.3%.
+
+      - TypeScript
+        Viable acquisition path: `scip-typescript` subprocess for the first
+        provider; direct TypeScript compiler augmentation when project identity or
+        candidates are required
+        Build context and explicit limit: Capture every `tsconfig`, project
+        reference, package manager, and declaration input. Repeated paths from
+        several projects require document-instance evidence. The provider omitted
+        its language field and left 48.1% of facts unknown.
+
+      - Python
+        Viable acquisition path: `scip-python` subprocess backed by Pyright;
+        direct Pyright evidence when dynamic or candidate detail is required
+        Build context and explicit limit: Capture interpreter, environment,
+        installed distributions, stubs, and configuration. The provider omitted
+        its language field. Unknown outcomes were 23.2%; established external
+        outcomes were 12.2%. Runtime dispatch remains unknown.
+
+      - Dart
+        Viable acquisition path: `scip-dart` subprocess after dependency-lock and
+        notice audit
+        Build context and explicit limit: Capture pub workspace, package
+        configuration, Dart or Flutter mode, conditional imports, and generated
+        sources. The fixture had 0.4% unknown outcomes and 25.2% established
+        external outcomes. Redistribution remains blocked on the missing
+        dependency lock audit.
+
+      - C#
+        Viable acquisition path: Direct Roslyn provider or an augmented
+        scip-dotnet wrapper
+        Build context and explicit limit: Capture solution and project graph,
+        target frameworks, properties, references, generators, and compilations.
+        scip-dotnet emitted resolved targets but no enclosing ranges, so the
+        adapter could not establish source symbols and emitted no dependency
+        edges.
+  queries-and-derived-reports:
+    rating: "YELLOW"
+    notes: |-
+      Dependencies follow outgoing edges; dependants follow incoming edges. Direct
+      queries return one-edge evidence paths. Deterministic breadth-first traversal
+      returns one shortest path per reachable node with stable node/edge ordering.
+      Query and coupling reports identify snapshot, build capsule, evidence policy
+      and uncertainty counts. The spike implements only all_stored_edges; arbitrary
+      policy selection remains a production requirement.
+
+      Fan-in and fan-out count distinct neighbours. Cycles use strongly connected
+      components; weak regions ignore direction and include isolates. A bridge is a
+      node whose removal increases region count, with before/after counts, neighbour
+      partitions and incident evidence. Stable member ordering determines cycle and
+      region identifiers. Stored nodes and edges reproduce every measurement; no
+      combined risk score belongs to this contract.
+
+      Snapshots are append-only evidence; reports are rebuildable, versioned
+      projections. Reuse requires matching schema, build capsule, provider, snapshot,
+      evidence policy and algorithm version. Mismatches require recomputation rather
+      than implicit migration. Full coupling ran only on the 638-node Rust graph.
+      All-pairs path expansion was not run on Go or TypeScript; production needs
+      on-demand traversal or compact reachability, streaming ingestion and caching.
+  reference-landscape:
+    rating: "GREEN"
+    notes: |-
+      The research separated conceptual design influence, behavioral comparison and
+      implementation reuse. No surveyed system supplied all of configured-build
+      capture, semantic extraction, evidence transport and explainable coupling.
+      These are the primary-source precedents behind the candidate boundary:
+
+      - [Clang compilation databases](https://clang.llvm.org/docs/JSONCompilationDatabase.html)
+        and [LibTooling](https://clang.llvm.org/docs/LibTooling.html): replayable argument
+        vectors and multiple compilation units per file; listed commands bound scope.
+      - [BSP](https://build-server-protocol.github.io/docs/specification.html): build
+        targets, sources, options, diagnostics, capabilities and invalidation;
+        topology does not establish semantic completeness.
+      - [Kythe extraction](https://kythe.io/docs/kythe-overview.html) and
+        [schema](https://kythe.io/docs/schema/): hermetic compilation units, extraction
+        separated from indexing/serving, typed facts and edges; coverage is extractor-specific.
+      - [SCIP design](https://github.com/scip-code/scip/blob/main/docs/DESIGN.md):
+        shared symbols and navigation transport accepts both heuristic and precise
+        producers; it lacks build identity, scope ledger and native ambiguity.
+        [Sourcegraph](https://sourcegraph.com/docs/code-search/code-navigation/precise_code_navigation)
+        supplies a production behavioral precedent, not a coupling contract.
+      -
+      [LSIF](https://microsoft.github.io/language-server-protocol/specifications/lsif/0.6.0/specification/):
+        precomputed navigation answers; snapshot format without completeness/update model.
+        The surveyed ecosystem was archived and its TypeScript producer favored SCIP.
+      - [SemanticDB](https://scalameta.org/docs/semanticdb/specification.html) and
+        [Metals](https://scalameta.org/metals/docs/integrations/new-build-tool/): checksums,
+        signatures, synthetics and build-target context; Scala-specific producer.
+      - [Glean](https://glean.software/docs/introduction),
+        [derivation](https://glean.software/docs/derived/) and
+        [incrementality](https://glean.software/docs/implementation/incrementality/):
+        native typed evidence, ownership, versioned shared views and stacked databases.
+        This is the strongest conceptual precedent for retaining native facts.
+      - [Joern](https://docs.joern.io/code-property-graph) and
+        [CPG](https://cpg.joern.io/): syntax, control/data flow and semantic overlays;
+        partial construction is not a configured-build completeness contract.
+      - [CodeQL build
+      modes](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/manage-your-configuration/codeql-for-compiled-languages):
+        behavioral precedent for build-mode provenance and differing coverage.
+      - [Understand](https://docs.scitools.com/help/dependencies/what-are-dependencies.html),
+        [Teamscale](https://docs.teamscale.com/reference/ui/architecture/) and
+        [Sourcetrail](https://github.com/CoatiSoftware/Sourcetrail): behavioral dependency
+        exploration and architecture comparators, with no public uncertainty contract
+        established by this research. Sourcetrail was archived and GPL-3.0.
+
+      The survey does not establish present maintenance status or adoption counts.
+  reuse-license-evidence:
+    rating: "YELLOW"
+    notes: |-
+      - [SCIP schema and
+      tools](https://github.com/scip-code/scip/blob/f7c0b174aea88b51dbeef1b583844577efb989e0/LICENSE)
+        Declared terms and dependency shape: Apache-2.0. Go tools depend on
+        Protocol Buffers, compression, SQLite, language detection, and
+        command-line packages. Checked-in bindings are generated from the Apache
+        schema.
+        Distribution implications: Shipping copied schema, bindings, or tools
+        requires Apache and transitive notices. No separate generated-output terms
+        were found.
+        Reuse posture: Concept, behavior, schema, tests, libraries, and code are
+        suitable.
+
+      - [Rust `scip`
+      crate](https://github.com/scip-code/scip/blob/e8ee0ae6038f8298e2195812eea9d7b1196748ae/bindings/rust/Cargo.toml)
+        Declared terms and dependency shape: Apache-2.0. Runtime dependency is
+        MIT-licensed `protobuf` 3.7.2. Generated Rust bindings are included.
+        Distribution implications: Small dependency shape already present in
+        `beholder-oracle`. Preserve Apache and MIT notices.
+        Reuse posture: Library and generated bindings are suitable.
+
+      - [rust-analyzer
+      SCIP](https://github.com/rust-lang/rust-analyzer/blob/478b8936bb221e84718ba2aa90906c3b32dfd3c8/crates/rust-analyzer/src/cli/scip.rs)
+        Declared terms and dependency shape: Dual MIT or Apache-2.0. The command
+        depends on the rust-analyzer workspace and unstable internal crates.
+        Distribution implications: Use a versioned subprocess. Embedding internal
+        HIR crates couples Beholder to a large unstable graph.
+        Reuse posture: Concept, behavior, fixtures, and subprocess use are
+        suitable. Direct library reuse is conditional.
+
+      -
+      [scip-go](https://github.com/scip-code/scip-go/blob/18c307a4ccef5654c866addb42a5e1f579dc4684/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 Go command using
+        `go/packages`, `go/types`, `x/tools`, SCIP bindings, and Protocol Buffers.
+        `fingerprint.go` carries a Go Authors BSD-style header while the
+        referenced license text is absent from the repository root.
+        Distribution implications: Static binary distribution needs dependency
+        notices. Preserve the Go notice and resolve its exact terms before copying
+        that file.
+        Reuse posture: Subprocess behavior and tests are suitable. Source copying
+        is conditional.
+
+      -
+      [scip-typescript](https://github.com/sourcegraph/scip-typescript/blob/891eb4293709a6a587bf4468dfa1b45a85182fd9/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 Node.js command using
+        TypeScript compiler API, `google-protobuf`, Commander, and Progress. SCIP
+        bindings are generated.
+        Distribution implications: Shipping carries the JavaScript dependency tree
+        and notices.
+        Reuse posture: Subprocess use, tests, and source are suitable. Direct
+        library use is conditional on dependency fit.
+
+      -
+      [scip-python](https://github.com/sourcegraph/scip-python/blob/8b60bbce1f2a4c7a517776cb395bbafb2e731e4f/LICENSE.txt)
+        Declared terms and dependency shape: MIT Pyright fork. Published command
+        is a Webpack bundle containing Pyright, Node dependencies, and copied
+        typeshed data. Typeshed fallback contains Apache-2.0 and MIT material.
+        Distribution implications: Ship the bundle only with its embedded notices
+        and dependency inventory.
+        Reuse posture: Subprocess behavior is suitable. Importing or copying the
+        fork is conditional.
+
+      -
+      [scip-dart](https://github.com/Workiva/scip-dart/blob/22a5bdb3c1cf6215117d2f406ae4cf0da685571e/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 Dart command using
+        analyzer, Protocol Buffers, package configuration, pubspec parsers, and
+        utility packages. Generated Dart bindings are checked in. The pinned
+        source has no lockfile.
+        Distribution implications: Exact transitive versions and licenses require
+        a restored lock audit before redistribution.
+        Reuse posture: Subprocess behavior is suitable. Library or code reuse is
+        conditional.
+
+      -
+      [scip-dotnet](https://github.com/sourcegraph/scip-dotnet/blob/47884461a79839fb74c99e6a0a7978cd7eb62476/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 .NET tool using
+        Google.Protobuf, Roslyn workspaces/features, MSBuild locator,
+        System.CommandLine, and ConfigurationManager. Its
+        [NOTICE](https://github.com/sourcegraph/scip-dotnet/blob/47884461a79839fb74c99e6a0a7978cd7eb62476/NOTICE)
+        records LsifDotnet-derived command and MSBuild loading code.
+        Distribution implications: Preserve NOTICE and NuGet package notices.
+        Reuse posture: Subprocess use, tests, and source are suitable. Direct
+        library use is conditional.
+
+      -
+      [tree-sitter](https://github.com/tree-sitter/tree-sitter/blob/4f7ab225840f05e080851cc839a1fa92bbf46a36/LICENSE)
+        Declared terms and dependency shape: MIT Rust/C library. Unicode tables
+        carry separate Unicode and International Components for Unicode notices.
+        Each generated parser follows its grammar repository's license.
+        Distribution implications: Audit every grammar and preserve Unicode
+        notices. Optional WebAssembly support adds Wasmtime.
+        Reuse posture: Library use is suitable. Copied runtime or parser code is
+        conditional on local notices.
+
+
+      ## Wider implementation candidates
+
+      - [Kythe](https://github.com/kythe/kythe/blob/26056edfc953b5d4ea0ed8e94db072caa7f7d4c7/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 plus University of
+        Illinois/National Center for Supercomputing Applications terms for copied
+        LLVM extractor code. Bazel build spans C++, Go, Java, TypeScript, Protocol
+        Buffers, compilers, and a large third-party tree.
+        Reuse posture: Schema reuse is suitable. Tests, libraries, binaries, and
+        source require component-level notice review.
+
+      -
+      [Glean](https://github.com/facebookincubator/Glean/blob/33154355ec4454034efd588be22c7beb7b00ab9b/LICENSE)
+        Declared terms and dependency shape: BSD-3-Clause Haskell/C++ system using
+        Thrift, Folly, RocksDB, compression, cryptography, and native libraries.
+        Vendored LMDB uses OpenLDAP Public License 2.8. LSP code preserves MIT and
+        Apache notices.
+        Reuse posture: Concepts and Angle schemas are suitable. Runtime or source
+        distribution needs a full native dependency inventory.
+
+      -
+      [SemanticDB](https://github.com/scalameta/scalameta/blob/256d830d8a710ae1fded9e779a518b49a0996206/LICENSE.md)
+        Declared terms and dependency shape: BSD-3-Clause Protocol Buffers schema
+        and Scala bindings. NOTICE records BSD, MIT, and Apache-derived
+        benchmark/build material. Scala 2 producer is tied to compiler versions.
+        Reuse posture: Schema and readers are suitable. Compiler plugin is
+        Scala-specific and carries full build inventory.
+
+      -
+      [BSP](https://github.com/build-server-protocol/build-server-protocol/blob/9097c78224910a4a285ba3207e55dd33c9e9da97/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 Smithy model and generated
+        support libraries. [`bsp4j`
+        NOTICE](https://github.com/build-server-protocol/build-server-protocol/blob/9097c78224910a4a285ba3207e55dd33c9e9da97/NOTICE.md)
+        records Eclipse Public License 2.0 LSP4J-derived code.
+        Reuse posture: Use the Apache schema and JSON-RPC behavior. Treat `bsp4j`
+        source and binaries separately.
+
+      - [Clang
+      tooling](https://github.com/llvm/llvm-project/blob/0aeb516dccab806616070123bd504bdd544cc39d/clang/LICENSE.TXT)
+        Declared terms and dependency shape: Apache-2.0 with LLVM exception.
+        Native C++ distribution includes Clang/LLVM libraries, built-in headers,
+        and locally licensed third-party components.
+        Reuse posture: Concepts, behavior, and tests are suitable. Libraries are
+        suitable with a matching component inventory. Source copying is
+        conditional.
+
+      -
+      [Roslyn](https://github.com/dotnet/roslyn/blob/821002e9fbca8cbcff74533bdb25400cee299dd8/License.txt)
+        Declared terms and dependency shape: MIT source with extensive
+        [third-party
+        notices](https://github.com/dotnet/roslyn/blob/821002e9fbca8cbcff74533bdb25400cee299dd8/THIRD-PARTY-NOTICES.txt).
+        Official Microsoft.CodeAnalysis NuGet packages have smaller declared
+        dependency surfaces.
+        Reuse posture: Prefer official packages. Concepts, behavior, tests, and
+        package APIs are suitable. Source-tree copying is conditional.
+
+      - [Joern](https://github.com/joernio/joern/blob/8a73ec09be8fa59dba3cfed5959690c003d7ca52/LICENSE)
+        Declared terms and dependency shape: Apache-2.0 Scala/JDK platform.
+        Bundled Eclipse CDT in `c2cpg` is Eclipse Public License 2.0. Runtime
+        includes Code Property Graph, FlatGraph, semantic/data-flow modules,
+        parsers, and many frontends.
+        Reuse posture: Concepts and Apache schema code are suitable. Full frontend
+        or binary distribution needs component review.
+
+      - [CodeQL](https://github.com/github/codeql/blob/c9142680f5b6409dbe0944350321c54e8c801e61/LICENSE)
+        Declared terms and dependency shape: Query libraries and tests are MIT.
+        CLI and engine use restrictive [GitHub CodeQL
+        Terms](https://github.com/github/codeql-cli-binaries/blob/1c54fd8be7e39ed654fdd1f5999aa3320c7edb34/LICENSE.md),
+        including redistribution and use limits. Database distribution terms are
+        not established here.
+        Reuse posture: Public design is suitable conceptually. Behavioral use
+        requires an expressly permitted context. CLI, engine, and database
+        distribution are excluded without a separate license decision.
+
+      - [Sourcetrail](https://github.com/CoatiSoftware/Sourcetrail/blob/master/LICENSE.txt)
+        Declared terms and dependency shape: GPL-3.0 archived application with
+        language indexers and a custom extension database.
+        Reuse posture: Conceptual and behavioral use only. No implementation
+        dependency.
+
+
+      These are engineering observations at the linked revisions, not legal conclusions.
+      Full source-build inventories were not established for rust-analyzer, Kythe, Glean,
+      Joern, LLVM or Roslyn. No open candidate stated separate ownership terms for emitted
+      indexes; CodeQL database distribution terms were not established. A shipped
+      executable needs a bill of materials and notices derived from locked dependencies.
+      No compiler/indexer source was copied by the prototype.
+  validation-and-reproduction:
+    verdict: "recorded-with-reproduction-limits"
+    notes: |-
+      The preserved prototype is at commit
+      8e8f1366120f045681e878cee5f4a2013d5b6896. Its recorded validation comprises
+      40 focused unit/integrity tests and the repository gate. These historical
+      results are not new validation of the current Beholder workspace.
+
+      The six provider inputs came from related SCIP/tree-sitter harness commit
+      c98d422fc22b3bb93936c6d69bb888ae93efac30. Its repository, harness source,
+      toolchain manifest and fixture setup have not been recovered in a
+      retrievable location. Regeneration is unavailable until that material is
+      recovered. The following is the recorded command, not a self-contained
+      reproduction procedure:
+
+      ```sh
+      RUN=after LANGUAGE=<rust|go|typescript|python|dart|csharp> scripts/harness-run.sh
+      ```
+
+      Outputs are oracle.scip, spike.scip, manifest.json and report.json under
+      .work/harness/after/<language>/. Corpus names in language order are tagver,
+      open-oscar-server, dub, fastmcp, dart-data and community.nservicebus.transport.nats.
+      The source notes attribute toolchain versions and fixture setup to the
+      unavailable related research. Scratch manifests were not retained. Five
+      inputs have recorded corpus and provider revisions, but those pins alone
+      do not restore the missing harness and setup. Dart has an additional
+      limit: both provider and corpus lack dependency locks, and dart pub get
+      prevents deterministic byte regeneration. Its recorded digest can check a
+      recovered input; the input bytes are not retained by this artifact.
+
+      Verify SHA-256 before import. Upstream scip lint at source commit
+      f7c0b174aea88b51dbeef1b583844577efb989e0 failed on all six pinned inputs.
+      Missing external symbols, absent relationship targets, repeated paths and invalid
+      local scopes explain observed failures. Import integrity remains independent.
+      In the preserved prototype checkout:
+
+      ```sh
+      sha256sum <oracle.scip>
+      scip lint <oracle.scip>
+      cargo run -p beholder-code-graph-spike -- import --index <oracle.scip> \
+        --output <graph.json> --repository <fixture-identity> --root .
+      cargo fmt --all -- --check
+      cargo clippy -p beholder-code-graph-spike --all-targets -- -D warnings
+      cargo test -p beholder-code-graph-spike
+      task ci
+      ```
+
+      The recorded repository gate needed the environment's libgit2 shared library
+      on LD_LIBRARY_PATH. These commands require the preserved prototype checkout;
+      this results artifact does not introduce its crate into the main workspace.
+
+      The separate fresh Rust slice used rust-analyzer 1.97.1 (8bab26f 2026-07-14),
+      the same Rust corpus revision, and `rust-analyzer scip <corpus-root> --output
+      <index.scip> --exclude-vendored-libraries`. Its 372852-byte input has SHA-256
+      3ee399a85d9e442d858f710f7d0f91e889650948e30152a0a8c8adb9b17fe03c.
+
+      Seventeen exploratory guard mutations each failed a named assertion, but exact
+      patches and failing logs were not retained. This is an observation about guard
+      sensitivity, not reproducible completion proof. The preserved regression suite
+      covers digest binding, document-local identity, import role, ambiguity, external
+      paths, snapshot identity, capsule tampering, query direction, shortest paths,
+      cycles, bridges, weak regions, duplicate occurrences, diagnostics, root ordering,
+      external aliases and mandatory edge evidence.
+    measurements:
+      inputs:
+        rust:
+          corpus-commit: "45fb5465b421a7b72b654cc3d30a3dce9a54eea3"
+          provider-source-commit: "478b8936bb221e84718ba2aa90906c3b32dfd3c8"
+          input-sha256: "bbf519df55a9a2626a4a9ed9d6d86e330f03c15af9c3613e370aeebd137cb6e3"
+          input-bytes: 368943
+          lint-issue-lines: 1754
+          reproduction: "Source revisions recorded; harness and setup unavailable"
+        go:
+          corpus-commit: "ab70f80a630cf36c931ad174d51396e07e0103a0"
+          provider-source-commit: "18c307a4ccef5654c866addb42a5e1f579dc4684"
+          input-sha256: "a947beb54ef0c88efc7f45969e015750c1544ecbc6bf53bddc27cc2219d89339"
+          input-bytes: 32238435
+          lint-issue-lines: 51964
+          reproduction: "Source revisions recorded; harness and setup unavailable"
+        typescript:
+          corpus-commit: "b0836571a7dfb0c25e648764e47d97636b419fe8"
+          provider-source-commit: "891eb4293709a6a587bf4468dfa1b45a85182fd9"
+          input-sha256: "7b8344d3eb9d6f7fbf69e53f205bb42ae4131a95b298e2a5563c576b68765913"
+          input-bytes: 68245465
+          lint-issue-lines: 302319
+          reproduction: "Source revisions recorded; harness and setup unavailable"
+        python:
+          corpus-commit: "8a1820f1c38401fa02c8996a7a30e864561b80d3"
+          provider-source-commit: "8b60bbce1f2a4c7a517776cb395bbafb2e731e4f"
+          input-sha256: "9ca184fcf14b4514c8f254857c804c020df0e18283411e5b29d2928c924d813f"
+          input-bytes: 38001306
+          lint-issue-lines: 79321
+          reproduction: "Source revisions recorded; harness and setup unavailable"
+        dart:
+          corpus-commit: "7161db1bb0be31f8b9bd4f68f575b80680988936"
+          provider-source-commit: "22a5bdb3c1cf6215117d2f406ae4cf0da685571e"
+          input-sha256: "26fb908ba5312abf80a27476e535ab1604db54917e5c53c11397596f8ae11a36"
+          input-bytes: 4577649
+          lint-issue-lines: 1055
+          reproduction: "Harness unavailable; also non-deterministic without resolved locks"
+        csharp:
+          corpus-commit: "2f4fc124dc42cd4f118c223015d5e716c0f08542"
+          provider-source-commit: "47884461a79839fb74c99e6a0a7978cd7eb62476"
+          input-sha256: "7cfa3ca0fb9a1f2a15c8f3fa6a91a1d587701e5b474de01f5908954d0f2dcd99"
+          input-bytes: 363448
+          lint-issue-lines: 1264
+          reproduction: "Source revisions recorded; harness and setup unavailable"
+      focused-tests: 40
+      exploratory-mutations: 17
+conclusion: >-
+  Use a build-capsule provider architecture that preserves native evidence and projects
+  it into the versioned neutral graph. Keep SCIP as one augmented transport adapter and
+  tree-sitter as an independent syntax inventory and fallback witness; neither is the
+  foundational graph. Land the proven Rust vertical slice first, then use Go to harden
+  build variants and portability. Do not trust coupling answers until the provider
+  reports independent source inventory, dispositions, diagnostics, uncertainty, and
+  validation for the configured build.
+next-steps:
+  - >-
+    Promote the build capsule, evidence snapshot, provider trait, typed unknown reasons,
+    and integrity rules into a versioned non-spike schema crate.
+  - >-
+    Implement the Rust build-capsule runner around rust-analyzer with Cargo target,
+    feature, build-script, procedural-macro, inventory, and diagnostic capture.
+  - >-
+    Implement the Go provider as the first portability test, including module,
+    workspace, build-tag, package-variant, generated-source, and external-cache
+    accounting.
+  - >-
+    Design compact snapshot storage and versioned derived-report caching; keep
+    inspectable JSON only as an export and test fixture.
+  - >-
+    Define provider conformance fixtures for repeated documents, external paths,
+    compilation-unit variants, ambiguity, missing source context, target collisions, and
+    incomplete dependency information across all six languages.
+  - >-
+    Recover and publish the SCIP/tree-sitter harness source, toolchain versions,
+    fixture setup and retained inputs before claiming reproducible regeneration.
+  - >-
+    Audit locked scip-dart dependencies and required notice bundles before any provider
+    binary redistribution.
