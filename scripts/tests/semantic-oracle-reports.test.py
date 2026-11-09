@@ -848,7 +848,9 @@ def go_workspace_sums(tmp):
     # A workspace whose vendor directory has no `modules.txt` written for a
     # workspace ignores it and reads the module cache, so the copy is still used.
     for case, version, modules in (("empty-121", "1.21", None), ("empty-122", "1.22", None), ("empty-122rc1", "1.22rc1", None),
-                                   ("module-modules-txt", "1.22", "# example.com/x v1.0.0\n## explicit\nexample.com/x\n")):
+                                   ("module-modules-txt", "1.22", "# example.com/x v1.0.0\n## explicit\nexample.com/x\n"),
+                                   # The go command reads only the first 512 bytes.
+                                   ("annotation-past-512", "1.22", "## " + " " * 510 + "workspace\n")):
         ignored = os.path.join(tmp, f"go-sums-ignored-{case}")
         shutil.copytree(root, ignored)
         os.remove(os.path.join(ignored, "go.work.sum"))

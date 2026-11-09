@@ -35,6 +35,7 @@ import (
 	"go/token"
 	"go/types"
 	"go/version"
+	"io"
 	"math/big"
 	"os"
 	"os/exec"
@@ -680,13 +681,20 @@ func moduleFlag() []string {
 }
 
 // vendoredForWorkspace is whether `vendor/modules.txt` was written for a
-// workspace: its first line is an annotation line naming `workspace`.
+// workspace: its first line, within the first 512 bytes the go command reads,
+// is an annotation line naming `workspace`.
 func vendoredForWorkspace(vendor string) bool {
-	text, err := os.ReadFile(filepath.Join(vendor, "modules.txt"))
+	file, err := os.Open(filepath.Join(vendor, "modules.txt"))
 	if err != nil {
 		return false
 	}
-	line, _, _ := strings.Cut(string(text), "\n")
+	defer file.Close()
+	var buffer [512]byte
+	n, err := io.ReadFull(file, buffer[:])
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return false
+	}
+	line, _, _ := strings.Cut(string(buffer[:n]), "\n")
 	annotations, ok := strings.CutPrefix(line, "## ")
 	if !ok {
 		return false
