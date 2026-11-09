@@ -418,13 +418,14 @@ fn list<'a>(value: &'a Value, key: &str) -> &'a [Value] {
 }
 
 /// Signature members that hold no type or value text.
-const SLOTS_WITHOUT_NAMES: [&str; 13] = [
+const SLOTS_WITHOUT_NAMES: [&str; 14] = [
     "abi",
     "access",
     "at",
     "contexts",
     "delete",
     "entity",
+    "index",
     "kind",
     "mode",
     "modifiers",
@@ -859,6 +860,7 @@ impl<'a> Checker<'a> {
                             format!("root `{root}` is not an entity of unit `{id}`"),
                         );
                     }
+                    self.check_profile_root(&at, unit, root, entity);
                 }
             }
             let contexts = self.unit_contexts.get(id).cloned().unwrap_or_default();
@@ -912,6 +914,37 @@ impl<'a> Checker<'a> {
                     }
                 }
             }
+        }
+    }
+
+    /// The profile's root kind: the root has it and the unit's name.
+    fn check_profile_root(&mut self, at: &str, unit: &'a Value, root: &str, entity: &'a Value) {
+        let Some(kind) = self.rules.root_language_kind else {
+            return;
+        };
+        let rule = self.profile_rule("unit-root");
+        let kinds = self.language_kinds(entity);
+        if kinds.is_empty() || kinds.iter().any(|k| *k != kind) {
+            self.error(
+                &rule,
+                format!("{at}/root"),
+                format!(
+                    "root `{root}` is a `{}`; a {} unit's root is its `{kind}`",
+                    kinds.join("`/`"),
+                    self.rules.language
+                ),
+            );
+        }
+        if text(entity, "name") != text(unit, "name") {
+            self.error(
+                &rule,
+                format!("{at}/root"),
+                format!(
+                    "root `{root}` is named `{}`, not the unit's name `{}`",
+                    text(entity, "name").unwrap_or_default(),
+                    text(unit, "name").unwrap_or_default()
+                ),
+            );
         }
     }
 
@@ -1215,6 +1248,20 @@ impl<'a> Checker<'a> {
                         format!("{at}/parent"),
                         "the parent chain returns to this entity".into(),
                     );
+                }
+                if let (Some(kind), Some((Class::Entity, record))) =
+                    (self.rules.root_language_kind, self.ids.get(parent).copied())
+                {
+                    if self.language_kinds(record).contains(&kind) {
+                        let rule = self.profile_rule("unit-root");
+                        self.error(
+                            &rule,
+                            format!("{at}/parent"),
+                            format!(
+                                "`{parent}` is a unit root (`{kind}`), which is no entity's parent"
+                            ),
+                        );
+                    }
                 }
             }
 

@@ -59,7 +59,8 @@ $defs:
 
   unit:
     $ref: 'https://wyrd.foo/beholder/schemas/semantic-oracle/1#/$defs/unit'
-    required: [assembly-version, project, language-version, define-constants, target-framework]
+    # Every C# unit has a root, its assembly; the validator checks its kind.
+    required: [root, assembly-version, project, language-version, define-constants, target-framework]
     properties:
       kind: {const: assembly}
       assembly-version: {$ref: '#/$defs/text-attribute'}
@@ -92,12 +93,21 @@ $defs:
       - if: {properties: {kind: {const: namespace}}}
         then: {required: [units]}
         else: {properties: {units: false}}
+      # The unit root, the assembly, has no declaration token and no container.
+      - if: {properties: {kind: {const: module}}}
+        then:
+          properties:
+            parent: false
+            anchor: false
+            definitions: {maxItems: 0}
       # Every synthetic entity is anchored on its declaring type's name.
       - if: {properties: {origin: {const: synthetic}}}
         then: {required: [anchor]}
 
   kind-and-language-kind:
     allOf:
+      - if: {properties: {kind: {const: module}}}
+        then: {properties: {language-kind: {anyOf: [{enum: &module [assembly]}, {type: array, items: {properties: {value: {enum: *module}}}}]}}}
       - if: {properties: {kind: {const: namespace}}}
         then: {properties: {language-kind: {anyOf: [{enum: &namespace [namespace]}, {type: array, items: {properties: {value: {enum: *namespace}}}}]}}}
       - if: {properties: {kind: {const: type}}}
@@ -120,7 +130,7 @@ $defs:
         then: {properties: {language-kind: {anyOf: [{enum: &type-parameter [type-param]}, {type: array, items: {properties: {value: {enum: *type-parameter}}}}]}}}
       - properties:
           kind:
-            enum: [namespace, type, extension, callable, field, constant, property, enum-member, parameter, type-parameter]
+            enum: [module, namespace, type, extension, callable, field, constant, property, enum-member, parameter, type-parameter]
 
   declared-visibility-value:
     type: object
@@ -182,11 +192,12 @@ $defs:
       where: false
       type-parameters: {items: {$ref: '#/$defs/type-parameter'}}
       parameters: {items: {$ref: '#/$defs/parameter'}}
-      modifiers: {items: {enum: [abstract, override, readonly, required, sealed, static, virtual]}}
+      modifiers: {items: {enum: [abstract, override, readonly, required, sealed, static, virtual, volatile]}}
       return-mode: {enum: [ref, 'ref readonly']}
   signature-slots:
     $ref: '#/$defs/callable-slots'
     properties:
+      index: false
       auto-traits: false
       abi: false
       implementations: false

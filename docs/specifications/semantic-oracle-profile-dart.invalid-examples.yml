@@ -156,3 +156,15 @@ cases:
     fails-at: /contexts/0/parameters
     keyword: required
     member: release
+  - name: negative-enum-index
+    reason: An enum value's `index` is its 0-based position.
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: replace, path: /public-api/signatures/8/index, value: -1}]
+    fails-at: /public-api/signatures/8/index
+    keyword: minimum
+  - name: enum-index-as-text
+    reason: An enum value's `index` is an integer, not a value form.
+    base: semantic-oracle-profile-dart.example.yml
+    patch: [{op: replace, path: /public-api/signatures/8/index, value: '0'}]
+    fails-at: /public-api/signatures/8/index
+    keyword: type

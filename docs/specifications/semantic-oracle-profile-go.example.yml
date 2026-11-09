@@ -507,7 +507,7 @@ externals:
   - id: ext.builtin.float64
     kind: type
     language-kind: defined
-    distribution: go
+    distribution: std
     path: builtin.float64
   - id: ext.embed
     kind: module

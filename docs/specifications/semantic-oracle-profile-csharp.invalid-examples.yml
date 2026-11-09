@@ -140,6 +140,33 @@ cases:
     patch: [{op: replace, path: /public-api/signatures/0/modifiers/0, value: async}]
     fails-at: /public-api/signatures/0/modifiers/0
     keyword: enum
+  - name: unit-root-with-parent
+    reason: The assembly is the unit root, and namespaces are project-merged, so it has no container.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /entities/51/parent, value: Geometry}]
+    fails-at: /entities/51/parent
+    keyword: falseSchema
+  - name: unit-root-with-definition
+    reason: The language declares an assembly without a name token, so its root has no definition site.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch:
+      - op: replace
+        path: /entities/51/definitions
+        value: [{at: {path: src/Geometry/Shapes.cs, start: [1, 11], end: [1, 19], text: Geometry}}]
+    fails-at: /entities/51/definitions
+    keyword: maxItems
+  - name: unit-root-language-kind
+    reason: A C# module is the assembly; a namespace is kind `namespace`.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: replace, path: /entities/51/language-kind, value: namespace}]
+    fails-at: /entities/51/language-kind
+    keyword: anyOf
+  - name: volatile-is-not-an-accessor-modifier
+    reason: '`volatile` is a field modifier; an accessor has only `readonly`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/4/get/modifiers, value: [volatile]}]
+    fails-at: /public-api/signatures/4/get/modifiers/0
+    keyword: enum
   - name: unknown-parameter-mode
     reason: '`optional` is not a C# parameter mode; a default states it.'
     base: semantic-oracle-profile-csharp.example.yml
@@ -201,3 +228,16 @@ cases:
     fails-at: /contexts/0/parameters
     keyword: required
     member: release
+  - name: unit-without-root
+    reason: Every C# unit has a root, its assembly.
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: remove, path: /units/0/root}]
+    fails-at: /units/0
+    keyword: required
+    member: root
+  - name: index-slot
+    reason: '`index` is a Dart enum-value slot; a C# enum member has `value`.'
+    base: semantic-oracle-profile-csharp.example.yml
+    patch: [{op: add, path: /public-api/signatures/0/index, value: 0}]
+    fails-at: /public-api/signatures/0/index
+    keyword: falseSchema

@@ -130,12 +130,17 @@ fn to_paths(checker: &Checker<'_>, text_value: &str) -> String {
 }
 
 /// Whether a report's release is the context's: equal, or the context's value
-/// followed by more dotted components, as `go1.27` holds `go1.27.3`.
+/// followed by more numeric dotted components, as `go1.27` holds `go1.27.3`.
+/// A prerelease such as `3.14.0rc1` holds only a context that names it.
 fn release_holds(declared: &str, reported: &str) -> bool {
     reported == declared
         || reported
             .strip_prefix(declared)
-            .is_some_and(|rest| rest.starts_with('.'))
+            .and_then(|rest| rest.strip_prefix('.'))
+            .is_some_and(|rest| {
+                rest.split('.')
+                    .all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit()))
+            })
 }
 
 impl<'a> Checker<'a> {
