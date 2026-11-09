@@ -32,7 +32,7 @@ call `task` in.
 | `task semantic-oracle:locate PROJECT=<dir> FILE=<path> TEXT=<text> [LINE=<n>] [COLUMN=<n>]` | `semantic-oracle locate <path> <text> [--line <n>] [--column <n>] --project <dir>` | Prints the locator of one span. |
 | `task semantic-oracle:validate PROJECT=<dir>` | `semantic-oracle validate <dir>` | Validates the dataset against the model, its profile and the project's files. |
 | `task semantic-oracle:audit PROJECT=<dir> [REPORTS="<file> <file>"]` | `semantic-oracle audit <dir> [--report <file>]...` | Validates, audits the dataset against its profile, and compares its signatures with compiler reports. |
-| `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python`, `typescript` or `dart`. |
+| `task semantic-oracle:report:<language> ...` | | Writes a compiler report outside the project tree: `rust`, `go`, `python`, `typescript`, `csharp` or `dart`. |
 | `task semantic-oracle:corpus` | | Validates and audits the fixture corpus's adopted datasets. |
 | `task semantic-oracle:toolchains [FIXTURES=<dir>]` | | Reports, per fixture project, whether the installed toolchains support the versions it declares: `ok`, `unsupported`, `pin-not-honoured` (an exact Rust channel or TypeScript version pin that the installed toolchain does not hold, so the installed one is used) or `missing-toolchain`. Each dataset context's `release` (`python`, `compiler`) is `ok` or `release-mismatch` against the release the project runs under, which for Go is the one the effective `GOTOOLCHAIN` selects. Exits nonzero on `unsupported`, `missing-toolchain` or `release-mismatch`. |
 | `task test:oracle-schema` | | Tests the schemas, the validator and the commands. |
@@ -133,9 +133,10 @@ A compiler report is a JSON file that a script produces outside the project tree
 | Task | Comes from | Needs |
 | --- | --- | --- |
 | `semantic-oracle:report:rust PROJECT=<dir> CONTEXT=<id> OUT=<file> [FEATURES=<a,b>] [NO_DEFAULT_FEATURES=1] [ALL_FEATURES=1] [CFG=<a b>]` | rustdoc JSON, and a generated probe crate for `auto-traits`. One `cargo check` reports every failing claim; a line that fails for another reason is set aside and the check repeats, at most five times. | A Rust toolchain. It works on a copy of the project, with the toolchain the project selects, and sets `RUSTC_BOOTSTRAP=1` for rustdoc's JSON output. |
-| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>]` | `go/types` | Go. `GOOS` and `GOARCH` select a context's platform. |
+| `semantic-oracle:report:go PROJECT=<dir> CONTEXT=<id> OUT=<absolute file> [TAGS=<a,b>] [MODE=test] [PATTERNS=<p q>]` | `go/types`, and `types.Implements` for `bases`. `MODE=test`, for a context with `mode: test`, adds each package's `_test.go` files and its external `_test` package, as `go test` compiles them: one graph per test binary, of the variants `go list -test -deps` lists for it. `PROJECT` is the context's `module-root`, and `PATTERNS` its `patterns`, `./...` by default; from a `go.work` root, `./...` matches no module, and a run that matches no package, or that `go list` reports an error for, exits nonzero. | Go. `GOOS` and `GOARCH` select a context's platform. |
 | `semantic-oracle:report:python SEARCH_PATH=<dir>[:<dir>] CONTEXT=<id> OUT=<file> PYTHON=<version>` | `inspect.signature`, for a `runtime` context | `python<version>`, the context's `python` parameter. An absent interpreter exits nonzero, and the report's `tool` states what it ran under. It imports the project's modules, which runs their module-level code. |
 | `semantic-oracle:report:typescript PROJECT=<dir> CONTEXT=<id> OUT=<file> [TSCONFIG=<file>]` | `tsc --declaration`, through the compiler's API, for the emit and every project `.d.ts` in the program, with an ambient module's members under `ambient:` | Node and the `typescript` module. The emit stays in memory. |
+| `semantic-oracle:report:csharp PROJECT=<dir> ENTRY=<file> CONTEXT=<id> TARGET_FRAMEWORK=<tfm> OUT=<file> [CONFIGURATION=<name>] [PROPERTIES="<name>=<value> ..."]` | The assemblies the context's build emits, read from metadata by the .NET SDK's own Roslyn, from `<sdk>/Roslyn/bincore`. Through MSBuild's API it restores and builds the context's `entry` with a binary log of task inputs, reads each `Csc` run's project instance, output assembly and references, takes each project's instance at the framework NuGet nearest-framework selection picks for `target-framework`, and walks that implementation assembly's symbols. Nothing is compiled again, so generated code and each referenced project's configuration and framework are the build's own. Each member states its unit's `name`, `assembly-version` and `project`. | A .NET SDK with file-based apps: the one `dotnet` resolves from the project directory, which `global.json` can select, and which the report's `release` names. It works on a copy of the project without `bin` and `obj`. A failed build, or a project the context requires that the build did not compile at its framework, writes no report. A file-local type takes the `@<document path>` of the source whose path's SHA-256 its metadata name carries; one whose document the build's sources do not name, as under a `PathMap`, is not read, and none is a public API member. The SDK's workload resolver is off, so a workload project does not load. |
 | `semantic-oracle:report:dart PROJECT=<dir> CONTEXT=<id> ENTRY=<entry> PLATFORM=vm\|js\|wasm OUT=<file> [DEFINES="<a=b> <c=d>"] [LIBRARY_FLAGS="<dart.library.a> <dart.library.b>"] [DATASET=<file>] [STANDALONE=1]` | `package:analyzer`'s resolved element model, for every library under `lib/` when `ENTRY` is `analysis`, and otherwise for the libraries the entry reaches, with configurable directives selected by `DEFINES` and `LIBRARY_FLAGS`, the context's complete `defines` and `library-flags` | The Dart SDK. `dart pub get` fetches the analyzer into `scripts/semantic-oracle`. The analyzer resolves against its own SDK on every platform, because the SDK libraries that platforms share have the same public API. For `js` or `wasm`, every `dart:` library the context reaches must be in that platform's target in the SDK's `lib/libraries.json` (`dart2js` or `wasm`); the first that is not fails the report, as the compiler would. For an `ENTRY` other than `analysis`, the platform's compiler (`dart compile kernel`, `js` or `wasm`) also compiles the entry with `DEFINES` into a temporary directory, and the report fails where it does, since the analyzer honours `// ignore:` comments and the compiler does not; every `dart.library.*` that a configurable directive tests must be in `LIBRARY_FLAGS` exactly where that compiler sets it, as no `-D` overrides the compiler's. `analysis` runs no compiler: `dart analyze` honours ignore comments as the report does. `PLATFORM` has no default. The context's `platform`, `entry`, `defines` and `library-flags` in `DATASET`, by default the project's own `semantic-oracle.yml`, must equal the arguments; with no dataset the report exits nonzero, unless `STANDALONE=1` reports without that check and warns. A project without a `.dart_tool/package_config.json` and without dependencies gets one outside the tree. |
 
 Run one report per context, and pass each to `audit`:
@@ -153,7 +154,10 @@ script refuses a path inside it. `REPORTS` splits on spaces, so use repeated `--
 for a path with a space.
 
 A report's `covers` lists the slot shapes it can state, and `members` holds what it
-states for each entity path, with each `@{...}` holding a canonical path:
+states for each entity path, with each `@{...}` holding a canonical path. A slot key
+that names an entity writes it the same way: the dataset's `bases[@{pantry.Opener}].type`
+is `bases[@{example.com/pantry.Opener}].type` in a report. A `bases` or
+`implementations` key compares as its types do, after canonical spelling.
 
 ```json
 {
@@ -181,7 +185,10 @@ TypeScript) or extends it with more dotted numeric components: a `go1.27.3` repo
 answers for `release: go1.27`, and a `1.98.0` report does not answer for
 `release: '1.99'`. A prerelease such as `3.14.0rc1` answers only for a context
 that names it.
-Otherwise the audit reports an error and the slots stay `unchecked`. To move a
+Otherwise the audit reports an error and the slots stay `unchecked`. A report that
+states its `mode` answers only for a context whose `mode` parameter is the same: the
+Go report states the `MODE` it ran in, so a build report for a `mode: test` context
+is an error, and its slots stay `unchecked`. To move a
 dataset to a new toolchain release, change its contexts' release parameter, run
 the reports under that release, and settle every disagreement the audit finds.
 
@@ -193,15 +200,21 @@ while a context is unchecked.
 
 These stay `unchecked`:
 
-- every slot of a C# dataset, until that toolchain has a report;
+- C# `bases`, because a `bases` slot's key holds the dataset's ids, which a report cannot
+  write; `model:signature-bases` checks them against the `inherits` and `implements`
+  relations;
+- a C# constant or parameter default of an enum type or of `char`, or a parameter default
+  `default` of a struct type, which the report marks `unstated`;
 - `bases` in Dart, because a base's slot path holds the dataset's ids, which a report cannot name;
 - a Dart parameter `default` that is not a value form, such as a `const` object, which the report lists as `unstated`;
 - every slot of a context with no report, which is every slot in `task semantic-oracle:corpus`;
-- each shape a report does not list in `covers`, such as `where`, `impl` and `bases` in Rust, and `alternatives` in Python;
+- each shape a report does not list in `covers`, such as `where`, `impl` and `bases[].type` in Rust, and `bases` and `alternatives` in Python;
+- the `bases` of a Go type that is generic, or that could implement a generic interface, and of a TypeScript class whose base the emit names through a generated variable, such as a mixin's;
 - Rust `auto-traits` that the probe cannot state: a callable with more than three type parameters, a generic callable's trait with no passing condition among the same trait on those parameters, a line that fails to compile for another reason, and a default-bodied trait method;
 - every slot of a Rust `#[doc(hidden)]` item, because rustdoc JSON omits it. It stays a member, and a compile check outside the tree can confirm its facts;
 - a Rust path dependency outside the workspace, in a context whose report does not document it. A report's key holds the crate's version, so another version's slot never answers for it. Report the dependency's own context from its manifest's directory, and a workspace member's context from the workspace root, because the script copies the directory it is given;
 - a Python module that fails to import, which the report lists under `failed` as a warning, because a project can intend it;
+- a Go slot whose type or constant value go/types cannot resolve, such as a cgo type or `C.FOO`, which the report lists under `unstated`;
 - Python's typing contexts, because `inspect.signature` states the runtime's view only;
 - a Python annotation whose source the runtime has lost: the report states an annotation's written text where the interpreter can return it, and resolves its names, and otherwise marks a slot whose value a module binds as `unstated`, because the runtime expanded an alias it cannot see. This is never an error, and never agreed.
 

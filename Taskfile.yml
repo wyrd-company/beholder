@@ -120,15 +120,31 @@ tasks:
     desc: Write a Go compiler report from go/types
     summary: |
       Needs Go. PROJECT, CONTEXT and OUT are required. OUT is an absolute path
-      outside the project tree. TAGS, GOOS and GOARCH select the context.
+      outside the project tree. TAGS, GOOS and GOARCH select the context, and
+      MODE=test reads its `_test.go` files as `go test` compiles them.
+      PATTERNS lists the context's package patterns, `./...` by default; run
+      from the context's module-root, and from a `go.work` root name the
+      patterns its command names. A run that matches no package, or a context
+      whose `go build` (`go test -c` in mode test) fails, exits nonzero and
+      writes no report.
     dir: '{{.PROJECT}}'
     requires:
       vars: [PROJECT, CONTEXT, OUT]
     cmds:
+      # The report is built for the host, outside every module and without the
+      # context's GOOS, GOARCH or GOFLAGS, which select only what it reports on,
+      # but with the toolchain the project selects.
       - >-
-        go run {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}
+        tool="$(mktemp -d)" && trap 'rm -rf "$tool"' EXIT &&
+        toolchain="$(go env GOVERSION)" && toolchain="${toolchain%% *}" &&
+        case "$toolchain" in go1.*) ;; *) toolchain=local ;; esac &&
+        (cd "$tool" && GOTOOLCHAIN="$toolchain" GOOS="$(go env GOHOSTOS)" GOARCH="$(go env GOHOSTARCH)" GOFLAGS= GOWORK=off
+        go build -o "$tool/report-go" {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-go.go")}}) &&
+        "$tool/report-go"
         -context {{shellQuote .CONTEXT}} -out {{shellQuote .OUT}}
         {{if .TAGS}}-tags {{shellQuote .TAGS}}{{end}}
+        {{if .MODE}}-mode {{shellQuote .MODE}}{{end}}
+        {{if .PATTERNS}}-patterns {{shellQuote .PATTERNS}}{{end}}
 
   semantic-oracle:report:python:
     desc: Write a Python compiler report from inspect.signature
@@ -204,6 +220,29 @@ tasks:
       - cargo build -q --locked -p beholder-semantic-oracle-cli
       - python3 scripts/semantic-oracle/corpus.py --fixtures fixtures --binary target/debug/semantic-oracle
 
+  semantic-oracle:report:csharp:
+    desc: Write a C# compiler report from the .NET SDK's own Roslyn
+    summary: |
+      Needs a .NET SDK with file-based apps (10 or later); the first run restores the
+      Roslyn reference package to build the script. PROJECT, ENTRY, CONTEXT,
+      TARGET_FRAMEWORK and OUT are required, the context's `entry` and
+      `target-framework`; CONFIGURATION (default Debug) and PROPERTIES, a
+      space-separated list of NAME=VALUE, are the rest of its parameters. OUT lies
+      outside the project tree. It builds the context on a copy of PROJECT, and a build
+      or compilation that fails exits nonzero and writes no report.
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars: [PROJECT, ENTRY, CONTEXT, TARGET_FRAMEWORK, OUT]
+    vars:
+      CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
+    cmds:
+      - >-
+        dotnet run --file {{shellQuote (joinPath .ROOT_DIR "scripts/semantic-oracle/report-csharp.cs")}} --
+        --project {{shellQuote .PROJECT}} --entry {{shellQuote .ENTRY}}
+        --context {{shellQuote .CONTEXT}} --out {{shellQuote .OUT}}
+        --configuration {{shellQuote .CONFIGURATION}} --target-framework {{shellQuote .TARGET_FRAMEWORK}}
+        {{range $p := splitList " " (.PROPERTIES | default "")}}{{if $p}}--property {{shellQuote $p}} {{end}}{{end}}
+
   semantic-oracle:toolchains:
     desc: Report whether the installed toolchains can check each fixture project
     summary: |
@@ -239,8 +278,8 @@ tasks:
   test:oracle-reports:
     desc: Run each compiler report script on a small project
     summary: |
-      Needs rustc and cargo, go, python3, node and the `typescript` module, and the Dart
-      SDK. A missing toolchain fails this task. C# has no script until its toolchain exists.
+      Needs rustc and cargo, go, python3, node and the `typescript` module, a .NET SDK
+      and the Dart SDK. A missing toolchain fails this task.
     cmds:
       - dart pub get --directory scripts/semantic-oracle
       - python3 scripts/tests/semantic-oracle-reports.test.py
