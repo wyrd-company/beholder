@@ -671,6 +671,7 @@ $defs:
       type: {$ref: '#/$defs/type-slot'}
       bounds: {$ref: '#/$defs/type-text'}
       tag: {$ref: '#/$defs/text'}
+      index: {type: integer, minimum: 0}
       value: {$ref: '#/$defs/value-slot'}
       get: {$ref: '#/$defs/accessor'}
       set: {$ref: '#/$defs/accessor'}

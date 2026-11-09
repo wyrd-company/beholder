@@ -78,7 +78,7 @@ description: |
   | entity | A program element with identity: a declared or implied thing that names can denote. |
   | fact | One assertion of the dataset: an entity record, a reference, a relation, a visibility value, a public API membership or a signature. |
   | locator | A span of a document identified by path, coordinates and exact text. |
-  | site | The locator of a name token: the place a definition or reference occurs. |
+  | site | The locator of a name token, or of a keyword or punctuation token that a profile names: the place a definition or reference occurs. |
   | observation | One normalized assertion produced by an adapter from indexer output. |
   | adapter | A component that converts one index format into observations and declares which fact kinds it supports. |
   | profile | The language-specific specification that applies this model to one language. |
@@ -188,13 +188,22 @@ description: |
   coordinates equals `text`. A locator is stale when the digest or text check
   fails. A dataset with a stale locator is invalid.
 
-  A site is the locator of one name token. A definition site spans the
+  A site is the locator of one name token, or of one token site that the
+  profile defines (below). A definition site spans the
   declared name as written. A reference site spans the token that denotes
   the target. Where the language writes a name with a lexical prefix that is
   not part of the name, such as a raw-identifier or verbatim prefix, the
   profile states whether the site includes the prefix and which alternative
   span an observation may use. That rule is the profile's
   `alternate-span` rule.
+
+  A profile may define a token site: the locator of a keyword or punctuation
+  token through which the language declares or denotes an entity where no name
+  token does, such as an operator symbol, a conversion keyword, the keyword that
+  declares an indexer, or the bracket of an indexer access. The profile names each
+  token-site form, whether it is a definition or a reference site, and the span it
+  covers. A token site is otherwise a site like any other: it is matched by its
+  span, and its `text` is the token as written.
 
   A profile may define a value site: the locator of a literal or expression
   through which the language denotes a target by value rather than by name,
@@ -380,10 +389,13 @@ description: |
   - The canonical path is the path at the entity's definition. Paths through
     re-exports and aliases are consumer paths and appear in public API
     membership, not in identity.
-  - An entity that the language declares without a name token has no
-    definition site and no `anchor`: a unit root, a source-file module, and
-    each unnamed form the profile names, such as an implementation block.
-    Its key identifies it.
+  - An entity that the language declares without a name token, and for
+    which the profile defines no token site, has no definition site and no
+    `anchor`: a unit root, a source-file module, and each unnamed form the
+    profile names, such as an implementation block. Its key identifies it.
+    An entity whose declaration the profile marks with a token site, such
+    as a C# indexer's `this` or an operator's operator token, has that token
+    site as its definition site.
 
   ### Origins
 
@@ -431,7 +443,7 @@ description: |
 
   ### References
 
-  A reference states that one name token denotes one target:
+  A reference states that one site denotes one target:
 
   ```yaml
   references:
@@ -684,7 +696,7 @@ description: |
   | `property` | `get`, `set`, `init`, `add`, `remove`, `delete`, `parameters` for an indexer, `return-mode`, `modifiers` |
   | `variable` | `type`, `modifiers` |
   | `constant` | `type`, `value`, `modifiers` |
-  | `enum-member` | `value`, `type` |
+  | `enum-member` | `value`, `type`, `index` |
   | `extension` | `type-parameters`, `receiver`, where the profile gives them |
   | `module`, `namespace`, `macro` | None. Membership states them. |
 
@@ -718,6 +730,10 @@ description: |
   of a member's `bases` equal its relations' targets. Two implementations of one
   generic base are one relation and two `bases` entries. `position` is the base's
   index where the profile states that base order changes behavior.
+
+  `index` is an enum member's 0-based position among its enum's `enum-member`
+  entities in source order, where the profile states that a consumer observes that
+  order. It is an integer.
 
   `implementations` is a slot of the implemented type, for an implementation whose
   self type no `implements` relation can start from: a type parameter, or a type
@@ -833,6 +849,9 @@ description: |
   - `model:signature-bases`: the targets of `bases` equal the member's `inherits`
     and `implements` relations. A base that the profile's structural rule gives has
     no source token, and the audit reads its method sets instead of a reference.
+  - `model:signature-index`: an `index` equals the member's position among the
+    `enum-member` entities of its `parent` in the order of their first definition
+    sites, in each of the record's contexts.
   - `profile:signature-compiler`: facts agree with the language's compiler report,
     as Authoring independence states. A language with no report is listed as
     `unchecked`, and never as passed.

@@ -51,7 +51,7 @@ description: |
   | `module-root` | The project-relative directory of the main module or `go.work` the command uses; `.` for the project root. |
   | `go-version` | The language version the module's `go` directive selects. |
   | `patterns` | The package patterns the command names. |
-  | `release` | The release parameter: the Go toolchain release as `go1.N`, which decides the release tags `go1.1` to `go1.N` that build constraints test and the standard library. A `toolchain` directive in `go.mod` that names a later release selects it. |
+  | `release` | The release parameter: the Go toolchain release, as `go1.N`, that actually builds the context, which decides the release tags `go1.1` to `go1.N` that build constraints test and the standard library. It is at least the `go` directive's version, because an older toolchain refuses the module. A `toolchain` directive is no minimum: under `GOTOOLCHAIN=local` the local toolchain builds the module whatever the directive names, so Go 1.27.3 builds a module with `go 1.27.0` and `toolchain go1.28.0`. The directive selects a release only when `GOTOOLCHAIN` permits switching, and then the release it selects is the one recorded. |
 
   Each `go build`, `go vet`, `go test` or `go run` command in the project's
   `build` and `test` tasks defines a context, unless another command defines
@@ -123,7 +123,10 @@ description: |
   | parameter, result, receiver | `parameter` | `param`, `result` or `receiver` |
   | type parameter | `type-parameter` | `type-param` |
 
-  The blank identifier declares no entity. Declarations inside function
+  The blank identifier declares no entity, and neither does an unnamed
+  result: a result is an entity only when the signature names it. A type
+  token in an unnamed or blank result, or in a blank field, is a reference
+  from the enclosing callable or struct type. Declarations inside function
   bodies are out-of-profile.
 
   ## Declared visibility
@@ -143,6 +146,10 @@ description: |
     exported package-level declaration of its package.
   - `external`: as `project`, with `scoped` replaced by `none` when the
     `internal` parent lies inside the distribution.
+  - A package is reached by importing it, not by name, so its declared
+    visibility follows the name rule above while its `project` and
+    `external` values are those of an exported declaration in it. A `main`
+    package, which cannot be imported, has `none`.
 
   ## Public API
 
@@ -254,8 +261,8 @@ description: |
   reference to the embedded type with role `type`.
 
   Predeclared identifiers such as `int`, `error`, `len`, `nil`, `true` and
-  `iota` target external entities with distribution `go` and path
-  `builtin.<name>`. `unsafe` package identifiers use distribution `go` and
+  `iota` target external entities with distribution `std` and path
+  `builtin.<name>`. `unsafe` package identifiers use distribution `std` and
   path `unsafe.<name>`. Names of the `C` pseudo-package target external
   entities with distribution `cgo` and path `C.<name>`.
 
