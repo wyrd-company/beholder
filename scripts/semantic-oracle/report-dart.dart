@@ -739,12 +739,17 @@ Future<void> main(List<String> arguments) async {
                 .map((token) => token.lexeme)
                 .join();
             if (!name.startsWith('dart.library.')) continue;
-            var assumed = declared.containsKey(name);
-            if (assumed != conditional.contains(name)) {
+            // The analyzer selects by the declared value; the compiler by its
+            // platform, which a define does not override: `true` or unset.
+            var tested = configuration.value?.stringValue ?? 'true';
+            var assumed = declared[name] == tested;
+            var compiled = conditional.contains(name) && tested == 'true';
+            if (assumed != compiled) {
               fail(
-                '${unitName(unit)} tests $name, which the context\'s library flags '
-                '${assumed ? 'set' : 'leave unset'} and `dart compile $compile` '
-                'for $platform ${assumed ? 'does not set' : 'sets'}',
+                '${unitName(unit)} tests $name == $tested, which the context\'s '
+                'library flags ${assumed ? 'select' : 'do not select'} and '
+                '`dart compile $compile` for $platform '
+                '${compiled ? 'selects' : 'does not select'}',
               );
             }
           }

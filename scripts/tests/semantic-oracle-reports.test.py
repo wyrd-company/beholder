@@ -883,6 +883,10 @@ mixin Plain {}
     # library flags leave out one a directive tests would report another branch.
     failure(dart_command(project, out, "vm", "bin/main.dart", "vm"), project, out,
             ["package:sample/sample.dart", "dart.library.io", "dart compile kernel"])
+    # A define naming the flag with another value does not change the compiler's,
+    # so the analyzer would read the stub while the compiler selects platform_io.
+    failure(dart_command(project, out, "vm", "bin/main.dart", "vm", "--define", "dart.library.io=false"), project, out,
+            ["package:sample/sample.dart", "dart.library.io", "dart compile kernel"])
     # A js context resolves against the analyzer's SDK when the platform provides
     # every `dart:` library the context reaches.
     out = os.path.join(tmp, "dart-js.json")
