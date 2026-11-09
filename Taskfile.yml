@@ -190,7 +190,9 @@ tasks:
       For each context of a project's semantic-oracle.yml it prints ok or
       release-mismatch: the context's `release` (`python`, `compiler`) must equal
       the release the project runs under or be extended by it with dotted
-      components. A mismatch also exits nonzero.
+      numeric components, so a prerelease matches only a parameter naming it. A
+      semantic-oracle.yml whose contexts cannot all be read, or that lists none,
+      is unresolved. A mismatch or an unresolved dataset also exits nonzero.
     dir: '{{.USER_WORKING_DIR}}'
     vars:
       FIXTURES: '{{.FIXTURES | default (joinPath .ROOT_DIR "fixtures")}}'

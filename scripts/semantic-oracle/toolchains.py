@@ -41,11 +41,19 @@ meaning depends on: `release` (C#, Dart, Go, Rust), `python` or `compiler`
 (TypeScript). A line `<language>/<project>#<context>` reports it:
 
   release-mismatch   no installed release equals the parameter or extends it
-                     with dotted components, or the context has no parameter
+                     with dotted numeric components, or the context has no
+                     parameter. A prerelease, such as Python 3.14.0rc1, extends
+                     no release: it matches only a parameter naming it exactly
   ok                 the release the project runs under matches it
 
-Exits 1 when any project is unsupported or missing a toolchain, or any context
-is release-mismatch.
+A line `<language>/<project>#<path>` marks a semantic-oracle.yml whose contexts
+cannot be read, or that lists none:
+
+  unresolved         part of its `contexts` is in a form this script does not
+                     read, so none of its contexts is checked
+
+Exits 1 when any project is unsupported or missing a toolchain, any context is
+release-mismatch, or any semantic-oracle.yml is unresolved.
 
   toolchains.py [--fixtures DIR]
 """
@@ -68,7 +76,7 @@ RELEASE_PARAMETER = {"csharp": "release", "dart": "release", "go": "release",
                      "python": "python", "rust": "release", "typescript": "compiler"}
 LANGUAGES = ("csharp", "dart", "go", "python", "rust", "typescript")
 SKIPPED = {".git", ".dart_tool", "bin", "build", "node_modules", "obj", "target", "vendor"}
-NODE_MINIMUM = (22, 6, 0)
+NODE_MINIMUM = "22.6.0"
 RUST_EDITIONS = {"2015": (1, 0, 0), "2018": (1, 31, 0), "2021": (1, 56, 0), "2024": (1, 85, 0)}
 
 
@@ -191,7 +199,7 @@ class Toolchains:
         rustup's active toolchain name, or None without rustup."""
         def find():
             out = run(["rustc", "-vV"], cwd=cwd)
-            match = out and re.search(r"^release: (\d+\.\d+\.\d+)(?:-(\w+))?", out, re.M)
+            match = out and re.search(r"^release: ((\d+\.\d+\.\d+)(?:-(\w+)\S*)?)[ \t]*$", out, re.M)
             if not match:
                 return None
             date = re.search(r"^commit-date: (\d{4}-\d{2}-\d{2})", out, re.M)
@@ -200,7 +208,8 @@ class Toolchains:
             if self.rustup():
                 active = (run(["rustup", "show", "active-toolchain"], cwd=cwd) or "").split(maxsplit=1)
                 active = active[0] if active else None
-            return {"version": numbers(match.group(1)), "channel": match.group(2) or "stable",
+            return {"release": match.group(1), "version": numbers(match.group(2)),
+                    "channel": match.group(3) or "stable",
                     "date": date.group(1) if date else None, "sysroot": sysroot, "active": active}
         return self.probe(("rustc", cwd if self.rustup() else None), find)
 
@@ -217,16 +226,19 @@ class Toolchains:
                     if not os.access(path, os.X_OK):
                         continue
                     out = run([path, "--version"])
-                    match = out and re.search(r"Python (\d+\.\d+\.\d+)", out)
+                    # The whole version, with any prerelease suffix: 3.14.0rc1
+                    # is not 3.14.0. A trailing + marks a build past it.
+                    match = out and re.search(r"Python (\d+\.\d+\.\d+(?:(?:a|b|rc)\d+)?\+?)(?:\s|$)", out)
                     if match:
-                        found[name] = numbers(match.group(1))
+                        found[name] = match.group(1)
             return found
         return self.probe("python", find)
 
     def node(self):
+        """The version node reports, without its v, prerelease included."""
         def find():
             out = run(["node", "--version"], cwd=self.neutral)
-            return numbers(out) if out else None
+            return out.strip().removeprefix("v") if out else None
         return self.probe("node", find)
 
 
@@ -593,7 +605,9 @@ def check_rust(project, tools, result):
         result.add("missing-toolchain", "no rustc (rustc -vV)")
         return
     installed = rustc["version"]
-    result.releases = [shown(installed)]
+    # The full release: a beta or nightly, such as 1.84.0-nightly, matches no
+    # context release a stable one would.
+    result.releases = [rustc["release"]]
     identity = rustc["active"] or f"rustc {shown(installed)} {rustc['channel']}" + (
         f" ({rustc['date']})" if rustc["date"] else "")
     found = rust_toolchain_file(project)
@@ -657,11 +671,16 @@ def pep440_key(text, size):
             int(dev_number or 0) if dev else float("inf"))
 
 
-def pep440_satisfies(version, specifier):
-    """A requires-python specifier on an installed final release.
+def pep440_satisfies(installed, specifier):
+    """Whether an interpreter version satisfies a requires-python specifier,
+    in PEP 440 order: 3.14.0rc1 is older than 3.14.0, so `>=3.14.0` excludes
+    it. A prerelease interpreter is eligible for every clause.
 
     Clauses may name pre-, post- and dev-releases. Epochs and local versions
-    are not supported."""
+    are not supported. A trailing + on the interpreter, a build past the
+    version it names, compares as that version."""
+    installed = installed.removesuffix("+")
+    version = numbers(installed)
     for clause in filter(None, (part.strip() for part in specifier.split(","))):
         match = re.fullmatch(r"(~=|===|==|!=|>=|<=|>|<)\s*v?([0-9][0-9A-Za-z._-]*?)(\.\*)?", clause)
         if not match:
@@ -671,7 +690,7 @@ def pep440_satisfies(version, specifier):
             raise ValueError(f"unsupported requires-python clause {clause!r}")
         want = numbers(text)
         size = max(len(want), len(version))
-        have, full = pep440_key(shown(version), size), pep440_key(text, size)
+        have, full = pep440_key(installed, size), pep440_key(text, size)
         if operator in ("==", "!=", "===") and wildcard:
             equal = tuple(version[:len(want)]) == want
             ok = equal if operator == "==" else not equal
@@ -695,7 +714,7 @@ def check_python(project, tools, result):
     if not interpreters:
         result.add("missing-toolchain", "no python3.N interpreter on PATH")
         return
-    result.releases = [shown(version) for version in interpreters.values()]
+    result.releases = list(interpreters.values())
     declared = {}
     for path in manifests(project, "pyproject.toml"):
         where = relative(path, project)
@@ -711,7 +730,7 @@ def check_python(project, tools, result):
             result.add("ok", f"requires-python {specifier!r} ({where}): {', '.join(fitting)}")
         else:
             result.add("unsupported", f"requires-python {specifier!r} ({', '.join(paths)}) matches none of "
-                       f"{', '.join(f'{name} ({shown(version)})' for name, version in interpreters.items())}")
+                       f"{', '.join(f'{name} ({version})' for name, version in interpreters.items())}")
     if not declared:
         result.add("ok", f"no requires-python; {', '.join(interpreters)} available")
 
@@ -788,10 +807,10 @@ def check_typescript(project, tools, result):
     node = tools.node()
     if node is None:
         result.add("missing-toolchain", "no Node.js (node --version)")
-    elif padded(node) < NODE_MINIMUM:
-        result.add("unsupported", f"Node.js {shown(node)} is older than {shown(NODE_MINIMUM)}")
+    elif dart_version(node) < dart_version(NODE_MINIMUM):
+        result.add("unsupported", f"Node.js {node} is older than {NODE_MINIMUM}")
     else:
-        result.add("ok", f"Node.js {shown(node)}")
+        result.add("ok", f"Node.js {node}")
     pin = None
     package = os.path.join(project, "package.json")
     if os.path.exists(package):
@@ -830,33 +849,269 @@ def check_typescript(project, tools, result):
         result.add("missing-toolchain", "no typescript declared or installed")
 
 
+class Flow:
+    """A YAML flow collection or scalar: mappings and sequences become dicts
+    and lists, and every scalar a string. Anchors, aliases, tags and anything
+    else it cannot read raise ValueError."""
+
+    def __init__(self, text):
+        self.text = text
+        self.position = 0
+
+    def fail(self, what):
+        raise ValueError(f"{what} at {self.text[self.position:self.position + 20]!r}")
+
+    def skip(self):
+        while self.position < len(self.text) and self.text[self.position].isspace():
+            self.position += 1
+
+    def peek(self):
+        self.skip()
+        return self.text[self.position] if self.position < len(self.text) else ""
+
+    def whole(self):
+        value = self.value()
+        if self.peek():
+            self.fail("unexpected text after a value")
+        return value
+
+    def value(self):
+        first = self.peek()
+        if first == "{":
+            return self.collection("}", {})
+        if first == "[":
+            return self.collection("]", [])
+        if first in ("'", '"'):
+            return self.quoted()
+        if not first or first in ",:]}#*&!|>%@`":
+            self.fail("an unsupported YAML value")
+        start = self.position
+        while self.position < len(self.text):
+            here = self.text[self.position]
+            after = self.text[self.position + 1:self.position + 2]
+            if here in ",[]{}" or (here == ":" and (not after or after.isspace() or after in ",[]{}")):
+                break
+            if here == "#" and self.text[self.position - 1].isspace():
+                self.fail("a comment inside a flow collection")
+            self.position += 1
+        return self.text[start:self.position].strip()
+
+    def quoted(self):
+        quote = self.text[self.position]
+        self.position += 1
+        found = []
+        while self.position < len(self.text):
+            here = self.text[self.position]
+            if quote == "'" and here == "'":
+                if self.text[self.position + 1:self.position + 2] == "'":
+                    found.append("'")
+                    self.position += 2
+                    continue
+                self.position += 1
+                return "".join(found)
+            if quote == '"' and here == "\\":
+                escaped = self.text[self.position + 1:self.position + 2]
+                if escaped not in ('"', "\\", "/"):
+                    self.fail("an unsupported escape")
+                found.append(escaped)
+                self.position += 2
+                continue
+            if quote == '"' and here == '"':
+                self.position += 1
+                return "".join(found)
+            found.append(here)
+            self.position += 1
+        self.fail("an unterminated string")
+
+    def collection(self, end, into):
+        self.position += 1
+        while True:
+            if self.peek() == end:
+                self.position += 1
+                return into
+            if isinstance(into, dict):
+                key = self.value()
+                if not isinstance(key, str):
+                    self.fail("a key that is not a scalar")
+                if key in into:
+                    self.fail(f"a repeated key {key!r}")
+                if self.peek() != ":":
+                    self.fail("a key without a value")
+                self.position += 1
+                into[key] = None if self.peek() in (",", end) else self.value()
+            else:
+                into.append(self.value())
+            separator = self.peek()
+            if separator == ",":
+                self.position += 1
+            elif separator != end:
+                self.fail("a missing `,`")
+
+
+def uncommented(line):
+    """The line without a trailing comment, outside quoted scalars."""
+    quote = None
+    index = 0
+    while index < len(line):
+        here = line[index]
+        before = line[index - 1] if index else " "
+        if quote == "'" and here == "'":
+            if line[index + 1:index + 2] == "'":
+                index += 1
+            else:
+                quote = None
+        elif quote == '"' and here == "\\":
+            index += 1
+        elif quote == '"' and here == '"':
+            quote = None
+        elif quote is None and here in "'\"" and (before.isspace() or before in "[{,:"):
+            quote = here
+        elif quote is None and here == "#" and before.isspace():
+            return line[:index].rstrip()
+        index += 1
+    return line.rstrip()
+
+
+def indent(line):
+    return len(line) - len(line.lstrip(" "))
+
+
+KEY = re.compile(r"""(?:([^\s'"#\[\]{},:][^:#]*?)|'([^']*)'|"([^"\\]*)")[ \t]*:(?:[ \t]+(.*)|)$""")
+
+
+def block_mapping(lines, what):
+    """{key: (inline value, [deeper lines])} for block mapping lines, which
+    must all be keys at the first line's indent or lines deeper than it."""
+    found = {}
+    if not lines:
+        return found
+    column = indent(lines[0])
+    key = None
+    for line in lines:
+        if indent(line) > column and key is not None:
+            found[key][1].append(line)
+            continue
+        match = indent(line) == column and KEY.match(line.strip())
+        if not match:
+            raise ValueError(f"{what}: cannot read {line.strip()!r}")
+        key = next(part for part in match.groups()[:3] if part is not None)
+        if key in found:
+            raise ValueError(f"{what}: repeated key {key!r}")
+        found[key] = ((match.group(4) or "").strip(), [])
+    return found
+
+
+def block_scalar(value, deeper, what):
+    """A block mapping value: a string, a dict or list, or None when empty."""
+    if deeper:
+        if value:
+            raise ValueError(f"{what}: a value continued on another line")
+        return []  # A nested block collection.
+    if not value:
+        return None
+    if value[0] in "[{'\"":
+        return Flow(value).whole()
+    if value[0] in "*&!|>%@`":
+        raise ValueError(f"{what}: unsupported YAML value {value!r}")
+    return value
+
+
+def context_entry(entry, number):
+    """(id, scalar parameters) of one context, from a dict or block mapping."""
+    what = f"context {number}"
+    if isinstance(entry, dict):
+        identifier, parameters = entry.get("id"), entry.get("parameters")
+    else:
+        fields = block_mapping(entry, what)
+        identifier = block_scalar(*fields["id"], f"{what} id") if "id" in fields else None
+        parameters = None
+        if "parameters" in fields:
+            value, deeper = fields["parameters"]
+            if value and deeper:
+                raise ValueError(f"{what} parameters: a value continued on another line")
+            if value:
+                parameters = block_scalar(value, [], f"{what} parameters")
+            else:
+                parameters = {}
+                for key, (inner, nested) in block_mapping(deeper, f"{what} parameters").items():
+                    parameters[key] = block_scalar(inner, nested, f"{what} parameter {key}")
+    if not isinstance(identifier, str) or not identifier:
+        raise ValueError(f"{what} has no id")
+    if not isinstance(parameters, dict):
+        raise ValueError(f"context {identifier} has no parameters mapping")
+    return identifier, {key: value for key, value in parameters.items() if isinstance(value, str)}
+
+
 def contexts(text):
     """(id, parameters) for each entry of a dataset's top-level `contexts`.
 
-    Reads the block style the datasets use, without a YAML parser, and keeps
-    only scalar parameters."""
-    found = []
-    inside = False
-    for line in text.splitlines():
-        if re.match(r"contexts:\s*(#.*)?$", line):
-            inside = True
-            continue
-        if not inside or not line.strip() or line.lstrip().startswith("#"):
-            continue
-        if not line[0].isspace() and not line.startswith("-"):
-            break
-        entry = re.match(r"\s*-\s+id:\s*(['\"]?)([^'\"#]+?)\1\s*(?:#.*)?$", line)
-        if entry:
-            found.append((entry.group(2), {}))
-            continue
-        parameter = re.match(r"\s+([\w-]+):\s*(['\"]?)([^'\"{\[#]*?)\2\s*(?:#.*)?$", line)
-        if found and parameter and parameter.group(3):
-            found[-1][1].setdefault(parameter.group(1), parameter.group(3))
+    Reads block and flow sequences of block or flow mappings without a YAML
+    parser, and keeps only scalar parameters, as strings. Raises ValueError
+    when there is no context, or any part of the list it cannot read: a
+    context must never be skipped."""
+    lines = text.splitlines()
+    starts = [index for index, line in enumerate(lines)
+              if re.match(r"""(contexts|'contexts'|"contexts")[ \t]*:(?:[ \t]|$)""", line)]
+    if not starts:
+        raise ValueError("no top-level `contexts`")
+    if len(starts) > 1:
+        raise ValueError("more than one top-level `contexts`")
+    head = uncommented(lines[starts[0]]).split(":", 1)[1].strip()
+    block = []
+    for line in lines[starts[0] + 1:]:
+        if line.strip() and not line.lstrip().startswith("#"):
+            if not line[0].isspace() and not re.match(r"-(?:[ \t]|$)", line):
+                break
+            if "\t" in line[:indent(line) + 1]:
+                raise ValueError("a tab in the indentation of `contexts`")
+            block.append(uncommented(line))
+    if head:
+        if head[0] not in "[":
+            raise ValueError(f"`contexts` is not a list: {head!r}")
+        # A flow sequence may continue on the lines after the key.
+        entries = Flow(" ".join([head] + [line.strip() for line in block])).whole()
+        if not isinstance(entries, list):
+            raise ValueError("`contexts` is not a list")
+        found = []
+        for number, entry in enumerate(entries, 1):
+            if not isinstance(entry, dict):
+                raise ValueError(f"context {number} is not a mapping")
+            found.append(context_entry(entry, number))
+    else:
+        found = []
+        column = indent(block[0]) if block else 0
+        entries = []
+        for line in block:
+            if indent(line) == column and re.match(r"-(?:[ \t]|$)", line.lstrip()):
+                entries.append([line])
+            elif indent(line) > column and entries:
+                entries[-1].append(line)
+            else:
+                raise ValueError(f"cannot read {line.strip()!r} in `contexts`")
+        for number, entry in enumerate(entries, 1):
+            first = entry[0][column + 1:]
+            content = first.lstrip(" ")
+            if content.startswith("{"):
+                body = Flow(" ".join([content] + [line.strip() for line in entry[1:]])).whole()
+                found.append(context_entry(body, number))
+                continue
+            if content[:1] in ("&", "*", "!", "|", ">", "%", "@", "`", "?"):
+                raise ValueError(f"context {number}: unsupported YAML value {content!r}")
+            if content.startswith("- ") or content == "-":
+                raise ValueError(f"context {number} is not a mapping")
+            # Replace the dash with a space, so the entry's keys share a column.
+            mapping = ([" " * (column + 1) + first] if content else []) + entry[1:]
+            found.append(context_entry(mapping, number))
+    if not found:
+        raise ValueError("`contexts` lists no context")
     return found
 
 
 def extends(release, wanted):
-    return release == wanted or release.startswith(wanted + ".")
+    """Whether release is wanted, or wanted extended with dotted numeric
+    components: 3.14.2 extends 3.14, and 3.14.0rc1 and 5.9.0-beta extend nothing."""
+    rest = release[len(wanted):] if release.startswith(wanted) else None
+    return release == wanted or (bool(rest) and re.fullmatch(r"(?:\.\d+)+", rest) is not None)
 
 
 def check_releases(language, project, result):
@@ -864,8 +1119,14 @@ def check_releases(language, project, result):
     key = RELEASE_PARAMETER[language]
     lines = []
     for path in manifests(project, "semantic-oracle.yml"):
-        prefix = os.path.dirname(relative(path, project))
-        for context, parameters in contexts(read(path)):
+        where = relative(path, project)
+        prefix = os.path.dirname(where)
+        try:
+            found = contexts(read(path))
+        except (ValueError, OSError, UnicodeDecodeError) as error:
+            lines.append(("unresolved", where, f"cannot read its contexts: {error}"))
+            continue
+        for context, parameters in found:
             name = f"{prefix}/{context}" if prefix else context
             wanted = parameters.get(key)
             installed = ", ".join(result.releases) or "none installed"
@@ -917,9 +1178,9 @@ def main():
         try:
             releases = check_releases(language, project, result)
         except (ValueError, OSError) as error:
-            releases = [("release-mismatch", "semantic-oracle.yml", f"cannot read its contexts: {error}")]
+            releases = [("unresolved", "semantic-oracle.yml", f"cannot read its contexts: {error}")]
         for state, context, note in releases:
-            tally = context_counts.setdefault(language, {"release-mismatch": 0, "ok": 0})
+            tally = context_counts.setdefault(language, {"unresolved": 0, "release-mismatch": 0, "ok": 0})
             tally[state] += 1
             print(f"{state:<17} {language}/{name}#{context}: {note}")
     shutil.rmtree(tools.neutral, ignore_errors=True)
@@ -933,10 +1194,12 @@ def main():
                                              if count)
         print(f"{language:<10} {line}")
     mismatched = sum(tally["release-mismatch"] for tally in context_counts.values())
+    unresolved = sum(tally["unresolved"] for tally in context_counts.values())
     print(f"{len(found)} projects, {failing} cannot be checked with the installed toolchains; "
-          f"{sum(sum(tally.values()) for tally in context_counts.values())} dataset contexts, "
-          f"{mismatched} release-mismatch")
-    return 1 if failing or mismatched else 0
+          f"{sum(tally['release-mismatch'] + tally['ok'] for tally in context_counts.values())} dataset contexts, "
+          f"{mismatched} release-mismatch"
+          + (f"; {unresolved} semantic-oracle.yml unresolved" if unresolved else ""))
+    return 1 if failing or mismatched or unresolved else 0
 
 
 if __name__ == "__main__":

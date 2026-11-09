@@ -190,7 +190,7 @@ def report(corpus, path, **env):
     states = {}
     for line in done.stdout.splitlines():
         match = re.match(r"(\S+)\s+(\S+?): (.*)", line)
-        if match and match.group(1) in toolchains.STATES + ("release-mismatch",):
+        if match and match.group(1) in toolchains.STATES + ("release-mismatch", "unresolved"):
             states[match.group(2)] = (match.group(1), match.group(3))
     return done, states
 
@@ -266,6 +266,69 @@ def test_passing(scratch):
     assert done.returncode == 0, done.stdout
     assert states["rust/pinned"][0] == "pin-not-honoured"
     assert states["rust/pinned#a"][0] == "ok", states
+
+
+def test_context_forms(scratch):
+    """Every context is read whatever its key order or style, and a dataset
+    whose contexts cannot all be read is unresolved, never zero contexts."""
+    corpus = os.path.join(scratch, "fixtures")
+    bin = os.path.join(scratch, "bin")
+    os.makedirs(bin)
+    command(bin, "python3.14", 'echo "Python 3.14.2"\n')
+    write(corpus, {
+        "python/projects/forms/semantic-oracle.yml":
+            "contexts:\n  - parameters:\n      python: \"3.99\"\n    id: reordered\n    command: none\n"
+            "  - {id: flow, parameters: {python: '3.99', options: [a, b]}, command: none}\n"
+            "  -\n    id: bare\n    parameters: {python: '3.14'}\n",
+        "python/projects/flow-list/semantic-oracle.yml":
+            "contexts: [{id: listed, parameters: {python: \"3.99\"}, command: none},\n"
+            "           {parameters: {python: \"3.14\"}, id: second, command: none}]\n",
+        "python/projects/alias/semantic-oracle.yml":
+            "contexts:\n  - id: a\n    parameters:\n      python: *py\n",
+        "python/projects/no-id/semantic-oracle.yml":
+            "contexts:\n  - parameters:\n      python: '3.14'\n    command: none\n",
+        "python/projects/empty/semantic-oracle.yml": "contexts: []\n",
+        "python/projects/absent/semantic-oracle.yml": "profile: python/1\n",
+        "python/projects/scalar/semantic-oracle.yml": "contexts:\n  - default\n",
+    })
+    done, states = report(corpus, bin)
+    assert done.returncode == 1, done.stdout
+    assert states["python/forms#reordered"] == ("release-mismatch", "python 3.99; installed 3.14.2"), states
+    assert states["python/forms#flow"] == ("release-mismatch", "python 3.99; installed 3.14.2"), states
+    assert states["python/forms#bare"] == ("ok", "python 3.14; installed 3.14.2"), states
+    assert states["python/flow-list#listed"][0] == "release-mismatch", states
+    assert states["python/flow-list#second"][0] == "ok", states
+    for project, reason in (("alias", "unsupported YAML value '*py'"), ("no-id", "context 1 has no id"),
+                            ("empty", "`contexts` lists no context"), ("absent", "no top-level `contexts`"),
+                            ("scalar", "cannot read 'default'")):
+        line = states[f"python/{project}#semantic-oracle.yml"]
+        assert line[0] == "unresolved" and reason in line[1], (project, line)
+    assert "5 dataset contexts, 3 release-mismatch; 5 semantic-oracle.yml unresolved" in done.stdout, done.stdout
+
+
+def test_prerelease_python(scratch):
+    """A prerelease interpreter satisfies neither a final requires-python
+    bound nor a context naming the final release."""
+    corpus = os.path.join(scratch, "fixtures")
+    bin = os.path.join(scratch, "bin")
+    os.makedirs(bin)
+    command(bin, "python3.14", 'echo "Python 3.14.0rc1"\n')
+    write(corpus, {
+        "python/projects/final/pyproject.toml": '[project]\nname = "a"\nrequires-python = ">=3.14.0"\n',
+        "python/projects/final/semantic-oracle.yml":
+            "contexts:\n  - id: patch\n    parameters:\n      python: \"3.14.0\"\n"
+            "  - id: minor\n    parameters:\n      python: \"3.14\"\n"
+            "  - id: exact\n    parameters:\n      python: \"3.14.0rc1\"\n",
+        "python/projects/pre/pyproject.toml": '[project]\nname = "a"\nrequires-python = ">=3.14.0rc1"\n',
+    })
+    done, states = report(corpus, bin)
+    assert done.returncode == 1, done.stdout
+    assert states["python/final"] == ("unsupported", "unsupported: requires-python '>=3.14.0' "
+                                      "(pyproject.toml) matches none of python3.14 (3.14.0rc1)"), states
+    assert states["python/pre"][0] == "ok", states
+    assert states["python/final#patch"] == ("release-mismatch", "python 3.14.0; installed 3.14.0rc1"), states
+    assert states["python/final#minor"] == ("release-mismatch", "python 3.14; installed 3.14.0rc1"), states
+    assert states["python/final#exact"] == ("ok", "python 3.14.0rc1; installed 3.14.0rc1"), states
 
 
 def test_empty(scratch):
@@ -356,25 +419,46 @@ def test_versions(_):
     assert satisfied("0.3.1", "^0.3.0") and not satisfied("0.4.0", "^0.3.0")
     assert toolchains.go_version("1.21") < toolchains.go_version("go1.21rc2") < toolchains.go_version("1.21.0")
     pep = toolchains.pep440_satisfies
-    assert pep((3, 11, 9), ">=3.10, <3.12") and not pep((3, 12, 0), ">=3.10, <3.12")
-    assert pep((3, 11, 2), "==3.11.*") and not pep((3, 12, 0), "==3.11.*")
-    assert pep((3, 11, 2), "~=3.11") and pep((3, 13, 0), "~=3.11") and not pep((3, 12, 0), "~=3.11.1")
-    assert pep((3, 13, 0), "!=3.12.*")
-    assert pep((3, 13, 0), ">=3.13.0rc1") and pep((3, 13, 0), ">=3.13.0b2") and pep((3, 13, 0), ">=3.13.0.dev0")
-    assert not pep((3, 12, 9), ">=3.13.0rc1") and not pep((3, 13, 0), "==3.13.0rc1")
-    assert not pep((3, 13, 0), "<3.13.0rc1") and pep((3, 13, 0), "<3.13.0.post1")
-    assert not pep((3, 13, 0), ">3.13.0.post1") and pep((3, 13, 0), "~=3.13.0a1") and pep((3, 13, 0), ">=3.13a1")
+    assert pep("3.11.9", ">=3.10, <3.12") and not pep("3.12.0", ">=3.10, <3.12")
+    assert pep("3.11.2", "==3.11.*") and not pep("3.12.0", "==3.11.*")
+    assert pep("3.11.2", "~=3.11") and pep("3.13.0", "~=3.11") and not pep("3.12.0", "~=3.11.1")
+    assert pep("3.13.0", "!=3.12.*")
+    assert pep("3.13.0", ">=3.13.0rc1") and pep("3.13.0", ">=3.13.0b2") and pep("3.13.0", ">=3.13.0.dev0")
+    assert not pep("3.12.9", ">=3.13.0rc1") and not pep("3.13.0", "==3.13.0rc1")
+    assert not pep("3.13.0", "<3.13.0rc1") and pep("3.13.0", "<3.13.0.post1")
+    assert not pep("3.13.0", ">3.13.0.post1") and pep("3.13.0", "~=3.13.0a1") and pep("3.13.0", ">=3.13a1")
+    assert not pep("3.14.0rc1", ">=3.14.0") and not pep("3.14.0rc1", ">=3.14") and not pep("3.14.0b2", "==3.14.0")
+    assert pep("3.14.0rc1", ">=3.14.0rc1") and pep("3.14.0rc1", ">=3.13") and pep("3.14.0rc1", "<3.14")
+    assert pep("3.14.0rc1", "==3.14.*") and pep("3.14.0rc1", "~=3.13") and not pep("3.14.0rc1", ">=3.14.0rc2")
+    assert pep("3.14.0+", ">=3.14.0")
     assert toolchains.extends("go1.27.3", "go1.27") and toolchains.extends("10.0.403", "10.0.403")
     assert not toolchains.extends("1.990", "1.99") and not toolchains.extends("1.9", "1.99")
+    assert not toolchains.extends("3.14.0rc1", "3.14") and not toolchains.extends("3.14.0rc1", "3.14.0")
+    assert not toolchains.extends("5.9.0-beta", "5.9") and not toolchains.extends("1.84.0-nightly", "1.84")
+    assert not toolchains.extends("go1.24rc1", "go1.24") and toolchains.extends("3.14.0rc1", "3.14.0rc1")
     assert toolchains.contexts("contexts:\n- id: a\n  parameters:\n    release: '3.13'\n    options: []\n"
                                "- id: \"b\"\n  parameters: {}\nrelease: 9\n") == [
         ("a", {"release": "3.13"}), ("b", {})]
+    assert toolchains.contexts("contexts:\n  - id: a\n    parameters:\n      options:\n        strict: true\n"
+                               "      'release': '1.2' # pinned\n    description: >\n      text\n") == [
+        ("a", {"release": "1.2"})]
+    for garbled in ("contexts:\n  - id: a\n    parameters:\n      release: 1.2\n        3\n",
+                    "contexts:\n\t- id: a\n    parameters: {}\n",
+                    "contexts:\n  - id: a\n    id: b\n    parameters: {}\n",
+                    "contexts:\n  - id: a\n    command: x\n", "contexts:\n  - &x {id: a, parameters: {}}\n",
+                    "contexts:\n  - id: a\n    parameters: {}\n   - id: b\n    parameters: {}\n",
+                    "contexts:\n  - {id: a, parameters: {}\n", "contexts: [] \ncontexts: []\n"):
+        try:
+            toolchains.contexts(garbled)
+        except ValueError:
+            continue
+        raise AssertionError(f"contexts read {garbled!r}")
 
 
 def main():
     failed = 0
     for test in (test_versions, test_corpus, test_gotoolchain, test_unresolved_gotoolchain, test_missing,
-                 test_passing, test_empty):
+                 test_passing, test_context_forms, test_prerelease_python, test_empty):
         with tempfile.TemporaryDirectory() as scratch:
             try:
                 test(scratch)
