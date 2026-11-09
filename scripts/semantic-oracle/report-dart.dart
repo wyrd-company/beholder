@@ -640,11 +640,17 @@ Future<void> main(List<String> arguments) async {
   var libraries = platformLibraries(target);
   var provided = platform == 'vm' ? null : libraries.keys.toSet();
   // The `dart.library.*` values the compiler gives a configurable directive: true
-  // for a library the target provides and lets a condition test.
+  // for a library the target provides and lets a condition test. The SDK's
+  // libraries specification drops internal (`_`) libraries, except that dart2js
+  // supports `_dart2js_only`, and dart2wasm disables `ffi` unless experimental
+  // FFI is on, which the report never turns on.
   var conditional = {
     for (var MapEntry(:key, :value) in libraries.entries)
       if (value['supported'] != false &&
-          value['support_conditional_import'] != false)
+          value['support_conditional_import'] != false &&
+          (!key.startsWith('_') ||
+              (target == 'dart2js' && key == '_dart2js_only')) &&
+          !(target == 'wasm' && key == 'ffi'))
         'dart.library.$key',
   };
 
@@ -759,7 +765,13 @@ Future<void> main(List<String> arguments) async {
               compilerChoice = i;
             }
           }
-          if (analyzerChoice != compilerChoice) {
+          // Two choices agree when they name the same library.
+          Uri selected(int? i) {
+            var literal = i == null ? directive.uri : configurations[i].uri;
+            return unit.uri.resolve(literal.stringValue ?? literal.toSource());
+          }
+
+          if (selected(analyzerChoice) != selected(compilerChoice)) {
             String chosen(int? i) => i == null
                 ? 'its default ${directive.uri.toSource()}'
                 : '`${configurations[i].toSource()}`';

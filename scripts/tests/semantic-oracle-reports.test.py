@@ -975,6 +975,30 @@ def dart_user_condition(tmp):
     assert "package:user/stub.dart::Stub" in found and "package:user/selected.dart::Selected" not in found, sorted(found)
 
 
+def dart_selection_rules(tmp):
+    """The compiler gives no internal library a conditional value, and dart2wasm
+    none to `ffi`; two configurations that name the same library agree."""
+    def project(name, pick):
+        root = os.path.join(tmp, f"dart-rules-{name}")
+        write(root, {
+            "pubspec.yaml": "name: rules\nenvironment:\n  sdk: '>=3.12.0 <4.0.0'\n",
+            "lib/stub.dart": "class Stub {}\n",
+            "lib/pick.dart": "class Pick {}\n",
+            "lib/choose.dart": pick,
+            "bin/main.dart": "import 'package:rules/choose.dart';\n\nvoid main() {}\n",
+        })
+        return root, os.path.join(tmp, f"dart-rules-{name}.json")
+    root, out = project("internal", "export 'stub.dart' if (dart.library._internal) 'pick.dart';\n")
+    failure(dart_command(root, out, "vm", "bin/main.dart", "vm", "--library-flag", "dart.library._internal"), root, out,
+            ["package:rules/choose.dart", "dart.library._internal", "dart compile kernel"])
+    root, out = project("wasm-ffi", "export 'stub.dart' if (dart.library.ffi) 'pick.dart';\n")
+    failure(dart_command(root, out, "wasm", "bin/main.dart", "wasm", "--library-flag", "dart.library.ffi"), root, out,
+            ["package:rules/choose.dart", "dart.library.ffi", "dart compile wasm"])
+    root, out = project("same", "export 'pick.dart' if (dart.library.io) 'pick.dart';\n")
+    _, found = run("dart-rules-same", dart_command(root, out, "vm", "bin/main.dart", "vm"), root, out)
+    assert "package:rules/pick.dart::Pick" in found, sorted(found)
+
+
 def dart_dependency_platform(tmp):
     """The platform check reads the packages a project depends on; members are
     reported for project libraries only."""
@@ -1158,7 +1182,8 @@ def main():
         rust_toolchain_selection(tmp)
         for test in (rust, rust_workspace, rust_build_failures, go, go_build_failure, python, typescript, typescript_build_failures, typescript_declaration_files, dart, dart_build_failure,
                      dart_dependency_platform, dart_dependency_errors, dart_dataset_agreement, dart_ignored_errors,
-                     dart_empty_condition, dart_first_match, dart_user_condition):
+                     dart_empty_condition, dart_first_match, dart_user_condition,
+                     dart_selection_rules):
             test(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
