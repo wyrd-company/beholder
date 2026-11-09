@@ -361,7 +361,9 @@ description: |
   that collides with a delegate's parameter name takes the name the compiler gives it. These
   compiler-supplied reference types are oblivious, as `object~`. `value` and `default` are the
   constant's value under the specification's constant expression rules. C# `default` is
-  written as the value it denotes for the type. A `decimal` is its exact decimal. An
+  written as the value it denotes for the type. Where the type is a type parameter, or `T?`
+  of one, that is not known to be a reference type or a nullable value type, it denotes no
+  single value and is written `default`. A `decimal` is its exact decimal. An
   author derives these from the C# language specification, and a Roslyn compile probe
   outside the tree confirms them.
 
